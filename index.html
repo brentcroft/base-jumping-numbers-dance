@@ -1,0 +1,328 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                width: 80%;
+            }
+
+            input { text-align: right }
+            input:disabled { background: lightyellow; }
+
+            div.resizable {
+                resize: both;
+                overflow: auto;
+            }
+
+            th.sort-asc::after { content: " \02C5"; }
+            th.sort-desc::after { content: " \02C4"; }
+
+            td.dottedBorder { border: 1px dotted; }
+
+            .summary { vertical-align: top; }
+            #controls tr { vertical-align: top; }
+            #results th,td,th { padding-left: 10px; padding-right: 10px; font-size: 60%; }
+
+            #harmonics tr { vertical-align: top; }
+            #harmonics td { text-align: center; }
+
+            .selected { border: dotted red 2px; background: Pink; }
+
+            table#chain-details tr.selected { background: Pink; }
+
+            #chain-details { width: 100%; }
+            #chain-details tr { vertical-align: top; }
+            #chain-details tr:nth-child(even) {background: Ivory;}
+            #chain-details tr:nth-child(odd) {background: WhiteSmoke;}
+
+            #svg { background: black; margin: 0; padding: 0; border: solid 1px; }
+
+            .numerator { border-bottom: 2px solid; text-align: center; }
+            .denominator { border-top: 0px solid; text-align: center; }
+
+        </style>
+        <script src="js/chains.js"></script>
+        <script src="js/factors.js"></script>
+        <script src="js/svg.js"></script>
+        <script src="js/ui.js"></script>
+
+        <script type="text/javascript" src="http://x3dom.org/download/dev/x3dom-full.js"></script>
+        <link rel="stylesheet" type="text/html" href="http://www.x3dom.org/download/dev/x3dom.css"/>
+
+        <script type="text/javascript" src="3d.js"></script>
+
+        <script>
+            function pageInit() {
+
+                setSvgViewBox( width, height );
+
+                var chainSystem = getCurrentChainSystem();
+
+                updateControls( chainSystem );
+                writePrimeFactors();
+                drawChains( chainSystem.chains, chainSystem );
+                writeChainTextLines( chainSystem.chains, chainSystem );
+                riffleChains( chainSystem.chains, chainSystem );
+            }
+
+            function clearPlotContainer(){
+                var plotContainer = document.getElementById('plotContainer');
+
+                var childNodes = plotContainer.childNodes;
+                for (var i = childNodes.length - 1; i >= 0; i-- ) {
+                    plotContainer.removeChild(childNodes[i]);
+                }
+
+                sleep( 100 );
+
+                //x3dom.reload();
+            }
+
+            function plotChainSystem() {
+
+                clearPlotContainer();
+
+                var chainSystem = getCurrentChainSystem();
+
+                var items = getChainSystemItems( chainSystem );
+
+                var plotContainer = document.getElementById('plotContainer');
+
+                //items.forEach( (item, index) => plotContainer.appendChild( item ) );
+
+                for ( var i = 0; i < items.length; i++ ) {
+                    var item = items[i];
+                    plotContainer.appendChild( item );
+                }
+
+                sleep( 100 );
+
+                //x3dom.reload();
+            }
+
+
+            function ripToBaseAndMult() {
+                var base = Number( document.getElementById( "base" ).value );
+                var mult = Number( document.getElementById( "mult" ).value );
+
+                var numSystems = 0;
+
+                for ( var i = 2; i < base; i++) {
+                    for ( var j = 2; j <= i; j++) {
+                        numSystems++;
+                        getChainSystem( i, j );
+                    }
+                }
+
+                plotSystems();
+            }
+        </script>
+    </head>
+    <body onload="pageInit()">
+        <table width="100%">
+            <tr>
+                <td class="summary">
+                    <table id="controls">
+                        <tr>
+                            <td colspan="2">
+                                <b>Number Chains</b>
+                                (<a href="theory.html">theory</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="base">Base:</label></td>
+                            <td><input
+                                    id="base"
+                                    name="base"
+                                    type="number"
+                                    min="2"
+                                    value="10"
+                                    onchange="pageInit()"
+                                    ondblclick="pageInit()"
+                            /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="mult">Mult:</label></td>
+                            <td><input
+                                    id="mult"
+                                   name="mult"
+                                   type="number"
+                                   min="2"
+                                   value="4"
+                                   onchange="pageInit()"
+                                   ondblclick="pageInit()"
+                            /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="p" title="The length of chain 1 (ignoring chain 0)."><b>p</b></label></td>
+                            <td>
+                                <input id="p" name="p" type="number" value="-1" disabled="disabled" title="The length of the chain 1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="n" title="The number of distinct chains"><b>n</b></label></td>
+                            <td>
+                                <input id="n" name="n" type="number" value="-1" disabled="disabled" title="The number of distinct chains"/>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td id="harmonics" class="dottedBorder" align="left" valign="top">
+                </td>
+                <td class="summary dottedBorder" align="center" width="100%">
+                    <table id="results" width="100%">
+                        <tr>
+                            <th>Expression</th>
+                            <th></th>
+                            <th>Calculation</th>
+                            <th></th>
+                            <th>Factors</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td align="center">( mb - 1 )</td>
+                            <td>=</td>
+                            <td align="center">
+                                <span id="bm1-text"></span>
+                            </td>
+                            <td>=</td>
+                            <td>
+                                <span id="bm1-pf"></span>
+                            </td>
+                            <td align="right">
+                                <input id="bm-1" type="text" value="-1" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <!-- -->
+                        <tr>
+                            <td align="center"><span class="numerator">( m<sup>p</sup> - 1 )</span><br/><span class="denominator">( mb - 1 )</span></td>
+                            <td>=</td>
+                            <td align="center">
+                                <span id="bm-text"></span>
+                            </td>
+                            <td>=</td>
+                            <td>
+                                <span id="bm-pf"></span>
+                            </td>
+                            <td align="right">
+                                <input id="bm" type="text" value="-1" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center"><span class="numerator">( b<sup>p</sup> - 1 )</span><br/><span class="denominator">( mb - 1 )</span></td>
+                            <td>=</td>
+                            <td align="center">
+                                <span id="mb-text"></span>
+                            </td>
+                            <td>=</td>
+                            <td>
+                                <span id="mb-pf"></span>
+                            </td>
+                            <td align="right">
+                                <input id="mb" type="text" value="-1" disabled="disabled"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <label for="autoPrimeFactors"><small>calculate factors</small></label>
+                    <input id="autoPrimeFactors" value="true" type="checkbox" checked="checked" onchange="writePrimeFactors()"/>
+                </td>
+            </tr>
+        </table>
+
+        <div>
+            <label for="svg-container-switcher">graphs</label>
+            <input id="svg-container-switcher" type="checkbox" onclick="showHide( 'svg-container' )"/>
+            <div id="svg-container" class="resizable" style="display: none">
+                <table id="options" width="100%">
+                    <tr>
+                        <td>
+                            <label for="autoDrawChains"><small>draw chains</small></label>
+                            <input id="autoDrawChains" type="checkbox" checked="checked" onchange="drawCurrentChainSystem()"/>
+                        </td>
+                        <td>
+                            <label for="autoRiffle"><small>riffle chains</small></label>
+                            <input id="autoRiffle" type="checkbox" checked="checked" onchange="riffleCurrentChainSystem()"/>
+                            <label for="riffleEvenOdd"><small>evenodd</small></label>
+                            <input id="riffleEvenOdd" type="checkbox" onchange="riffleCurrentChainSystem()"/>
+
+                            <label for="delay"><small>riffle delay</small></label>
+                            <input type="number" id="delay" value="100" min="10"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input
+                                    type="range"
+                                    min="0"
+                                    id="riffler"
+                                    onchange="riffleChain( this.value )"
+                                    oninput="riffleChain( this.value )"
+                                    value="0"
+                                    style="width: 100%;"/>
+
+                        </td>
+                    </tr>
+                </table>
+                <svg id="svg"></svg>
+            </div>
+        </div>
+        <div>
+            <label for="chains-switcher">chains</label>
+            <input id="chains-switcher" type="checkbox" onclick="showHide( 'chains' )"/>
+            <div id="chains" class="resizable" style="display: none">
+            </div>
+        </div>
+        <div>
+            <label for="chainSystems-switcher">chain systems</label>
+            <input id="chainSystems-switcher" type="checkbox" checked="checked" onclick="showHide( 'chainSystems' )"/>
+            <div id="chainSystems" class="resizable">
+                <table width="100%">
+                    <tr>
+                        <td>
+                            <input type="button" value="chains" title="Plot chain system" onclick="plotChainSystem()"/>
+                            <input type="button" value="clear" title="Clear Plot" onclick="clearPlotContainer()"/>
+                        </td>
+                        <td>
+                            <select id="modeSelect" onchange="document.getElementById('navType').setAttribute('type',this.value);">
+                                <option value="walk">Walk</option>
+                                <option value="examine" selected>Examine</option>
+                                <option value="fly">Fly</option>
+                                <option value="lookAt">Look at</option>
+                                <option value="game">Game</option>
+                            </select>
+                            <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    id="speed"
+                                    onchange="document.getElementById('navType').setAttribute('speed',this.value);"
+                                    value="1"/>
+                        </td>
+                        <td>
+                            Type "a" to set viewpoint showing all
+                            (<a href="https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html" target="_blank">navigation help</a>).
+                        </td>
+                    </tr>
+                </table>
+                <x3d id="plot" showStat="false" x="0px" y="0px" width="800px" height="500px">
+                    <scene>
+                        <navigationinfo
+                                type="examine"
+                                id="navType"
+                                headlight="true"
+                                typeparams="0.0 0.0 0.2 1.4"
+                                explorationmode="all"
+                                avatarsize="0.25,1.6,0.75"
+                                walkdamping="2"
+                                speed="1"
+                                transitiontime="1"
+                                transitiontype="LINEAR "></navigationinfo>
+                        <transform id="plotContainer" translation="0 0 0">
+                        </transform>
+                    </scene>
+                </x3d>
+            </div>
+        </div>
+    </body>
+</html>

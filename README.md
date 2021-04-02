@@ -1,2 +1,3 @@
 # base-jumping-numbers-dance
-Number chains
+
+E.g. see http://brentcroft.com/number-chains/

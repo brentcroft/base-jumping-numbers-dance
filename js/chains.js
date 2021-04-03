@@ -17,62 +17,57 @@ function getChainSystem( base, mult ) {
 //    }
 
     function coord_text() {
-        return "( " + this.coord.join(" | ") + " )";
+        return "( " + this.coord.join(", ") + " )";
     }
 
-    function id( i, j, b ){
-        return ( i * b ) + j;
-    }
+    const id = ( i, j ) => ( i * base ) + j;
+    const di = ( i, j ) => i + ( j * mult );
 
-    function di( i, j, m ){
-        return ( j * m ) + i;
-    }
+    const idx = [];
+    const dix = [];
 
-    var chains = [];
-
-    var bIndex = [];
-    var scratch = []
-
-    // build each item by iterating the coordinates
     for ( var i = 0; i < mult; i++) {
         for ( var j = 0; j < base; j++) {
 
-            var item = {
+            const gridPoint = {
                 coord: [ i, j ],
-                id: id( i, j, base ),
-                di: di( i, j, mult ),
+                id: id( i, j ),
+                di: di( i, j ),
                 toString: coord_text
             };
 
-            bIndex[ item.id ] = item;
-            scratch[ item.id ] = 1;
+            idx[ gridPoint.id ] = gridPoint;
+            dix[ gridPoint.di ] = gridPoint;
         }
     }
 
-    // build each chain by iterating (and scratching) the items
+    const chains = [];
+
+    // build each chain by iterating (and dixxing) the items
     for ( var i = 0; i < ( base * mult ); i++) {
-        if ( scratch[ i ] != 0 ) {
 
-            scratch[ i ] = 0;
-
-            var item = bIndex[ i ];
-
-            var coords = [];
-            var chain = {
-                index: i,
-                coords: coords
-            };
-
-            coords[ coords.length ] = item;
-
-            while ( item.di != i ) {
-                scratch[ item.di ] = 0;
-                item = bIndex[ item.di ];
-                coords[ coords.length ] = item;
-            }
-
-            chains[ chains.length ] = chain;
+        if ( dix[ i ] == -1 ) {
+            continue;
         }
+
+        dix[ i ] = -1;
+
+        var gridPoint = idx[ i ];
+
+        const chain = {
+            index: i,
+            coords: [ gridPoint ]
+        };
+
+        const coords = chain.coords;
+
+        while ( gridPoint.di != i ) {
+            dix[ gridPoint.di ] = -1;
+            gridPoint = idx[ gridPoint.di ];
+            coords[ coords.length ] = gridPoint;
+        }
+
+        chains[ chains.length ] = chain;
     }
 
 
@@ -117,7 +112,7 @@ function getChainSystem( base, mult ) {
         chain.getTableRow = function()
         {
             return {
-                "sum": `( ${ this.sum[0] } | ${ this.sum[1] } )`,
+                "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
                 "gcd": this.gcd,
                 "harmonic": this.harmonic,
                 "length": this.length,

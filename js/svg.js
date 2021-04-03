@@ -58,7 +58,7 @@ function getChainItem( index, chain, scales, color, strokeWidth = 1, fillRule ) 
                     "cx": ( coord[1] * scales[1] ),
                     "cy": ( coord[0] * scales[0] ),
                     "r": 3,
-                    "stroke": "white",
+                    "stroke": "black",
                     "stroke-width": strokeWidth,
                     "fill": color,
                     "id": "chain-" + index
@@ -97,7 +97,6 @@ function drawChains( chains, chainSystem ) {
 
     var scales = getScales( chainSystem.mult, chainSystem.base );
 
-    var matrix = document.getElementById( "matrix" );
     var autoDrawChains = document.getElementById( "autoDrawChains" );
     var svg = document.getElementById( "svg" );
 
@@ -107,17 +106,9 @@ function drawChains( chains, chainSystem ) {
 
         for ( var i = 0; i < chains.length; i++ ) {
 
-            var color = getColor( colorStep, i );
-
-            if ( matrix && i != 0 ) {
-                var newLocus = buildSVGItem( 'g', { "matrix": matrix.value } );
-                locus.appendChild( newLocus );
-                locus = newLocus;
-            }
-
             locus
                 .appendChild(
-                    getChainItem( i, chains[ i ], scales, color ) );
+                    getChainItem( i, chains[ i ], scales, getColor( colorStep, i ) ) );
         }
     }
 }

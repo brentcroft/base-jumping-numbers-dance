@@ -109,411 +109,531 @@
     </head>
     <body>
         <div>
-            <h2>Jumping Bases: Numbers Dance (The Conga)</h2>
-
-            <div>
-                Any two natural numbers greater than one, say \(b, m > 1\),
-                form the points of a two dimensional grid with coordinates  \( (i, j) \),
-                where \(  0 \le i < m \) and \( 0 \le j < b \).
-                <br/><br/>
-                For example, with \( b = 10, m = 4\), the  \( (i, j) \) are:
-                <svg id="svg_grid" viewBox="-10 -10 800 200" xmlns="http://www.w3.org/2000/svg">
-                    <style>
-                        .small { font: italic 10pt sans-serif; }
-                    </style>
-                </svg>
-
-                <script>
-                    drawGrid( );
-                </script>
-
-                Grid points can be mapped to a single contiguous dimension, an index, by two distinct functions,
-                such that the index values range from \( 0 \) to \( bm - 1 \):
-                <ol class="equation-list">
-                    <li>
-                        \( id(i, j) \implies bi + j \)
-                        <br/>
-                        <sub>Calculate the arguments as a number in base b
-                            <br/>
-                            (as we would naturally read the base 10 rows in the grid above).</sub>
-                        </li>
-                    <li>
-                        \( di(i, j) \implies mj + i \)
-                        <br/>
-                        <sub>Calculate the arguments <b>in reverse</b> as a number in base m
-                            <br/>
-                            (difficult to read the base 4 columns in the grid above, even allowing that the m digit sometimes gets overloaded).</sub></li>
-                </ol>
-
-                With these two functions, for any \(b, m > 1\), there can be two distinct indexes of the coordinates, \( idx \) and \( dix \), each of length \( bm \).
-                They both do the same job, either will suffice to tally off, or serialize, all the grid coordinates within a single iteration.
-                <br/>
-                <br/>
-                Each index provides an inverse of its generating function, returning a coordinate by looking up the (previously) indexed value.
-                <ul class="equation-list">
-                    <li>
-                        \( id^{-1}( bi + j ) \implies ( i, j ) \)
-                        <br/>
-                        <sub>Lookup the argument (i.e. the value of \( bi + j ) \) in \( idx \).</sub>
-                    </li>
-                    <li>
-                        \( di^{-1}( mj + i ) \implies (i, j) \)
-                        <br/>
-                        <sub>Lookup the argument (i.e. the value of \( mj + i ) \) in \( dix \).</sub>
-                    </li>
-                </ul>
-                A coordinate can also be calculated from an index value, but by using the index we avoid using division and remainder.
-                <br/>
-                <br/>
-
-                <h3>So what happens if we mash them up?</h3>
-
-                Specifically, using the position of a coordinate in \( dix \) to select a coordinate from \( idx \), introducing a \( twist \):
-                <ul class="equation-list">
-                    <li>\( twist( i, j ) = id^{-1}( di( i, j ) ) \)</li>
-                </ul>
-
-                Intuitively:
-                <ul class="equation-list">
-                    <li>Applying \( twist \) to any coordinate must either return the same coordinate,
-                        or jump to another coordinate in the grid.</li>
-                    <li>Continuing to \( twist \) from any coordinate must, eventually, return to the same coordinate.
-                        <br/>
-                        <sub>
-                            \( twist \) has an inverse \( twist^{-1} \), that jumps between coordinates in reverse.
-                            Starting from any coordinate, eventually (or immediately) \( twist \) and \( twist^{-1} \) must meet,
-                            there's only a limited number of grid coordinates available.
-                            Each coordinate in the grid has two ways in which to jump, there can't be a one-way coordinate.
-                            (Complementary Ouroboroi - not quite intuitive)
-                        </sub>
-                    </li>
-                </ul>
-
-                Repeated application of \( twist \) must group the coordinates into looping chains, where either:
-                <ul>
-                    <li>
-                        a chain contains more than one coordinate
-                        and can be rotated in either direction by applying \( twist \) or \( twist^{-1} \).
-                    </li>
-                    <li>
-                        a chain contains one coordinate, a singleton loop on it's own,
-                        and can be rotated in either direction,
-                        immediately back to itself,
-                        by applying \( twist \) or \( twist^{-1} \).
-                    </li>
-                </ul>
-
-                On inspection, for any choice of \( b \) and \( m \),
-                there are least two singleton chains and at least one non-singleton chain with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent, since:
-                <ul class="equation-list">
-                    <li>
-                        \( ( 0, 0 ) = twist( 0, 0 ) \)
-                    </li>
-                    <li>
-                        \( ( m-1, b-1 ) = twist( m-1, b-1 ) \)
-                    </li>
-                    <li>
-                        \( (0, 1) = twist(1, 0) \)
-                    </li>
-                </ul>
-
-                So we can improve on the bounds above, and in particular say that:
-                <ul>
-                    <li>
-                        The maximum possible chain length is \( mb - 2 \).
-                    </li>
-                </ul>
+            <h1>Jumping Bases: Numbers Dance</h1>
 
 
-                <hr class="pagebreak"/>
-                <h2>Sample Chains</h2>
+            Any two natural numbers greater than one, say \(b, m > 1\),
+            form the points of a two dimensional grid with coordinates \( (i, j) \),
+            where \(  0 \le i < m \) and \( 0 \le j < b \).
+            <br/><br/>
+            For example, with \( b = 10, m = 4\), the coordinates \( (i, j) \) are:
+            <svg id="svg_grid" viewBox="-10 -10 800 200" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    .small { font: italic 10pt sans-serif; }
+                </style>
+            </svg>
 
-                With \( b = 10, m = 2\), there are only three chains, and the longest chain, with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent, has length 18:
-                <br/>
-                <br/>
-                <table class="chain-details">
-                    <tr><td>( 0, 0 )</td></tr>
-                    <tr><td>( 0 , 1 ), ( 0 , 2 ), ( 0 , 4 ), ( 0 , 8 ), ( 1 , 6 ), ( 1 , 3 ), ( 0 , 7 ), ( 1 , 4 ), ( 0 , 9 ), ( 1 , 8 ), ( 1 , 7 ), ( 1 , 5 ), ( 1 , 1 ), ( 0 , 3 ), ( 0 , 6 ), ( 1 , 2 ), ( 0 , 5 ), ( 1 , 0 )</td></tr>
-                    <tr><td>( 1, 9 )</td></tr>
-                </table>
-                <br/>
+            <script>
+                drawGrid( );
+            </script>
 
-                Interestingly:
-                <ul class="equation-list">
-                    <li>\( ( 10^{18} - 1 ) = 52631578947368421_{base 10} = (3^{3} . 7 . 19 . 73 ) \)
-                        <br/>
-                        <sub>
-                            Note that reading just the "j" digit, from each coordinate in the chain containing \( ( 0, 1 ) \), backwards, produces "052631578947368421".
-                        </sub>
-                    </li>
-                    <li>
-                        \( ( 2^{18} - 1 ) = 13797_{base 10} = (2^{5} . 19 . 173 . 184199 . 51613469 ) \)
-                        <br/>
-                        <sub>
-                            Note that reading just the "i" digit, from each coordinate in the chain containing \( ( 0, 1 ) \), forwards, produces "000011010111100101"
-                            which read as a base 2 number is 13797 in base 10.
-                        </sub>
-                    </li>
-                </ul>
+            What follows is a demonstration that, for any choice of two natural numbers greater than unity, say \( b, m > 1 \),
+            there are three corresponding natural numbers: \( p, C, D \),
+            that orchestrate visually (and perhaps aurally) appealing harmonic resonances in a chain system,
+            such that:
 
+            <ul class="equation-list">
+                <li>\( p < (mb - 1) \)</li>
+                <li>\( C = \frac { m^{p} - 1 } { (mb - 1)} \)</li>
+                <li>\( D = \frac { b^{p} - 1 } { (mb - 1)} \)</li>
+            </ul>
 
-                The simplest chain system has \( b = 2, m = 2\), and the chains are:
-                <br/>
-                <br/>
-                <table class="chain-details">
-                    <tr><td>( 0, 0 )</td></tr>
-                    <tr><td>( 0, 1 ), ( 1, 0 )</td></tr>
-                    <tr><td>( 1, 1 )</td></tr>
-                </table>
+            <h3>Executive Summary</h3>
+            Each and every chain system manifests as a distinct, super-symmetric, balanced, gearbox,
+            where every gear has both a counter rotating partner and an inverse (perhaps itself).
+            <br/>
+            <br/>
+            For example, the chain system with \( b = 10, m = 4 \) has the following chains and grid plot:
+            <br/>
+            <br/>
+            <table class="chain-details">
+                <tr>
+                    <th>Digit Sum Coord</th>
+                    <th>GCD</th>
+                    <th>Harmonic</th>
+                    <th>Weight</th>
+                    <th>Chain</th>
+                </tr>
+                <tr><td align="center">( 0, 0 )</td><td align="center">0</td><td align="center">1 / 6</td><td align="center">0</td><td>( 0, 0 )</td></tr>
+                <tr><td align="center">( 6, 18 )</td><td align="center">6</td><td align="center">6 / 1</td><td align="center">1 / 3</td><td>( 0, 1 ), ( 0, 4 ), ( 1, 6 ), ( 2, 5 ), ( 2, 2 ), ( 1, 0 )</td></tr>
+                <tr><td align="center">( 6, 18 )</td><td align="center">6</td><td align="center">6 / 1</td><td align="center">1 / 3</td><td>( 0, 2 ), ( 0, 8 ), ( 3, 2 ), ( 1, 1 ), ( 0, 5 ), ( 2, 0 )</td></tr>
+                <tr><td align="center">( 6, 18 )</td><td align="center">6</td><td align="center">1 / 6</td><td align="center">1 / 3</td><td>( 1, 3 )</td></tr>
+                <tr><td align="center">( 9, 27 )</td><td align="center">9</td><td align="center">6 / 1</td><td align="center">1 / 2</td><td>( 0, 3 ), ( 1, 2 ), ( 0, 9 ), ( 3, 6 ), ( 2, 7 ), ( 3, 0 )</td>
+                <tr><td align="center">( 9, 27 )</td><td align="center">9</td><td align="center">6 / 1</td><td align="center">1 / 2</td><td>( 0, 6 ), ( 2, 4 ), ( 1, 8 ), ( 3, 3 ), ( 1, 5 ), ( 2, 1 )</td></tr>
+                <tr><td align="center">( 12, 36 )</td><td align="center">12</td><td align="center">6 / 1</td><td align="center">2 / 3</td><td>( 0, 7 ), ( 2, 8 ), ( 3, 4 ), ( 1, 9 ), ( 3, 7 ), ( 3, 1 )</td></tr>
+                <tr><td align="center">( 12, 36 )</td><td align="center">12</td><td align="center">6 / 1</td><td align="center">2 / 3</td><td>( 1, 4 ), ( 1, 7 ), ( 2, 9 ), ( 3, 8 ), ( 3, 5 ), ( 2, 3 )</td></tr>
+                <tr><td align="center">( 12, 36 )</td><td align="center">12</td><td align="center">1 / 6</td><td align="center">2 / 3</td><td>( 2, 6 )</td></tr>
+                <tr><td align="center">( 18, 54 )</td><td align="center">18</td><td align="center">1 / 6</td><td align="center">1</td><td>( 3, 9 )</td></tr>
+            </table>
+            <br/>
+            <br/>
+            <img src="img/flat-chains.10x4.png"/>
 
-                <br/>
-                <br/>
-
-                With \( b = 10, m = 4\), as per the diagram above, the chains are:
-                <br/>
-                <br/>
-                <table class="chain-details">
-                    <tr><td>( 0, 0 )</td></tr>
-                    <tr><td>( 0, 1 ), ( 0, 4 ), ( 1, 6 ), ( 2, 5 ), ( 2, 2 ), ( 1, 0 )</td></tr>
-                    <tr><td>( 0, 2 ), ( 0, 8 ), ( 3, 2 ), ( 1, 1 ), ( 0, 5 ), ( 2, 0 )</td></tr>
-                    <tr><td>( 0, 3 ), ( 1, 2 ), ( 0, 9 ), ( 3, 6 ), ( 2, 7 ), ( 3, 0 )</td></tr>
-                    <tr><td>( 0, 6 ), ( 2, 4 ), ( 1, 8 ), ( 3, 3 ), ( 1, 5 ), ( 2, 1 )</td></tr>
-                    <tr><td>( 0, 7 ), ( 2, 8 ), ( 3, 4 ), ( 1, 9 ), ( 3, 7 ), ( 3, 1 )</td></tr>
-                    <tr><td>( 1, 3 )</td></tr>
-                    <tr><td>( 1, 4 ), ( 1, 7 ), ( 2, 9 ), ( 3, 8 ), ( 3, 5 ), ( 2, 3 )</td></tr>
-                    <tr><td>( 2, 6 )</td></tr>
-                    <tr><td>( 3, 9 )</td></tr>
-                </table>
-                <br/>
-                <br/>
-
-
-            </div>
             <hr class="pagebreak"/>
-            <div>
-                <h2>Chain Equation System</h2>
+            <!--
 
-                The maximum possible chain length is \(bm-2\).
-                <br/>
-                <br/>
-                From any starting point \((i_0, j_0)\),
-                applying the \(twist(i, j)\) function successively,
-                \(p\) times,
-                where \(p\) is the length of the chain from the starting point until it repeats,
-                produces the equation system:
-                <br/>
-                <br/>
 
-                \begin{align*}
-                bi_0+j_0& = bi_p+j_p\\
-                bi_1+j_1& = i_{0}+mj_{0}\\
-                bi_2+j_2& = i_{1}+mj_{1}\\
-                bi_3+j_3& = i_{2}+mj_{2}\\
-                & ... \\
-                bi_{p-1}+j_{p-1}& = i_{p-2}+mj_{p-2}\\
-                bi_p+j_p& = i_{p-1}+mj_{p-1}
-                \end{align*}
+
+
+            -->
+            <h2>Base Jumping</h2>
+
+
+            Grid point coordinates can be mapped
+            to a single contiguous dimension
+            in the range from \( 0 \) to \( bm - 1 \)
+            by two distinct functions:
+            <ol class="equation-list">
+                <li>
+                    \( id(i, j) \to bi + j \)
+                    <br/>
+                    <sub>Calculate the arguments as a number in base b.</sub>
+                    </li>
+                <li>
+                    \( di(i, j) \to mj + i \)
+                    <br/>
+                    <sub>Calculate the arguments <b>in reverse</b> as a number in base m.</sub></li>
+            </ol>
+
+            With these two functions, for any \(b, m > 1\), we can create two arrays of coordinates, \( idx \) and \( dix \), each of length \( bm \).
+            <ul>
+                <li>Each coordinate is indexed: by \( id( i, j ) \) in \( idx \), and by \( di( i, j ) \) in \( dix \).</li>
+                <li>They both do the same job, either will suffice to tally off, or serialize, all the grid coordinates within a single iteration.
                 <br/>
+                    They just follow different routes to span the grid coordinates.</li>
+            </ul>
+            For example, in javascript, for some \(b, m \), we might have:
+            <pre>
+    const id = ( i, j ) => ( b * i ) + j;
+    const di = ( i, j ) => ( m * j ) + i;
 
-            </div>
-            <hr/>
-            <div>
-                The sum of coordinate digits in each chain is in constant proportion:
+    const idx = [];
+    const dix = [];
 
-                \begin{align}
-                \sum_{k=0}^{p-1} i_k(b-1)& = \sum_{k=0}^{p-1} j_k(m-1) \\
-                \end{align}
-                <br/>
-            </div>
-            <hr/>
-            <div>
-                Construct identity ladder resolving for j:
-                <br/><br/>
+    for ( var i = 0; i < m; i++) {
+        for ( var j = 0; j < b; j++) {
 
-                \begin{align*}
-                j_1 &= i_0 - bi_1 + mj_0 \\
-                j_2 &= i_1 - bi_2 + mj_1 \\
-                j_3 &= i_2 - bi_3 + mj_2 \\
-                j_4 &= i_3 - bi_4 + mj_3 \\
-                &... \\
-                j_{p-1} &= i_{p-2} - bi_{p-1} + mj_{p-2} \\
-                j_0 &= i_{p-1} - bi_0 + mj_{p-1}
-                \end{align*}
-            </div>
+            const gridPoint = {
+                coord: [ i, j ],
+                id: id( i, j ),
+                di: di( i, j )
+            };
+
+            idx[ gridPoint.id ] = gridPoint;
+            dix[ gridPoint.di ] = gridPoint;
+        }
+    }
+            </pre>
+            Both \( idx \) and \( dix \) each implement an inverse of their respective generating function by returning the coordinate at each index value.
+            <ul class="equation-list">
+                <li>
+                    \( id^{-1}( bi + j ) \to ( i, j ) \)
+                    <br/>
+                    <sub>Lookup the argument (i.e. the value of \( bi + j ) \) in \( idx \).</sub>
+                </li>
+                <li>
+                    \( di^{-1}( mj + i ) \to (i, j) \)
+                    <br/>
+                    <sub>Lookup the argument (i.e. the value of \( mj + i ) \) in \( dix \).</sub>
+                </li>
+            </ul>
+            By using an index we avoid doing any division or subtraction
+            even though a coordinate can be calculated from an index value using \( \operatorname{div} \) and \( \bmod \),
+            for example:
+            <ul class="equation-list">
+                <li>\( id_{-1}( k ) \to ( k \operatorname{div} b, k \bmod b ) \)</li>
+                <li>\( di_{-1}( k ) \to ( k \bmod m, k \operatorname{div} m ) \)</li>
+            </ul>
+
+            <!--
+
+
+
+            -->
+            <h3>Index Weaving</h3>
+
+            Specifically, calculating the position of a coordinate in \( dix \)
+            and then using the result to select a coordinate from \( idx \),
+            thereby introducing a \( twist \):
+            <ul class="equation-list">
+                <li>\( twist( i, j ) = id^{-1}( di( i, j ) ) \)</li>
+            </ul>
+
+            Intuitively:
+            <ul class="equation-list">
+                <li>Applying \( twist \) to any coordinate must either return the same coordinate,
+                    or jump to another coordinate in the grid.</li>
+                <li>Applying \( twist \) successively,
+                    starting from any coordinate,
+                    and for each coordinate encountered,
+                    must eventually, or immediately,
+                    return to the starting coordinate.
+                    <br/>
+                    <sub>
+                        \( twist \) has an inverse \( twist^{-1} \), that jumps between coordinates in reverse.
+                        Starting from any coordinate, eventually (or immediately) \( twist \) and \( twist^{-1} \) must meet,
+                        there's only a limited number of grid coordinates available.
+                        Each coordinate in the grid has two ways in which to jump, there can't be a one-way coordinate.
+                        (Complementary Ouroboroi - not quite intuitive)
+                    </sub>
+                </li>
+            </ul>
+
+            Repeated application of \( twist \) must group the coordinates into looping chains, where either:
+            <ul>
+                <li>
+                    a chain contains more than one coordinate
+                    and can be rotated in either direction by applying \( twist \) or \( twist^{-1} \).
+                </li>
+                <li>
+                    a chain contains one coordinate, a singleton loop on it's own,
+                    and can be rotated in either direction,
+                    immediately back to itself,
+                    by applying \( twist \) or \( twist^{-1} \).
+                </li>
+            </ul>
+            <!--
+
+
+
+            -->
+            <h3>Chain System Features</h3>
+
+            By inspection, for any choice of \( b \) and \( m \),
+            there are always at least two singleton chains
+            and at least one non-singleton chain with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent,
+            since:
+            <ul class="equation-list">
+                <li>
+                    \( twist( 0, 0 ) = ( 0, 0 ) \)
+                </li>
+                <li>
+                    \( twist( m-1, b-1 ) = ( m-1, b-1 ) \)
+                </li>
+                <li>
+                    \( twist( 1, 0 ) = ( 0, 1 ) \)
+                </li>
+            </ul>
+            We can find all the chains, given a choice of \( b \) and \( m \), by iterating over one index, and tallying off with the other.
+            <br/>
+            <br/>
+            For example, continuing the previous javascript example, we might have:
+            <pre>
+    const chains = [];
+
+    for ( var i = 0; i < ( b * m ); i++) {
+
+        if ( dix[ i ] == -1 ) {
+            continue;
+        }
+
+        dix[ i ] = -1;
+
+        var gridPoint = idx[ i ];
+
+        const chain = {
+            index: i,
+            coords: [ gridPoint ]
+        };
+
+        const coords = chain.coords;
+
+        while ( gridPoint.di != i ) {
+            dix[ gridPoint.di ] = -1;
+            gridPoint = idx[ gridPoint.di ];
+            coords[ coords.length ] = gridPoint;
+        }
+
+        chains[ chains.length ] = chain;
+    }
+            </pre>
+
+            With a bit more code, we can generate tables and plot chains on grids.
+            <br/>
+
             <hr class="pagebreak"/>
-            <div>
-                Build out 1:
-                <br/><br/>
 
-                \begin{align*}
-                j_1 &= i_{0} - bi_1 + mj_{0} \\
-                \end{align*}
+            <h2>Sample Chain Systems</h2>
 
-                <br/><br/>
-            </div>
-            <div>
-                Build out 2:
-                <br/><br/>
+            With \( b = 10, m = 2\), there are only three chains, and the longest chain, with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent, has length 18:
+            <br/>
+            <br/>
+            <table class="chain-details">
+                <tr><td>( 0, 0 )</td></tr>
+                <tr><td>( 0 , 1 ), ( 0 , 2 ), ( 0 , 4 ), ( 0 , 8 ), ( 1 , 6 ), ( 1 , 3 ), ( 0 , 7 ), ( 1 , 4 ), ( 0 , 9 ), ( 1 , 8 ), ( 1 , 7 ), ( 1 , 5 ), ( 1 , 1 ), ( 0 , 3 ), ( 0 , 6 ), ( 1 , 2 ), ( 0 , 5 ), ( 1 , 0 )</td></tr>
+                <tr><td>( 1, 9 )</td></tr>
+            </table>
+            <br/>
 
-                \begin{align*}
-                j_2 &= i_1 - bi_2 + mj_1 \\
-                j_2 &= i_1 - bi_2 + m(i_0 - bi_1 + mj_0) \\
-                j_2 &= i_1 - bi_2 + mi_0 - mbi_1 + m^2j_0 \\
-                j_2 &= (1-mb)i_1 - bi_2 + mi_0 + m^2j_0
-                \end{align*}
+            Interestingly:
+            <ul class="equation-list">
+                <li>\( \frac { ( 10^{18} - 1 ) } { 19 } = 52631578947368421_{base 10} = (3^{3} . 7 . 73 ) \)
+                    <br/>
+                    <sub>
+                        Note that reading just the "j" digit, from each coordinate in the chain containing \( ( 0, 1 ) \), backwards, produces "052631578947368421".
+                    </sub>
+                </li>
+                <li>
+                    \( \frac { ( 2^{18} - 1 ) } { 19 } = 13797_{base 10} = (2^{5} . 173 . 184199 . 51613469 ) \)
+                    <br/>
+                    <sub>
+                        Note that reading just the "i" digit, from each coordinate in the chain containing \( ( 0, 1 ) \), forwards, produces "000011010111100101"
+                        which read as a base 2 number is 13797 in base 10.
+                    </sub>
+                </li>
+            </ul>
 
-                <br/><br/>
-            </div>
-            <div>
-                Build out 3:
-                <br/><br/>
 
-                \begin{align*}
-                j_3 &= i_2 - bi_3 + mj_2 \\
-                j_3 &= i_2 - bi_3 + m((1-mb)i_1 - bi_2 + mi_0 + m^2j_0) \\
-                j_3 &= i_2 - bi_3 + m(1-mb)i_1 - mbi_2 + m^2i_0 + m^3j_0 \\
-                j_3 &= (1-mb)i_2 + m(1-mb)i_1 - bi_3 + m^2i_0 + m^3j_0
-                \end{align*}
+            The simplest chain system has \( b = 2, m = 2\), and the chains are:
+            <br/>
+            <br/>
+            <table class="chain-details">
+                <tr><td>( 0, 0 )</td></tr>
+                <tr><td>( 0, 1 ), ( 1, 0 )</td></tr>
+                <tr><td>( 1, 1 )</td></tr>
+            </table>
 
-                <br/><br/>
-            </div>
-            <div>
-                Build out 4:
-                <br/><br/>
+            <br/>
+            <br/>
 
-                \begin{align*}
-                j_4 &= i_3 - bi_4 + mj_3 \\
-                j_4 &= i_3 - bi_4 + m((1-mb)i_2 + m(1-mb)i_1 - bi_3 + m^2i_0 + m^3j_0) \\
-                j_4 &= i_3 - bi_4 + m(1-mb)i_2 + m^2(1-mb)i_1 - mbi_3 + m^3i_0 + m^4j_0 \\
-                j_4 &= (1-mb)i_3  + m(1-mb)i_2 + m^2(1-mb)i_1 -bi_4 + m^3i_0 + m^4j_0
-                \end{align*}
+            With \( b = 10, m = 4\), as per the grid above, the chains are:
+            <br/>
+            <br/>
+            <table class="chain-details">
+                <tr><td>( 0, 0 )</td></tr>
+                <tr><td>( 0, 1 ), ( 0, 4 ), ( 1, 6 ), ( 2, 5 ), ( 2, 2 ), ( 1, 0 )</td></tr>
+                <tr><td>( 0, 2 ), ( 0, 8 ), ( 3, 2 ), ( 1, 1 ), ( 0, 5 ), ( 2, 0 )</td></tr>
+                <tr><td>( 0, 3 ), ( 1, 2 ), ( 0, 9 ), ( 3, 6 ), ( 2, 7 ), ( 3, 0 )</td></tr>
+                <tr><td>( 0, 6 ), ( 2, 4 ), ( 1, 8 ), ( 3, 3 ), ( 1, 5 ), ( 2, 1 )</td></tr>
+                <tr><td>( 0, 7 ), ( 2, 8 ), ( 3, 4 ), ( 1, 9 ), ( 3, 7 ), ( 3, 1 )</td></tr>
+                <tr><td>( 1, 3 )</td></tr>
+                <tr><td>( 1, 4 ), ( 1, 7 ), ( 2, 9 ), ( 3, 8 ), ( 3, 5 ), ( 2, 3 )</td></tr>
+                <tr><td>( 2, 6 )</td></tr>
+                <tr><td>( 3, 9 )</td></tr>
+            </table>
+            <br/>
+            <br/>
 
-                <br/><br/>
-            </div>
-            <div>
-                Build out 5:
-                <br/><br/>
 
-                \begin{align*}
-                j_5 &= i_4 - bi_5 + mj_4 \\
-                j_5 &= i_4 - bi_5 + m((1-mb)i_3  + m(1-mb)i_2 + m^2(1-mb)i_1 - bi_4 + m^3i_0 + m^4j_0) \\
-                j_5 &= i_4 - bi_5 + m(1-mb)i_3  + m^2(1-mb)i_2 + m^3(1-mb)i_1 - mbi_4 + m^4i_0 + m^5j_0) \\
-                j_5 &= (1 - mb)i_4 + m(1-mb)i_3  + m^2(1-mb)i_2 + m^3(1-mb)i_1 - bi_5 + m^4i_0 + m^5j_0) \\
-                j_5 &= (1 - mb)\sum_{k=0}^{5-2} m^{5-k-1}i_k - bi_5 + m^4i_0 + m^5j_0 \\
-                \end{align*}
-
-                <br/><br/>
-            </div>
-            <hr class="pagebreak"/>
-            <div>
-                Generalize for <code>n</code> and substitute for <code>j<sub>0</sub></code>, then re-assemble:
-
-                \begin{align*}
-                j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^nj_0 \\
-                j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^n(i_{n-1} - bi_0 + mj_{n-1}) \\
-                j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^ni_{n-1} - m^nbi_0 + m^{n+1}j_{n-1} \\
-                j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}(1 - mb)i_0 + m^n(i_{n-1} + mj_{n-1}) \\
-                \end{align*}
-
-                \begin{align*}
-                (mb-1)\sum_{k=0}^{n-2} m^{n-k-1}i_k - (mb - 1)m^{n-1}i_0 &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
-                (mb-1)\sum_{k=0}^{n-1} m^{n-k-1}i_k &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
-                \end{align*}
-
-                \begin{align}
-                \sum_{k=0}^{n-1} m^{n-k-1}i_k &= { m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \over (mb-1) }
-                \end{align}
-            </div>
-            <hr/>
-            <div>
-                Complete the chain: set <code>n = p</code>,
-                and then substitute
-                for <code>i<sub>p-1</sub> + mj<sub>p-1</sub></code>
-                and <code>bi<sub>p</sub> + j<sub>p</sub></code>:
-
-                \begin{align*}
-                \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_p + j_p) \over (mb-1) } \\
-                \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(bi_0 + j_0) - (bi_0 + j_0) \over (mb-1) } \\
-                \end{align*}
-            </div>
-            <hr/>
-            <div>
-                Since the choice of <code>(i<sub>0</sub>, j<sub>0</sub>)</code> is arbitrary,
-                this is true for any choice:
-
-                \begin{align}
-                \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi_0 + j_0){ (m^p - 1) \over (mb-1) } \\
-                \end{align}
-            </div>
-            <hr class="pagebreak"/>
-            <div>
-                Identify two characteristic constants:
-                \begin{align}
-                C &= { (m^p - 1) \over (mb-1) },& D &= { (b^p - 1) \over (mb-1) } \\
-                \end{align}
-
-                <br/>
-
-                <b>Rotation right:</b>
-                choose any <code>(i, j)</code>,
-                follow the chain for <code>p</code> steps,
-                collect the <code>i</code> values in sequence.<br/>
-
-                <br/>
-
-                \begin{align}
-                \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi + j)C \\
-                \end{align}
-
-                <br/>
-
-                <b>Rotation left:</b>
-                choose any <code>(i, j)</code>,
-                follow the chain in reverse for <code>p</code> steps,
-                collect the <code>j</code> values in sequence.<br/>
-
-                <br/>
-
-                \begin{align}
-                \sum_{k=0}^{p-1} b^kj_{p-k-1} &= (i + mj)D \\
-                \end{align}
-            </div>
-            <hr/>
-            <div>
-                For all b,m the chain from <code>(0,1)</code> has:
-
-                \begin{align*}
-                    i_0 &= 0,& j_0 &= 1 \\
-                    i_{p-1} &= 1,& j_{p-1} &= 0 \\
-                \end{align*}
-
-                The sequence of <code>i</code> values, from (0,1), interpreted as a number in base <code>m</code>
-                is equal to <code>C</code>.
-
-                \begin{align}
-                1 + \sum_{k=1}^{p-2} m^{p-k-2}i_k &= { m^p - 1 \over mb - 1 } &= C \\
-                \end{align}
-                <br/>
-
-                The sequence of <code>j</code> values, in reverse from (1,0), interpreted as a number in base <code>b</code>
-                is equal to <code>D</code>:
-
-                \begin{align}
-                1 + \sum_{k=1}^{p-2} b^{k-1}j_{p-k-2} &= { b^p - 1 \over mb - 1 } &= D \\
-                \end{align}
-            </div>
-            <hr/>
-            <div>
-                For all b & m, chain <code>(m-1,b-1)</code>, as expected, has:
-
-                \begin{align*}
-                i &= m-1  \\
-                j &= b-1 \\
-                \sum_{k=0}^{p-1} m^k(m-1) &= (mb - 1 )C \\
-                \sum_{k=0}^{p-1} m^k(m-1) &= m^p - 1 \\
-                \end{align*}
-            </div>
-            <hr/>
         </div>
+        <hr class="pagebreak"/>
+        <h2>Chain System Algebra</h2>
+
+        A circular system of \( p \) independent equations,
+        where \( p < (mb - 1) \),
+        can be constructed starting from any coordinate \((i_0, j_0)\)
+        and applying \( twist \) successively \( p \) times
+        until the starting coordinate recurs,
+        i.e. \( (i_0, j_0) = (i_p, j_p) \):
+        <br/>
+
+        \begin{align*}
+        bi_1+j_1 &= i_{0}+mj_{0}\\
+        bi_2+j_2 &= i_{1}+mj_{1}\\
+        & ... \\
+        bi_{p-1}+j_{p-1} &= i_{p-2}+mj_{p-2}\\
+        bi_0+j_0 &= i_{p-1}+mj_{p-1}
+        \end{align*}
+        <br/>
+
+        <hr/>
+        <div>
+            The sum of coordinate digits in each chain is in constant proportion:
+
+            \begin{align}
+            \sum_{k=0}^{p-1} i_k(b-1)& = \sum_{k=0}^{p-1} j_k(m-1) \\
+            \end{align}
+            <br/>
+        </div>
+        <hr/>
+
+        <div>
+            Construct identity ladder resolving for j:
+            <br/><br/>
+
+            \begin{align*}
+            j_1 &= i_0 - bi_1 + mj_0 \\
+            j_2 &= i_1 - bi_2 + mj_1 \\
+            j_3 &= i_2 - bi_3 + mj_2 \\
+            j_4 &= i_3 - bi_4 + mj_3 \\
+            &... \\
+            j_{p-1} &= i_{p-2} - bi_{p-1} + mj_{p-2} \\
+            j_0 &= i_{p-1} - bi_0 + mj_{p-1}
+            \end{align*}
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Build out 1:
+            <br/><br/>
+
+            \begin{align*}
+            j_1 &= i_{0} - bi_1 + mj_{0} \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 2:
+            <br/><br/>
+
+            \begin{align*}
+            j_2 &= i_1 - bi_2 + mj_1 \\
+            j_2 &= i_1 - bi_2 + m(i_0 - bi_1 + mj_0) \\
+            j_2 &= i_1 - bi_2 + mi_0 - mbi_1 + m^2j_0 \\
+            j_2 &= (1-mb)i_1 - bi_2 + mi_0 + m^2j_0
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 3:
+            <br/><br/>
+
+            \begin{align*}
+            j_3 &= i_2 - bi_3 + mj_2 \\
+            j_3 &= i_2 - bi_3 + m((1-mb)i_1 - bi_2 + mi_0 + m^2j_0) \\
+            j_3 &= i_2 - bi_3 + m(1-mb)i_1 - mbi_2 + m^2i_0 + m^3j_0 \\
+            j_3 &= (1-mb)i_2 + m(1-mb)i_1 - bi_3 + m^2i_0 + m^3j_0
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 4:
+            <br/><br/>
+
+            \begin{align*}
+            j_4 &= i_3 - bi_4 + mj_3 \\
+            j_4 &= i_3 - bi_4 + m((1-mb)i_2 + m(1-mb)i_1 - bi_3 + m^2i_0 + m^3j_0) \\
+            j_4 &= i_3 - bi_4 + m(1-mb)i_2 + m^2(1-mb)i_1 - mbi_3 + m^3i_0 + m^4j_0 \\
+            j_4 &= (1-mb)i_3  + m(1-mb)i_2 + m^2(1-mb)i_1 -bi_4 + m^3i_0 + m^4j_0
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 5:
+            <br/><br/>
+
+            \begin{align*}
+            j_5 &= i_4 - bi_5 + mj_4 \\
+            j_5 &= i_4 - bi_5 + m((1-mb)i_3  + m(1-mb)i_2 + m^2(1-mb)i_1 - bi_4 + m^3i_0 + m^4j_0) \\
+            j_5 &= i_4 - bi_5 + m(1-mb)i_3  + m^2(1-mb)i_2 + m^3(1-mb)i_1 - mbi_4 + m^4i_0 + m^5j_0) \\
+            j_5 &= (1 - mb)i_4 + m(1-mb)i_3  + m^2(1-mb)i_2 + m^3(1-mb)i_1 - bi_5 + m^4i_0 + m^5j_0) \\
+            j_5 &= (1 - mb)\sum_{k=0}^{5-2} m^{5-k-1}i_k - bi_5 + m^4i_0 + m^5j_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Generalize for <code>n</code> and substitute for <code>j<sub>0</sub></code>, then re-assemble:
+
+            \begin{align*}
+            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^nj_0 \\
+            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^n(i_{n-1} - bi_0 + mj_{n-1}) \\
+            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^ni_{n-1} - m^nbi_0 + m^{n+1}j_{n-1} \\
+            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}(1 - mb)i_0 + m^n(i_{n-1} + mj_{n-1}) \\
+            \end{align*}
+
+            \begin{align*}
+            (mb-1)\sum_{k=0}^{n-2} m^{n-k-1}i_k - (mb - 1)m^{n-1}i_0 &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
+            (mb-1)\sum_{k=0}^{n-1} m^{n-k-1}i_k &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
+            \end{align*}
+
+            \begin{align}
+            \sum_{k=0}^{n-1} m^{n-k-1}i_k &= { m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \over (mb-1) }
+            \end{align}
+        </div>
+        <hr/>
+        <div>
+            Complete the chain: set <code>n = p</code>,
+            and then substitute
+            for <code>i<sub>p-1</sub> + mj<sub>p-1</sub></code>
+            and <code>bi<sub>p</sub> + j<sub>p</sub></code>:
+
+            \begin{align*}
+            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_p + j_p) \over (mb-1) } \\
+            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(bi_0 + j_0) - (bi_0 + j_0) \over (mb-1) } \\
+            \end{align*}
+        </div>
+        <hr/>
+        <div>
+            Since the choice of <code>(i<sub>0</sub>, j<sub>0</sub>)</code> is arbitrary,
+            this is true for any choice:
+
+            \begin{align}
+            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi_0 + j_0){ (m^p - 1) \over (mb-1) } \\
+            \end{align}
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Identify two characteristic constants:
+            \begin{align}
+            C &= { (m^p - 1) \over (mb-1) },& D &= { (b^p - 1) \over (mb-1) } \\
+            \end{align}
+
+            <br/>
+
+            <b>Rotation right:</b>
+            choose any <code>(i, j)</code>,
+            follow the chain for <code>p</code> steps,
+            collect the <code>i</code> values in sequence.<br/>
+
+            <br/>
+
+            \begin{align}
+            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi + j)C \\
+            \end{align}
+
+            <br/>
+
+            <b>Rotation left:</b>
+            choose any <code>(i, j)</code>,
+            follow the chain in reverse for <code>p</code> steps,
+            collect the <code>j</code> values in sequence.<br/>
+
+            <br/>
+
+            \begin{align}
+            \sum_{k=0}^{p-1} b^kj_{p-k-1} &= (i + mj)D \\
+            \end{align}
+        </div>
+        <hr/>
+        <div>
+            For all b,m the chain from <code>(0,1)</code> has:
+
+            \begin{align*}
+                i_0 &= 0,& j_0 &= 1 \\
+                i_{p-1} &= 1,& j_{p-1} &= 0 \\
+            \end{align*}
+
+            The sequence of <code>i</code> values, from (0,1), interpreted as a number in base <code>m</code>
+            is equal to <code>C</code>.
+
+            \begin{align}
+            1 + \sum_{k=1}^{p-2} m^{p-k-2}i_k &= { m^p - 1 \over mb - 1 } &= C \\
+            \end{align}
+            <br/>
+
+            The sequence of <code>j</code> values, in reverse from (1,0), interpreted as a number in base <code>b</code>
+            is equal to <code>D</code>:
+
+            \begin{align}
+            1 + \sum_{k=1}^{p-2} b^{k-1}j_{p-k-2} &= { b^p - 1 \over mb - 1 } &= D \\
+            \end{align}
+        </div>
+        <hr/>
+        <div>
+            For all b & m, chain <code>(m-1,b-1)</code>, as expected, has:
+
+            \begin{align*}
+            i &= m-1  \\
+            j &= b-1 \\
+            \sum_{k=0}^{p-1} m^k(m-1) &= (mb - 1 )C \\
+            \sum_{k=0}^{p-1} m^k(m-1) &= m^p - 1 \\
+            \end{align*}
+        </div>
+
     </body>
 </html>

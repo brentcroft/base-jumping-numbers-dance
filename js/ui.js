@@ -31,15 +31,15 @@ function showHide( id ) {
 
 function getColor( colorStep, i ) {
 
-    switch( i )
-    {
-        case 0: return "rgba( 255, 0, 0, 1)";
-        case 1: return "rgba( 0, 255, 0, 1)";
-        case 2: return "rgba( 0, 0, 255, 1)";
-        case 3: return "rgba( 0, 255, 255, 1)";
-        case 4: return "rgba( 255, 0, 255, 1)";
-        case 5: return "rgba( 255, 255, 0, 1)";
-    }
+//    switch( i )
+//    {
+//        case 0: return "rgba( 255, 0, 0, 1)";
+//        case 1: return "rgba( 0, 255, 0, 1)";
+//        case 2: return "rgba( 0, 0, 255, 1)";
+//        case 3: return "rgba( 0, 255, 255, 1)";
+//        case 4: return "rgba( 255, 0, 255, 1)";
+//        case 5: return "rgba( 255, 255, 0, 1)";
+//    }
 
     return "rgba("
         + ( 255 - ( i * colorStep ) ) + ","
@@ -183,6 +183,19 @@ function writeChainText( chain ) {
     document.getElementById( "chains" ).innerHTML = `<p>${ chain.join(", ") }</p>`;
 }
 
+/*
+    Randomize array in-place using Durstenfeld shuffle algorithm
+    https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+*/
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
 function sortTable( tableId, columnIndex, isNumber = false, isFraction = false ) {
   var table, rows, switching, i, x, y, shouldSwitch;
 
@@ -277,10 +290,10 @@ function writeChainTextLines( chains, chainSystem ) {
 
     for ( var i = 0; i < sortChains.length; i++ ) {
         var chain = sortChains[ i ];
-        chainsText += `<tr id="chain-${ i }" onclick="riffleChain( ${ i } )">`;
+        chainsText += `<tr id="chain-${ i }">`;
         chainsText += `<td align="center">${ chain.sum }</td>`;
         chainsText += `<td align="center">${ chain.gcd }</td>`;
-        chainsText += `<td align="center">${ chain.length } / ${ chain.harmonic }</td>`;
+        chainsText += `<td align="center">${ chain.harmonic }</td>`;
         chainsText += `<td align="center">${ chain.weight }</td>`;
         chainsText += `<td>${ chain.members }</td>`;
         chainsText += "</tr>";
@@ -289,6 +302,88 @@ function writeChainTextLines( chains, chainSystem ) {
     chainsText += "</table>"
 
     document.getElementById( "chains" ).innerHTML = chainsText;
+}
+
+function drawChainsTable( containerId, tableId, chains ) {
+
+    var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
+
+    chainsText += "<tr>" +
+        "<th onclick='sortTable( \"chain-details\", 0, true )'>Sum</th>" +
+        "<th onclick='sortTable( \"chain-details\", 1, true )'>GCD</th>" +
+//        "<th onclick='sortTable( \"chain-details\", 2, true, true )'>Harmonic</th>" +
+//        "<th onclick='sortTable( \"chain-details\", 3, true, true )'>Weight</th>" +
+        `<th onclick='sortTable( "${ tableId }", 2 )'>Chain</th>` +
+        "<th>Twist</th>" +
+        "</tr>";
+
+    for ( var i = 0; i < chains.length; i++ ) {
+        var chain = chains[ i ];
+
+        var median = chainMedian( { "coords": chain } );
+
+        var sum = [ median[0], median[1] ];
+        var gcd = [ median[2] ];
+
+        chainsText += `<tr id="chain-${ i }">`;
+        chainsText += `<td align="center">( ${ sum[0] }, ${ sum[1] } )</td>`;
+        chainsText += `<td align="center">${ gcd }</td>`;
+//        chainsText += `<td align="center">${ chain.harmonic }</td>`;
+//        chainsText += `<td align="center">${ chain.weight }</td>`;
+
+        chainsText += "<td onclick='drawChainOnGrid( arrayFromChainText( this ) )'>";
+        for ( var j = 0; j < chain.length; j++ ) {
+            chainsText += `${ j > 0 ? ', ': '' }( ${ chain[j][0] }, ${ chain[j][1] } )`;
+        }
+        chainsText += "</td>";
+        chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
+
+        chainsText += "</tr>";
+    }
+
+    chainsText += "</table>"
+
+    document.getElementById( containerId ).innerHTML = chainsText;
+}
+
+
+function drawChainSystemTable( containerId, tableId, chainSystem, cellClick = "drawChainOnGrid( chainSystem, arrayFromChainText( this ) )" ) {
+
+    var harmony = [ chainSystem.totalWeight, chainSystem.maxWeight, truncate( chainSystem.totalWeight / chainSystem.maxWeight ) ];
+
+    var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
+
+    chainsText += `<caption>Chain System: b=${ chainSystem.base }, m=${ chainSystem.mult }, p=${ chainSystem.fundamental }, w=[ ${ harmony[0] } / ${ harmony[1] } / ${ harmony[2] } ]</caption>`;
+
+    var colIndex = 0;
+    chainsText += "<tr>";
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='10%'>Coord Sum</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>GCD</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )'>Chain</th>` +
+        "<th>Twist</th>" +
+        "</tr>";
+
+    const chains = chainSystem.chains;
+
+    for ( var i = 0; i < chains.length; i++ ) {
+        var chain = chains[ i ].getTableRow();
+        chainsText += `<tr id="chain-${ i }">`;
+        chainsText += `<td align="center">${ chain.sum }</td>`;
+        chainsText += `<td align="center">${ chain.harmonic }</td>`;
+        chainsText += `<td align="center">${ chain.gcd }</td>`;
+        chainsText += `<td align="center">${ chain.weight }</td>`;
+        chainsText += `<td align="center">${ chain.bias }</td>`;
+        chainsText += `<td onclick="${ cellClick }" width='80%'>${ chain.members }</td>`;
+        chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
+        chainsText += "</tr>";
+    }
+
+    chainsText += "</table>"
+
+    document.getElementById( containerId ).innerHTML = chainsText;
 }
 
 
@@ -309,7 +404,7 @@ async function riffleChain( i ) {
         svg.removeChild( item );
     }
 
-    svg.appendChild( getChainItem( "highlight", harmonic[ i ], scales, "white", 2, riffleEvenOdd ) );
+    svg.appendChild( getChainItem( "highlight", harmonic[ i ], scales, "black", 2, riffleEvenOdd ) );
 
     highlightChainTableRow( i );
 }

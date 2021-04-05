@@ -112,3 +112,145 @@ function drawChains( chains, chainSystem ) {
         }
     }
 }
+
+function removeGridChains( id ) {
+    var svg_grid = document.getElementById( id );
+
+    var nextItem = svg_grid.lastElementChild;
+    while ( nextItem ) {
+        var itemToRemove;
+        if ( nextItem.classList.contains( "chain") ) {
+            itemToRemove = nextItem;
+        }
+        nextItem = nextItem.previousElementSibling;
+        if ( itemToRemove ) {
+            try {
+                svg_grid.removeChild( itemToRemove );
+            } catch ( e ) {
+                //console.log("Error: " + e);
+            }
+        }
+    }
+}
+
+function drawGridChain( id, chain = [ [ 0, 0 ] ], b = 10, m = 4, origin = [ 0, 30 ], scale = [ 45, 60 ], color = "rgba( 255, 0, 0, 1 )" ) {
+    var svg_grid = document.getElementById( id );
+
+    if ( chain.length > 1 ) {
+        var points = "";
+        for ( var j = 0; j < chain.length; j++ ) {
+                points += ( chain[j][1] * scale[1] + origin[1] ) + "," + ( chain[j][0] * scale[0] + origin[0] ) + " ";
+        }
+        points += ( chain[0][1] * scale[1] + origin[1] ) + "," + ( chain[0][0] * scale[0] + origin[0] );
+
+        var gridLineItem = buildSVGItem(
+                'polyline',
+                {
+                    "points": points,
+                    "stroke": color,
+                    "stroke-width": 1,
+                    "fill": "none",
+                    "fill-rule": "nonzero"
+                } );
+
+        gridLineItem.classList.add( "chain" );
+
+        svg_grid.appendChild( gridLineItem );
+
+    } else {
+        var gridLineItem = buildSVGItem(
+                        'circle',
+                        {
+                            "cx": chain[0][1] * scale[1] + origin[1],
+                            "cy": chain[0][0] * scale[0] + origin[0],
+                            "r": 2,
+                            "stroke": "red",
+                            "stroke-width": 1,
+                            "fill": "white"
+                        } );
+
+        gridLineItem.classList.add( "chain" );
+
+        svg_grid.appendChild( gridLineItem );
+    }
+}
+
+function drawGrid( id, b = 10, m = 4, origin = [ 0, 30 ], scale = [ 45, 60 ] ) {
+
+    var svg_grid = document.getElementById( id );
+
+    svg_grid.innerHTML = "";
+//    while ( svg_grid.lastElementChild ) {
+//        svg_grid.removeChild(svg_grid.lastElementChild);
+//    }
+
+    for ( var j = 0; j < b; j++ ) {
+
+        var points = "";
+        for ( var i = 0; i < m; i++ ) {
+            points += ( j * scale[1] + origin[1] ) + "," + ( i * scale[0] + origin[0] ) + " ";
+        }
+
+        var gridLineItem = buildSVGItem(
+                'polyline',
+                {
+                    "points": points,
+                    "stroke": "lightgray",
+                    "stroke-width": 1,
+                    "fill": "none",
+                    "fill-rule": "nonzero"
+                } );
+
+        svg_grid.appendChild( gridLineItem );
+    }
+
+
+    for ( var i = 0; i < m; i++ ) {
+
+        var points = "";
+        for ( var j = 0; j < b; j++ ) {
+            points += ( j * scale[1] + origin[1] ) + "," + ( i * scale[0] + origin[0] ) + " ";
+        }
+
+        var gridLineItem = buildSVGItem(
+                'polyline',
+                {
+                    "points": points,
+                    "stroke": "lightgray",
+                    "stroke-width": 1,
+                    "fill": "none",
+                    "fill-rule": "nonzero"
+                } );
+
+        svg_grid.appendChild( gridLineItem );
+
+
+        for ( var j = 0; j < b; j++ ) {
+
+            var item = buildSVGItem(
+                            'circle',
+                            {
+                                "cx": j * scale[1] + origin[1],
+                                "cy": i * scale[0] + origin[0],
+                                "r": 1,
+                                "stroke": "black",
+                                "stroke-width": 1,
+                                "fill": "black"
+                            } );
+
+            svg_grid.appendChild( item );
+
+            item = buildSVGItem(
+                            'text',
+                            {
+                                "x": j * scale[1] + origin[1],
+                                "y": i * scale[0] + origin[0] + 6,
+                                "class": "small"
+                            } );
+
+            item.innerHTML = `(${i}, ${j})`;
+
+            svg_grid.appendChild( item );
+        }
+    }
+}

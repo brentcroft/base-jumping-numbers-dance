@@ -1,4 +1,5 @@
 
+randomSystems = [];
 chainSystems = [];
 maxI = -1;
 maxJ = -1;
@@ -12,8 +13,78 @@ function truncate( value, places = 100 ){
     return Math.round( places * value ) / places;
 }
 
+function totalDigitSum( b, m ) {
+    return [ ( m * b * ( m - 1 ) ) / 2, ( m * b * ( b - 1 ) ) / 2 ];
+}
 
-function getRandomChainSystem( base, mult ) {
+const PI = 3.1415926;
+const TWO_PI = 2 * PI;
+
+function entryRotation( entryLeft, entry, entryRight ) {
+
+    var x00 = entryLeft.coord[0]
+    var y00 = entryLeft.coord[1]
+    var x01 = entry.coord[0]
+    var y01 = entry.coord[1]
+    var x10 = x01
+    var y10 = y01
+    var x11 = entryRight.coord[0]
+    var y11 = entryRight.coord[1]
+
+    var dx0  = x01 - x00;
+    var dy0  = y01 - y00;
+    var dx1  = x11 - x10;
+    var dy1  = y11 - y10;
+
+    var angle = Math.atan2(
+        (dx0 * dy1) - (dx1 * dy0),
+        (dx0 * dx1) + (dy0 * dy1)
+    );
+
+//    if ( Math.abs( Math.PI - angle ) < 0.0001 ) {
+//        angle = -1 * Math.abs( angle );
+//    }
+
+
+    return angle;
+}
+
+function entryRotation2( entryLeft, entry, entryRight ) {
+
+    var a1 = Math.atan2( entryLeft.coord[1] - entry.coord[1], entryLeft.coord[0] - entry.coord[0] );
+    var a2 = Math.atan2( entryRight.coord[1] - entry.coord[1], entryRight.coord[0] - entry.coord[0] );
+
+    var angle = a2 - a1;
+
+    if (angle < 0) {
+        angle += 2 * Math.PI;
+    }
+
+    return angle;
+}
+
+
+
+function chainRotation( coords ) {
+    var rotation = 0;
+
+    for ( var i = 0, d = coords.length; i < d; i++ ) {
+        rotation += entryRotation(
+            coords[ ( d + i - 1 ) % d ],
+            coords[ i ],
+            coords[ ( i + 1 ) % d ]
+        );
+    }
+    // number of whole clockwise turns
+    return -1 * Math.round( rotation / TWO_PI );
+}
+
+function getRandomChainSystem( chainSystem ) {
+
+    const base = chainSystem.base;
+    const mult = chainSystem.mult;
+    const scale = chainSystem.scale;
+    const origin = chainSystem.origin;
 
     var chains = [];
     var gridCoords = [];
@@ -88,7 +159,7 @@ function getRandomChainSystem( base, mult ) {
     var totalWeight = 0;
     var maxChainWeight =  reduce( base - 1, mult - 1 )[2] * fundamental;
 
-
+    var totalHarmonicSum = [ 0, 0 ]
 
 
     // calculate harmonics
@@ -104,9 +175,13 @@ function getRandomChainSystem( base, mult ) {
         chain.length = hI,
         chain.harmonic =  harmonic;
         chain.sum = [ median[0], median[1] ];
+        chain.harmonicSum = [ harmonic * median[0], harmonic * median[1] ];
         chain.gcd =  median[2];
         chain.weight = median[2] * harmonic;
         chain.bias = reduce( median[2] * harmonic, maxChainWeight );
+
+        totalHarmonicSum[0] += chain.harmonicSum[0]
+        totalHarmonicSum[1] += chain.harmonicSum[1]
 
         function formattedWeight( weight ) {
             return ( truncate(weight[0]) == 0 )
@@ -121,27 +196,36 @@ function getRandomChainSystem( base, mult ) {
         {
             return {
                 "sum": `( ${ truncate( this.sum[0] ) }, ${ truncate( this.sum[1] ) } )`,
+                "harmonicSum": `( ${ truncate( this.harmonicSum[0] ) }, ${ truncate( this.harmonicSum[1] ) } )`,
                 "gcd": truncate( this.gcd ),
                 "harmonic": truncate( this.harmonic ),
                 "length": this.length,
                 "weight": truncate( this.weight ),
                 "bias": formattedWeight( this.bias ),
-                "members": this.coords.join(", ")
+                "members": this.coords.join(", "),
+                "rotation": chainRotation( this.coords )
             };
         }
 
         totalWeight += harmonic * median[2];
     }
 
+    totalHarmonicSum[0] = truncate( totalHarmonicSum[0] );
+    totalHarmonicSum[1] = truncate( totalHarmonicSum[1] );
+
     var chainSystem = {
         base: base,
         mult: mult,
+        totalDigitSum: totalDigitSum( base, mult ),
+        totalHarmonicSum : totalHarmonicSum,
+        origin: origin,
+        scale: scale,
         chains: chains,
         harmonics: harmonics,
         maxIndex: maxIndex,
         fundamental: fundamental,
         totalWeight: truncate( totalWeight ),
-        maxWeight: maxChainWeight * fundamental
+        maxWeight: maxChainWeight
     };
 
     chainSystem.toString = function(){
@@ -158,9 +242,9 @@ function getRandomChainSystem( base, mult ) {
 */
 function getChainSystem( base, mult ) {
 
-//    if ( hasChainSystem( base-2, mult-2 ) ) {
-//        return chainSystems[ base-2 ][ mult-2 ];
-//    }
+    if ( hasChainSystem( base-2, mult-2 ) ) {
+        return chainSystems[ base-2 ][ mult-2 ];
+    }
 
     function coord_text() {
         return "( " + this.coord.join(", ") + " )";
@@ -230,6 +314,7 @@ function getChainSystem( base, mult ) {
     var maxIndex = (base * mult) - 1;
     var fundamental = chains[1].coords.length;
 
+    var totalHarmonicSum = [ 0, 0 ]
     var totalWeight = 0;
 
     var maxChainWeight =  reduce(
@@ -250,9 +335,13 @@ function getChainSystem( base, mult ) {
         chain.length = hI,
         chain.harmonic =  harmonic;
         chain.sum = [ median[0], median[1] ];
+        chain.harmonicSum = [ harmonic * median[0], harmonic * median[1] ];
         chain.gcd =  median[2];
         chain.weight = median[2] * harmonic;
         chain.bias = reduce( median[2] * harmonic, maxChainWeight );
+
+        totalHarmonicSum[0] += chain.harmonicSum[0]
+        totalHarmonicSum[1] += chain.harmonicSum[1]
 
         function formattedWeight( weight ) {
             return ( weight[0] == 0 )
@@ -266,12 +355,14 @@ function getChainSystem( base, mult ) {
         {
             return {
                 "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
+                "harmonicSum": `( ${ this.harmonicSum[ 0 ] }, ${ this.harmonicSum[ 1 ] } )`,
                 "gcd": this.gcd,
                 "harmonic": this.harmonic,
                 "length": this.length,
                 "weight": this.weight,
                 "bias": formattedWeight( this.bias ),
-                "members": this.coords.join(", ")
+                "members": this.coords.join(", "),
+                "rotation": chainRotation( this.coords )
             };
         }
 
@@ -282,6 +373,8 @@ function getChainSystem( base, mult ) {
         base: base,
         mult: mult,
         chains: chains,
+        totalDigitSum: totalDigitSum( base, mult ),
+        totalHarmonicSum : totalHarmonicSum,
         harmonics: harmonics,
         maxIndex: maxIndex,
         fundamental: fundamental,
@@ -303,7 +396,7 @@ function getChainSystem( base, mult ) {
     maxI = Math.max( maxI, i );
     maxJ = Math.max( maxJ, j );
 
-    //chainSystems[i][j] = chainSystem;
+    chainSystems[i][j] = chainSystem;
 
     return chainSystem;
 }

@@ -22,6 +22,16 @@
                 font: italic 40% sans-serif;
             }
 
+            .selected { background: Pink; }
+
+            th { padding-left: 2pt; padding-right: 2pt; }
+
+            .sort-asc::after { content: " \2193"; font-face: bold; }
+            .sort-desc::after { content: " \2191"; font-face: bold;  }
+
+            td.sum-total { text-align: center; }
+            span.sum-total { border-top: 1px solid;}
+
             .chain-details { font-size: 80%; }
             .chain-details tr { vertical-align: top; }
             .chain-details tr:nth-child(even) { background: Ivory; }
@@ -32,8 +42,8 @@
                 page-break-before: always;
             }
 
-            .equation-list {list-style-type: none; }
-            .equation-list li { padding: 8pt; }
+            .equation-list { list-style-type: none; }
+            .equation-list li { padding: 6pt; }
 
             input[type=number]{
                 width: 40pt;
@@ -45,41 +55,84 @@
         <script src="js/svg.js"></script>
         <script src="js/ui.js"></script>
         <script>
-            function drawChainOnGrid( chainSystem, chain = [ [ 0, 0 ] ] ) {
-                removeChainsFromGrid();
-                drawGridChain( "svg_grid", chain, chainSystem.base, chainSystem.mult, origin, scale );
-            }
+            function toggleSelected( source, clear = false ) {
 
-            function drawChainsOnGrid( chainSystem, chains = [ [ [ 0, 0 ] ] ] ) {
-                removeChainsFromGrid();
-                for ( var i = 0; i < chains.length; i++ ) {
-                    drawGridChain( "svg_grid", chains[ i ], chainSystem.base, chainSystem.mult, origin, scale, getColor( 10, i ) );
+                var tableNode = source.parentNode;
+                while ( tableNode && tableNode.tagName != "TABLE" ) {
+                    tableNode = tableNode.parentNode;
+                }
+
+                var selector = `#${ tableNode.getAttribute( "id" ) } td.selected`;
+
+                var selectedItems  = document
+                    .querySelectorAll( selector );
+
+                if (selectedItems ) {
+                    selectedItems
+                        .forEach( ( selectedItem ) => selectedItem.classList.remove( "selected" ) );
+                }
+
+                if ( !clear ) {
+                    source.classList.add( "selected" );
                 }
             }
 
-            function drawChainSystemOnGrid( chainSystem ) {
-                removeChainsFromGrid();
+            function drawChainOnGrid( gridId, chainSystem, chain = [ [ 0, 0 ] ], source ) {
+                removeChainsFromGrid( gridId );
+                drawGridChain( gridId, chain, chainSystem );
+
+                if ( source ) {
+                    toggleSelected( source );
+                }
+            }
+
+            function drawChainsOnGrid( gridId, chainSystem, chains = [ [ [ 0, 0 ] ] ], source ) {
+                removeChainsFromGrid( gridId );
+                for ( var i = 0; i < chains.length; i++ ) {
+                    drawGridChain( gridId, chains[ i ], chainSystem, getColor( 10, i ) );
+                }
+
+                if ( source ) {
+                    toggleSelected( source, true );
+                }
+            }
+
+            function drawChainSystemOnGrid( gridId, chainSystem, source ) {
+                removeChainsFromGrid( gridId );
                 var chains = chainSystem.chains;
                 for ( var i = 0; i < chains.length; i++ ) {
                     var chain = chains[ i ].coordsArray();
-                    drawGridChain( "svg_grid", chain, chainSystem.base, chainSystem.mult, origin, scale, getColor( 10, i ) );
+                    drawGridChain( gridId, chain, chainSystem, getColor( 10, i ) );
+                }
+
+                if ( source ) {
+                    toggleSelected( source, true );
                 }
             }
 
-            function removeChainsFromGrid(  ) {
-                removeGridChains( "svg_grid" );
+            function removeChainsFromGrid( gridId ) {
+                removeGridChains( gridId );
             }
 
 
-            function drawRandomChains( chainSystem ){
-                const randomChainSystem = getRandomChainSystem( chainSystem.base, chainSystem.mult );
-                drawChainSystemOnGrid( randomChainSystem );
-                drawChainSystemTable( 'random-chains', 'random-chains-table', randomChainSystem );
+            function drawRandomChains( gridId, tableId, chainSystem ){
+
+                randomChainSystem = getRandomChainSystem( chainSystem );
+
+                var cellClick = `drawChainOnGrid( '${ gridId }', randomChainSystem, arrayFromChainText( this ), this )`;
+                var totalClick = `drawChainSystemOnGrid( '${ gridId }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
+
+                drawChainSystemOnGrid( gridId, randomChainSystem );
+                drawChainSystemTable( tableId, randomChainSystem, cellClick, totalClick );
             }
 
-            function drawHarmonicChains( chainSystem ){
-                drawChainSystemOnGrid( chainSystem );
-                drawChainSystemTable( 'random-chains', 'random-chains-table', chainSystem );
+            function drawHarmonicChains( gridId, tableId, chainSystem ){
+
+                var cellClick = `drawChainOnGrid( '${ gridId }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), arrayFromChainText( this ), this )`;
+                var totalClick = `drawChainSystemOnGrid( '${ gridId }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
+
+                drawChainSystemOnGrid( gridId, chainSystem );
+                drawChainSystemTable( tableId, chainSystem, cellClick, totalClick );
             }
 
             function pageInit(){
@@ -90,19 +143,19 @@
 
                 chainSystem = getCurrentChainSystem();
 
-                var width = 400;
-                var height = 80
+                var width = 600;
+                var height = 120
 
-                scale = [ height / chainSystem.mult, width / chainSystem.base ];
-                origin = [ 0, 0 ];
+                chainSystem.scale = [ height / chainSystem.mult, width / chainSystem.base ];
+                chainSystem.origin = [ 0, 0 ];
 
 
-                drawGrid( "svg_grid", chainSystem.base, chainSystem.mult, origin, scale );
+                drawGrid( "default_cs_grid", chainSystem );
 
                 if ( randomSystem ) {
-                    drawRandomChains( chainSystem );
+                    drawRandomChains( "default_cs_grid", "default_cs_table", chainSystem );
                 } else {
-                    drawHarmonicChains( chainSystem );
+                    drawHarmonicChains( "default_cs_grid", "default_cs_table", chainSystem);
                 }
             }
         </script>
@@ -121,7 +174,7 @@
             \( m \) = <input id="mult" name="mult" type="number" size="4" min="2" max="20" value="4" onchange="initCurrentChainSystem()" ondblclick="initCurrentChainSystem()"/>,
             the grid coordinates \( (i, j) \) are:
 
-            <svg id="svg_grid" viewBox="-10 -10 410 90" xmlns="http://www.w3.org/2000/svg"></svg>
+            <svg id="default_cs_grid" viewBox="-10 -10 610 130" xmlns="http://www.w3.org/2000/svg"></svg>
 
             A circular path
             through one or more points on a grid
@@ -142,11 +195,11 @@
             <br/>
             <br/>
 
-            <a href="javascript: drawRandomChains( chainSystem )">Random</a> |
-            <a href="javascript: drawHarmonicChains( chainSystem )">Harmonic</a>
+            <a href="javascript: drawRandomChains( 'default_cs_grid', 'default_cs_table', chainSystem )">Random</a> |
+            <a href="javascript: drawHarmonicChains( 'default_cs_grid', 'default_cs_table', chainSystem )">Harmonic</a>
             <br/>
             <br/>
-            <div id="random-chains"></div>
+            <div id="default_cs_table"></div>
 
             <br/>
 
@@ -158,11 +211,9 @@
             where \( p \) is the fundamental,
             such that:
 
-            <ul class="equation-list">
-                <li>\( p < (mb - 1) \)</li>
-                <li>\( C = \frac { m^{p} - 1 } { (mb - 1)} \)</li>
-                <li>\( D = \frac { b^{p} - 1 } { (mb - 1)} \)</li>
-            </ul>
+            \begin{matrix}
+                p < (mb - 1), & C = \frac { m^{p} - 1 } { (mb - 1)}, & D = \frac { b^{p} - 1 } { (mb - 1)}
+            \end{matrix}
 
             Play:
                 <a href="http://brentcroft.com/jumping-bases-numbers-dance">Chain System Workshop</a>
@@ -246,6 +297,7 @@
                 <li>\( di_{-1}( k ) \to ( k \bmod m, k \operatorname{div} m ) \)</li>
             </ul>
 
+            <hr class="pagebreak"/>
             <!--
 
 
@@ -298,8 +350,6 @@
 
 
             -->
-            <h3>Chain System Features</h3>
-
             By inspection, for any choice of \( b \) and \( m \),
             there are always at least two singleton chains
             and at least one non-singleton chain with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent,
@@ -316,8 +366,6 @@
                 </li>
             </ul>
             We can find all the chains, given a choice of \( b \) and \( m \), by iterating over one index, and tallying off with the other.
-            <br/>
-            <br/>
             For example, continuing the previous javascript example, we might have:
             <pre>
     const chains = [];
@@ -337,12 +385,10 @@
             coords: [ gridPoint ]
         };
 
-        const coords = chain.coords;
-
         while ( gridPoint.di != i ) {
             dix[ gridPoint.di ] = -1;
             gridPoint = idx[ gridPoint.di ];
-            coords[ coords.length ] = gridPoint;
+            chain.coords.push( gridPoint );
         }
 
         chains[ chains.length ] = chain;
@@ -356,14 +402,42 @@
 
             <h2>Sample Chain Systems</h2>
 
+            <svg id="sample_cs_b_2_m_2_grid" viewBox="-10 -10 610 70" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div id="sample_cs_b_2_m_2_table"></div>
+            <script>
+                var sample_cs_b_2_m_2 = getChainSystem( 2, 2 );
+
+                var width = 400;
+                var height = 60
+
+                sample_cs_b_2_m_2.scale = [ height / sample_cs_b_2_m_2.mult, width / sample_cs_b_2_m_2.base ];
+                sample_cs_b_2_m_2.origin = [ 0, 0 ];
+
+                drawGrid( "sample_cs_b_2_m_2_grid", sample_cs_b_2_m_2 );
+                drawHarmonicChains( "sample_cs_b_2_m_2_grid", "sample_cs_b_2_m_2_table", sample_cs_b_2_m_2 );
+            </script>
+
+            <br/>
+
+            <svg id="sample_cs_b_10_m_2_grid" viewBox="-10 -10 610 70" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div id="sample_cs_b_10_m_2_table"></div>
+            <script>
+                var sample_cs_b_10_m_2 = getChainSystem( 10, 2 );
+
+                var width = 400;
+                var height = 60
+
+                sample_cs_b_10_m_2.scale = [ height / sample_cs_b_10_m_2.mult, width / sample_cs_b_10_m_2.base ];
+                sample_cs_b_10_m_2.origin = [ 0, 0 ];
+
+                drawGrid( "sample_cs_b_10_m_2_grid", sample_cs_b_10_m_2 );
+                drawHarmonicChains( "sample_cs_b_10_m_2_grid", "sample_cs_b_10_m_2_table", sample_cs_b_10_m_2 );
+            </script>
+
+            <br/>
+
             With \( b = 10, m = 2\), there are only three chains, and the longest chain, with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent, has length 18:
             <br/>
-            <br/>
-            <table class="chain-details">
-                <tr><td>( 0, 0 )</td></tr>
-                <tr><td>( 0 , 1 ), ( 0 , 2 ), ( 0 , 4 ), ( 0 , 8 ), ( 1 , 6 ), ( 1 , 3 ), ( 0 , 7 ), ( 1 , 4 ), ( 0 , 9 ), ( 1 , 8 ), ( 1 , 7 ), ( 1 , 5 ), ( 1 , 1 ), ( 0 , 3 ), ( 0 , 6 ), ( 1 , 2 ), ( 0 , 5 ), ( 1 , 0 )</td></tr>
-                <tr><td>( 1, 9 )</td></tr>
-            </table>
             <br/>
 
             Interestingly:
@@ -385,35 +459,6 @@
             </ul>
 
 
-            The simplest chain system has \( b = 2, m = 2\), and the chains are:
-            <br/>
-            <br/>
-            <table class="chain-details">
-                <tr><td>( 0, 0 )</td></tr>
-                <tr><td>( 0, 1 ), ( 1, 0 )</td></tr>
-                <tr><td>( 1, 1 )</td></tr>
-            </table>
-
-            <br/>
-            <br/>
-
-            With \( b = 10, m = 4\), as per the grid above, the chains are:
-            <br/>
-            <br/>
-            <table class="chain-details">
-                <tr><td>( 0, 0 )</td></tr>
-                <tr><td>( 0, 1 ), ( 0, 4 ), ( 1, 6 ), ( 2, 5 ), ( 2, 2 ), ( 1, 0 )</td></tr>
-                <tr><td>( 0, 2 ), ( 0, 8 ), ( 3, 2 ), ( 1, 1 ), ( 0, 5 ), ( 2, 0 )</td></tr>
-                <tr><td>( 0, 3 ), ( 1, 2 ), ( 0, 9 ), ( 3, 6 ), ( 2, 7 ), ( 3, 0 )</td></tr>
-                <tr><td>( 0, 6 ), ( 2, 4 ), ( 1, 8 ), ( 3, 3 ), ( 1, 5 ), ( 2, 1 )</td></tr>
-                <tr><td>( 0, 7 ), ( 2, 8 ), ( 3, 4 ), ( 1, 9 ), ( 3, 7 ), ( 3, 1 )</td></tr>
-                <tr><td>( 1, 3 )</td></tr>
-                <tr><td>( 1, 4 ), ( 1, 7 ), ( 2, 9 ), ( 3, 8 ), ( 3, 5 ), ( 2, 3 )</td></tr>
-                <tr><td>( 2, 6 )</td></tr>
-                <tr><td>( 3, 9 )</td></tr>
-            </table>
-            <br/>
-            <br/>
 
 
         </div>
@@ -528,27 +573,31 @@
         </div>
         <hr class="pagebreak"/>
         <div>
-            Generalize for <code>n</code> and substitute for <code>j<sub>0</sub></code>, then re-assemble:
+            Generalize for <code>n</code>:
 
             \begin{align*}
             j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^nj_0 \\
             j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^n(i_{n-1} - bi_0 + mj_{n-1}) \\
             j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^ni_{n-1} - m^nbi_0 + m^{n+1}j_{n-1} \\
             j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}(1 - mb)i_0 + m^n(i_{n-1} + mj_{n-1}) \\
+            j_n &= (1-mb)(\sum_{k=0}^{n-2} m^{n-k-1}i_k + m^{n-1}i_0) - bi_n + m^n(i_{n-1} + mj_{n-1}) \\
+            j_n &= (1-mb)\sum_{k=0}^{n-1} m^{n-k-1}i_k - bi_n + m^n(i_{n-1} + mj_{n-1}) \\
             \end{align*}
+        </div>
+        <hr/>
+        <div>
+            Re-assemble:
 
             \begin{align*}
-            (mb-1)\sum_{k=0}^{n-2} m^{n-k-1}i_k - (mb - 1)m^{n-1}i_0 &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
             (mb-1)\sum_{k=0}^{n-1} m^{n-k-1}i_k &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
             \end{align*}
-
             \begin{align}
             \sum_{k=0}^{n-1} m^{n-k-1}i_k &= { m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \over (mb-1) }
             \end{align}
         </div>
         <hr/>
         <div>
-            Complete the chain: set <code>n = p</code>,
+            Let <code>n = p</code>,
             and then substitute
             for <code>i<sub>p-1</sub> + mj<sub>p-1</sub></code>
             and <code>bi<sub>p</sub> + j<sub>p</sub></code>:
@@ -565,6 +614,11 @@
 
             \begin{align}
             \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi_0 + j_0){ (m^p - 1) \over (mb-1) } \\
+            \end{align}
+
+            By symmetry:
+            \begin{align}
+            \sum_{k=0}^{p-1} b^{p-k-1}i_k &= (mj_0 + i_0){ (b^p - 1) \over (mb-1) } \\
             \end{align}
         </div>
         <hr class="pagebreak"/>

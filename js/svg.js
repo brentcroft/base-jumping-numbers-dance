@@ -133,7 +133,11 @@ function removeGridChains( id ) {
     }
 }
 
-function drawGridChain( id, chain = [ [ 0, 0 ] ], b = 10, m = 4, origin = [ 0, 30 ], scale = [ 45, 60 ], color = "rgba( 255, 0, 0, 1 )" ) {
+function drawGridChain( id, chain = [ [ 0, 0 ] ], chainSystem, color = "rgba( 255, 0, 0, 1 )" ) {
+
+    const origin = chainSystem.origin;
+    const scale = chainSystem.scale;
+
     var svg_grid = document.getElementById( id );
 
     if ( chain.length > 1 ) {
@@ -163,10 +167,10 @@ function drawGridChain( id, chain = [ [ 0, 0 ] ], b = 10, m = 4, origin = [ 0, 3
                         {
                             "cx": chain[0][1] * scale[1] + origin[1],
                             "cy": chain[0][0] * scale[0] + origin[0],
-                            "r": 2,
+                            "r": 3,
                             "stroke": "red",
                             "stroke-width": 1,
-                            "fill": "white"
+                            "fill": "yellow"
                         } );
 
         gridLineItem.classList.add( "chain" );
@@ -175,14 +179,17 @@ function drawGridChain( id, chain = [ [ 0, 0 ] ], b = 10, m = 4, origin = [ 0, 3
     }
 }
 
-function drawGrid( id, b = 10, m = 4, origin = [ 0, 30 ], scale = [ 45, 60 ] ) {
+function drawGrid( id, chainSystem ) {
 
     var svg_grid = document.getElementById( id );
 
     svg_grid.innerHTML = "";
-//    while ( svg_grid.lastElementChild ) {
-//        svg_grid.removeChild(svg_grid.lastElementChild);
-//    }
+
+    const b = chainSystem.base;
+    const m = chainSystem.mult;
+    const origin = chainSystem.origin;
+    const scale = chainSystem.scale;
+
 
     for ( var j = 0; j < b; j++ ) {
 
@@ -197,6 +204,7 @@ function drawGrid( id, b = 10, m = 4, origin = [ 0, 30 ], scale = [ 45, 60 ] ) {
                     "points": points,
                     "stroke": "lightgray",
                     "stroke-width": 1,
+                    "stroke-dasharray": "4 2",
                     "fill": "none",
                     "fill-rule": "nonzero"
                 } );
@@ -218,6 +226,7 @@ function drawGrid( id, b = 10, m = 4, origin = [ 0, 30 ], scale = [ 45, 60 ] ) {
                     "points": points,
                     "stroke": "lightgray",
                     "stroke-width": 1,
+                    "stroke-dasharray": "4 2",
                     "fill": "none",
                     "fill-rule": "nonzero"
                 } );

@@ -224,7 +224,12 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
   switching = true;
 
   function Fraction( s ){
-    var f = s.split(/\s*\/\s*/);
+    s = s.trim();
+    if ( s.startsWith( "(" ) && s.endsWith( ")" ) ) {
+        s = s.substring( 1, s.length - 1 );
+        s = s.trim();
+    }
+    var f = s.split( /\s*[\/,]\s*/ );
     return (f[0] == "0")
         ? 0
         : (f[0] == f[1])
@@ -248,17 +253,21 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
       x = rows[i].getElementsByTagName("TD")[columnIndex];
       y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
 
-      var xT = x.innerHTML.toLowerCase();
-      var yT = y.innerHTML.toLowerCase();
+      if (y && !y.classList.contains("sum-total") ) {
+          var xT = x.innerHTML.toLowerCase();
+          var yT = y.innerHTML.toLowerCase();
 
-      var xV = isNumber ? isFraction ? Fraction( xT ) :  Number( xT ) :  xT;
-      var yV = isNumber ? isFraction ? Fraction( yT ) :  Number( yT ) :  yT;
+          if ( xT && yT ) {
+              var xV = isNumber ? isFraction ? Fraction( xT ) :  Number( xT ) :  xT;
+              var yV = isNumber ? isFraction ? Fraction( yT ) :  Number( yT ) :  yT;
 
-      // Check if the two rows should switch place:
-      if ( descending ? (xV < yV) : (xV > yV)) {
-        // If so, mark as a switch and break the loop:
-        shouldSwitch = true;
-        break;
+              // Check if the two rows should switch place:
+              if ( descending ? (xV < yV) : (xV > yV)) {
+                // If so, mark as a switch and break the loop:
+                shouldSwitch = true;
+                break;
+              }
+          }
       }
     }
     if (shouldSwitch) {
@@ -347,39 +356,56 @@ function drawChainsTable( containerId, tableId, chains ) {
 }
 
 
-function drawChainSystemTable( containerId, tableId, chainSystem, cellClick = "drawChainOnGrid( chainSystem, arrayFromChainText( this ) )" ) {
+function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick ) {
 
     var harmony = [ chainSystem.totalWeight, chainSystem.maxWeight, truncate( chainSystem.totalWeight / chainSystem.maxWeight ) ];
 
-    var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
+    var chainsText = `<table id="${ containerId }_i" class='chain-details summary sortable'>`;
 
     chainsText += `<caption>Chain System: b=${ chainSystem.base }, m=${ chainSystem.mult }, p=${ chainSystem.fundamental }, w=[ ${ harmony[0] } / ${ harmony[1] } / ${ harmony[2] } ]</caption>`;
 
     var colIndex = 0;
     chainsText += "<tr>";
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='10%'>Coord Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>GCD</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )'>Chain</th>` +
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Harmonic</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>GCD</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Weight</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Turns</th>`;
+    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ } )' width='70%'>Chain</th>` +
         "<th>Twist</th>" +
         "</tr>";
+
 
     const chains = chainSystem.chains;
 
     for ( var i = 0; i < chains.length; i++ ) {
+
         var chain = chains[ i ].getTableRow();
+
         chainsText += `<tr id="chain-${ i }">`;
         chainsText += `<td align="center">${ chain.sum }</td>`;
         chainsText += `<td align="center">${ chain.harmonic }</td>`;
+        chainsText += `<td align="center">${ chain.harmonicSum }</td>`;
         chainsText += `<td align="center">${ chain.gcd }</td>`;
         chainsText += `<td align="center">${ chain.weight }</td>`;
         chainsText += `<td align="center">${ chain.bias }</td>`;
-        chainsText += `<td onclick="${ cellClick }" width='80%'>${ chain.members }</td>`;
+        chainsText += `<td align="center">${ chain.rotation }</td>`;
+        chainsText += `<td onclick="${ cellClick }">${ chain.members }</td>`;
         chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
         chainsText += "</tr>";
     }
+
+    var tds = chainSystem.totalDigitSum;
+    var ths = chainSystem.totalHarmonicSum;
+
+    chainsText += "<tr>";
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds[0] }, ${ tds[1] } )</span></td>`;
+    chainsText += "<td></td>";
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ ths[0] }, ${ ths[1] } )</span></td>`;
+    chainsText += "<td colspan='6'></td>";
+    chainsText += "</tr>";
 
     chainsText += "</table>"
 

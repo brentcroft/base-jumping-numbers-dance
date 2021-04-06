@@ -223,18 +223,24 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
 
   switching = true;
 
-  function Fraction( s ){
+  function Fraction( s ) {
     s = s.trim();
     if ( s.startsWith( "(" ) && s.endsWith( ")" ) ) {
         s = s.substring( 1, s.length - 1 );
         s = s.trim();
     }
-    var f = s.split( /\s*[\/,]\s*/ );
-    return (f[0] == "0")
-        ? 0
-        : (f[0] == f[1])
-            ? 1
-            : ( Number(f[0] / Number(f[1]) ) )
+    var f = s.split( /\s*[\/\|,]\s*/ );
+    f[0] = Number( f[0].trim() );
+
+    if ( f[0] == 0 ) {
+        return 0;
+    } else if( f.length == 1 ) {
+        return f[0];
+    }
+
+    f[1] = Number( f[1].trim() );
+
+    return ( f[0] == f[1] ) ? 1 : ( f[0] / f[1] );
   }
 
   /* Make a loop that will continue until
@@ -369,7 +375,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>GCD</th>`;
+//    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>GCD</th>`;
     chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
     chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Turns</th>`;
@@ -388,7 +394,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ chain.sum }</td>`;
         chainsText += `<td align="center">${ chain.harmonic }</td>`;
         chainsText += `<td align="center">${ chain.harmonicSum }</td>`;
-        chainsText += `<td align="center">${ chain.gcd }</td>`;
+//        chainsText += `<td align="center">${ chain.gcd }</td>`;
         chainsText += `<td align="center">${ chain.weight }</td>`;
         chainsText += `<td align="center">${ chain.bias }</td>`;
         chainsText += `<td align="center">${ chain.rotation }</td>`;
@@ -404,7 +410,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds[0] }, ${ tds[1] } )</span></td>`;
     chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ ths[0] }, ${ ths[1] } )</span></td>`;
-    chainsText += "<td colspan='6'></td>";
+    chainsText += "<td colspan='5'></td>";
     chainsText += "</tr>";
 
     chainsText += "</table>"

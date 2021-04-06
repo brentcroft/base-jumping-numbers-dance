@@ -41,9 +41,12 @@ function entryRotation( entryLeft, entry, entryRight ) {
         (dx0 * dx1) + (dy0 * dy1)
     );
 
-//    if ( Math.abs( Math.PI - angle ) < 0.0001 ) {
-//        angle = -1 * Math.abs( angle );
-//    }
+    // count as rotate clockwise by PI
+    if ( Math.abs( Math.PI - angle ) < 0.00001 ) {
+        angle = -1 * Math.abs( angle );
+    } else if (angle > 0) {
+        //angle -= 2 * Math.PI;
+    }
 
 
     return angle;

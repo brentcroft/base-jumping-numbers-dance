@@ -22,6 +22,11 @@
                 font: italic 40% sans-serif;
             }
 
+            .resizable {
+                resize: both;
+                overflow: auto;
+            }
+
             .selected { background: Pink; }
 
             th { padding-left: 2pt; padding-right: 2pt; }
@@ -124,6 +129,8 @@
 
                 drawChainSystemOnGrid( gridId, randomChainSystem );
                 drawChainSystemTable( tableId, randomChainSystem, cellClick, totalClick );
+
+                sortTable( `${ tableId }_i`, 4, true, true );
             }
 
             function drawHarmonicChains( gridId, tableId, chainSystem ){
@@ -133,10 +140,12 @@
 
                 drawChainSystemOnGrid( gridId, chainSystem );
                 drawChainSystemTable( tableId, chainSystem, cellClick, totalClick );
+
+                sortTable( `${ tableId }_i`, 4, true, true );
             }
 
             function pageInit(){
-                initCurrentChainSystem( true );
+                initCurrentChainSystem( false );
             }
 
             function initCurrentChainSystem( randomSystem = false ) {
@@ -174,7 +183,9 @@
             \( m \) = <input id="mult" name="mult" type="number" size="4" min="2" max="20" value="4" onchange="initCurrentChainSystem()" ondblclick="initCurrentChainSystem()"/>,
             the grid coordinates \( (i, j) \) are:
 
-            <svg id="default_cs_grid" viewBox="-10 -10 610 130" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="resizable">
+                <svg id="default_cs_grid" viewBox="-10 -10 610 130" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
 
             A circular path
             through one or more points on a grid
@@ -199,7 +210,7 @@
             <a href="javascript: drawHarmonicChains( 'default_cs_grid', 'default_cs_table', chainSystem )">Harmonic</a>
             <br/>
             <br/>
-            <div id="default_cs_table"></div>
+            <div id="default_cs_table" class="resizable"></div>
 
             <br/>
 
@@ -216,7 +227,7 @@
             \end{matrix}
 
             Play:
-                <a href="http://brentcroft.com/jumping-bases-numbers-dance">Chain System Workshop</a>
+                <a href="index.html">Chain System Workshop</a>
 
             <br/>
             <br/>
@@ -618,7 +629,7 @@
 
             By symmetry:
             \begin{align}
-            \sum_{k=0}^{p-1} b^{p-k-1}i_k &= (mj_0 + i_0){ (b^p - 1) \over (mb-1) } \\
+            \sum_{k=0}^{p-1} b^{p-k-1}j_k &= (mj_0 + i_0){ (b^p - 1) \over (mb-1) } \\
             \end{align}
         </div>
         <hr class="pagebreak"/>

@@ -44,74 +44,74 @@ function clearChainDrawings()
 }
 
 
-
-function getChainItem( index, chain, scales, color, strokeWidth = 1, fillRule ) {
-
-    var coords = chain.coords;
-    var coord = coords[0].coord;
-    var item;
-
-    if (coords.length == 1) {
-        item = buildSVGItem(
-                'circle',
-                {
-                    "cx": ( coord[1] * scales[1] ),
-                    "cy": ( coord[0] * scales[0] ),
-                    "r": 3,
-                    "stroke": "black",
-                    "stroke-width": strokeWidth,
-                    "fill": color,
-                    "id": "chain-" + index
-                } );
-    } else {
-        var points = "";
-        for ( var j = 0; j < coords.length; j++ ) {
-            coord = coords[j].coord;
-            points += ( coord[1] * scales[1] ) + "," + ( coord[0] * scales[0] ) + " ";
-        }
-
-        coord = coords[0].coord;
-        points += (coord[1] * scales[1]) + "," + (coord[0] * scales[0]) + " ";
-
-        item = buildSVGItem(
-                'polyline',
-                {
-                    "points": points,
-                    "stroke": color,
-                    "stroke-width": strokeWidth,
-                    "fill": ( fillRule ? color : "none" ),
-                    "fill-rule": ( fillRule ? fillRule : "nonzero" ),
-                    "id": "chain-" + index
-                } );
-    }
-    return item;
-}
-
-
-function drawChains( chains, chainSystem ) {
-
-    clearChainDrawings();
-
-    var colorStep = ( 255 / chains.length ) * 0.5;
+//
+//function getChainItem( index, chain, scales, color, strokeWidth = 1, fillRule ) {
+//
+//    var coords = chain.coords;
+//    var coord = coords[0].coord;
+//    var item;
+//
+//    if (coords.length == 1) {
+//        item = buildSVGItem(
+//                'circle',
+//                {
+//                    "cx": ( coord[1] * scales[1] ),
+//                    "cy": ( coord[0] * scales[0] ),
+//                    "r": 3,
+//                    "stroke": "black",
+//                    "stroke-width": strokeWidth,
+//                    "fill": color,
+//                    "id": "chain-" + index
+//                } );
+//    } else {
+//        var points = "";
+//        for ( var j = 0; j < coords.length; j++ ) {
+//            coord = coords[j].coord;
+//            points += ( coord[1] * scales[1] ) + "," + ( coord[0] * scales[0] ) + " ";
+//        }
+//
+//        coord = coords[0].coord;
+//        points += (coord[1] * scales[1]) + "," + (coord[0] * scales[0]) + " ";
+//
+//        item = buildSVGItem(
+//                'polyline',
+//                {
+//                    "points": points,
+//                    "stroke": color,
+//                    "stroke-width": strokeWidth,
+//                    "fill": ( fillRule ? color : "none" ),
+//                    "fill-rule": ( fillRule ? fillRule : "nonzero" ),
+//                    "id": "chain-" + index
+//                } );
+//    }
+//    return item;
+//}
 
 
-    var scales = getScales( chainSystem.mult, chainSystem.base );
-
-    var autoDrawChains = document.getElementById( "autoDrawChains" );
-    var svg = document.getElementById( "svg" );
-
-    var locus = svg;
-
-    if ( autoDrawChains.checked ) {
-
-        for ( var i = 0; i < chains.length; i++ ) {
-
-            locus
-                .appendChild(
-                    getChainItem( i, chains[ i ], scales, getColor( colorStep, i ) ) );
-        }
-    }
-}
+//function drawChains( chains, chainSystem ) {
+//
+//    clearChainDrawings();
+//
+//    var colorStep = ( 255 / chains.length ) * 0.5;
+//
+//
+//    var scales = getScales( chainSystem.mult, chainSystem.base );
+//
+//    var autoDrawChains = document.getElementById( "autoDrawChains" );
+//    var svg = document.getElementById( "svg" );
+//
+//    var locus = svg;
+//
+//    if ( autoDrawChains.checked ) {
+//
+//        for ( var i = 0; i < chains.length; i++ ) {
+//
+//            locus
+//                .appendChild(
+//                    getChainItem( i, chains[ i ], scales, getColor( colorStep, i ) ) );
+//        }
+//    }
+//}
 
 function removeGridChains( id ) {
     var svg_grid = document.getElementById( id );
@@ -133,7 +133,7 @@ function removeGridChains( id ) {
     }
 }
 
-function drawGridChain( id, chain = [ [ 0, 0 ] ], chainSystem, color = "rgba( 255, 0, 0, 1 )" ) {
+function drawGridChain( id, chain = [ [ 0, 0 ] ], chainSystem, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain" ) {
 
     const origin = chainSystem.origin;
     const scale = chainSystem.scale;
@@ -153,11 +153,12 @@ function drawGridChain( id, chain = [ [ 0, 0 ] ], chainSystem, color = "rgba( 25
                     "points": points,
                     "stroke": color,
                     "stroke-width": 1,
+                    "stroke-dasharray": "4 1",
                     "fill": "none",
                     "fill-rule": "nonzero"
                 } );
 
-        gridLineItem.classList.add( "chain" );
+        gridLineItem.classList.add( cssClass );
 
         svg_grid.appendChild( gridLineItem );
 
@@ -168,18 +169,50 @@ function drawGridChain( id, chain = [ [ 0, 0 ] ], chainSystem, color = "rgba( 25
                             "cx": chain[0][1] * scale[1] + origin[1],
                             "cy": chain[0][0] * scale[0] + origin[0],
                             "r": 3,
-                            "stroke": "red",
+                            "stroke": "black",
                             "stroke-width": 1,
-                            "fill": "yellow"
+                            "fill": "lightgray"
                         } );
 
-        gridLineItem.classList.add( "chain" );
+        gridLineItem.classList.add( cssClass );
 
         svg_grid.appendChild( gridLineItem );
     }
 }
 
-function drawGrid( id, chainSystem ) {
+function drawGridChainCentre( id, chain = [ [ 0, 0 ] ], chainSystem, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain" ) {
+
+    const origin = chainSystem.origin;
+    const scale = chainSystem.scale;
+
+    var svg_grid = document.getElementById( id );
+
+    var n = chain.length;
+    var centrum = [ chain[0][0], chain[0][1] ];
+    for ( var j = 1; j < n; j++ ) {
+        centrum[0] += chain[j][0];
+        centrum[1] += chain[j][1];
+    }
+    centrum[0] = centrum[0] / n;
+    centrum[1] = centrum[1] / n;
+
+    var gridLineItem = buildSVGItem(
+                    'circle',
+                    {
+                        "cx": centrum[1] * scale[1] + origin[1],
+                        "cy": centrum[0] * scale[0] + origin[0],
+                        "r": 3,
+                        "stroke": "red",
+                        "stroke-width": 1,
+                        "fill": "yellow"
+                    } );
+
+    gridLineItem.classList.add( cssClass );
+
+    svg_grid.appendChild( gridLineItem );
+}
+
+function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, strokeDashArray = "2" ) {
 
     var svg_grid = document.getElementById( id );
 
@@ -202,9 +235,9 @@ function drawGrid( id, chainSystem ) {
                 'polyline',
                 {
                     "points": points,
-                    "stroke": "lightgray",
-                    "stroke-width": 1,
-                    "stroke-dasharray": "4 2",
+                    "stroke": stroke,
+                    "stroke-width": strokeWidth,
+                    "stroke-dasharray": strokeDashArray,
                     "fill": "none",
                     "fill-rule": "nonzero"
                 } );
@@ -224,9 +257,9 @@ function drawGrid( id, chainSystem ) {
                 'polyline',
                 {
                     "points": points,
-                    "stroke": "lightgray",
-                    "stroke-width": 1,
-                    "stroke-dasharray": "4 2",
+                    "stroke": stroke,
+                    "stroke-width": strokeWidth,
+                    "stroke-dasharray": strokeDashArray,
                     "fill": "none",
                     "fill-rule": "nonzero"
                 } );

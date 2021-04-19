@@ -364,33 +364,46 @@ function drawChainsTable( containerId, tableId, chains ) {
 
 function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick ) {
 
+    const chains = chainSystem.chains;
+
     var harmony = [ chainSystem.totalWeight, chainSystem.maxWeight, truncate( chainSystem.totalWeight / chainSystem.maxWeight ) ];
 
-    var chainsText = `<table id="${ containerId }_i" class='chain-details summary sortable'>`;
+    const tableId = containerId + "_table";
+    const rifflerId = containerId + "_riffler";
+
+    var rifflerClick = `clickCell( '${ tableId }', this.value, 6 )`;
+
+    var riffler = "<input";
+    riffler += ' type="range" min="0"';
+    riffler += ` id="${ rifflerId }" max="${ chains.length - 1 }" onchange="${ rifflerClick }" oninput="${ rifflerClick }"`;
+    riffler += ' value="0"';
+    riffler += ' style="width: 95%;"/><br/>';
+
+
+    var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
     chainsText += `<caption>Chain System: b=${ chainSystem.base }, m=${ chainSystem.mult }, p=${ chainSystem.fundamental }, w=[ ${ harmony[0] } / ${ harmony[1] } / ${ harmony[2] } ]</caption>`;
 
     var colIndex = 0;
     chainsText += "<tr>";
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Harmonic</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
-//    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>GCD</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Weight</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ }, true )'>Turns</th>`;
-    chainsText += `<th onclick='sortTable( "${ containerId }_i", ${ colIndex++ } )' width='70%'>Chain</th>` +
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
+//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>GCD</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Turns</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Chain</th>` +
         "<th>Twist</th>" +
         "</tr>";
 
 
-    const chains = chainSystem.chains;
 
     for ( var i = 0; i < chains.length; i++ ) {
 
         var chain = chains[ i ].getTableRow();
 
-        chainsText += `<tr id="chain-${ i }">`;
+        chainsText += `<tr>`;
         chainsText += `<td align="center">${ chain.sum }</td>`;
         chainsText += `<td align="center">${ chain.harmonic }</td>`;
         chainsText += `<td align="center">${ chain.harmonicSum }</td>`;
@@ -398,7 +411,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ chain.weight }</td>`;
         chainsText += `<td align="center">${ chain.bias }</td>`;
         chainsText += `<td align="center">${ chain.rotation }</td>`;
-        chainsText += `<td onclick="${ cellClick }">${ chain.members }</td>`;
+        chainsText += `<td onclick="${ cellClick };clickRiffler( '${ rifflerId }', ${ i } )">${ chain.members }</td>`;
         chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
         chainsText += "</tr>";
     }
@@ -415,7 +428,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 
     chainsText += "</table>"
 
-    document.getElementById( containerId ).innerHTML = chainsText;
+    document.getElementById( containerId ).innerHTML = riffler + chainsText;
 }
 
 

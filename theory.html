@@ -37,7 +37,7 @@
             td.sum-total { text-align: center; }
             span.sum-total { border-top: 1px solid;}
 
-            .chain-details { font-size: 80%; }
+            .chain-details { width: 100%; font-size: 80%; }
             .chain-details tr { vertical-align: top; }
             .chain-details tr:nth-child(even) { background: Ivory; }
             .chain-details tr:nth-child(odd) { background: WhiteSmoke; }
@@ -60,6 +60,20 @@
         <script src="js/svg.js"></script>
         <script src="js/ui.js"></script>
         <script>
+
+            function swapBases(){
+                const baseElement = document.getElementById("base");
+                const multElement = document.getElementById("mult");
+
+                const baseValue = baseElement.value;
+                const multValue = multElement.value;
+
+                baseElement.value = multValue;
+                multElement.value = baseValue;
+
+                initCurrentChainSystem( null, false )
+            }
+
             function toggleSelected( source, clear = false ) {
 
                 var tableNode = source.parentNode;
@@ -82,9 +96,30 @@
                 }
             }
 
-            function drawChainOnGrid( gridId, chainSystem, chain = [ [ 0, 0 ] ], source ) {
-                removeChainsFromGrid( gridId );
-                drawGridChain( gridId, chain, chainSystem );
+            function clickCell( tableId, rowNo, colNo ){
+                const cell = document.getElementById( tableId ).rows[  rowNo ].cells[ colNo ];
+                const isActive = ( cell === document.activeElement );
+                if ( !isActive ) {
+                    cell.click();
+                }
+            }
+
+            function clickRiffler( rifflerId, rowId ){
+                const riffler = document.getElementById( rifflerId );
+                const rifflerValue = Number( riffler.value );
+                const isActive = ( riffler === document.activeElement );
+
+                if ( !isActive && rifflerValue  != rowId ) {
+                    riffler.value = rowId;
+                }
+            }
+
+
+
+            function drawChainOnGrid( gridId, chainSystem, chain = [ [ 0, 0 ] ], source, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain" ) {
+                removeChainsFromGrid( gridId, cssClass );
+                drawGridChain( gridId, chain, chainSystem, color, cssClass );
+                drawGridChainCentre( gridId, chain, chainSystem, color, cssClass );
 
                 if ( source ) {
                     toggleSelected( source );
@@ -130,7 +165,7 @@
                 drawChainSystemOnGrid( gridId, randomChainSystem );
                 drawChainSystemTable( tableId, randomChainSystem, cellClick, totalClick );
 
-                sortTable( `${ tableId }_i`, 4, true, true );
+                sortTable( `${ tableId }_table`, 4, true, true );
             }
 
             function drawHarmonicChains( gridId, tableId, chainSystem ){
@@ -141,14 +176,20 @@
                 drawChainSystemOnGrid( gridId, chainSystem );
                 drawChainSystemTable( tableId, chainSystem, cellClick, totalClick );
 
-                sortTable( `${ tableId }_i`, 4, true, true );
+                sortTable( `${ tableId }_table`, 4, true, true );
             }
 
             function pageInit(){
-                initCurrentChainSystem( false );
+                initCurrentChainSystem( null, false );
             }
 
-            function initCurrentChainSystem( randomSystem = false ) {
+            function initCurrentChainSystem( source = null, randomSystem = false ) {
+                if ( source ) {
+                    const isActive = ( cell === document.activeElement );
+                    if ( ! isActive) {
+                        return;
+                    }
+                }
 
                 chainSystem = getCurrentChainSystem();
 
@@ -179,8 +220,9 @@
             where \(  0 \le i < m \) and \( 0 \le j < b \).
             <br/><br/>
             For example,
-            with \( b \) = <input id="base" name="base" type="number" size="4" min="2" max="20" value="10" onchange="initCurrentChainSystem()" ondblclick="initCurrentChainSystem()"/>,
-            \( m \) = <input id="mult" name="mult" type="number" size="4" min="2" max="20" value="4" onchange="initCurrentChainSystem()" ondblclick="initCurrentChainSystem()"/>,
+            with \( b \) = <input id="base" name="base" type="number" size="4" min="2" max="20" value="10" onchange="initCurrentChainSystem(this)" ondblclick="initCurrentChainSystem()"/>,
+            \( m \) = <input id="mult" name="mult" type="number" size="4" min="2" max="20" value="4" onchange="initCurrentChainSystem(this)" ondblclick="initCurrentChainSystem()"/>
+            (<a href="javascript:swapBases()" class="small">swap</a>),
             the grid coordinates \( (i, j) \) are:
 
             <div class="resizable">
@@ -200,8 +242,8 @@
             so that each coordinate appears once and in one chain only.
             <br/>
             <br/>
-            A chain system is harmonic, with fundamental \( p \) being the length of the longest chain,
-            if the length of every chain is a simple factor of the fundamental \( p \),
+            Every choice of \(b, m > 1\) has a harmonic chain system, with fundamental \( p \) being the length of the longest chain,
+            where the length of every chain is a simple factor of the fundamental \( p \),
             and every chain has a coordinate sum in proportion to \( ( m-1, b-1 ) \).
             <br/>
             <br/>
@@ -209,6 +251,7 @@
             <a href="javascript: drawRandomChains( 'default_cs_grid', 'default_cs_table', chainSystem )">Random</a> |
             <a href="javascript: drawHarmonicChains( 'default_cs_grid', 'default_cs_table', chainSystem )">Harmonic</a>
             <br/>
+
             <br/>
             <div id="default_cs_table" class="resizable"></div>
 

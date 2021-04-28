@@ -368,10 +368,12 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 
     var harmony = [ chainSystem.totalWeight, chainSystem.maxWeight, truncate( chainSystem.totalWeight / chainSystem.maxWeight ) ];
 
-    const tableId = containerId + "_table";
-    const rifflerId = containerId + "_riffler";
+    const tableContainerId = containerId + "_table";
 
-    var rifflerClick = `clickCell( '${ tableId }', this.value, 6 )`;
+    const tableId = tableContainerId + "_data";
+    const rifflerId = tableContainerId + "_riffler";
+
+    var rifflerClick = `clickCell( '${ tableId }', Number(this.value), 6 )`;
 
     var riffler = "<input";
     riffler += ' type="range" min="0"';
@@ -392,12 +394,11 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 //    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>GCD</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Turns</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Turn</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Perim</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Chain</th>` +
         "<th>Twist</th>" +
         "</tr>";
-
-
 
     for ( var i = 0; i < chains.length; i++ ) {
 
@@ -411,6 +412,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ chain.weight }</td>`;
         chainsText += `<td align="center">${ chain.bias }</td>`;
         chainsText += `<td align="center">${ chain.rotation }</td>`;
+        chainsText += `<td align="center">${ chain.perimeter }</td>`;
         chainsText += `<td onclick="${ cellClick };clickRiffler( '${ rifflerId }', ${ i } )">${ chain.members }</td>`;
         chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
         chainsText += "</tr>";
@@ -418,17 +420,26 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 
     var tds = chainSystem.totalDigitSum;
     var ths = chainSystem.totalHarmonicSum;
+    var turns = chainSystem.totalRotation;
+    var perimeter = chainSystem.totalPerimeter;
 
     chainsText += "<tr>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds[0] }, ${ tds[1] } )</span></td>`;
     chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ ths[0] }, ${ ths[1] } )</span></td>`;
-    chainsText += "<td colspan='5'></td>";
+    chainsText += "<td></td>";
+    chainsText += "<td></td>";
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ turns }</span></td>`;
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ perimeter }</span></td>`;
+    chainsText += "<td></td>";
+
     chainsText += "</tr>";
 
     chainsText += "</table>"
 
-    document.getElementById( containerId ).innerHTML = riffler + chainsText;
+    document.getElementById( tableContainerId ).innerHTML = riffler + chainsText;
+
+    sortTable( tableId, 4, true, true );
 }
 
 
@@ -454,26 +465,60 @@ async function riffleChain( i ) {
     highlightChainTableRow( i );
 }
 
-async function riffleChains( chains, chainSystem ) {
+function clickRiffler( rifflerId, rowId ){
+    const riffler = document.getElementById( rifflerId );
+    const rifflerValue = Number( riffler.value );
+    const isActive = ( riffler === document.activeElement );
 
-    if ( isHidden( 'svg-container' ) ) {
+    if ( !isActive && rifflerValue  != rowId ) {
+        riffler.value = rowId;
+    }
+}
+
+
+function clickCell( tableId, rowNo, colNo ){
+    const table = document.getElementById( tableId );
+    const row = table.rows[ rowNo + 1 ];
+    const cell = row.cells[ colNo ];
+    const isActive = ( cell === document.activeElement );
+    if ( !isActive ) {
+        cell.click();
+    }
+}
+
+async function riffle( tableId = null, rifflerId = null, delay = 500 ){
+    const riffler = document.getElementById( rifflerId );
+    for ( var i = riffler.min; i <= riffler.max; i++ ){
+        riffler.value = i;
+        clickCell( tableId, riffler.value, 6 );
+        await sleep( delay );
+    }
+}
+
+async function riffleChains( chains, chainSystem, svgContainerId = 'svg-container' ) {
+
+    if ( isHidden( svgContainerId ) ) {
         return;
     }
 
-    var svg = document.getElementById( 'svg' );
+    const svg = document.getElementById( 'svg' );
 
-    var autoRiffle = document.getElementById( 'autoRiffle' ).checked;
-    var delay = document.getElementById( 'delay' ).value;
+    const autoRiffleElement = document.getElementById( 'autoRiffle' );
+    const evenOddElement = document.getElementById( "riffleEvenOdd" );
+    const delayElement = document.getElementById( 'delay' );
 
+    const delay = delayElement ? delayElement.value : 1000;
+
+    var riffleEvenOdd = evenOddElement && evenOddElement.checked ? "evenodd" : null;
     var scales = getScales( chainSystem.mult, chainSystem.base );
 
-    var riffleEvenOdd = document.getElementById( "riffleEvenOdd" ).checked ? "evenodd" : null;
 
     var item = document.getElementById( "chain-highlight" );
     if ( item ) {
         svg.removeChild( item );
     }
-    if ( autoRiffle ) {
+
+    if ( !(autoRiffleElement) || autoRiffleElement.checked ) {
         for ( var i = 0; i < chains.length; i++ ) {
 
             item = getChainItem( "highlight", chains[i], scales, "white", 2, riffleEvenOdd );
@@ -513,4 +558,108 @@ function writeCurrentChainSystemTextLines(){
     var chainSystem = getCurrentChainSystem();
     var harmonic = getCurrentHarmonic( chainSystem );
     writeChainTextLines( harmonic, chainSystem );
+}
+
+
+function setChainSystemSvg( id, chainSystem, dimensions = [ 600, 150 ], oversize = [ 1, 1 ], origin = [ 0, 0 ], margin = 10 ) {
+
+    if ( ! chainSystem.svg ) {
+        chainSystem.svg = {};
+    }
+    if ( ! ( id in chainSystem.svg ) ) {
+        chainSystem.svg[id] = {};
+    }
+
+    const svgInfo = chainSystem.svg[id];
+
+    svgInfo.margin = margin;
+    svgInfo.width = dimensions[0];
+    svgInfo.height = dimensions[1];
+
+    svgInfo.viewBox = `-${ margin } -${ margin } ${ dimensions[0] + margin } ${  dimensions[1] + margin }`;
+
+    svgInfo.oversize = oversize;
+    svgInfo.origin = origin;
+
+    svgInfo.scale = [
+        dimensions[1] / ( chainSystem.mult * oversize[1]),
+        dimensions[0] / ( chainSystem.base * oversize[0])
+    ];
+}
+
+
+function redrawGrid( id, chainSystem, margin = 10 ){
+
+    const container = document.getElementById( id );
+
+    var svg = document.getElementById( id + "_grid" );
+    container.removeChild( svg );
+
+
+    const svgInfo = chainSystem.svg[id];
+
+    svgInfo.oversize = [
+        Number( document.getElementById( id + "_grid_controls_oversize_0" ).value ),
+        Number( document.getElementById( id + "_grid_controls_oversize_1" ).value )
+    ];
+
+    svgInfo.width = Number( document.getElementById( id + "_grid_controls_width" ).value );
+    svgInfo.height = Number( document.getElementById( id + "_grid_controls_height" ).value );
+
+    svgInfo.scale = [
+        svgInfo.height / ( chainSystem.mult * svgInfo.oversize[1]),
+        svgInfo.width / ( chainSystem.base * svgInfo.oversize[0])
+    ];
+
+    svgInfo.viewBox = `-${ margin } -${ margin } ${ svgInfo.width + margin } ${ svgInfo.height + margin }`;
+
+
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute( "id", `${ id }_grid` );
+    svg.setAttribute( "viewBox", svgInfo.viewBox );
+
+    var gridControls = document.getElementById( id + "_grid_controls_container" );
+    container.insertBefore( svg, gridControls.nextSibling );
+
+
+    const stroke = "lightgray";
+    const strokeWidth = 0.5;
+    const strokeDashArray = "2";
+
+    drawGrid( id, chainSystem, stroke, strokeWidth, strokeDashArray );
+}
+
+
+function writeChainSystemBlock( id, chainSystem, drawTable = true, drawControls = true  ) {
+
+    const container = document.getElementById( id );
+
+    container.innerHTML = "";
+
+    const svgInfo = chainSystem.svg[id];
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute( "id", `${ id }_grid` );
+    svg.setAttribute( "viewBox", svgInfo.viewBox );
+
+    container.appendChild( svg );
+
+    if ( drawControls ) {
+        drawGridControls( id, chainSystem );
+    }
+
+    const stroke = "lightgray";
+    const strokeWidth = 0.5;
+    const strokeDashArray = "2";
+
+    drawGrid( id , chainSystem, stroke, strokeWidth, strokeDashArray );
+
+    if ( drawTable ) {
+        container.appendChild( document.createElement( "br") );
+
+        const tableDiv = document.createElement( "div");
+        container.appendChild( tableDiv );
+
+        tableDiv.setAttribute( "id", `${ id }_table` );
+    }
 }

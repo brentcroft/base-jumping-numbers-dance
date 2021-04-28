@@ -48,7 +48,6 @@ function entryRotation( entryLeft, entry, entryRight ) {
         //angle -= 2 * Math.PI;
     }
 
-
     return angle;
 }
 
@@ -66,10 +65,16 @@ function entryRotation2( entryLeft, entry, entryRight ) {
     return angle;
 }
 
+function entryLengthSquared( entry, entryRight ) {
+    const yd = ( entryRight.coord[1] - entry.coord[1] );
+    const xd = ( entryRight.coord[0] - entry.coord[0] );
+    const zd2 = xd**2 + yd**2;
+    return zd2;
+}
 
-
-function chainRotation( coords ) {
+function chainRotationAndPerimeter( coords ) {
     var rotation = 0;
+    var perimeter = 0;
 
     for ( var i = 0, d = coords.length; i < d; i++ ) {
         rotation += entryRotation(
@@ -77,9 +82,10 @@ function chainRotation( coords ) {
             coords[ i ],
             coords[ ( i + 1 ) % d ]
         );
+        perimeter += entryLengthSquared( coords[ i ], coords[ ( i + 1 ) % d ] );
     }
     // number of whole clockwise turns
-    return -1 * Math.round( rotation / TWO_PI );
+    return [ -1 * Math.round( rotation / TWO_PI ), perimeter ];
 }
 
 function getRandomChainSystem( chainSystem ) {
@@ -158,14 +164,84 @@ function getRandomChainSystem( chainSystem ) {
         }
     }
 
-    var maxIndex = (base * mult) - 1;
+    const randomChainSystem = buildChainSystem( base, mult, chains, fundamental );
+
+    randomChainSystem.origin = origin;
+    randomChainSystem.scale = scale;
+    randomChainSystem.toString = chainSystem.toString;
+
+    return randomChainSystem;
+}
+
+function navigate( origin=[ 0, 0 ], chainSystem ) {
+
+    const id = ( i, j ) => j + ( i * chainSystem.base );
+    const di = ( i, j ) => i + ( j * chainSystem.mult );
+    const xid = ( id ) => [ Math.trunc( id / chainSystem.base ), id % chainSystem.base ];
+    const xdi = ( di ) => [ di % chainSystem.mult, Math.trunc( di / chainSystem.mult ) ];
+
+    const idx = [];
+    const dix = [];
+
+    var path = [];
+    var chain = [];
+
+    var c = origin;
+
+    var cid = id( c[0], c[1] );
+    var cdi = di( c[0], c[1] );
+    idx[cid] = c;
+    dix[cdi] = c;
+    path.push( c );
+
+    //c = xdi( cid );
+    c = xid( cdi );
+    cid = id( c[0], c[1] );
+    cdi = di( c[0], c[1] );
+
+    while (!( cid in idx && cdi in dix )) {
+        idx[cid] = c;
+        dix[cdi] = c;
+        path.push( c );
+        //c = xdi( cid );
+        c = xid( cdi );
+        cid = id( c[0], c[1] );
+        cdi = di( c[0], c[1] );
+    }
+
+    // backtrack path to first dixv extracting terminal chain
+    const pairedItem = path.pop();
+    chain.push( pairedItem );
+    cid2 = id( pairedItem[0], pairedItem[1] );
+    while ( cid2 != cid ) {
+        c = path.pop();
+        chain.push( c );
+        cid2 = id( c[0], c[1] );
+    }
+
+    //path.push( pairedItem );
+    path.push( c );
+
+    return [ path, chain.reverse() ];
+}
+
+
+function buildChainSystem( base, mult, chains, fundamental ) {
+
+    const maxIndex = (base * mult) - 1;
+
+    var totalHarmonicSum = [ 0, 0 ];
     var totalWeight = 0;
-    var maxChainWeight =  reduce( base - 1, mult - 1 )[2] * fundamental;
+    var totalRotation = 0;
+    var totalPerimeter = 0;
 
-    var totalHarmonicSum = [ 0, 0 ]
+    const maxChainWeight =  reduce(
+            ( base - 1 ) * fundamental,
+            ( mult - 1 ) * fundamental
+        )[2];
 
 
-    // calculate harmonics
+   // calculate harmonics
     var harmonics = {};
     for ( var i = 0; i < chains.length; i++ ) {
         var chain = chains[i];
@@ -174,6 +250,7 @@ function getRandomChainSystem( chainSystem ) {
 
         var harmonic = fundamental / hI;
         var median = chainMedian( chain );
+        var rotationAndPerimeter = chainRotationAndPerimeter( chain.coords );
 
         chain.length = hI,
         chain.harmonic =  harmonic;
@@ -182,62 +259,56 @@ function getRandomChainSystem( chainSystem ) {
         chain.gcd =  median[2];
         chain.weight = median[2] * harmonic;
         chain.bias = reduce( median[2] * harmonic, maxChainWeight );
+        chain.rotation = rotationAndPerimeter[0];
+        chain.perimeter = rotationAndPerimeter[1];
 
-        totalHarmonicSum[0] += chain.harmonicSum[0]
-        totalHarmonicSum[1] += chain.harmonicSum[1]
+        totalHarmonicSum[0] += chain.harmonicSum[0];
+        totalHarmonicSum[1] += chain.harmonicSum[1];
+        totalRotation += chain.rotation;
+        totalPerimeter += chain.perimeter;
+        totalWeight += chain.harmonic * median[2];
+
 
         function formattedWeight( weight ) {
-            return ( truncate(weight[0]) == 0 )
+            return ( weight[0] == 0 )
                     ? 0
-                    : ( truncate(weight[0]) == truncate(weight[1]) || truncate( weight[2] ) == 0 )
+                    : ( weight[0] == weight[1] || weight[2] == 0 )
                         ? 1
-                        : ( truncate( weight[0] / weight[2] ) + " / " + truncate( weight[1] / weight[2] ) );
+                        : ( weight[0] / weight[2] ) + " / " + ( weight[1] / weight[2] );
         }
-
 
         chain.getTableRow = function()
         {
             return {
-                "sum": `( ${ truncate( this.sum[0] ) }, ${ truncate( this.sum[1] ) } )`,
-                "harmonicSum": `( ${ truncate( this.harmonicSum[0] ) }, ${ truncate( this.harmonicSum[1] ) } )`,
-                "gcd": truncate( this.gcd ),
-                "harmonic": truncate( this.harmonic ),
+                "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
+                "harmonicSum": `( ${ this.harmonicSum[ 0 ] }, ${ this.harmonicSum[ 1 ] } )`,
+                "gcd": this.gcd,
+                "harmonic": this.harmonic,
                 "length": this.length,
-                "weight": truncate( this.weight ),
+                "weight": this.weight,
                 "bias": formattedWeight( this.bias ),
                 "members": this.coords.join(", "),
-                "rotation": chainRotation( this.coords )
+                "rotation": this.rotation,
+                "perimeter": this.perimeter
             };
         }
-
-        totalWeight += harmonic * median[2];
     }
 
-    totalHarmonicSum[0] = truncate( totalHarmonicSum[0] );
-    totalHarmonicSum[1] = truncate( totalHarmonicSum[1] );
-
-    var chainSystem = {
+    return {
         base: base,
         mult: mult,
+        chains: chains,
         totalDigitSum: totalDigitSum( base, mult ),
         totalHarmonicSum : totalHarmonicSum,
-        origin: origin,
-        scale: scale,
-        chains: chains,
+        totalRotation : totalRotation,
+        totalPerimeter : totalPerimeter,
         harmonics: harmonics,
         maxIndex: maxIndex,
         fundamental: fundamental,
-        totalWeight: truncate( totalWeight ),
+        totalWeight: totalWeight,
         maxWeight: maxChainWeight
     };
-
-    chainSystem.toString = function(){
-        return `( ${ this.base }, ${ this.mult }, ${ this.fundamental }, ${ this.chains.length } )`;
-    };
-
-    return chainSystem;
 }
-
 
 
 /*
@@ -314,80 +385,14 @@ function getChainSystem( base, mult ) {
     }
 
 
-    var maxIndex = (base * mult) - 1;
-    var fundamental = chains[1].coords.length;
-
-    var totalHarmonicSum = [ 0, 0 ]
-    var totalWeight = 0;
-
-    var maxChainWeight =  reduce(
-            ( base - 1 ) * fundamental,
-            ( mult - 1 ) * fundamental
-        )[2];
-
-    // calculate harmonics
-    var harmonics = {};
-    for ( var i = 0; i < chains.length; i++ ) {
-        var chain = chains[i];
-        var hI = chain.coords.length;
-        harmonics[ hI ] = ( hI in harmonics ) ? ( harmonics[ hI ] + 1 ) : 1;
-
-        var harmonic =  fundamental / hI;
-        var median = chainMedian( chain );
-
-        chain.length = hI,
-        chain.harmonic =  harmonic;
-        chain.sum = [ median[0], median[1] ];
-        chain.harmonicSum = [ harmonic * median[0], harmonic * median[1] ];
-        chain.gcd =  median[2];
-        chain.weight = median[2] * harmonic;
-        chain.bias = reduce( median[2] * harmonic, maxChainWeight );
-
-        totalHarmonicSum[0] += chain.harmonicSum[0]
-        totalHarmonicSum[1] += chain.harmonicSum[1]
-
-        function formattedWeight( weight ) {
-            return ( weight[0] == 0 )
-                    ? 0
-                    : ( weight[0] == weight[1] || weight[2] == 0 )
-                        ? 1
-                        : ( weight[0] / weight[2] ) + " / " + ( weight[1] / weight[2] );
-        }
-
-        chain.getTableRow = function()
-        {
-            return {
-                "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
-                "harmonicSum": `( ${ this.harmonicSum[ 0 ] }, ${ this.harmonicSum[ 1 ] } )`,
-                "gcd": this.gcd,
-                "harmonic": this.harmonic,
-                "length": this.length,
-                "weight": this.weight,
-                "bias": formattedWeight( this.bias ),
-                "members": this.coords.join(", "),
-                "rotation": chainRotation( this.coords )
-            };
-        }
-
-        totalWeight += chain.harmonic * median[2];
-    }
-
-    var chainSystem = {
-        base: base,
-        mult: mult,
-        chains: chains,
-        totalDigitSum: totalDigitSum( base, mult ),
-        totalHarmonicSum : totalHarmonicSum,
-        harmonics: harmonics,
-        maxIndex: maxIndex,
-        fundamental: fundamental,
-        totalWeight: totalWeight,
-        maxWeight: maxChainWeight
-    };
+    const chainSystem = buildChainSystem( base, mult, chains, chains[1].coords.length );
 
     chainSystem.toString = function(){
         return `( ${ this.base }, ${ this.mult }, ${ this.fundamental }, ${ this.chains.length } )`;
     };
+
+//    chainSystem.origin = origin;
+//    chainSystem.scale = scale;
 
     var i = base-2;
     var j = mult-2;

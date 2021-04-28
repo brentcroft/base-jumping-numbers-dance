@@ -384,7 +384,12 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 
     var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
-    chainsText += `<caption>Chain System: b=${ chainSystem.base }, m=${ chainSystem.mult }, p=${ chainSystem.fundamental }, w=[ ${ harmony[0] } / ${ harmony[1] } / ${ harmony[2] } ]</caption>`;
+    chainsText += "<caption>Chain System: ";
+    chainsText += `b=${ chainSystem.base }, m=${ chainSystem.mult }, `;
+    chainsText += `p=${ chainSystem.fundamental }, `;
+    chainsText += `C=${ chainSystem.C }, D=${ chainSystem.D }, `;
+    chainsText += `w=[ ${ harmony[0] } / ${ harmony[1] } / ${ harmony[2] } ]`;
+    chainsText += "</caption>";
 
     var colIndex = 0;
     chainsText += "<tr>";
@@ -630,7 +635,7 @@ function redrawGrid( id, chainSystem, margin = 10 ){
 }
 
 
-function writeChainSystemBlock( id, chainSystem, drawTable = true, drawControls = true  ) {
+function writeChainSystemBlock( id, chainSystem, drawTable = false, drawControls = false, drawEquation = false  ) {
 
     const container = document.getElementById( id );
 
@@ -662,4 +667,61 @@ function writeChainSystemBlock( id, chainSystem, drawTable = true, drawControls 
 
         tableDiv.setAttribute( "id", `${ id }_table` );
     }
+
+    if ( drawEquation ) {
+        container.appendChild( document.createElement( "br") );
+
+        const equationDiv = document.createElement( "div");
+        container.appendChild( equationDiv );
+
+        equationDiv.setAttribute( "id", `${ id }_equation` );
+    }
+}
+
+function updateChainSystemEquation( id, chainSystem, chain ) {
+
+    const equationId = id + "_equation";
+
+    var equation = document.getElementById( equationId );
+
+    equation.innerHTML = "";
+
+    var b = chainSystem.base;
+    var m = chainSystem.mult;
+    var mb = m * b;
+
+    var c = chainSystem.C;
+    var d = chainSystem.D;
+
+    var mb_pf = primeFactors( mb - 1 );
+    var c_pf = primeFactors( c );
+    var d_pf = primeFactors( d );
+
+    if ( ! chain ) {
+        chain = chainSystem.chains[1].coordsArray();
+    }
+
+    var mHtml = "\\(";
+    var p = chain.length;
+
+    for ( var i = 0; i < p; i++ ) {
+        var coord = chain[i];
+        mHtml += `${ coord[0] }.${m}^(${ p - 1 - i }) + `;
+    }
+    mHtml += "\\)";
+
+    var bHtml = "\\(";
+
+    for ( var i = p-1; i >= 0; i-- ) {
+        var coord = chain[i];
+        bHtml += `${ coord[1] }.${b}^(${ i }) + `;
+    }
+    bHtml += "\\)";
+
+    var equationHtml = "<br/>";
+    equationHtml += mHtml;
+    equationHtml += "<br/>";
+    equationHtml += bHtml;
+
+    equation.innerHTML = equationHtml;
 }

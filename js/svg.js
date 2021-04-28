@@ -367,6 +367,7 @@ function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, str
                 drawChainOnGrid( id, chainSystem, chains[1], null, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain", false );
                 drawPathOnGrid( id, chainSystem, chains[0], null, color = "rgba( 0, 0, 255, 1 )", cssClass = "chain", false );
 
+                //updateChainSystemEquation( id, chainSystem, chains[1] )
             };
 
 

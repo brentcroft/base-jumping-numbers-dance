@@ -184,7 +184,7 @@
 
                 setChainSystemSvg( containerId, chainSystem, dimensions = [ 600, 150 ], oversize = [ 1, 1 ], origin = [ 0, 0 ] );
 
-                writeChainSystemBlock( containerId, chainSystem, drawTable = false, drawControls = true );
+                writeChainSystemBlock( containerId, chainSystem, false, true, false );
 
                 if ( randomSystem ) {
                     drawRandomChains( containerId, chainSystem );
@@ -196,10 +196,10 @@
     </head>
     <body onload="pageInit()">
         <div>
-            <h1>Jumping Bases: Numbers Dance</h1>
+            <h1>Jumping Base Numbers Dance</h1>
 
-            Any two natural numbers greater than one, let's say \(b, m > 1\),
-            entirely specify the points of a two dimensional grid
+            Two natural numbers greater than one, let's say \(b, m > 1\),
+            define the points of a two dimensional grid
             as the set of coordinates \( (i, j) \),
             where \(  0 \le i < m \) and \( 0 \le j < b \).
             <br/><br/>
@@ -263,6 +263,9 @@
             Therefore,
             \( C \) can be easily read in base \( m \) from the chain containing \( ( 0, 1 )) \),
             and \( D \) can be easily read in base \( b \) from the same chain  in reverse starting at \( ( 1, 0 ) \).
+            <br/>
+            <div id="default_cs_equation" class="resizable"></div>
+
             <br/>
             <br/>
             Play:
@@ -457,7 +460,7 @@
 
                 setChainSystemSvg( "sample_cs_b_2_m_2", sample_cs_b_2_m_2, dimensions = [ 400, 60 ] );
 
-                writeChainSystemBlock( "sample_cs_b_2_m_2", sample_cs_b_2_m_2, drawTable = true, drawControls = false );
+                writeChainSystemBlock( "sample_cs_b_2_m_2", sample_cs_b_2_m_2, true, false, true );
                 drawHarmonicChains( "sample_cs_b_2_m_2", sample_cs_b_2_m_2 );
             </script>
 
@@ -469,7 +472,7 @@
 
                 setChainSystemSvg( "sample_cs_b_10_m_2", sample_cs_b_10_m_2, dimensions = [ 400, 60 ] );
 
-                writeChainSystemBlock( "sample_cs_b_10_m_2", sample_cs_b_10_m_2, drawTable = true, drawControls = false );
+                writeChainSystemBlock( "sample_cs_b_10_m_2", sample_cs_b_10_m_2, true, false, true );
                 drawHarmonicChains( "sample_cs_b_10_m_2", sample_cs_b_10_m_2 );
             </script>
 

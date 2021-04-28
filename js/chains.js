@@ -384,15 +384,14 @@ function getChainSystem( base, mult ) {
         chains[ chains.length ] = chain;
     }
 
-
     const chainSystem = buildChainSystem( base, mult, chains, chains[1].coords.length );
+
+    chainSystem.C = chainDown( chainSystem.chains[1], mult );
+    chainSystem.D = chainUp( chainSystem.chains[1], base );
 
     chainSystem.toString = function(){
         return `( ${ this.base }, ${ this.mult }, ${ this.fundamental }, ${ this.chains.length } )`;
     };
-
-//    chainSystem.origin = origin;
-//    chainSystem.scale = scale;
 
     var i = base-2;
     var j = mult-2;

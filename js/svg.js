@@ -253,31 +253,57 @@ function drawGridControls( id, chainSystem ){
     var gridControlsId = gridId + "_controls";
     var gridControlsContainerId = gridId + "_controls_container";
     var svg_grid = document.getElementById( gridId );
-    var svg_grid_controls = document.getElementById( gridControlsContainerId );
+    var svg_grid_controls_container = document.getElementById( gridControlsContainerId );
 
-    if ( !svg_grid_controls ) {
-        svg_grid_controls = document.createElement("div");
-        svg_grid_controls.setAttribute( "id", gridControlsContainerId );
-        svg_grid_controls.classList.add( "controls" );
-        svg_grid.parentNode.insertBefore( svg_grid_controls, svg_grid );
+    if ( !svg_grid_controls_container ) {
+        svg_grid_controls_container = document.createElement("div");
+        svg_grid_controls_container.setAttribute( "id", gridControlsContainerId );
+        svg_grid_controls_container.classList.add( "grid-controls-container" );
+        svg_grid.parentNode.insertBefore( svg_grid_controls_container, svg_grid );
     }
 
     var redrawGridScript = `redrawGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ) )`;
     var oversize = svg.oversize;
 
-    gridHtml = `(controls: <input type="checkbox" onclick="showHide( '${ gridControlsId }' )"/>`;
-    gridHtml += `<div id="${ gridControlsId }" class="control" style="display: none">`;
-    gridHtml += `aspect: [ <input class="controls" id="${ gridControlsId }_oversize_0" type="number" value="${oversize[0]}" step="0.1" min="0.1" max="10" onchange="${ redrawGridScript }"/>,`;
-    gridHtml += `<input class="controls" id="${ gridControlsId }_oversize_1"  type="number" value="${oversize[0]}" step="0.1" min="0.1" max="10" onchange="${ redrawGridScript }"/> ] `;
+    gridHtml = "<i>grid-controls</i> ";
+    gridHtml += `<input type="checkbox" onclick="showHide( '${ gridControlsId }' )"/>`;
 
-    gridHtml += `scale: [ <input class="controls" id="${ gridControlsId }_width" type="number" value="${svg.width}" step="10" min="100" max="2000" onchange="${ redrawGridScript }"/>,`;
-    gridHtml += `<input class="controls" id="${ gridControlsId }_height" type="number" value="${svg.height}" step="10" min="100" max="2000" onchange="${ redrawGridScript }"/> ]`;
+    gridHtml += `<div id="${ gridControlsId }" class="grid-controls" style="display: none">: `;
+    gridHtml += `aspect: <input class="controls" id="${ gridControlsId }_oversize_0" type="number" value="${oversize[0]}" step="0.1" min="0.1" max="10" onchange="${ redrawGridScript }"/>, `;
+    gridHtml += `<input class="controls" id="${ gridControlsId }_oversize_1"  type="number" value="${oversize[0]}" step="0.1" min="0.1" max="10" onchange="${ redrawGridScript }"/> `;
 
-    gridHtml += "</div>)";
+    gridHtml += `| viewport: <input class="controls" id="${ gridControlsId }_width" type="number" value="${svg.width}" step="10" min="100" max="2000" onchange="${ redrawGridScript }"/>,`;
+    gridHtml += `<input class="controls" id="${ gridControlsId }_height" type="number" value="${svg.height}" step="10" min="100" max="2000" onchange="${ redrawGridScript }"/> `;
 
-    svg_grid_controls.innerHTML = gridHtml;
+    gridHtml += "</div>";
+
+    svg_grid_controls_container.innerHTML = gridHtml;
 }
 
+
+
+function drawLegend( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, strokeDashArray = "2" ) {
+
+    var containerId = document.getElementById( id );
+
+    const svg = chainSystem.svg[id];
+    const origin = svg.origin;
+    const scale = svg.scale;
+    const oversize = svg.oversize;
+
+    var svg_grid = document.getElementById( id + "_grid" );
+
+    const legend = buildSVGItem(
+                    'text',
+                    {
+                        "x": chainSystem.base * scale[1] + origin[1],
+                        "y": chainSystem.mult * scale[0] + origin[0] + 6,
+                        "class": "small",
+                        "alignment-baseline": "baseline"
+                    } );
+
+    svg_grid.appendChild( legend );
+}
 
 
 function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, strokeDashArray = "2" ) {
@@ -357,8 +383,8 @@ function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, str
             item.chainCoord = [ i, j ];
 
             const coordClick = (evt) => {
+
                 var target = evt.target;
-                console.log(`You clicked: ${ target.chainCoord }` );
 
                 chainSystem = getChainSystem( chainSystem.base, chainSystem.mult );
 
@@ -367,7 +393,7 @@ function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, str
                 drawChainOnGrid( id, chainSystem, chains[1], null, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain", false );
                 drawPathOnGrid( id, chainSystem, chains[0], null, color = "rgba( 0, 0, 255, 1 )", cssClass = "chain", false );
 
-                //updateChainSystemEquation( id, chainSystem, chains[1] )
+                //updateChainSystemEquation( id, chainSystem, chains[1] );
             };
 
 

@@ -373,13 +373,6 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     const tableId = tableContainerId + "_data";
     const rifflerId = tableContainerId + "_riffler";
 
-    var rifflerClick = `clickCell( '${ tableId }', Number(this.value), 6 )`;
-
-    var riffler = "<input";
-    riffler += ' type="range" min="0"';
-    riffler += ` id="${ rifflerId }" max="${ chains.length - 1 }" onchange="${ rifflerClick }" oninput="${ rifflerClick }"`;
-    riffler += ' value="0"';
-    riffler += ' style="width: 95%;"/><br/>';
 
 
     var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
@@ -404,6 +397,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Chain</th>` +
         "<th>Twist</th>" +
         "</tr>";
+
 
     for ( var i = 0; i < chains.length; i++ ) {
 
@@ -437,10 +431,23 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ turns }</span></td>`;
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ perimeter }</span></td>`;
     chainsText += "<td></td>";
-
+    chainsText += "<td></td>";
     chainsText += "</tr>";
+    chainsText += "</table>";
 
-    chainsText += "</table>"
+    var legend = "Click on a chain cell, or a coord in the grid, or on a totals cell to redraw all chains.";
+
+    chainsText += `<div class='chain-details-legend'>${ legend }</div>`;
+
+    var clickColumn = 7;
+    var rifflerClick = `clickCell( '${ tableId }', Number(this.value), ${ clickColumn } )`;
+
+    var riffler = "<input";
+    riffler += ' type="range" min="0"';
+    riffler += ` id="${ rifflerId }" max="${ chains.length - 1 }" onchange="${ rifflerClick }" oninput="${ rifflerClick }"`;
+    riffler += ' value="0"';
+    riffler += ' style="width: 95%;"/><br/>';
+
 
     document.getElementById( tableContainerId ).innerHTML = riffler + chainsText;
 
@@ -482,20 +489,26 @@ function clickRiffler( rifflerId, rowId ){
 
 
 function clickCell( tableId, rowNo, colNo ){
-    const table = document.getElementById( tableId );
-    const row = table.rows[ rowNo + 1 ];
-    const cell = row.cells[ colNo ];
-    const isActive = ( cell === document.activeElement );
-    if ( !isActive ) {
-        cell.click();
+    try {
+        const table = document.getElementById( tableId );
+        const rows = table.rows;
+        const row = table.rows[ rowNo + 1 ];
+        const cell = row.cells[ colNo ];
+        const isActive = ( cell === document.activeElement );
+
+        if ( !isActive ) {
+            cell.click();
+        }
+    } catch ( e ) {
+        console.log( `Error: ${ e }; clickCell( ${ tableId }, ${ rowNo }, ${ colNo } )` )
     }
 }
 
-async function riffle( tableId = null, rifflerId = null, delay = 500 ){
+async function riffle( tableId = null, rifflerId = null, delay = 500, clickColumn = 7 ){
     const riffler = document.getElementById( rifflerId );
     for ( var i = riffler.min; i <= riffler.max; i++ ){
         riffler.value = i;
-        clickCell( tableId, riffler.value, 6 );
+        clickCell( tableId, Number( riffler.value ), clickColumn );
         await sleep( delay );
     }
 }
@@ -600,7 +613,6 @@ function redrawGrid( id, chainSystem, margin = 10 ){
     var svg = document.getElementById( id + "_grid" );
     container.removeChild( svg );
 
-
     const svgInfo = chainSystem.svg[id];
 
     svgInfo.oversize = [
@@ -646,8 +658,11 @@ function writeChainSystemBlock( id, chainSystem, drawTable = false, drawControls
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute( "id", `${ id }_grid` );
     svg.setAttribute( "viewBox", svgInfo.viewBox );
+    svg.setAttribute( "title", "Click on a coordinate to draw the associated chain and paths." );
 
     container.appendChild( svg );
+
+    drawLegend( id , chainSystem );
 
     if ( drawControls ) {
         drawGridControls( id, chainSystem );

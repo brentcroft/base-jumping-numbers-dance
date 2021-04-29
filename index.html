@@ -22,8 +22,19 @@
                 font: italic 40% sans-serif;
             }
 
-            .controls {
+            .chain-details-legend {
+                text-align: center;
+                font-style: italic;
+            }
+
+            .grid-controls-container {
+                width: 100%;
+                text-align: right;
                 font-size: 90%;
+            }
+
+            .grid-controls {
+                display: inline;
             }
             .control {
                 display: inline;
@@ -228,9 +239,9 @@
             <br/>
             <br/>
 
-            <a href="javascript: drawRandomChains( 'default_cs',chainSystem )">Random</a> |
+            <!--<a href="javascript: drawRandomChains( 'default_cs',chainSystem )">Random</a> |-->
             <a href="javascript: drawHarmonicChains( 'default_cs', chainSystem )">Harmonic</a>
-            (<a href="javascript: swapBases()">swap</a> | <a href="javascript: riffle( 'default_cs_table', 'default_cs_table_riffler' )">riffle</a>)
+            (<a href="javascript: swapBases()">swap</a> | <a href="javascript: riffle( 'default_cs_table_data', 'default_cs_table_riffler' )">riffle</a>)
             <br/>
 
             <br/>
@@ -264,13 +275,6 @@
             \( C \) can be easily read in base \( m \) from the chain containing \( ( 0, 1 )) \),
             and \( D \) can be easily read in base \( b \) from the same chain  in reverse starting at \( ( 1, 0 ) \).
             <br/>
-            <div id="default_cs_equation" class="resizable"></div>
-
-            <br/>
-            <br/>
-            Play:
-                <a href="index.html">Chain System Workshop</a>
-
             <br/>
 
             <hr class="pagebreak"/>

@@ -437,12 +437,12 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 
     var legend = "Click on a chain cell, or a coord in the grid, or on a totals cell to redraw all chains.";
 
-    chainsText += `<div class='chain-details-legend'>${ legend }</div>`;
+    chainsText += `<div class='chain-details-legend' class='noprint'>${ legend }</div>`;
 
     var clickColumn = 7;
     var rifflerClick = `clickCell( '${ tableId }', Number(this.value), ${ clickColumn } )`;
 
-    var riffler = "<input";
+    var riffler = "<input class='noprint'";
     riffler += ' type="range" min="0"';
     riffler += ` id="${ rifflerId }" max="${ chains.length - 1 }" onchange="${ rifflerClick }" oninput="${ rifflerClick }"`;
     riffler += ' value="0"';

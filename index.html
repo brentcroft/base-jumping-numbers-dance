@@ -11,6 +11,12 @@
             };
         </script>
         <style>
+            @media print{
+               .noprint{
+                   display:none;
+               }
+            }
+
             body {
                 font-family: Arial, Helvetica, sans-serif;
                 width: 80%;
@@ -207,7 +213,7 @@
     </head>
     <body onload="pageInit()">
         <div>
-            <h1>Jumping Base Numbers Dance</h1>
+            <h1>Jumping Bases Numbers Dance</h1>
 
             Two natural numbers greater than one, let's say \(b, m > 1\),
             define the points of a two dimensional grid
@@ -623,11 +629,21 @@
 
             \begin{align*}
             j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^nj_0 \\
-            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^n(i_{n-1} - bi_0 + mj_{n-1}) \\
-            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^ni_{n-1} - m^nbi_0 + m^{n+1}j_{n-1} \\
-            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}(1 - mb)i_0 + m^n(i_{n-1} + mj_{n-1}) \\
-            j_n &= (1-mb)(\sum_{k=0}^{n-2} m^{n-k-1}i_k + m^{n-1}i_0) - bi_n + m^n(i_{n-1} + mj_{n-1}) \\
-            j_n &= (1-mb)\sum_{k=0}^{n-1} m^{n-k-1}i_k - bi_n + m^n(i_{n-1} + mj_{n-1}) \\
+            j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^n(i_{p-1} - bi_0 + mj_{p-1}) \\
+            \end{align*}
+
+            Let <code>n</code> become <code>p</code>:
+
+            \begin{align*}
+            j_p &= (1-mb)\sum_{k=0}^{p-2} m^{p-k-1}i_k - bi_p + m^{p-1}i_0 + m^pi_{p-1} - m^pbi_0 + m^{p+1}j_{p-1} \\
+            j_p &= (1-mb)\sum_{k=0}^{p-2} m^{p-k-1}i_k - bi_p + m^{p-1}(1 - mb)i_0 + m^p(i_{p-1} + mj_{p-1}) \\
+            \end{align*}
+
+            Complete the sum:
+
+            \begin{align*}
+            j_p &= (1-mb)(\sum_{k=0}^{p-2} m^{p-k-1}i_k + m^{p-1}i_0) - bi_p + m^p(i_{p-1} + mj_{p-1}) \\
+            j_p &= (1-mb)\sum_{k=0}^{p-1} m^{p-k-1}i_k - bi_p + m^p(i_{p-1} + mj_{p-1}) \\
             \end{align*}
         </div>
         <hr/>
@@ -635,16 +651,15 @@
             Re-assemble:
 
             \begin{align*}
-            (mb-1)\sum_{k=0}^{n-1} m^{n-k-1}i_k &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
+            (mb-1)\sum_{k=0}^{p-1} m^{p-k-1}i_k &= m^p(i_{p-1} + mj_{p-1}) - (bi_n + j_n) \\
             \end{align*}
             \begin{align}
-            \sum_{k=0}^{n-1} m^{n-k-1}i_k &= { m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \over (mb-1) }
+            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_n + j_n) \over (mb-1) }
             \end{align}
         </div>
         <hr/>
         <div>
-            Let <code>n = p</code>,
-            and then substitute
+            Substitute
             for <code>i<sub>p-1</sub> + mj<sub>p-1</sub></code>
             and <code>bi<sub>p</sub> + j<sub>p</sub></code>:
 

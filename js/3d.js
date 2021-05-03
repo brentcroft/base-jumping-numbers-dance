@@ -1,5 +1,3 @@
-// Create a 3d scatter plot within d3 selection parent.
-
 
 function createShape( emissiveColor ){
     var s = document.createElement('shape');
@@ -119,20 +117,19 @@ function getChainSystemItems( chainSystem, harmonics ) {
     var b = chainSystem.base;
     var m = chainSystem.mult;
 
+    var fudge = Math.sqrt( b**2 + m**2 );
+
     for ( var i = 0; i < chains.length; i++ ) {
 
-        var grid = document.createElement('transform');
-        grid.setAttribute( "translation", `0 0 ${ i }` );
-        grid.appendChild( createPolyLineShape( `0 0, 0 ${b-1}, ${m-1} ${b-1}, ${m-1} 0, 0 0`, "gray" ) );
+        const orbit = chains[i];
 
-        items.push( grid );
+        var coords = orbit.coords;
 
-        var coords = chains[i].coords;
 
         if (coords.length > 1 ) {
 
             var t = document.createElement('transform');
-            t.setAttribute( "translation", `0 0 ${ i }` );
+            t.setAttribute( "translation", `${ -1 * orbit.centre[0] } ${ -1 * orbit.centre[1] } ${ fudge * orbit.biasFactor }` );
 
             var lineSegments = "";
             for ( var j = 0; j < coords.length; j++ ) {
@@ -142,10 +139,11 @@ function getChainSystemItems( chainSystem, harmonics ) {
             lineSegments += `${ coords[0].coord[0] } ${ coords[0].coord[1] }`;
 
             t.appendChild( createPolyLineShape( lineSegments ) );
+
         } else {
             var t = document.createElement('transform');
-            t.setAttribute( "translation", `${ coords[0].coord[0] } ${ coords[0].coord[1] } ${ i }` );
-            //t.appendChild( createFlatBoxShape( size = "0.1 0.1 0.1" ) );
+            t.setAttribute( "translation", `0 0 ${ fudge * orbit.biasFactor }` );
+
             t.appendChild( createSphereShape( 0.1, "blue" ) );
         }
 

@@ -319,47 +319,7 @@ function writeChainTextLines( chains, chainSystem ) {
     document.getElementById( "chains" ).innerHTML = chainsText;
 }
 
-function drawChainsTable( containerId, tableId, chains ) {
 
-    var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
-
-    chainsText += "<tr>" +
-        "<th onclick='sortTable( \"chain-details\", 0, true )'>Sum</th>" +
-        "<th onclick='sortTable( \"chain-details\", 1, true )'>GCD</th>" +
-//        "<th onclick='sortTable( \"chain-details\", 2, true, true )'>Harmonic</th>" +
-//        "<th onclick='sortTable( \"chain-details\", 3, true, true )'>Weight</th>" +
-        `<th onclick='sortTable( "${ tableId }", 2 )'>Chain</th>` +
-        "<th>Twist</th>" +
-        "</tr>";
-
-    for ( var i = 0; i < chains.length; i++ ) {
-        var chain = chains[ i ];
-
-        var median = chainMedian( { "coords": chain } );
-
-        var sum = [ median[0], median[1] ];
-        var gcd = [ median[2] ];
-
-        chainsText += `<tr id="chain-${ i }">`;
-        chainsText += `<td align="center">( ${ sum[0] }, ${ sum[1] } )</td>`;
-        chainsText += `<td align="center">${ gcd }</td>`;
-//        chainsText += `<td align="center">${ chain.harmonic }</td>`;
-//        chainsText += `<td align="center">${ chain.weight }</td>`;
-
-        chainsText += "<td onclick='drawChainOnGrid( arrayFromChainText( this ) )'>";
-        for ( var j = 0; j < chain.length; j++ ) {
-            chainsText += `${ j > 0 ? ', ': '' }( ${ chain[j][0] }, ${ chain[j][1] } )`;
-        }
-        chainsText += "</td>";
-        chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
-
-        chainsText += "</tr>";
-    }
-
-    chainsText += "</table>"
-
-    document.getElementById( containerId ).innerHTML = chainsText;
-}
 
 
 function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick ) {
@@ -373,11 +333,13 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     const tableId = tableContainerId + "_data";
     const rifflerId = tableContainerId + "_riffler";
 
+    var cimHtml = "\\(" + getCycleIndexMonomialTex( chainSystem ) + "\\)";
 
 
     var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
-    chainsText += "<caption>Chain System: ";
+    chainsText += "<caption>Orbit System: ";
+    chainsText += `cim=${ cimHtml }, `;
     chainsText += `b=${ chainSystem.base }, m=${ chainSystem.mult }, `;
     chainsText += `p=${ chainSystem.fundamental }, `;
     chainsText += `C=${ chainSystem.C }, D=${ chainSystem.D }, `;
@@ -386,6 +348,8 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
 
     var colIndex = 0;
     chainsText += "<tr>";
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Orbit</th>`;
+    chainsText += "<th>Twist</th>";
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
@@ -393,9 +357,8 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Turn</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Perim</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Chain</th>` +
-        "<th>Twist</th>" +
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Per<sup>2</sup></th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>DPer</th>`;
         "</tr>";
 
 
@@ -404,6 +367,9 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
         var chain = chains[ i ].getTableRow();
 
         chainsText += `<tr>`;
+        chainsText += `<td  align='center' onclick="${ cellClick };clickRiffler( '${ rifflerId }', ${ i } )">${ chain.members }</td>`;
+        chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
+
         chainsText += `<td align="center">${ chain.sum }</td>`;
         chainsText += `<td align="center">${ chain.harmonic }</td>`;
         chainsText += `<td align="center">${ chain.harmonicSum }</td>`;
@@ -412,8 +378,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ chain.bias }</td>`;
         chainsText += `<td align="center">${ chain.rotation }</td>`;
         chainsText += `<td align="center">${ chain.perimeter }</td>`;
-        chainsText += `<td onclick="${ cellClick };clickRiffler( '${ rifflerId }', ${ i } )">${ chain.members }</td>`;
-        chainsText += "<td align='center' onclick='rotateChainText( this.previousElementSibling )'>&#8594;</td>";
+        chainsText += `<td align="center">${ chain.digitalPerimeter }</td>`;
         chainsText += "</tr>";
     }
 
@@ -421,8 +386,11 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     var ths = chainSystem.totalHarmonicSum;
     var turns = chainSystem.totalRotation;
     var perimeter = chainSystem.totalPerimeter;
+    var digitalPerimeter = chainSystem.totalDigitalPerimeter;
 
     chainsText += "<tr>";
+    chainsText += "<td></td>";
+    chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds[0] }, ${ tds[1] } )</span></td>`;
     chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ ths[0] }, ${ ths[1] } )</span></td>`;
@@ -430,16 +398,15 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ turns }</span></td>`;
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ perimeter }</span></td>`;
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ digitalPerimeter }</span></td>`;
     chainsText += "</tr>";
     chainsText += "</table>";
 
-    var legend = "Click on a chain cell, or a coord in the grid, or on a totals cell to redraw all chains.";
+    var legend = "Click on an orbit cell, or a coord in the grid, or on a totals cell to redraw all chains.";
 
     chainsText += `<div class='chain-details-legend' class='noprint'>${ legend }</div>`;
 
-    var clickColumn = 7;
+    var clickColumn = 1;
     var rifflerClick = `clickCell( '${ tableId }', Number(this.value), ${ clickColumn } )`;
 
     var riffler = "<input class='noprint'";
@@ -448,10 +415,17 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     riffler += ' value="0"';
     riffler += ' style="width: 95%;"/><br/>';
 
+    const container = document.getElementById( tableContainerId );
+    container.innerHTML = riffler + chainsText;
 
-    document.getElementById( tableContainerId ).innerHTML = riffler + chainsText;
+    try {
+        MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, container ] );
+    } catch ( e ) {
+        console.log( `Error: ${ e }: failed to typeset equation.` );
+    }
 
-    sortTable( tableId, 4, true, true );
+    var sortColumn = 6;
+    sortTable( tableId, sortColumn, true, true );
 }
 
 
@@ -504,7 +478,7 @@ function clickCell( tableId, rowNo, colNo ){
     }
 }
 
-async function riffle( tableId = null, rifflerId = null, delay = 500, clickColumn = 7 ){
+async function riffle( tableId = null, rifflerId = null, delay = 500, clickColumn = 0 ){
     const riffler = document.getElementById( rifflerId );
     for ( var i = riffler.min; i <= riffler.max; i++ ){
         riffler.value = i;
@@ -662,8 +636,6 @@ function writeChainSystemBlock( id, chainSystem, drawTable = false, drawControls
 
     container.appendChild( svg );
 
-    drawLegend( id , chainSystem );
-
     if ( drawControls ) {
         drawGridControls( id, chainSystem );
     }
@@ -693,50 +665,75 @@ function writeChainSystemBlock( id, chainSystem, drawTable = false, drawControls
     }
 }
 
+function getCycleIndexMonomialTex( chainSystem ) {
+    var cimHtml = "";
+    for (const [ k, e ] of Object.entries( chainSystem.cycleIndexMonomial )) {
+        if ( k > 1 ) {
+            cimHtml = cimHtml + `a_{${ k }}^{${ e }}`;
+        }
+    }
+    return cimHtml;
+}
+
+function getCyclePolynomialsTex( chainSystem, chain ) {
+
+    var b = chainSystem.base;
+    var m = chainSystem.mult;
+    var c = chainSystem.C;
+    var d = chainSystem.D;
+    var p = chainSystem.fundamental;
+    var f = chain.length;
+
+    var mHtml = "";
+    var bHtml = "";
+
+    for ( var i = 0; i < p; i++ ) {
+        var coord = chain[i % f];
+        if ( coord[0] > 0 ) {
+            mHtml = mHtml + (mHtml ? " + " : "") +  coord[0] + ( i == p-1 ? "" : `m^${ p - 1 - i }` );
+        }
+        if ( coord[1] > 0 ) {
+            bHtml = coord[1] + ( i == 0 ? "" : `b^${ i }` ) + ( bHtml ? " + " : "") + bHtml;
+        }
+    }
+
+    mHtml = `${ mHtml } &amp;= ${ b * chain[0][0] + chain[0][1] }.${ c }`;
+    bHtml = `${ bHtml } &amp;= ${ chain[f-1][0] + m * chain[f-1][1] }.${ d }`;
+
+    return [ mHtml, bHtml ];
+}
+
 function updateChainSystemEquation( id, chainSystem, chain ) {
 
     const equationId = id + "_equation";
 
     var equation = document.getElementById( equationId );
 
-    equation.innerHTML = "";
-
-    var b = chainSystem.base;
-    var m = chainSystem.mult;
-    var mb = m * b;
-
-    var c = chainSystem.C;
-    var d = chainSystem.D;
-
-    var mb_pf = primeFactors( mb - 1 );
-    var c_pf = primeFactors( c );
-    var d_pf = primeFactors( d );
+    if ( ! equation ){
+        return;
+    }
 
     if ( ! chain ) {
         chain = chainSystem.chains[1].coordsArray();
     }
 
-    var mHtml = "\\(";
-    var p = chain.length;
+    const [ mHtml, bHtml ] = getCyclePolynomialsTex( chainSystem, chain );
 
-    for ( var i = 0; i < p; i++ ) {
-        var coord = chain[i];
-        mHtml += `${ coord[0] }.${m}^(${ p - 1 - i }) + `;
-    }
-    mHtml += "\\)";
+    equation.innerHTML = "";
 
-    var bHtml = "\\(";
-
-    for ( var i = p-1; i >= 0; i-- ) {
-        var coord = chain[i];
-        bHtml += `${ coord[1] }.${b}^(${ i }) + `;
-    }
-    bHtml += "\\)";
-
-    var equationHtml = "<br/>";
-    equationHtml += mHtml;
+    var equationHtml = "\\begin{align*}";
+    equationHtml += mHtml + " \\\\";
     equationHtml += "<br/>";
-    equationHtml += bHtml;
+    equationHtml += bHtml + " \\\\";
+    equationHtml += "\\end{align*}";
 
     equation.innerHTML = equationHtml;
+
+    try {
+        MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, equation ] );
+    } catch ( e ) {
+        console.log( `Error: ${ e }: failed to typeset equation.` );
+    }
+
+    //console.log( `Typeset equation: ${ equationHtml }` )
 }

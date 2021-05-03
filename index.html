@@ -2,7 +2,20 @@
     <head>
         <meta charset="utf-8"/>
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <!--
+        <script
+                id="MathJax-script"
+                type="text/javascript"
+                async
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                -->
+        <script
+                id="MathJax-script"
+                type="text/javascript"
+                async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML">
+        </script>
+
         <script>
             MathJax = {
               tex: {
@@ -11,12 +24,6 @@
             };
         </script>
         <style>
-            @media print{
-               .noprint{
-                   display:none;
-               }
-            }
-
             body {
                 font-family: Arial, Helvetica, sans-serif;
                 width: 80%;
@@ -26,6 +33,10 @@
 
             .small {
                 font: italic 40% sans-serif;
+            }
+
+            th {
+                vertical-align: bottom;
             }
 
             .chain-details-legend {
@@ -173,13 +184,17 @@
                 drawChainSystemTable( id, randomChainSystem, cellClick, totalClick );
             }
 
-            function drawHarmonicChains( id, chainSystem ){
+            function drawHarmonicChains( id, chainSystem, drawAllChains = false ){
 
                 var cellClick = `drawChainOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), arrayFromChainText( this ), this )`;
                 var totalClick = `drawChainSystemOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
 
-                drawChainSystemOnGrid( id, chainSystem );
                 drawChainSystemTable( id, chainSystem, cellClick, totalClick );
+                if ( drawAllChains ) {
+                    drawChainSystemOnGrid( id, chainSystem );
+                } else {
+                    drawChainOnGrid( id, chainSystem, chainSystem.chains[1].coordsArray() );
+                }
             }
 
             function pageInit(){
@@ -201,7 +216,7 @@
 
                 setChainSystemSvg( containerId, chainSystem, dimensions = [ 600, 150 ], oversize = [ 1, 1 ], origin = [ 0, 0 ] );
 
-                writeChainSystemBlock( containerId, chainSystem, false, true, false );
+                writeChainSystemBlock( containerId, chainSystem, false, true, true );
 
                 if ( randomSystem ) {
                     drawRandomChains( containerId, chainSystem );
@@ -229,19 +244,19 @@
 
             </div>
 
-            A circular path
-            through one or more points on a grid
-            makes a chain,
-            a non-empty sequence of distinct grid coordinates,
-            where twisting the chain "left" or "right",
-            by moving a coordinate from one end of a sequence to the other makes no difference to the chain.
-            A chain system is a set of distinct chains spanning the grid coordinates specified by some \(b, m > 1\),
-            so that each coordinate appears once and in one chain only.
+            A circular path through one or more points on a grid makes an orbit,
+            a non-empty sequence of distinct grid coordinates where the ends join up.
+
+            A grid has many possible sets of disjoint orbits
+            that span the grid coordinates
+            (each coordinate appears once and in one orbit only).
             <br/>
             <br/>
-            Every choice of \(b, m > 1\) has a harmonic chain system, with fundamental \( p \) being the length of the longest chain,
-            where the length of every chain is a simple factor of the fundamental \( p \),
-            and every chain has a coordinate sum in proportion to \( ( m-1, b-1 ) \).
+            However, every grid has a set of harmonic orbits
+            with period \( p \) being the order (number of coordinates) of the longest orbit,
+            where the order of every orbit is a simple factor of the period \( p \)
+            and every orbit has a coordinate sum in proportion to \( ( m-1, b-1 ) \)
+            (i.e. is centred on the diagonal \( [ ( 0, 0 ), ( m-1, b-1 ) ] \)).
             <br/>
             <br/>
 
@@ -255,22 +270,21 @@
 
             <br/>
 
-
             <h3>Executive Summary</h3>
 
-            For any choice of two natural numbers greater than unity, say \( b, m > 1 \),
-            there is a harmonic chain system orchestrated by three natural numbers: \( p, C, D \),
-            where \( p \) is the fundamental,
+            For any grid, say \( b, m > 1 \),
+            there is an harmonic orbit system orchestrated by three natural numbers: \( p, C, D \),
+            where \( p \) is the period,
             such that:
 
             \begin{matrix}
                 p < (mb - 1), & C = \frac { m^{p} - 1 } { (mb - 1)}, & D = \frac { b^{p} - 1 } { (mb - 1)}
             \end{matrix}
 
-            For every chain (repeated by its harmonic so of length \( p \)),
+            For every orbit (repeated by its harmonic to make \( p \)),
             the sequence of \( i \) values calculated as a number in base \( m \),
             starting at any element \( ( i, j ) \),
-            and the reverse sequence of \( j \) values alculated in base \( b \) respectively are:
+            and the reverse sequence of \( j \) values calculated in base \( b \) respectively are:
 
             \begin{align}
             \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi + j)C \\
@@ -278,10 +292,14 @@
             \end{align}
 
             Therefore,
-            \( C \) can be easily read in base \( m \) from the chain containing \( ( 0, 1 )) \),
-            and \( D \) can be easily read in base \( b \) from the same chain  in reverse starting at \( ( 1, 0 ) \).
+            \( C \) can be easily read in base \( m \) from the orbit containing \( ( 0, 1 )) \),
+            and \( D \) can be easily read in base \( b \) from the same orbit in reverse starting at \( ( 1, 0 ) \).
             <br/>
             <br/>
+
+            <div id="XXXdefault_cs_equation">
+
+            </div>
 
             <hr class="pagebreak"/>
             <!--
@@ -293,10 +311,9 @@
             <h2>Base Jumping</h2>
 
 
-            Grid point coordinates can be mapped
-            to a single contiguous dimension
+            Grid coordinates can be indexed
             in the range from \( 0 \) to \( bm - 1 \)
-            by two distinct functions:
+            by two obvious functions:
             <ol class="equation-list">
                 <li>
                     \( id(i, j) \to bi + j \)
@@ -309,14 +326,17 @@
                     <sub>Calculate the arguments <b>in reverse</b> as a number in base m.</sub></li>
             </ol>
 
-            With these two functions, for any \(b, m > 1\), we can create two arrays of coordinates, \( idx \) and \( dix \), each of length \( bm \).
+            With these two functions, for any \(b, m > 1\), we can create two index arrays of coordinates, \( idx \) and \( dix \), each of length \( bm \).
             <ul>
-                <li>Each coordinate is indexed: by \( id( i, j ) \) in \( idx \), and by \( di( i, j ) \) in \( dix \).</li>
-                <li>They both do the same job, either will suffice to tally off, or serialize, all the grid coordinates within a single iteration.
-                <br/>
-                    They just follow different routes to span the grid coordinates.</li>
+                <li>Each coordinate is indexed: by \( id( i, j ) \) in \( idx \), and by \( di( i, j ) \) in \( dix \).
+                    <br/>
+                    <sub>They both do the same job, either will suffice to tally off, or serialize, all the grid coordinates within a single iteration.
+                    <br/>
+                        They just follow different routes to span the grid coordinates.</sub></li>
             </ul>
+
             For example, in javascript, for some \(b, m \), we might have:
+
             <pre>
     const id = ( i, j ) => ( b * i ) + j;
     const di = ( i, j ) => ( m * j ) + i;
@@ -352,12 +372,7 @@
                 </li>
             </ul>
             By using an index we avoid doing any division or subtraction
-            even though a coordinate can be calculated from an index value using \( \operatorname{div} \) and \( \bmod \),
-            for example:
-            <ul class="equation-list">
-                <li>\( id_{-1}( k ) \to ( k \operatorname{div} b, k \bmod b ) \)</li>
-                <li>\( di_{-1}( k ) \to ( k \bmod m, k \operatorname{div} m ) \)</li>
-            </ul>
+            even though a coordinate can be constructed from an index value, for an index, using \( \operatorname{div} \) and \( \bmod \).
 
             <hr class="pagebreak"/>
             <!--
@@ -367,9 +382,9 @@
             -->
             <h3>Index Weaving</h3>
 
-            Specifically, calculating the position of a coordinate in \( dix \)
-            and then using the result to select a coordinate from \( idx \),
+            Specifically, using the position of a coordinate in \( dix \) to select a coordinate from \( idx \),
             thereby introducing a \( twist \):
+
             <ul class="equation-list">
                 <li>\( twist( i, j ) = id^{-1}( di( i, j ) ) \)</li>
             </ul>
@@ -394,14 +409,14 @@
                 </li>
             </ul>
 
-            Repeated application of \( twist \) must group the coordinates into looping chains, where either:
+            Repeated application of \( twist \) must out coordinates in a cycle, where either:
             <ul>
                 <li>
-                    a chain contains more than one coordinate
+                    a cycle contains more than one coordinate
                     and can be rotated in either direction by applying \( twist \) or \( twist^{-1} \).
                 </li>
                 <li>
-                    a chain contains one coordinate, a singleton loop on it's own,
+                    a cycle contains only one coordinate, a fixed point,
                     and can be rotated in either direction,
                     immediately back to itself,
                     by applying \( twist \) or \( twist^{-1} \).
@@ -413,8 +428,8 @@
 
             -->
             By inspection, for any choice of \( b \) and \( m \),
-            there are always at least two singleton chains
-            and at least one non-singleton chain with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent,
+            there are always at least two fixed point cycles
+            and at least one non-fixed cycle with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent,
             since:
             <ul class="equation-list">
                 <li>
@@ -427,10 +442,10 @@
                     \( twist( 1, 0 ) = ( 0, 1 ) \)
                 </li>
             </ul>
-            We can find all the chains, given a choice of \( b \) and \( m \), by iterating over one index, and tallying off with the other.
+            We can find all the cycles, given a choice of \( b \) and \( m \), by iterating over one index, and tallying off with the other.
             For example, continuing the previous javascript example, we might have:
             <pre>
-    const chains = [];
+    const cycles = [];
 
     for ( var i = 0; i < ( b * m ); i++) {
 
@@ -442,7 +457,7 @@
 
         var gridPoint = idx[ i ];
 
-        const chain = {
+        const cycle = {
             index: i,
             coords: [ gridPoint ]
         };
@@ -450,19 +465,19 @@
         while ( gridPoint.di != i ) {
             dix[ gridPoint.di ] = -1;
             gridPoint = idx[ gridPoint.di ];
-            chain.coords.push( gridPoint );
+            cycle.coords.push( gridPoint );
         }
 
-        chains[ chains.length ] = chain;
+        cycles[ cycles.length ] = cycle;
     }
             </pre>
 
-            With a bit more code, we can generate tables and plot chains on grids.
+            With a bit more code, we can generate tables and plot cycles on grids.
             <br/>
 
             <hr class="pagebreak"/>
 
-            <h2>Sample Chain Systems</h2>
+            <h2>Sample Cycle Systems</h2>
 
             <div id="sample_cs_b_2_m_2"></div>
             <script>
@@ -488,7 +503,7 @@
 
             <br/>
 
-            With \( b = 10, m = 2\), there are only three chains, and the longest chain, with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent, has length 18:
+            With \( b = 10, m = 2\), there are only three cycles, and the longest cycle, with \( ( 0, 1 ) \) and \( ( 1, 0 ) \) adjacent, has length 18:
             <br/>
             <br/>
 
@@ -648,20 +663,20 @@
         </div>
         <hr/>
         <div>
-            Re-assemble:
+            Bring the sum to the left hand side:
 
             \begin{align*}
-            (mb-1)\sum_{k=0}^{p-1} m^{p-k-1}i_k &= m^p(i_{p-1} + mj_{p-1}) - (bi_n + j_n) \\
+            (mb-1)\sum_{k=0}^{p-1} m^{p-k-1}i_k &= m^p(i_{p-1} + mj_{p-1}) - (bi_p + j_p) \\
             \end{align*}
             \begin{align}
-            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_n + j_n) \over (mb-1) }
+            \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_p + j_p) \over (mb-1) }
             \end{align}
         </div>
         <hr/>
         <div>
-            Substitute
-            for <code>i<sub>p-1</sub> + mj<sub>p-1</sub></code>
-            and <code>bi<sub>p</sub> + j<sub>p</sub></code>:
+            Substitute <code>( bi<sub>0</sub> + j<sub>0</sub> )</code>
+            for both <code>( bi<sub>p</sub> + j<sub>p</sub> )</code>
+            and <code>( i<sub>p-1</sub> + mj<sub>p-1</sub> )</code>
 
             \begin{align*}
             \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_p + j_p) \over (mb-1) } \\
@@ -670,8 +685,8 @@
         </div>
         <hr/>
         <div>
-            Since the choice of <code>(i<sub>0</sub>, j<sub>0</sub>)</code> is arbitrary,
-            this is true for any choice:
+            The choice of <code>( i<sub>0</sub>, j<sub>0</sub> )</code> is arbitrary,
+            so this is true for every choice:
 
             \begin{align}
             \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi_0 + j_0){ (m^p - 1) \over (mb-1) } \\
@@ -684,14 +699,15 @@
         </div>
         <hr class="pagebreak"/>
         <div>
-            Identify two characteristic constants:
-            \begin{align}
-            C &= { (m^p - 1) \over (mb-1) },& D &= { (b^p - 1) \over (mb-1) } \\
-            \end{align}
+            For any \( b, m > 1 \), three characteristic natural numbers \( p, C, D \) occur:
+
+            \begin{matrix}
+            p < (mb - 1), & C = \frac { m^{p} - 1 } { (mb - 1)}, & D = \frac { b^{p} - 1 } { (mb - 1)}
+            \end{matrix}
 
             <br/>
 
-            <b>Rotation right:</b>
+            <b>Read right:</b>
             choose any <code>(i, j)</code>,
             follow the chain for <code>p</code> steps,
             collect the <code>i</code> values in sequence.<br/>
@@ -704,7 +720,7 @@
 
             <br/>
 
-            <b>Rotation left:</b>
+            <b>Read left:</b>
             choose any <code>(i, j)</code>,
             follow the chain in reverse for <code>p</code> steps,
             collect the <code>j</code> values in sequence.<br/>

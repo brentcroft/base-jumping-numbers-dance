@@ -4,10 +4,11 @@ chainSystems = [];
 maxI = -1;
 maxJ = -1;
 
+const C_SEP = " ";
+
 function hasChainSystem( i, j ) {
     return (i in chainSystems ) && (j in chainSystems[i]);
 }
-
 
 function truncate( value, places = 100 ){
     return Math.round( places * value ) / places;
@@ -72,9 +73,17 @@ function entryLengthSquared( entry, entryRight ) {
     return zd2;
 }
 
-function chainRotationAndPerimeter( coords ) {
+function digitalDistance( base, mult, entry, entryRight ) {
+    const yd = ( entryRight.coord[1] - entry.coord[1] );
+    const xd = ( entryRight.coord[0] - entry.coord[0] );
+    const zd2 = Math.abs(xd) + Math.abs(yd);
+    return zd2;
+}
+
+function chainRotationAndPerimeter( base, mult, coords ) {
     var rotation = 0;
     var perimeter = 0;
+    var digitalPerimeter = 0;
 
     for ( var i = 0, d = coords.length; i < d; i++ ) {
         rotation += entryRotation(
@@ -83,9 +92,10 @@ function chainRotationAndPerimeter( coords ) {
             coords[ ( i + 1 ) % d ]
         );
         perimeter += entryLengthSquared( coords[ i ], coords[ ( i + 1 ) % d ] );
+        digitalPerimeter += digitalDistance( base, mult, coords[ i ], coords[ ( i + 1 ) % d ] );
     }
     // number of whole clockwise turns
-    return [ -1 * Math.round( rotation / TWO_PI ), perimeter ];
+    return [ -1 * Math.round( rotation / TWO_PI ), perimeter, digitalPerimeter ];
 }
 
 function getRandomChainSystem( chainSystem ) {
@@ -99,7 +109,7 @@ function getRandomChainSystem( chainSystem ) {
     var gridCoords = [];
 
     function coord_text() {
-        return "( " + this.coord.join(", ") + " )";
+        return "(" + this.coord.join(",") + ")";
     }
 
     for (var i = 0; i < mult; i++ ) {
@@ -119,7 +129,7 @@ function getRandomChainSystem( chainSystem ) {
             "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
             "gcd": this.gcd,
             "length": this.length,
-            "members": this.coords.join(", ")
+            "members": this.coords.join(C_SEP)
         };
     }
 
@@ -146,11 +156,11 @@ function getRandomChainSystem( chainSystem ) {
             "getTableRow": getTableRow
         };
 
-        var median = chainMedian( chain );
+        const [ sumX, sumY, gcd ] = chainMedian( chain );
 
         chain.length = coords.length,
-        chain.sum = [ median[0], median[1] ];
-        chain.gcd =  median[2];
+        chain.sum = [ sumX, sumY ];
+        chain.gcd =  gcd;
 
         chains.push( chain );
     }
@@ -225,6 +235,20 @@ function navigate( origin=[ 0, 0 ], chainSystem ) {
     return [ path, chain.reverse() ];
 }
 
+function appendChainToCycleIndex( chain, cycleIndex = [] ){
+
+    var l = chain.length;
+
+    cycleIndex[l] = ( l in cycleIndex ) ? cycleIndex[l] + 1 : 0
+}
+
+function getNthHarmonicNumber( n ) {
+    var s = 0.0;
+    for( var i = 1; i <= n; i++) {
+        s = s + 1 / i;
+    }
+    return s;
+}
 
 function buildChainSystem( base, mult, chains, fundamental ) {
 
@@ -234,12 +258,14 @@ function buildChainSystem( base, mult, chains, fundamental ) {
     var totalWeight = 0;
     var totalRotation = 0;
     var totalPerimeter = 0;
+    var totalDigitalPerimeter = 0;
 
     const maxChainWeight =  reduce(
             ( base - 1 ) * fundamental,
             ( mult - 1 ) * fundamental
         )[2];
 
+    const cycleIndexMonomial  = {};
 
    // calculate harmonics
     var harmonics = {};
@@ -249,24 +275,33 @@ function buildChainSystem( base, mult, chains, fundamental ) {
         harmonics[ hI ] = ( hI in harmonics ) ? ( harmonics[ hI ] + 1 ) : 1;
 
         var harmonic = fundamental / hI;
-        var median = chainMedian( chain );
-        var rotationAndPerimeter = chainRotationAndPerimeter( chain.coords );
+
+        const [ sumX, sumY, gcd ] = chainMedian( chain );
+        const [ rotation, perimeter, digitalPerimeter ] = chainRotationAndPerimeter( base, mult, chain.coords );
+
+        cycleIndexMonomial[hI] = ( hI in cycleIndexMonomial ) ? cycleIndexMonomial[hI] + 1 : 1
 
         chain.length = hI,
         chain.harmonic =  harmonic;
-        chain.sum = [ median[0], median[1] ];
-        chain.harmonicSum = [ harmonic * median[0], harmonic * median[1] ];
-        chain.gcd =  median[2];
-        chain.weight = median[2] * harmonic;
-        chain.bias = reduce( median[2] * harmonic, maxChainWeight );
-        chain.rotation = rotationAndPerimeter[0];
-        chain.perimeter = rotationAndPerimeter[1];
+        chain.sum = [ sumX, sumY ];
+        chain.centre = [ sumX / hI, sumY / hI ];
+        chain.harmonicSum = [ harmonic * sumX, harmonic * sumY ];
+        chain.gcd =  gcd;
+        chain.weight = gcd * harmonic;
+        // [ gcd * harmonic, maxChainWeight, gcd( (gcd * harmonic), maxChainWeight ) ]
+        chain.bias = reduce( gcd * harmonic, maxChainWeight );
+        chain.biasFactor = ( chain.bias[0] / chain.bias[1] );
+        chain.rotation = rotation;
+        chain.perimeter = perimeter;
+        chain.digitalPerimeter = digitalPerimeter;
 
         totalHarmonicSum[0] += chain.harmonicSum[0];
         totalHarmonicSum[1] += chain.harmonicSum[1];
+
         totalRotation += chain.rotation;
         totalPerimeter += chain.perimeter;
-        totalWeight += chain.harmonic * median[2];
+        totalDigitalPerimeter += chain.digitalPerimeter;
+        totalWeight += chain.weight;
 
 
         function formattedWeight( weight ) {
@@ -287,12 +322,15 @@ function buildChainSystem( base, mult, chains, fundamental ) {
                 "length": this.length,
                 "weight": this.weight,
                 "bias": formattedWeight( this.bias ),
-                "members": this.coords.join(", "),
+                "members": this.coords.join(C_SEP),
                 "rotation": this.rotation,
-                "perimeter": this.perimeter
+                "perimeter": this.perimeter,
+                "digitalPerimeter": this.digitalPerimeter
             };
         }
     }
+
+    Object.entries( cycleIndexMonomial ).sort( (a, b) => a < b );
 
     return {
         base: base,
@@ -302,11 +340,13 @@ function buildChainSystem( base, mult, chains, fundamental ) {
         totalHarmonicSum : totalHarmonicSum,
         totalRotation : totalRotation,
         totalPerimeter : totalPerimeter,
+        totalDigitalPerimeter: totalDigitalPerimeter,
         harmonics: harmonics,
         maxIndex: maxIndex,
         fundamental: fundamental,
         totalWeight: totalWeight,
-        maxWeight: maxChainWeight
+        maxWeight: maxChainWeight,
+        cycleIndexMonomial: cycleIndexMonomial
     };
 }
 
@@ -384,7 +424,10 @@ function getChainSystem( base, mult ) {
         chains[ chains.length ] = chain;
     }
 
-    const chainSystem = buildChainSystem( base, mult, chains, chains[1].coords.length );
+    // TODO: currently unproven that this must be the harmonic
+    const fundamental = chains[1].coords.length;
+
+    const chainSystem = buildChainSystem( base, mult, chains, fundamental );
 
     chainSystem.C = chainDown( chainSystem.chains[1], mult );
     chainSystem.D = chainUp( chainSystem.chains[1], base );
@@ -467,11 +510,7 @@ function chainUp( chain, base ) {
 
 function rotateChainText( tdElement, rotateLeft = false ) {
 
-    var chainText = tdElement.innerHTML;
-
-    const chainItems =  chainText
-        .substring( 1, chainText.length - 1 )
-        .split( /\),\s*\(/ );
+    const chainItems =  arrayFromChainText( tdElement );
 
     if ( rotateLeft ) {
         chainItems.push( chainItems.shift() );
@@ -479,7 +518,14 @@ function rotateChainText( tdElement, rotateLeft = false ) {
         chainItems.splice( 0, 0, chainItems.pop() );
     }
 
-    tdElement.innerHTML = "(" + chainItems.join( "), (" ) + " )";
+    var chainText = "";
+    chainItems.forEach( coord => {
+        chainText += `( ${coord[0]}, ${coord[1]} ) `
+        return null;
+    });
+
+
+    tdElement.innerHTML = chainText;
 }
 
 function arrayFromChainText( tdElement ) {
@@ -488,12 +534,12 @@ function arrayFromChainText( tdElement ) {
 
     const chainItems =  chainText
         .substring( 1, chainText.length - 1 )
-        .split( /\),\s*\(/ );
+        .split( /\)[^\(]*\(/ );
 
     var chain = [];
 
     for ( var i = 0; i < chainItems.length; i++ ) {
-        const parts = chainItems[i].split( ",");
+        const parts = chainItems[i].trim().split( /[^\d]+/ );
         chain.push( [ Number( parts[0] ), Number( parts[1] ) ] );
     }
 

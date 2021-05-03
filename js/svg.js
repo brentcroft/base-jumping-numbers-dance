@@ -20,7 +20,10 @@ function buildSVGItem( elementType, attributes = {}, text = '' ) {
     const item = document.createElementNS( 'http://www.w3.org/2000/svg', elementType );
     Object
         .entries( attributes )
-        .map( a => item.setAttribute( a[0], a[1] ) );
+        .map( a => {
+                item.setAttribute( a[0], a[1] );
+                return null;
+            } );
     if (text) {
         const textNode = document.createTextNode(text);
         item.appendChild(textNode);
@@ -281,31 +284,6 @@ function drawGridControls( id, chainSystem ){
 }
 
 
-
-function drawLegend( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, strokeDashArray = "2" ) {
-
-    var containerId = document.getElementById( id );
-
-    const svg = chainSystem.svg[id];
-    const origin = svg.origin;
-    const scale = svg.scale;
-    const oversize = svg.oversize;
-
-    var svg_grid = document.getElementById( id + "_grid" );
-
-    const legend = buildSVGItem(
-                    'text',
-                    {
-                        "x": chainSystem.base * scale[1] + origin[1],
-                        "y": chainSystem.mult * scale[0] + origin[0] + 6,
-                        "class": "small",
-                        "alignment-baseline": "baseline"
-                    } );
-
-    svg_grid.appendChild( legend );
-}
-
-
 function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, strokeDashArray = "2" ) {
 
     var gridId = id + "_grid";
@@ -393,7 +371,7 @@ function drawGrid( id, chainSystem, stroke = "lightgray", strokeWidth = 0.5, str
                 drawChainOnGrid( id, chainSystem, chains[1], null, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain", false );
                 drawPathOnGrid( id, chainSystem, chains[0], null, color = "rgba( 0, 0, 255, 1 )", cssClass = "chain", false );
 
-                //updateChainSystemEquation( id, chainSystem, chains[1] );
+                updateChainSystemEquation( id, chainSystem, chains[1] );
             };
 
 

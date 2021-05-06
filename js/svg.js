@@ -268,7 +268,10 @@ function drawGridControls( id, chainSystem ){
     var redrawGridScript = `redrawGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ) )`;
     var oversize = svg.oversize;
 
-    gridHtml = "<i>grid-controls</i> ";
+    var gridHtml = `<i>x3d-plot</i><input type="checkbox" checked="checked" onclick="showHide( '${ id }_plot_container' )"/> `;
+
+
+    gridHtml += "<i>grid-controls</i> ";
     gridHtml += `<input type="checkbox" onclick="showHide( '${ gridControlsId }' )"/>`;
 
     gridHtml += `<div id="${ gridControlsId }" class="grid-controls" style="display: none">: `;

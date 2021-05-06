@@ -31,6 +31,12 @@
                 padding: 20pt;
             }
 
+            iframe {
+              resize: both;
+              width: 100%;
+              overflow: auto;
+            }
+
             .small {
                 font: italic 40% sans-serif;
             }
@@ -60,6 +66,11 @@
             .resizable {
                 resize: both;
                 overflow: auto;
+            }
+
+            .legend {
+                text-align: center;
+                font-style: italic;
             }
 
             .selected { background: Pink; }
@@ -93,8 +104,14 @@
         <script src="js/chains.js"></script>
         <script src="js/factors.js"></script>
         <script src="js/svg.js"></script>
+        <script src="js/3d.js"></script>
         <script src="js/ui.js"></script>
         <script>
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            var base = urlParams.has('base') ? Number( urlParams.get('base') ) : 10;
+            var mult = urlParams.has('mult') ? Number( urlParams.get('mult') ) : 4;
 
             function swapBases(){
                 const baseElement = document.getElementById("base");
@@ -184,7 +201,7 @@
                 drawChainSystemTable( id, randomChainSystem, cellClick, totalClick );
             }
 
-            function drawHarmonicChains( id, chainSystem, drawAllChains = false ){
+            function drawHarmonicChains( id, chainSystem, drawAllChains = false, drawX3Dom = true ){
 
                 var cellClick = `drawChainOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), arrayFromChainText( this ), this )`;
                 var totalClick = `drawChainSystemOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
@@ -194,6 +211,10 @@
                     drawChainSystemOnGrid( id, chainSystem );
                 } else {
                     drawChainOnGrid( id, chainSystem, chainSystem.chains[1].coordsArray() );
+                }
+
+                if ( drawX3Dom ) {
+                    openX3DomViewer( id, chainSystem );
                 }
             }
 
@@ -224,6 +245,14 @@
                     drawHarmonicChains( containerId, chainSystem);
                 }
             }
+
+            function openX3DomViewer( containerId, chainSystem ) {
+                const viewerContainerId = containerId + "_plot";
+                const viewerContainer = document.getElementById( viewerContainerId );
+                if ( viewerContainer ) {
+                    viewerContainer.innerHTML = `<iframe src="viewer.html?base=${ chainSystem.base }&amp;mult=${ chainSystem.mult }"></iframe>`;
+                }
+            }
         </script>
     </head>
     <body onload="pageInit()">
@@ -236,12 +265,25 @@
             where \(  0 \le i < m \) and \( 0 \le j < b \).
             <br/><br/>
             For example,
-            with \( b \) = <input id="base" name="base" type="number" size="4" min="2" max="20" value="10" onchange="initCurrentChainSystem( this )" ondblclick="initCurrentChainSystem()"/>,
-            \( m \) = <input id="mult" name="mult" type="number" size="4" min="2" max="20" value="4" onchange="initCurrentChainSystem( this )" ondblclick="initCurrentChainSystem()"/>,
+            with \( b \) = <script>
+                document.write( `<input id="base" name="base" type="number" size="4" min="2" max="20" value="${ base }" onchange="initCurrentChainSystem( this )" ondblclick="initCurrentChainSystem()"/>` );
+            </script>,
+            \( m \) = <script>
+                document.write( `<input id="mult" name="mult" type="number" size="4" min="2" max="20" value="${ mult }" onchange="initCurrentChainSystem( this )" ondblclick="initCurrentChainSystem()"/>` );
+            </script>,
             the grid coordinates \( (i, j) \) are:
 
             <div class="resizable" id="default_cs">
 
+            </div>
+
+            <div id="default_cs_plot_container">
+                <div id="default_cs_plot"></div>
+                <div class='legend'>
+                    [ a, r, u | e, f, l, w, &lt;space&gt; ]
+                    see: <a href="https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html" target="_new">x3dom navigation tutorial</a>
+                    <br/><br/>
+                </div>
             </div>
 
             A circular path through one or more points on a grid makes an orbit,
@@ -260,7 +302,7 @@
             <br/>
             <br/>
 
-            <!--<a href="javascript: drawRandomChains( 'default_cs',chainSystem )">Random</a> |-->
+<!--            <a href="javascript: openX3DomViewer( 'default_cs', chainSystem )">Viewer</a> |-->
             <a href="javascript: drawHarmonicChains( 'default_cs', chainSystem )">Harmonic</a>
             (<a href="javascript: swapBases()">swap</a> | <a href="javascript: riffle( 'default_cs_table_data', 'default_cs_table_riffler' )">riffle</a>)
             <br/>

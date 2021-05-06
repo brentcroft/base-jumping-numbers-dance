@@ -13,7 +13,7 @@ function createShape( emissiveColor ){
 
 function createTextShape( text = "", fontStyle ){
     var s = createShape();
-    var b = document.createElement( "text" );
+    var b = document.createElement( "Text" );
     s.appendChild(b);
 
     b.setAttribute( "string", text );
@@ -31,7 +31,7 @@ function createTextShape( text = "", fontStyle ){
 
 function createFlatBoxShape( size = "0.1 0 0.1" ){
     var s = createShape();
-    var b = document.createElement( "box" );
+    var b = document.createElement( "Box" );
     s.appendChild(b);
 
     b.setAttribute( "size", size );
@@ -42,7 +42,7 @@ function createFlatBoxShape( size = "0.1 0 0.1" ){
 
 function createSphereShape( radius = "0.1", emissiveColor = "blue" ){
     var s = createShape( emissiveColor );
-    var b = document.createElement( "sphere" );
+    var b = document.createElement( "Sphere" );
     s.appendChild(b);
 
     b.setAttribute( "radius", radius );
@@ -53,7 +53,7 @@ function createSphereShape( radius = "0.1", emissiveColor = "blue" ){
 
 function createPolyLineShape( lineSegments, emissiveColor = "red" ){
     var s = createShape( emissiveColor );
-    var polyline = document.createElement('polyline2d');
+    var polyline = document.createElement('Polyline2d');
     s.appendChild(polyline);
 
     polyline.setAttribute("lineSegments", lineSegments );
@@ -80,7 +80,7 @@ function buildPlot( chainSystems, maxI, maxJ ) {
             }
 
 
-            var t = document.createElement('transform');
+            var t = document.createElement('Transform');
             t.setAttribute( "translation", i + " " + 0 + " " + j );
 
             t.appendChild( createFlatBoxShape() );
@@ -88,7 +88,7 @@ function buildPlot( chainSystems, maxI, maxJ ) {
             if ( h > 0 ) {
                 t.appendChild( createPolyLineShape( `0 ${ h }, 0 0` ) );
 
-                var ty = document.createElement('transform');
+                var ty = document.createElement('Transform');
                 ty.setAttribute( "translation",  `0 ${ h } 0` );
                 ty.appendChild( createFlatBoxShape() );
                 t.appendChild(ty);
@@ -108,6 +108,14 @@ function buildPlot( chainSystems, maxI, maxJ ) {
     return items;
 }
 
+var colors = [
+    "red", "blue", "green", "orange", "gold", "purple", "olive", "SteelBlue"
+];
+
+function colorForIndex( i ){
+    return colors[ i % colors.length ];
+}
+
 
 function getChainSystemItems( chainSystem, harmonics ) {
 
@@ -117,7 +125,7 @@ function getChainSystemItems( chainSystem, harmonics ) {
     var b = chainSystem.base;
     var m = chainSystem.mult;
 
-    var fudge = Math.sqrt( b**2 + m**2 );
+    var fudge = 2 * Math.sqrt( b**2 + m**2 );
 
     for ( var i = 0; i < chains.length; i++ ) {
 
@@ -125,10 +133,9 @@ function getChainSystemItems( chainSystem, harmonics ) {
 
         var coords = orbit.coords;
 
-
         if (coords.length > 1 ) {
 
-            var t = document.createElement('transform');
+            var t = document.createElement('Transform');
             t.setAttribute( "translation", `${ -1 * orbit.centre[0] } ${ -1 * orbit.centre[1] } ${ fudge * orbit.biasFactor }` );
 
             var lineSegments = "";
@@ -138,10 +145,10 @@ function getChainSystemItems( chainSystem, harmonics ) {
 
             lineSegments += `${ coords[0].coord[0] } ${ coords[0].coord[1] }`;
 
-            t.appendChild( createPolyLineShape( lineSegments ) );
+            t.appendChild( createPolyLineShape( lineSegments, colorForIndex( i ) ) );
 
         } else {
-            var t = document.createElement('transform');
+            var t = document.createElement('Transform');
             t.setAttribute( "translation", `0 0 ${ fudge * orbit.biasFactor }` );
 
             t.appendChild( createSphereShape( 0.1, "blue" ) );

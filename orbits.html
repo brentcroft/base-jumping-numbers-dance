@@ -105,18 +105,20 @@
     <script type="text/javascript" src="js/3d.js"></script>
 
     <script>
-        function getParam() {
+        function getParam( defaultValues ) {
+
+            var bases = defaultValues.bases;
+            const toggles = defaultValues.toggles;
+
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
 
             const basesParam = urlParams.get('bases');
-
-            const toggles = {
-                table: 0,
-                grid: 0,
-                centres: 1,
-                lines: 0
-            };
+            if ( basesParam ) {
+                bases = basesParam
+                    .split(',')
+                    .forEach( x => Number( x ) );
+            }
 
             const toggleParam = urlParams.get('toggles');
             if ( toggleParam ) {
@@ -127,7 +129,7 @@
 
             return {
                 id: urlParams.get('id'),
-                bases: basesParam.split(",").map(x=> Number(x)),
+                bases: bases,
                 orbits: urlParams.get('orbits'),
                 toggles: toggles
             };
@@ -215,10 +217,8 @@
 
         function initialiseControls( param ) {
 
-            const defaultValues = getControlValues();
-
-            const bases = param.bases ? param.bases : defaultValues.bases;
-            const toggles = param.toggles ? param.toggles : defaultValues.toggles;
+            const bases = param.bases;
+            const toggles = param.toggles;
 
             initialiseBaseInput( 'b0', bases[0] );
             initialiseBaseInput( 'b1', bases[1] );
@@ -237,8 +237,6 @@
             if ( toggles.lines ) {
                 initialiseCheckBox( 'linesToggle', true );
             }
-
-
         }
 
         function openPlot() {
@@ -272,7 +270,7 @@
 
         function initPage() {
 
-            const param = getParam();
+            const param = getParam( getControlValues() );
 
             initialiseControls( param );
 
@@ -291,12 +289,10 @@
     <input type="number" min="1" id="b1" value="4"/>
     <input type="number" min="1" id="b2" value="4"/>
 
-    toggles:
-
-    table <input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
-    grid <input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
-    centres <input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )"/> |
-    lines <input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLineSets: 1 } )"/> |
+    table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
+    grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
+    centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /> |
+    lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLineSets: 1 } )"/> |
 
     <a href="javascript:reopenWithArgs()">reopen</a>
 

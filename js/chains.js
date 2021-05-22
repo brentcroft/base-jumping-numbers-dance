@@ -21,6 +21,19 @@ function totalDigitSum( b, m ) {
 const PI = 3.1415926;
 const TWO_PI = 2 * PI;
 
+/*
+    Randomize array in-place using Durstenfeld shuffle algorithm
+    https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+*/
+function shuffleArray( array ) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
 function entryRotation( entryLeft, entry, entryRight ) {
 
     var x00 = entryLeft.coord[0]
@@ -98,73 +111,16 @@ function chainRotationAndPerimeter( base, mult, coords ) {
     return [ -1 * Math.round( rotation / TWO_PI ), perimeter, digitalPerimeter ];
 }
 
-function getRandomChainSystem( chainSystem ) {
 
-    const base = chainSystem.base;
-    const mult = chainSystem.mult;
-    const scale = chainSystem.scale;
-    const origin = chainSystem.origin;
+function formattedWeight( weight ) {
+    return ( weight[0] == 0 )
+            ? 0
+            : ( weight[0] == weight[1] || weight[2] == 0 )
+                ? 1
+                : ( weight[0] / weight[2] ) + " / " + ( weight[1] / weight[2] );
+}
 
-    var chains = [];
-    var gridCoords = [];
-
-    function coord_text() {
-        return "(" + this.coord.join(",") + ")";
-    }
-
-    for (var i = 0; i < mult; i++ ) {
-        for (var j = 0; j < base; j++ ) {
-            gridCoords.push(
-            {
-                "coord": [ i, j ],
-                "toString": coord_text
-            } );
-        }
-    }
-
-    shuffleArray( gridCoords );
-
-    function getTableRow() {
-        return {
-            "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
-            "gcd": this.gcd,
-            "length": this.length,
-            "members": this.coords.join(C_SEP)
-        };
-    }
-
-    function coords_array() {
-        var coordsArray = [];
-        for ( var i = 0; i < this.coords.length; i++) {
-            coordsArray.push( this.coords[ i ].coord );
-        }
-
-        return coordsArray;
-    }
-
-
-    while ( gridCoords.length > 0 ) {
-
-        const chainStart = 0;
-        const chainLength = 1 + Math.floor( Math.random() * Math.random() * gridCoords.length );
-
-        var coords = gridCoords.splice( chainStart, chainLength );
-
-        var chain =  {
-            "coords": coords,
-            "coordsArray": coords_array,
-            "getTableRow": getTableRow
-        };
-
-        const [ sumX, sumY, gcd ] = chainMedian( chain );
-
-        chain.length = coords.length,
-        chain.sum = [ sumX, sumY ];
-        chain.gcd =  gcd;
-
-        chains.push( chain );
-    }
-
+function getFundamental( chains ) {
     var fundamental = 1;
     for ( var i = 0; i < chains.length; i++ ) {
         var chain = chains[i];
@@ -173,15 +129,9 @@ function getRandomChainSystem( chainSystem ) {
             fundamental = hI;
         }
     }
-
-    const randomChainSystem = buildChainSystem( base, mult, chains, fundamental );
-
-    randomChainSystem.origin = origin;
-    randomChainSystem.scale = scale;
-    randomChainSystem.toString = chainSystem.toString;
-
-    return randomChainSystem;
+    return fundamental;
 }
+
 
 function navigate( origin=[ 0, 0 ], chainSystem ) {
 
@@ -236,9 +186,7 @@ function navigate( origin=[ 0, 0 ], chainSystem ) {
 }
 
 function appendChainToCycleIndex( chain, cycleIndex = [] ){
-
     var l = chain.length;
-
     cycleIndex[l] = ( l in cycleIndex ) ? cycleIndex[l] + 1 : 0
 }
 
@@ -250,7 +198,28 @@ function getNthHarmonicNumber( n ) {
     return s;
 }
 
-function buildChainSystem( base, mult, chains, fundamental ) {
+function getChainSystemSummary() {
+    return `( ${ this.base }, ${ this.mult }, ${ this.fundamental }, ${ this.chains.length } )`;
+}
+
+function buildChainSystem( base, mult, chains ) {
+
+    function getTableRow() {
+        return {
+            "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
+            "harmonicSum": `( ${ this.harmonicSum[ 0 ] }, ${ this.harmonicSum[ 1 ] } )`,
+            "gcd": this.gcd,
+            "harmonic": this.harmonic,
+            "length": this.length,
+            "weight": this.weight,
+            "bias": formattedWeight( this.bias ),
+            "members": this.coords.join(C_SEP),
+            "rotation": this.rotation,
+            "perimeter": this.perimeter,
+            "digitalPerimeter": this.digitalPerimeter
+        };
+    }
+
 
     const maxIndex = (base * mult) - 1;
 
@@ -259,6 +228,8 @@ function buildChainSystem( base, mult, chains, fundamental ) {
     var totalRotation = 0;
     var totalPerimeter = 0;
     var totalDigitalPerimeter = 0;
+
+    const fundamental = getFundamental( chains );
 
     const maxChainWeight =  reduce(
             ( base - 1 ) * fundamental,
@@ -303,31 +274,7 @@ function buildChainSystem( base, mult, chains, fundamental ) {
         totalDigitalPerimeter += chain.digitalPerimeter;
         totalWeight += chain.weight;
 
-
-        function formattedWeight( weight ) {
-            return ( weight[0] == 0 )
-                    ? 0
-                    : ( weight[0] == weight[1] || weight[2] == 0 )
-                        ? 1
-                        : ( weight[0] / weight[2] ) + " / " + ( weight[1] / weight[2] );
-        }
-
-        chain.getTableRow = function()
-        {
-            return {
-                "sum": `( ${ this.sum[0] }, ${ this.sum[1] } )`,
-                "harmonicSum": `( ${ this.harmonicSum[ 0 ] }, ${ this.harmonicSum[ 1 ] } )`,
-                "gcd": this.gcd,
-                "harmonic": this.harmonic,
-                "length": this.length,
-                "weight": this.weight,
-                "bias": formattedWeight( this.bias ),
-                "members": this.coords.join(C_SEP),
-                "rotation": this.rotation,
-                "perimeter": this.perimeter,
-                "digitalPerimeter": this.digitalPerimeter
-            };
-        }
+        chain.getTableRow = getTableRow;
     }
 
     Object.entries( cycleIndexMonomial ).sort( (a, b) => a < b );
@@ -335,6 +282,7 @@ function buildChainSystem( base, mult, chains, fundamental ) {
     return {
         base: base,
         mult: mult,
+        hypo: Math.sqrt( base**2 + mult**2 ),
         chains: chains,
         totalDigitSum: totalDigitSum( base, mult ),
         totalHarmonicSum : totalHarmonicSum,
@@ -350,40 +298,29 @@ function buildChainSystem( base, mult, chains, fundamental ) {
     };
 }
 
-
-/*
-    Build the chains for base and mult.
-*/
-function getChainSystem( base, mult ) {
-
-    if ( hasChainSystem( base-2, mult-2 ) ) {
-        return chainSystems[ base-2 ][ mult-2 ];
-    }
+function buildIndexes( base, mult, id, di ) {
 
     function coord_text() {
-        return "( " + this.coord.join(", ") + " )";
+        return `( ${ this.coord[0] }, ${ this.coord[1] } )`;
     }
 
-    const id = ( i, j ) => ( i * base ) + j;
-    const di = ( i, j ) => i + ( j * mult );
-
-    const idx = [];
-    const dix = [];
-
+    const [ idx, dix ] = [ [], [] ];
     for ( var i = 0; i < mult; i++) {
         for ( var j = 0; j < base; j++) {
-
             const gridPoint = {
                 coord: [ i, j ],
                 id: id( i, j ),
                 di: di( i, j ),
                 toString: coord_text
             };
-
             idx[ gridPoint.id ] = gridPoint;
             dix[ gridPoint.di ] = gridPoint;
         }
     }
+    return [ idx, dix ];
+}
+
+function buildChains( base, mult, idx, dix ) {
 
     function coords_array() {
         var coordsArray = [];
@@ -421,20 +358,35 @@ function getChainSystem( base, mult ) {
             coords[ coords.length ] = gridPoint;
         }
 
-        chains[ chains.length ] = chain;
+        chains.push( chain );
     }
 
-    // TODO: currently unproven that this must be the harmonic
-    const fundamental = chains[1].coords.length;
+    return chains;
+}
 
-    const chainSystem = buildChainSystem( base, mult, chains, fundamental );
+
+/*
+    Build the orbits for base and mult.
+*/
+function getChainSystem( base, mult ) {
+
+    if ( hasChainSystem( base-2, mult-2 ) ) {
+        return chainSystems[ base-2 ][ mult-2 ];
+    }
+
+    const id = ( i, j ) => ( i * base ) + j;
+    const di = ( i, j ) => i + ( j * mult );
+
+    const [ idx, dix ] = buildIndexes( base, mult, id, di );
+    const chains = buildChains( base, mult, idx, dix );
+
+    const chainSystem = buildChainSystem( base, mult, chains );
+
+    chainSystem.toString = getChainSystemSummary;
 
     chainSystem.C = chainDown( chainSystem.chains[1], mult );
     chainSystem.D = chainUp( chainSystem.chains[1], base );
 
-    chainSystem.toString = function(){
-        return `( ${ this.base }, ${ this.mult }, ${ this.fundamental }, ${ this.chains.length } )`;
-    };
 
     var i = base-2;
     var j = mult-2;
@@ -450,6 +402,47 @@ function getChainSystem( base, mult ) {
 
     return chainSystem;
 }
+
+function getRandomIndexValues( base, mult, id ){
+    const randomIndexValues = [];
+    for ( var i = 0; i < mult; i++) {
+        for ( var j = 0; j < base; j++) {
+            randomIndexValues.push( id( i, j ) );
+        }
+    }
+    shuffleArray( randomIndexValues );
+    return randomIndexValues;
+}
+
+/*
+    Random orbits for base and mult.
+*/
+function getRandomSystem( chainSystem ) {
+
+    const [ base, multi, svg ]  = [ chainSystem.base, chainSystem.mult, chainSystem.svg];
+
+    const id = ( i, j ) => ( i * base ) + j;
+
+    const randomIndexValues = getRandomIndexValues( base, mult, id );
+    const di = ( i, j ) => randomIndexValues[ id( i, j ) ];
+
+    const [ idx, dix ] = buildIndexes( base, mult, id, di );
+    const chains = buildChains( base, mult, idx, dix );
+
+    const randomChainSystem = buildChainSystem( base, mult, chains );
+
+    randomChainSystem.toString = getChainSystemSummary;
+
+    randomChainSystem.base = base;
+    randomChainSystem.mult = mult;
+    randomChainSystem.svg = svg;
+
+    return randomChainSystem;
+}
+
+
+
+
 
 // Reduce a fraction by finding the Greatest Common Divisor and dividing by it.
 // https://stackoverflow.com/questions/4652468/is-there-a-javascript-function-that-reduces-a-fraction

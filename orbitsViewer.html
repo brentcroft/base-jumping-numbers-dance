@@ -1,0 +1,269 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 80%;
+            }
+            .legend {
+                text-align: center;
+                font-style: italic;
+            }
+            .plot-container {
+              border: 10px inset #f0f0f0;
+              width: 100%;
+              height: 100%;
+              resize: both;
+              overflow: auto;
+            }
+        </style>
+
+        <script type="text/javascript" src="js/x3dom-full.js"></script>
+        <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
+
+        <script type="text/javascript" src="js/3d.js"></script>
+
+        <script>
+
+            function getParam() {
+
+                const queryString = window.location.search;
+                const urlParams = new URLSearchParams(queryString);
+
+                const basesParam = urlParams.get('bases');
+
+                const toggles = {
+                    table: 0,
+                    grid: 0,
+                    centres: 1,
+                    lines: 0
+                };
+
+                const toggleParam = urlParams.get('toggles');
+                if ( toggleParam ) {
+                    toggleParam
+                        .split(',')
+                        .forEach( x => toggles[x] = 1 );
+                }
+
+                return {
+                    id: urlParams.get('id'),
+                    bases: basesParam.split(",").map(x=> Number(x)),
+                    orbits: urlParams.get('orbits'),
+                    toggles: toggles
+                };
+            }
+
+            function toggleLineSets( containerId ) {
+                toggleBySelector( containerId, "Shape.orbit > LineSet", x => x.parentNode );
+            }
+
+            function toggleGrid( containerId ) {
+                toggleBySelector( containerId, ".grid-coords" );
+            }
+
+            function toggleCentres( containerId ) {
+                toggleBySelector( containerId, ".orbit-centre" );
+            }
+
+
+            function toggleBySelector( containerId, cssSelector, translator = (x) => x ) {
+                const selectedElements = document
+                    .getElementById( containerId )
+                    .querySelectorAll( cssSelector );
+
+                selectedElements.forEach( selectedElement => {
+                        const element = ( translator )
+                            ? translator( selectedElement )
+                            : selectedElement;
+                        const render = ("false" == element.getAttribute( "render" ) );
+                        element.setAttribute( "render", render );
+                    });
+            }
+
+
+
+            function showOrbit( containerId, orbitSystem, senderId ) {
+                const [ tableId, orbitId ] = senderId.split( "." );
+                const orbits = document
+                    .getElementById( containerId )
+                    .querySelectorAll( "Transform.orbit" );
+
+                orbits.forEach( orbitElement => {
+                        const [ cId, oId ] = orbitElement.id.split( "." );
+                        if ( tableId != cId && orbitId != oId ) {
+                            if ( !orbitElement.classList.contains( "selected" ) ) {
+                                orbitElement.setAttribute( "render", false );
+                            }
+                        } else if ( orbitElement.classList.contains( "selected" ) ) {
+                            orbitElement.setAttribute( "render", false );
+                            orbitElement.classList.remove("selected");
+                        } else {
+                            orbitElement.setAttribute( "render", true );
+                            orbitElement.classList.add("selected");
+                        }
+                    });
+            }
+
+            function showAllOrbits( containerId, orbitSystem, senderId ) {
+                const [ tableId, orbitId ] = senderId.split( "." );
+                const orbits = document
+                    .getElementById( containerId )
+                    .querySelectorAll( "Transform.orbit" )
+                    .forEach( orbitElement => {
+                        const [ cId, oId ] = orbitElement.id.split( "." );
+                        if ( tableId != cId ) {
+                            orbitElement.setAttribute( "render", true );
+                            orbitElement.classList.remove("selected");
+                        }
+                    });
+            }
+
+
+
+            function getOrbitSystemItems( orbitSystem, toggles ) {
+
+                var orbits = orbitSystem.orbits;
+
+                var collision = document.createElement('Collision');
+                collision.setAttribute( "enabled", false );
+
+                var root = document.createElement('Transform');
+                root.setAttribute( "translation", orbitSystem.bases.map( (b) => -b/2 ).join( ' ' ) );
+
+                const [ b0, b1, b2 ] = orbitSystem.bases;
+
+                const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
+
+                var grid = document.createElement('Collision');
+                grid.setAttribute( "render", Boolean( toggles.grid ) );
+                grid.setAttribute( "enabled", false );
+                grid.classList.add( "grid-coords" );
+
+                for ( var i = 0; i < b0; i++ ) {
+                    for ( var j = 0; j < b1; j++ ) {
+                        for ( var k = 0; k < b2; k++ ) {
+                            var v = document.createElement('Transform');
+                            v.setAttribute( "translation", [ i, j, k ].join( ' ' ) );
+                            v.appendChild( createSphereShape( 0.03, 'black' ) );
+                            v.appendChild( createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle ) );
+                            grid.appendChild( v );
+                        }
+                    }
+                }
+
+                root.appendChild( grid );
+
+
+                for ( var i = 0; i < orbits.length; i++ ) {
+
+                    const orbit = orbits[i];
+                    const orbitColor = colorForIndex( i );
+                    var coords = orbit.coords;
+
+                    if (coords.length > 1 ) {
+                        var t = document.createElement('Transform');
+
+                        t.setAttribute( "translation", "0 0 0" );
+                        t.setAttribute( "class", "orbit" );
+                        t.setAttribute( "id", "orbit." + orbit.index );
+
+                        const lineSet = createLineSet( coords, orbitColor );
+                        lineSet.setAttribute( "render", Boolean( toggles.lines ) );
+                        t.appendChild( lineSet );
+
+                        var g = document.createElement('Group');
+                        g.setAttribute( "render", Boolean( toggles.centres ) );
+                        g.classList.add( "orbit-centre" );
+
+                        var v = document.createElement('Transform');
+                        v.setAttribute( "translation", orbit.centre.join( ' ' ) );
+                        v.appendChild( createSphereShape( 0.1, "yellow" ) );
+                        g.appendChild( v );
+
+                        try {
+                            const pad = 2;
+                            const lineType = '3';
+                            const points = extendLine( orbit.centre, orbitSystem.centre, pad );
+
+                            var lp = createLineSetFromPoints( points, "gray", lineType );
+                            g.appendChild( lp );
+                        } catch ( e ) {
+                            // co-located points
+                            console.log( `Ignoring exception: ${ e }` );
+                        }
+
+                        root.appendChild( g );
+                        root.appendChild( t );
+
+                    } else {
+                        var coord = orbit.coords[0];
+                        var t = document.createElement('Transform');
+                        t.setAttribute( "translation", `${ coord.coord.join( ' ' ) }` );
+                        //t.setAttribute( "class", "orbit" );
+                        t.appendChild( createSphereShape( 0.1, "red" ) );
+<!--                        t.appendChild( createTextShape( `(${ coord.coord.join( ',' ) })`, {-->
+<!--                            "family": "'Arial' 'San Serif'",-->
+<!--                            "size": 0.2-->
+<!--                         } ) );-->
+                        root.appendChild( t );
+                    }
+                }
+
+                collision.appendChild( root );
+                return collision;
+            }
+
+            function plotOrbitSystem( orbitSystem, param ) {
+
+                var x3domContainerId =  'testContainer001';
+
+                const sceneRootId = `${ x3domContainerId }_plot_scene_root`;
+                const sceneRoot = document.getElementById( sceneRootId );
+
+                var osi = getOrbitSystemItems( orbitSystem, param.toggles );
+                sceneRoot.appendChild( osi );
+
+                sceneRoot.setAttribute( "translation", `orbitSystem.bases.map( b => -1 * b/2 ).join( ' ' )` );
+            }
+
+            function initPage() {
+                const param = getParam();
+
+                const orbitSystem = window.parent.window.getOrbitSystem( param.id );
+
+                plotOrbitSystem( orbitSystem, param );
+
+                window.addEventListener( "message", ( event ) => {
+                    if ( event.data ) {
+                        if ( event.data.orbitSystemKey ) {
+                            const orbitSystem = window.parent.window.getOrbitSystem( event.data.orbitSystemKey );
+                            if ( event.data.sender ) {
+                                showOrbit( "testContainer001", orbitSystem, event.data.sender );
+                            } else {
+                                showAllOrbits( "testContainer001", orbitSystem, event.data.sender );
+                            }
+                        } else if ( event.data.toggleGrid ) {
+                            toggleGrid( "testContainer001" );
+                        } else if ( event.data.toggleCentres ) {
+                            toggleCentres( "testContainer001" );
+                        } else if ( event.data.toggleLineSets ) {
+                            toggleLineSets( "testContainer001" );
+                        }
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body id="testContainer001" onload="initPage()">
+        <x3d id="testContainer001_plot" showStat="false" width="100%" height="100%">
+            <navigationInfo type='"walk" "any"' id="testContainer001_plot_navType"></navigationInfo>
+            <scene>
+                <transform id="testContainer001_plot_scene_root">
+
+                </transform>
+            </scene>
+        </x3d>
+    </body>
+</html>

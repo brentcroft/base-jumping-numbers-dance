@@ -1,5 +1,34 @@
 
-function createShape( emissiveColor ){
+
+function extendLine( p1, p2, pad = 1 ) {
+
+     const distance = Math.sqrt( p1
+        .map( ( x, i ) => Math.abs( x - p2[i] ) )
+        .reduce( ( total, value ) => { return total + value**2; }) );
+
+    if ( distance < 0.001 ) {
+        throw `The points [${ p1.join(',')}] and [${ p2.join(',')}] have no distance between them.`;
+    }
+
+    const scale = ( distance + ( 2 * pad ) ) / distance;
+
+    const [ x1, y1, z1 ] = p1;
+    const [ x2, y2, z2 ] = p2;
+    const p0 = [
+        x1 + ( scale * (x1 - x2) ),
+        y1 + ( scale * (y1 - y2) ),
+        z1 + ( scale * (z1 - z2) )
+    ];
+    const p3 = [
+        x2 + ( scale * (x2 - x1) ),
+        y2 + ( scale * (y2 - y1) ),
+        z2 + ( scale * (z2 - z1) )
+    ];
+
+    return [ p0, p3 ];
+}
+
+function createShape( emissiveColor, lineType ){
     var s = document.createElement('shape');
     var app = document.createElement('appearance');
     var mat = document.createElement('material');
@@ -7,6 +36,12 @@ function createShape( emissiveColor ){
         mat.setAttribute( "emissiveColor", emissiveColor );
     }
     app.appendChild(mat);
+    if (lineType){
+        var lp = document.createElement('LineProperties');
+        lp.setAttribute( "linetype", `${ lineType }` );
+        lp.setAttribute( "containerField", 'lineProperties' );
+        app.appendChild(lp);
+    }
     s.appendChild(app);
     return s;
 }
@@ -61,6 +96,74 @@ function createPolyLineShape( lineSegments, emissiveColor = "red" ){
     return s;
 }
 
+function createLineSet( coords, emissiveColor ){
+
+    var shape = createShape( emissiveColor, 1 );
+    shape.classList.add( "orbit" );
+
+    var lineSet = document.createElement( "LineSet" );
+    shape.appendChild( lineSet );
+
+    lineSet.setAttribute( 'vertexCount', `${ coords.length + 1 }` );
+
+    var point = "";
+    for ( var j = 0; j < coords.length; j++ ) {
+        point += `${ coords[j].coord.join( ' ' ) } `;
+    }
+    point += `${ coords[0].coord.join( ' ' ) }`;
+
+    var coordinate = document.createElement( 'Coordinate' );
+    coordinate.setAttribute( 'point', `${ point }` );
+    lineSet.append( coordinate );
+
+    return shape;
+}
+
+
+function createLineSetFromPoints( points, emissiveColor, lineType ) {
+
+    var shape = createShape( emissiveColor, lineType );
+    shape.classList.add( "orbitCentreLine" );
+
+    var lineSet = document.createElement( "LineSet" );
+    shape.appendChild( lineSet );
+
+    lineSet.setAttribute( 'vertexCount', `${ points.length }` );
+
+    var point = "";
+    for ( var j = 0; j < points.length; j++ ) {
+        point += `${ points[j].join( ' ' ) } `;
+    }
+
+    var coordinate = document.createElement( 'Coordinate' );
+    coordinate.setAttribute( 'point', `${ point }` );
+    lineSet.append( coordinate );
+
+    return shape;
+}
+
+
+
+function insertX3DomFrame( containerId, orbitSystem, framePage ) {
+    const viewerContainerId = containerId + "_plot";
+    const viewerContainer = document.getElementById( viewerContainerId );
+    if ( viewerContainer ) {
+        var frameId = containerId + "_plot_frame";
+        var iframeHtml = `<iframe id="${ frameId }" class="plot_frame" src="${ framePage }"></iframe>`;
+        viewerContainer.innerHTML = iframeHtml;
+    }
+}
+
+
+
+function openX3DomFrame( containerId, orbitSystem, framePage = 'orbitsViewer.html' ) {
+    const windowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+
+    window.open( `${ framePage }?id=${ orbitSystem.key }`, containerId, windowFeatures );
+}
+
+
+
 function buildPlot( chainSystems, maxI, maxJ ) {
     var items = [];
 
@@ -109,7 +212,12 @@ function buildPlot( chainSystems, maxI, maxJ ) {
 }
 
 var colors = [
-    "red", "blue", "green", "orange", "gold", "purple", "olive", "SteelBlue"
+    "black", "red", "teagreen", "blue", "vanilla",
+    "pink", "yellow", "lime", "magenta", "cobaltblue",
+    "brown", "lightblue", "maroon", "green", "olive",
+    "bluejay", "lightseagreen", "cyan", "sand",
+    "orange", "venomgreen", "goldenrod", "saffron", "rust",
+    "coral", "mahogany", "puce", "darkblue", "grape", "purple"
 ];
 
 function colorForIndex( i ){
@@ -125,7 +233,7 @@ function getChainSystemItems( chainSystem, harmonics ) {
     var b = chainSystem.base;
     var m = chainSystem.mult;
 
-    var fudge = 2 * Math.sqrt( b**2 + m**2 );
+    var fudge = chainSystem.hypo;
 
     for ( var i = 0; i < chains.length; i++ ) {
 

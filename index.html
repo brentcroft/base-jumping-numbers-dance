@@ -34,6 +34,7 @@
             iframe {
               resize: both;
               width: 100%;
+              height: 200px;
               overflow: auto;
             }
 
@@ -96,7 +97,7 @@
             .equation-list { list-style-type: none; }
             .equation-list li { padding: 6pt; }
 
-            input[type=number]{
+            input[type=number] {
                 width: 40pt;
                 text-align: right;
             }
@@ -104,16 +105,16 @@
         <script src="js/chains.js"></script>
         <script src="js/factors.js"></script>
         <script src="js/svg.js"></script>
-        <script src="js/3d.js"></script>
+
         <script src="js/ui.js"></script>
         <script>
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
 
-            var base = urlParams.has('base') ? Number( urlParams.get('base') ) : 10;
+            var base = urlParams.has('base') ? Number( urlParams.get('base') ) : 13;
             var mult = urlParams.has('mult') ? Number( urlParams.get('mult') ) : 4;
 
-            function swapBases(){
+            function swapBases() {
                 const baseElement = document.getElementById("base");
                 const multElement = document.getElementById("mult");
 
@@ -190,23 +191,33 @@
                 }
             }
 
-            function drawRandomChains( id, chainSystem ){
+            function drawRandomChains( id, chainSystem, drawAllChains = false, drawX3Dom = true ) {
 
-                randomChainSystem = getRandomChainSystem( chainSystem );
+                randomChainSystem = getRandomSystem( chainSystem );
 
                 var cellClick = `drawChainOnGrid( '${ id }', randomChainSystem, arrayFromChainText( this ), this )`;
-                var totalClick = `drawChainSystemOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
+                var totalClick = `drawChainSystemOnGrid( '${ id }', randomChainSystem, this )`;
 
-                drawChainSystemOnGrid( id, randomChainSystem );
                 drawChainSystemTable( id, randomChainSystem, cellClick, totalClick );
+
+                if ( drawAllChains ) {
+                    drawChainSystemOnGrid( id, randomChainSystem );
+                } else {
+                    drawChainOnGrid( id, randomChainSystem, randomChainSystem.chains[1].coordsArray() );
+                }
+
+                if ( drawX3Dom ) {
+                    openX3DomViewer( id, randomChainSystem );
+                }
             }
 
-            function drawHarmonicChains( id, chainSystem, drawAllChains = false, drawX3Dom = true ){
+            function drawHarmonicChains( id, chainSystem, drawAllChains = false, drawX3Dom = true ) {
 
                 var cellClick = `drawChainOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), arrayFromChainText( this ), this )`;
                 var totalClick = `drawChainSystemOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
 
                 drawChainSystemTable( id, chainSystem, cellClick, totalClick );
+
                 if ( drawAllChains ) {
                     drawChainSystemOnGrid( id, chainSystem );
                 } else {
@@ -214,7 +225,7 @@
                 }
 
                 if ( drawX3Dom ) {
-                    openX3DomViewer( id, chainSystem );
+                    openX3DomViewer( chainSystem );
                 }
             }
 
@@ -246,13 +257,17 @@
                 }
             }
 
-            function openX3DomViewer( containerId, chainSystem ) {
+            function openX3DomViewer( chainSystem ) {
+                const containerId = "default_cs";
                 const viewerContainerId = containerId + "_plot";
                 const viewerContainer = document.getElementById( viewerContainerId );
                 if ( viewerContainer ) {
-                    viewerContainer.innerHTML = `<iframe src="viewer.html?base=${ chainSystem.base }&amp;mult=${ chainSystem.mult }"></iframe>`;
+                    var frameId = containerId + "_plot_frame";
+                    var iframeHtml = `<iframe id="${ frameId }" src="viewer.html?base=${ chainSystem.base }&amp;mult=${ chainSystem.mult }&amp;random=false"></iframe>`;
+                    viewerContainer.innerHTML = iframeHtml;
                 }
             }
+
         </script>
     </head>
     <body onload="pageInit()">
@@ -303,6 +318,7 @@
             <br/>
 
 <!--            <a href="javascript: openX3DomViewer( 'default_cs', chainSystem )">Viewer</a> |-->
+            <a href="javascript: drawRandomChains( 'default_cs', chainSystem )">Random</a> |
             <a href="javascript: drawHarmonicChains( 'default_cs', chainSystem )">Harmonic</a>
             (<a href="javascript: swapBases()">swap</a> | <a href="javascript: riffle( 'default_cs_table_data', 'default_cs_table_riffler' )">riffle</a>)
             <br/>

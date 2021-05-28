@@ -63,10 +63,11 @@ class Orbit {
             this.centre[index] = s / this.order;
         } );
 
-        this.gcd = this.sum[0];
-        this.sum.forEach( ( s ) => {
-            this.gcd = reduce( this.gcd, s );
-        } );
+        this.gcd = this.sum.reduce( gcd );
+//        this.sum.forEach( ( s ) => {
+//            this.gcd = reduce( this.gcd, s );
+//        } );
+        this.lcm = this.sum.reduce( lcm );
     }
 
     getCoordArray() {
@@ -84,6 +85,7 @@ class Orbit {
             "centre": `( ${ this.centre.map( x => truncate( x )).join( ', ' ) } )`,
             "harmonicSum": `( ${ this.harmonicSum.map( x => truncate( x )).join( ', ' ) } )`,
             "gcd": this.gcd,
+            "lcm": this.lcm,
             "harmonic": truncate( this.harmonic ),
             "length": this.length,
             "weight": truncate( this.weight ),

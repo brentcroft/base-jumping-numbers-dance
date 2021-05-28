@@ -134,7 +134,7 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Length</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     //chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>GCD</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Bias</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
@@ -157,7 +157,7 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ orbit.length }</td>`;
         chainsText += `<td align="center">${ orbit.harmonic }</td>`;
         //chainsText += `<td align="center">${ orbit.harmonicSum }</td>`;
-        chainsText += `<td align="center">${ orbit.gcd }</td>`;
+        chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
         chainsText += `<td align="center">${ orbit.weight }</td>`;
         chainsText += `<td align="center">${ orbit.bias }</td>`;
         chainsText += `<td align="center">${ orbit.lineRef }</td>`;

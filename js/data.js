@@ -73,6 +73,9 @@ var scale             = ( p, s ) => p.map( x => x * s);
 var euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v )
 var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
 
+var gcd = (a, b) => a ? gcd(b % a, a) : b;
+var lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
+
 var unitDisplacement  = ( p1, p2 ) => {
     const d = displacement( p1, p2 );
     const ed = Math.sqrt( euclideanDistance2( d ) );
@@ -122,11 +125,7 @@ function reduce( n, d ) {
     }
     var numerator = (n<d)?n:d;
     var denominator = (n<d)?d:n;
-    var gcd = function gcd(a,b){
-        return b ? gcd(b, a%b) : a;
-    };
-    gcd = gcd( numerator,denominator);
-    return gcd;
+    return gcd( numerator, denominator );
 }
 
 

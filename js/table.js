@@ -114,26 +114,16 @@ function getCycleIndexMonomialTex( orbitSystem ) {
 
 function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick ) {
 
-    const orbits = orbitSystem.orbits;
-
     const tableContainerId = containerId + "_table";
-
     const tableId = tableContainerId + "_data";
-    const rifflerId = tableContainerId + "_riffler";
-
-    var cimHtml = "\\(" + getCycleIndexMonomialTex( orbitSystem ) + "\\)";
-
 
     var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
     chainsText += "<caption>Orbit System: ";
-    chainsText += `cim=${ cimHtml }, `;
     chainsText += `b=[${ orbitSystem.bases.join( ', ' ) }], `;
     chainsText += `v=${ orbitSystem.volume }, `;
     chainsText += `w=${ orbitSystem.maxWeight }, `;
     chainsText += `p=${ orbitSystem.fundamental }, `;
-    //chainsText += `C=${ orbitSystem.C }, D=${ orbitSystem.D }, `;
-    //chainsText += `w=[ ${ harmony[0] } / ${ harmony[1] } / ${ harmony[2] } ]`;
     chainsText += "</caption>";
 
     var colIndex = 0;
@@ -143,15 +133,18 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Length</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
+    //chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>GCD</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Bias</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Per<sup>2</sup></th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>DPer</th>`;
-        "</tr>";
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>P<sup>2</sup></th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>H<sup>2</sup></th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>O<sup>2</sup></th>`;
+    chainsText += "</tr>";
 
+    const orbits = orbitSystem.orbits;
 
     for ( var i = 0; i < orbits.length; i++ ) {
 
@@ -163,20 +156,20 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ orbit.sum }</td>`;
         chainsText += `<td align="center">${ orbit.length }</td>`;
         chainsText += `<td align="center">${ orbit.harmonic }</td>`;
-        chainsText += `<td align="center">${ orbit.harmonicSum }</td>`;
+        //chainsText += `<td align="center">${ orbit.harmonicSum }</td>`;
         chainsText += `<td align="center">${ orbit.gcd }</td>`;
         chainsText += `<td align="center">${ orbit.weight }</td>`;
         chainsText += `<td align="center">${ orbit.bias }</td>`;
-        chainsText += `<td align="center">${ orbit.centre }</td>`;
+        chainsText += `<td align="center">${ orbit.lineRef }</td>`;
+        chainsText += `<td align="center">${ orbit.centreRef }</td>`;
         chainsText += `<td align="center">${ orbit.perimeter }</td>`;
-        chainsText += `<td align="center">${ orbit.digitalPerimeter }</td>`;
+        chainsText += `<td align="center">${ orbit.centreHypoteneuse }</td>`;
+        chainsText += `<td align="center">${ orbit.centreOpposite }</td>`;
         chainsText += "</tr>";
     }
 
     var tds = orbitSystem.totalDigitSum;
-    var ths = orbitSystem.totalHarmonicSum;
     var perimeter = orbitSystem.totalPerimeter;
-    var digitalPerimeter = orbitSystem.totalDigitalPerimeter;
 
     chainsText += "<tr>";
     chainsText += "<td></td>";
@@ -184,37 +177,24 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds.join( ', ') } )</span></td>`;
     chainsText += "<td></td>";
     chainsText += "<td></td>";
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ ths.join( ', ') } )</span></td>`;
+    chainsText += "<td></td>";
+    chainsText += "<td></td>";
     chainsText += "<td></td>";
     chainsText += "<td></td>";
     chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ perimeter }</span></td>`;
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ digitalPerimeter }</span></td>`;
+    chainsText += "<td></td>";
+    chainsText += "<td></td>";
     chainsText += "</tr>";
     chainsText += "</table>";
 
-    var legend = "Click on an orbit cell, or a coord in the grid, or on a totals cell to redraw all chains.";
-
+    var legend = "Click on a cell to select or on a totals cell to redraw all.";
     chainsText += `<div class='chain-details-legend' class='noprint'>${ legend }</div>`;
 
-    var clickColumn = 1;
-    var rifflerClick = `clickCell( '${ tableId }', Number(this.value), ${ clickColumn } )`;
+    document
+        .getElementById( tableContainerId )
+        .innerHTML = chainsText;
 
-    var riffler = "<input class='noprint'";
-    riffler += ' type="range" min="0"';
-    riffler += ` id="${ rifflerId }" max="${ orbits.length - 1 }" onchange="${ rifflerClick }" oninput="${ rifflerClick }"`;
-    riffler += ' value="0"';
-    riffler += ' style="width: 95%;"/><br/>';
-
-    const container = document.getElementById( tableContainerId );
-    container.innerHTML = riffler + chainsText;
-
-    try {
-        MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, container ] );
-    } catch ( e ) {
-        console.log( `Error: ${ e }: failed to typeset equation.` );
-    }
-
-    var sortColumn = 8;
+    var sortColumn = 7;
     sortTable( tableId, sortColumn, true, true );
 }

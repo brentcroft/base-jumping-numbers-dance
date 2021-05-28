@@ -22,10 +22,11 @@
         <script type="text/javascript" src="js/x3dom-full.js"></script>
         <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
+        <script type="text/javascript" src="js/data.js"></script>
+        <script type="text/javascript" src="js/orbits.js"></script>
         <script type="text/javascript" src="js/3d.js"></script>
 
         <script>
-
             function getParam() {
 
                 const queryString = window.location.search;
@@ -55,8 +56,14 @@
                 };
             }
 
-            function toggleLineSets( containerId ) {
-                toggleBySelector( containerId, "Shape.orbit > LineSet", x => x.parentNode );
+            function clearSelected() {
+                document
+                    .querySelectorAll( ".selected" )
+                    .forEach( item => item.classList.remove('selected') );
+            }
+
+            function toggleLines( containerId ) {
+                toggleBySelector( containerId, ".orbit"  );
             }
 
             function toggleGrid( containerId ) {
@@ -84,17 +91,19 @@
 
 
 
-            function showOrbit( containerId, orbitSystem, senderId ) {
+            function showOrbit( containerId, orbitSystem, senderId, multi ) {
                 const [ tableId, orbitId ] = senderId.split( "." );
                 const orbits = document
                     .getElementById( containerId )
-                    .querySelectorAll( "Transform.orbit" );
+                    .querySelectorAll( ".orbit" );
 
                 orbits.forEach( orbitElement => {
                         const [ cId, oId ] = orbitElement.id.split( "." );
-                        if ( tableId != cId && orbitId != oId ) {
-                            if ( !orbitElement.classList.contains( "selected" ) ) {
+                        if ( orbitId != oId ) {
+                            if ( multi && orbitElement.classList.contains( "selected" ) ) {
+                            } else {
                                 orbitElement.setAttribute( "render", false );
+                                orbitElement.classList.remove("selected");
                             }
                         } else if ( orbitElement.classList.contains( "selected" ) ) {
                             orbitElement.setAttribute( "render", false );
@@ -106,113 +115,144 @@
                     });
             }
 
-            function showAllOrbits( containerId, orbitSystem, senderId ) {
-                const [ tableId, orbitId ] = senderId.split( "." );
+            function showAllOrbits( containerId, orbitSystem ) {
                 const orbits = document
                     .getElementById( containerId )
-                    .querySelectorAll( "Transform.orbit" )
+                    .querySelectorAll( ".orbit" )
                     .forEach( orbitElement => {
-                        const [ cId, oId ] = orbitElement.id.split( "." );
-                        if ( tableId != cId ) {
-                            orbitElement.setAttribute( "render", true );
-                            orbitElement.classList.remove("selected");
-                        }
+                        orbitElement.setAttribute( "render", true );
+                        orbitElement.classList.remove("selected");
                     });
             }
 
 
-
             function getOrbitSystemItems( orbitSystem, toggles ) {
 
-                var orbits = orbitSystem.orbits;
+                const orbits = orbitSystem.orbits;
+                const fixedPointTransparency = 0.1;
+                const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
+                const root = reify( "Transform", { "translation": orbitSystem.bases.map( b => -b/2 ).join( ' ' ) } );
 
-                var collision = document.createElement('Collision');
-                collision.setAttribute( "enabled", false );
+                function appendGridChildren( grid ) {
+                    const [ b0, b1, b2 ] = orbitSystem.bases;
+                    const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
+                    const gridPointRadius = 0.05;
 
-                var root = document.createElement('Transform');
-                root.setAttribute( "translation", orbitSystem.bases.map( (b) => -b/2 ).join( ' ' ) );
-
-                const [ b0, b1, b2 ] = orbitSystem.bases;
-
-                const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
-
-                var grid = document.createElement('Collision');
-                grid.setAttribute( "render", Boolean( toggles.grid ) );
-                grid.setAttribute( "enabled", false );
-                grid.classList.add( "grid-coords" );
-
-                for ( var i = 0; i < b0; i++ ) {
-                    for ( var j = 0; j < b1; j++ ) {
-                        for ( var k = 0; k < b2; k++ ) {
-                            var v = document.createElement('Transform');
-                            v.setAttribute( "translation", [ i, j, k ].join( ' ' ) );
-                            v.appendChild( createSphereShape( 0.03, 'black' ) );
-                            v.appendChild( createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle ) );
-                            grid.appendChild( v );
+                    for ( var i = 0; i < b0; i++ ) {
+                        for ( var j = 0; j < b1; j++ ) {
+                            for ( var k = 0; k < b2; k++ ) {
+                                grid
+                                    .appendChild(
+                                        reify(
+                                            "Transform",
+                                            { "translation": [ i, j, k ].join( ' ' ) },
+                                            [
+                                                createSphereShape( gridPointRadius, 'black' ),
+                                                createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
+                                            ]
+                                        )
+                                    );
+                            }
                         }
                     }
                 }
 
-                root.appendChild( grid );
+                // GRID
+                root
+                    .appendChild(
+                        reify(
+                            "Collision",
+                            {
+                                "class": "grid-coords",
+                                "enabled": false,
+                                "render": Boolean( toggles.grid )
+                            },
+                            [],
+                            [ appendGridChildren ]
+                        )
+                    );
 
+                // CENTRE LINES
+                const centrePoints = orbitSystem
+                    .centrePoints
+                    .map( x => reify(
+                                    "transform",
+                                    { "translation": x.point.join( ' ' ) },
+                                    [ createSphereShape( 0.1, "yellow", fixedPointTransparency ) ]
+                                ) );
 
+                const centreLines = orbitSystem
+                    .centreLines
+                    .map( centreLine => createLineSetFromPoints( centreLine.points, "gray", "3" ) );
+
+                root
+                    .appendChild(
+                        reify(
+                            "group",
+                            { "class": "orbit-centre", "render": Boolean( toggles.centres ) },
+                            centrePoints.concat( centreLines )
+                        )
+                    );
+
+                // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {
-
                     const orbit = orbits[i];
-                    const orbitColor = colorForIndex( i );
-                    var coords = orbit.coords;
-
-                    if (coords.length > 1 ) {
-                        var t = document.createElement('Transform');
-
-                        t.setAttribute( "translation", "0 0 0" );
-                        t.setAttribute( "class", "orbit" );
-                        t.setAttribute( "id", "orbit." + orbit.index );
-
-                        const lineSet = createLineSet( coords, orbitColor );
-                        lineSet.setAttribute( "render", Boolean( toggles.lines ) );
-                        t.appendChild( lineSet );
-
-                        var g = document.createElement('Group');
-                        g.setAttribute( "render", Boolean( toggles.centres ) );
-                        g.classList.add( "orbit-centre" );
-
-                        var v = document.createElement('Transform');
-                        v.setAttribute( "translation", orbit.centre.join( ' ' ) );
-                        v.appendChild( createSphereShape( 0.1, "yellow" ) );
-                        g.appendChild( v );
-
-                        try {
-                            const pad = 2;
-                            const lineType = '3';
-                            const points = extendLine( orbit.centre, orbitSystem.centre, pad );
-
-                            var lp = createLineSetFromPoints( points, "gray", lineType );
-                            g.appendChild( lp );
-                        } catch ( e ) {
-                            // co-located points
-                            console.log( `Ignoring exception: ${ e }` );
-                        }
-
-                        root.appendChild( g );
-                        root.appendChild( t );
+                    if (orbit.coords.length == 1 ) {
+                        // identity orbit - stationary point
+                        root
+                            .appendChild(
+                                reify(
+                                    "Transform",
+                                    { "translation": `${ orbit.coords[0].coord.join( ' ' ) }` },
+                                    [ createSphereShape( 0.1, "red", fixedPointTransparency ) ]
+                                )
+                            );
 
                     } else {
-                        var coord = orbit.coords[0];
-                        var t = document.createElement('Transform');
-                        t.setAttribute( "translation", `${ coord.coord.join( ' ' ) }` );
-                        //t.setAttribute( "class", "orbit" );
-                        t.appendChild( createSphereShape( 0.1, "red" ) );
-<!--                        t.appendChild( createTextShape( `(${ coord.coord.join( ',' ) })`, {-->
-<!--                            "family": "'Arial' 'San Serif'",-->
-<!--                            "size": 0.2-->
-<!--                         } ) );-->
-                        root.appendChild( t );
+                        // orbit lines
+                        root
+                            .appendChild(
+                                reify(
+                                    "Group",
+                                    { "class": "orbit", "id": ("orbit." + orbit.index ) },
+                                    [
+                                        createLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ),
+                                        reify(
+                                            "transform", { "translation": orbit.centre.join( ' ' ) },
+                                            [ createSphereShape( 0.11, "black" ) ]
+                                        )
+                                    ],
+                                    [ ( e ) => e.setAttribute( "render", Boolean( toggles.lines ) ) ]
+                                )
+                            );
                     }
                 }
+                return reify( "collision", { "enabled": false }, [ root ] );
+            }
 
-                collision.appendChild( root );
-                return collision;
+
+            function getOrbitSystemGears( orbitSystem, toggles ) {
+
+                const orbits = orbitSystem.orbits;
+                const fixedPointTransparency = 0.1;
+                const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
+                const root = reify( "Transform", { "translation": orbitSystem.bases.map( b => -b/2 ).join( ' ' ) } );
+
+                // ORBITS
+                for ( var i = 0; i < orbits.length; i++ ) {
+                    const orbit = orbits[i];
+                    if (orbit.coords.length > 1 ) {
+                        root
+                            .appendChild(
+                                reify(
+                                    "transform",
+                                    { "translation": `${ i } 0 0`, "class": "orbit", "id": ("orbit." + orbit.index ) },
+                                    [ createDialLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ) ]
+                                )
+                            );
+                    }
+                }
+                return reify( "collision", { "enabled": false }, [ root ] );
             }
 
             function plotOrbitSystem( orbitSystem, param ) {
@@ -222,34 +262,41 @@
                 const sceneRootId = `${ x3domContainerId }_plot_scene_root`;
                 const sceneRoot = document.getElementById( sceneRootId );
 
-                var osi = getOrbitSystemItems( orbitSystem, param.toggles );
-                sceneRoot.appendChild( osi );
+                var osi = (param.toggles.gears)
+                    ? getOrbitSystemGears( orbitSystem, param.toggles )
+                    : getOrbitSystemItems( orbitSystem, param.toggles );
 
-                sceneRoot.setAttribute( "translation", `orbitSystem.bases.map( b => -1 * b/2 ).join( ' ' )` );
+                sceneRoot.appendChild( osi );
             }
 
             function initPage() {
-                const param = getParam();
 
+                const param = getParam();
                 const orbitSystem = window.parent.window.getOrbitSystem( param.id );
 
                 plotOrbitSystem( orbitSystem, param );
 
                 window.addEventListener( "message", ( event ) => {
                     if ( event.data ) {
-                        if ( event.data.orbitSystemKey ) {
-                            const orbitSystem = window.parent.window.getOrbitSystem( event.data.orbitSystemKey );
-                            if ( event.data.sender ) {
-                                showOrbit( "testContainer001", orbitSystem, event.data.sender );
+                        var data = event.data;
+
+                        //console.log( `data: ${ JSON.stringify( data ) }` );
+
+                        if ( data.orbitSystemKey ) {
+                            const orbitSystem = window.parent.window.getOrbitSystem( data.orbitSystemKey );
+                            if ( data.sender ) {
+                                showOrbit( "testContainer001", orbitSystem, data.sender, data.multi );
                             } else {
-                                showAllOrbits( "testContainer001", orbitSystem, event.data.sender );
+                                showAllOrbits( "testContainer001", orbitSystem );
                             }
-                        } else if ( event.data.toggleGrid ) {
+                        } else if ( data.toggleGrid ) {
                             toggleGrid( "testContainer001" );
-                        } else if ( event.data.toggleCentres ) {
+                        } else if ( data.toggleCentres ) {
                             toggleCentres( "testContainer001" );
-                        } else if ( event.data.toggleLineSets ) {
-                            toggleLineSets( "testContainer001" );
+                        } else if ( data.toggleLines ) {
+                            toggleLines( "testContainer001" );
+                        } else if ( data.clearSelected ) {
+                            clearSelected();
                         }
                     }
                 });
@@ -258,11 +305,7 @@
     </head>
     <body id="testContainer001" onload="initPage()">
         <x3d id="testContainer001_plot" showStat="false" width="100%" height="100%">
-            <navigationInfo type='"walk" "any"' id="testContainer001_plot_navType"></navigationInfo>
-            <scene>
-                <transform id="testContainer001_plot_scene_root">
-
-                </transform>
+            <scene id="testContainer001_plot_scene_root">
             </scene>
         </x3d>
     </body>

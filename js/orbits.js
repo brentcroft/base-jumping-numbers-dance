@@ -1,9 +1,4 @@
 
-const PI = 3.1415926;
-const TWO_PI = 2 * PI;
-
-const C_SEP = " ";
-
 var orbitSystems = {};
 
 function getOrbitSystem( key ) {
@@ -14,30 +9,12 @@ function putOrbitSystem( key, orbitSystem ) {
     orbitSystem.key = key;
     orbitSystems[key] = orbitSystem;
 
-    console.log( orbitSystem );
+    //console.log( orbitSystem );
 }
 
 
 function truncate( value, places = 100 ){
     return Math.round( places * value ) / places;
-}
-
-
-
-// Reduce a fraction by finding the Greatest Common Divisor and dividing by it.
-// https://stackoverflow.com/questions/4652468/is-there-a-javascript-function-that-reduces-a-fraction
-
-function reduce( n, d ) {
-    if ( n == 0 || d == 0 ) {
-        return 0;
-    }
-    var numerator = (n<d)?n:d;
-    var denominator = (n<d)?d:n;
-    var gcd = function gcd(a,b){
-        return b ? gcd(b, a%b) : a;
-    };
-    gcd = gcd( numerator,denominator);
-    return gcd;
 }
 
 function formattedWeight( weight ) {
@@ -49,40 +26,6 @@ function formattedWeight( weight ) {
 }
 
 
-function entryLengthSquared( entry, entryRight ) {
-    var d = entry
-        .coord
-        .map( ( x, i ) => Math.abs( x - entryRight.coord[i] ) )
-        .reduce( ( total, value ) => {
-            return total + value**2;
-            });
-    return d;
-}
-
-function digitalDistance( entry, entryRight ) {
-
-    var d = entry
-        .coord
-        .map( ( x, i ) => Math.abs( x, entryRight.coord[i] ) )
-        .reduce( ( total, value ) => {
-            return total + value;
-            });
-
-    return d;
-}
-
-function chainPerimeter( coords ) {
-    var perimeter = 0;
-    var digitalPerimeter = 0;
-
-    for ( var i = 0, d = coords.length; i < d; i++ ) {
-        perimeter += entryLengthSquared( coords[ i ], coords[ ( i + 1 ) % d ] );
-        digitalPerimeter += digitalDistance( coords[ i ], coords[ ( i + 1 ) % d ] );
-    }
-    return [ perimeter, digitalPerimeter ];
-}
-
-
 class Coord {
     constructor( coord = [], id, di ) {
         this.coord = [ ...coord ];
@@ -91,22 +34,25 @@ class Coord {
     }
 
     toString() {
-        return '( ' + this.coord.join( ', ' ) + ' )';
+        return canonicalize( this.coord );
     }
 }
 
 class Orbit {
-    constructor( index, coords ) {
+
+    constructor( parent, index, coords ) {
+        this.parent = parent;
         this.index = index;
         this.coords = coords;
+        this.findSums();
     }
 
     findSums() {
         this.basis = this.coords[0].coord.length;
         this.order = this.coords.length;
-        this.sum = new Array( this.basis ).fill( 0 );
         this.centre = new Array( this.basis ).fill( 0 );
 
+        this.sum = new Array( this.basis ).fill( 0 );
         this.coords.forEach( ( item, index ) => {
             for ( var i = 0; i < this.basis; i++ ) {
                 this.sum[i] += item.coord[i];
@@ -123,7 +69,15 @@ class Orbit {
         } );
     }
 
+    getCoordArray() {
+        return this
+            .coords
+            .map( c => c.coord );
+    }
+
     getTableRow() {
+        const centre = this.parent.centrePoints[this.centreRef];
+        const line = this.parent.centreLines[centre.lineRef];
         return {
             "id": this.index,
             "sum": `( ${ this.sum.join( ', ' ) } )`,
@@ -137,7 +91,10 @@ class Orbit {
             "members": this.coords.join( C_SEP ),
             "rotation": this.rotation,
             "perimeter": this.perimeter,
-            "digitalPerimeter": this.digitalPerimeter
+            "lineRef": centre.lineRef,
+            "centreRef": this.centreRef,
+            "centreHypoteneuse": truncate( centre.hyp2 ),
+            "centreOpposite": truncate( line.pd )
         };
     }
 }
@@ -146,30 +103,33 @@ class Orbit {
 
 
 class OrbitSystem {
-    constructor( bases ) {
-        this.bases = bases;
-        this.centre = bases.map( x => (x-1)/2 );
+    constructor( param ) {
+        this.bases = param.bases;
+        this.key = "os-" + this.bases.join( "." );
+        this.volume = this.bases.reduce( (a,c) => a*c, 1);
+        this.centre = this.bases.map( x => (x-1)/2 );
+        this.mainDiagonal = [ [ 0, 0, 0 ], this.bases.map( x => x - 1) ];
         this.idx = [];
         this.dix = [];
-        this.buildIndexes();
+        if ( param.toggles && param.toggles.random ) {
+            this.buildRandomIndexes();
+        } else {
+            this.buildIndexes();
+        }
         this.buildOrbits();
+        this.buildCentreLines();
         this.findFundamental();
-        this.findBasesVolume();
         this.findTotalDigitSum();
         this.findMaxWeight();
         this.analyzeOrbits();
     }
 
-    findBasesVolume() {
-        var value = 1;
-        for ( var i = 0; i < this.bases.length; i++ ) {
-            value *= this.bases[i];
-        }
-        this.volume = value;
+    getCaptionTex() {
+        var cimHtml = "\\(" + getCycleIndexMonomialTex( this ) + "\\)";
+        return cimHtml;
     }
 
     findTotalDigitSum() {
-
         this.totalDigitSum = new Array( this.bases.length ).fill( 0 );
         for ( var i = 0; i < this.idx.length; i++ ) {
             const coord = this.idx[i].coord;
@@ -201,46 +161,117 @@ class OrbitSystem {
         return value;
     }
 
-    buildIndexes( index = 0, coord = [] ) {
-        if ( index ==  this.bases.length ) {
-            const id = this.getCoordId( coord );
-            const di = this.getCoordIdInverse( coord );
-            const item = new Coord( coord, id, di );
-            this.idx[ id ] = item;
-            this.dix[ di ] = item;
-        } else {
-            for ( var i = 0; i < this.bases[index]; i++) {
-                coord.push( i );
-                this.buildIndexes( index + 1, coord );
-                coord.pop( i );
+    buildIndexes() {
+        generateIndexes( {
+            bases: this.bases,
+            coordId: this.getCoordId,
+            inverseCoordId: this.getCoordIdInverse,
+            idx: this.idx,
+            dix: this.dix } );
+    }
+
+    buildRandomIndexes() {
+        const randomIndexValues = shuffleArray( Array.from({length: this.volume}, (item, index) => index) );
+        const di = ( coord ) => randomIndexValues[ this.getCoordId( coord ) ];
+
+        generateIndexes( {
+            bases: this.bases,
+            coordId: this.getCoordId,
+            inverseCoordId: di,
+            idx: this.idx,
+            dix: this.dix } );
+    }
+
+
+    buildOrbits() {
+        this.orbits = [];
+        const tally = [ ...this.dix ];
+        for ( var i = 0; i < this.idx.length; i++) {
+            if ( tally[ i ]!= -1 ) {
+                tally[ i ] = -1;
+                var coord = this.idx[ i ];
+                const coords = [ coord ];
+                while ( coord.di != i ) {
+                    tally[ coord.di ] = -1;
+                    coord = this.idx[ coord.di ];
+                    coords.push( coord );
+                }
+                this.orbits.push( new Orbit( this, this.orbits.length, coords ) );
             }
         }
     }
 
-    buildOrbits() {
+    buildCentreLines() {
 
-        this.orbits = [];
-        const tally = [ ...this.dix ];
+        const allowance = 0.00000000001;
+        const [ A, B ] = this.mainDiagonal;
 
-        for ( var i = 0; i < this.idx.length; i++) {
+        var centreLines = [
+            { "points": [ A, B ], "unit": unitDisplacement( A, B ), "pd": 0 }
+        ];
+        var centrePoints = [
+            { "point": [0,0,0], "lineRef": 0, "hyp2": 0 }
+        ];
 
-            if ( tally[ i ] == -1 ) {
-                continue;
+        function assignCentreRef( orbitSystem, orbit ) {
+            const centreDist = distance2( centrePoints[0].point, orbit.centre );
+            if ( centreDist < allowance ) {
+                orbit.centreRef = 0;
+                return;
+            }
+            for ( var i = 1; i < centrePoints.length; i++) {
+                const d = distance2( centrePoints[i].point, orbit.centre );
+                if ( d < allowance ) {
+                    orbit.centreRef = i;
+                    return;
+                }
             }
 
-            tally[ i ] = -1;
-            var coord = this.idx[ i ];
-            const orbit = new Orbit( this.orbits.length, [ coord ] );
-            this.orbits.push( orbit );
+            // new centre
+            function getCentreLineRef( centre ) {
 
-            while ( coord.di != i ) {
-                tally[ coord.di ] = -1;
-                coord = this.idx[ coord.di ];
-                orbit.coords.push( coord );
+                var cpd = perpendicularDistance( centre, centreLines[0].points, centreLines[0].unit );
+                if ( cpd < allowance ) {
+                    return 0;
+                }
+
+                const unit = displacement( centre, orbitSystem.centre );
+                const scaledUnit = scale( unitDisplacement( centre, orbitSystem.centre ), 0.5 );
+
+                for ( var i = 1; i < centreLines.length; i++) {
+                    const pd = perpendicularDistance( centre, centreLines[i].points, centreLines[i].unit );
+                    if ( pd < allowance ) {
+                        if ( cpd > centreLines[i].pd ) {
+                            centreLines[i].points = [
+                                subtraction( subtraction( orbitSystem.centre, unit ), scaledUnit),
+                                addition( addition( orbitSystem.centre, unit ), scaledUnit)
+                            ];
+                        }
+                        return i;
+                    }
+                }
+
+                const points = [
+                    subtraction( subtraction( orbitSystem.centre, unit ), scaledUnit),
+                    addition( addition( orbitSystem.centre, unit ), scaledUnit)
+                ];
+
+                centreLines.push( { "points": points, "unit": unitDisplacement( centre, orbitSystem.centre ), "pd": cpd }  );
+                return centreLines.length - 1;
             }
 
-            orbit.findSums();
+            centrePoints.push( {
+                "point": orbit.centre,
+                "lineRef": getCentreLineRef( orbit.centre ),
+                "hyp2": centreDist
+            } );
+
+            orbit.centreRef = centrePoints.length - 1;
         }
+
+        this.orbits.forEach( orbit => assignCentreRef( this, orbit ) );
+        this.centreLines = centreLines;
+        this.centrePoints = centrePoints;
     }
 
     findFundamental() {
@@ -269,7 +300,6 @@ class OrbitSystem {
         var totalWeight = 0;
         var totalRotation = 0;
         var totalPerimeter = 0;
-        var totalDigitalPerimeter = 0;
 
         const cycleIndexMonomial  = {};
 
@@ -278,29 +308,30 @@ class OrbitSystem {
 
         for ( var i = 0; i < this.orbits.length; i++ ) {
             var orbit = this.orbits[i];
-            var hI = orbit.coords.length;
-            harmonics[ hI ] = ( hI in harmonics ) ? ( harmonics[ hI ] + 1 ) : 1;
 
-            var harmonic = this.fundamental / hI;
+            var orbitOrder = orbit.coords.length;
+            harmonics[ orbitOrder ] = ( orbitOrder in harmonics ) ? ( harmonics[ orbitOrder ] + 1 ) : 1;
 
-            const [ perimeter, digitalPerimeter ] = chainPerimeter( orbit.coords );
+            var harmonic = this.fundamental / orbitOrder;
 
-            cycleIndexMonomial[hI] = ( hI in cycleIndexMonomial ) ? cycleIndexMonomial[hI] + 1 : 1
+            cycleIndexMonomial[orbitOrder] = ( orbitOrder in cycleIndexMonomial )
+                ? cycleIndexMonomial[orbitOrder] + 1
+                : 1
 
-            orbit.length = hI,
+            orbit.length = orbitOrder;
             orbit.harmonic = harmonic;
             orbit.weight = orbit.gcd * harmonic;
             orbit.harmonicSum = orbit.sum.map( x => x * harmonic);
             orbit.bias = [ orbit.weight, this.maxWeight, reduce( orbit.weight, this.maxWeight ) ];
             orbit.biasFactor = ( orbit.bias[0] / orbit.bias[1] );
 
-            orbit.perimeter = perimeter;
-            orbit.digitalPerimeter = digitalPerimeter;
+            const coords = orbit.coords;
+            orbit.perimeter = coords
+                    .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbitOrder ].coord ) )
+                    .reduce( (a,c) => a + c );
 
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
-
             totalPerimeter += orbit.perimeter;
-            totalDigitalPerimeter += orbit.digitalPerimeter;
             totalWeight += orbit.weight;
         }
 
@@ -309,7 +340,6 @@ class OrbitSystem {
         //this.hypo = Math.sqrt( base**2 + mult**2 );
         this.totalHarmonicSum = totalHarmonicSum;
         this.totalPerimeter = totalPerimeter;
-        this.totalDigitalPerimeter = totalDigitalPerimeter;
         this.harmonics = harmonics;
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;

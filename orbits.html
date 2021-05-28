@@ -6,7 +6,8 @@
             font-family: Arial, Helvetica, sans-serif;
             #width: 80%;
             font-size: 80%;
-            padding: 20pt;
+            padding-left: 20pt;
+            padding-right: 20pt;
         }
 
         .orbit {}
@@ -81,8 +82,16 @@
             width: 40pt;
             text-align: right;
         }
+        input[type=checkbox] {
+            font-style: italic;
+        }
+        input[type=range] {
+            width: 100%;
+        }
     </style>
+    <script type="text/javascript" src="js/data.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
+    <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/table.js"></script>
     <script
             id="MathJax-script"
@@ -90,7 +99,12 @@
             async
             src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML">
     </script>
-
+<!--    <script-->
+<!--            id="MathJax-script"-->
+<!--            type="text/javascript"-->
+<!--            async-->
+<!--            src="js/mathjax-2.7.7.js">-->
+    </script>
     <script>
         MathJax = {
           tex: {
@@ -117,7 +131,7 @@
             if ( basesParam ) {
                 bases = basesParam
                     .split(',')
-                    .forEach( x => Number( x ) );
+                    .map( x => Number( x ) );
             }
 
             const toggleParam = urlParams.get('toggles');
@@ -138,12 +152,14 @@
         function getControlValues() {
             return {
                 bases: [
-                    document.getElementById( 'b0' ).value,
-                    document.getElementById( 'b1' ).value,
-                    document.getElementById( 'b2' ).value
+                    Number( document.getElementById( 'b0' ).value ),
+                    Number( document.getElementById( 'b1' ).value ),
+                    Number( document.getElementById( 'b2' ).value )
                 ],
                 toggles: {
+                    random: document.getElementById( 'randomToggle' ).checked ? 1 : 0,
                     table: document.getElementById( 'tableToggle' ).checked ? 1 : 0,
+                    gears: document.getElementById( 'gearsToggle' ).checked ? 1 : 0,
                     grid: document.getElementById( 'gridToggle' ).checked ? 1 : 0,
                     centres: document.getElementById( 'centresToggle' ).checked ? 1 : 0,
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0
@@ -171,23 +187,39 @@
         function distributeMessage( containerId, message = {} ) {
             const plotFrame = document.getElementById( containerId + "_plot_frame" );
             plotFrame.contentWindow.postMessage( message, "*" );
+            window.postMessage( message, "*" );
         }
 
-        function toggleLineSets( containerId ) {
-            const message = { toggleLineSets: 1 };
-            distributeMessage( containerId, { toggleLineSets: 1 } );
+        function distributeMessages( containerId, messages = [] ) {
+            messages.forEach( message => distributeMessage( containerId, message) );
         }
 
-        function selectOrbit( containerId, orbitSystemKey, sender  ) {
-            distributeMessage( containerId, {
-                sender: sender ? sender.id : '',
-                containerId: containerId,
-                orbitSystemKey: orbitSystemKey
+        function showOrbit( containerId, orbitSystemKey, senderId, multi  ) {
+            const [ sourceId, orbitId ] = senderId.split( "." );
+            const tableCells = document
+                .getElementById( containerId + "_table" )
+                .querySelectorAll( "td.orbit" );
+
+            tableCells.forEach( tableCell => {
+                const [ cId, oId ] = tableCell.id.split( "." );
+                if ( orbitId != oId ) {
+                    if ( !(multi && tableCell.classList.contains( "selected" ) ) ) {
+                       tableCell.classList.remove("selected");
+                    }
+                } else if ( tableCell.classList.contains( "selected" ) ) {
+                    tableCell.classList.remove("selected");
+                } else {
+                    tableCell.classList.add("selected");
+                }
             } );
+
+            document
+                .getElementById( containerId + "_riffler" )
+                .value = orbitId;
         }
 
-        function selectAllOrbits( containerId, orbitSystemKey ) {
-            selectOrbit( containerId, orbitSystemKey );
+        function showAllOrbits( containerId, orbitSystemKey ) {
+            showOrbit( containerId, orbitSystemKey, "." );
         }
 
         function toggleSelected( item ) {
@@ -237,6 +269,9 @@
             if ( toggles.lines ) {
                 initialiseCheckBox( 'linesToggle', true );
             }
+            if ( toggles.random ) {
+                initialiseCheckBox( 'randomToggle', true );
+            }
         }
 
         function openPlot() {
@@ -246,27 +281,38 @@
 
         function updatePage() {
 
-            const values = getControlValues();
+            orbitSystem = new OrbitSystem( getControlValues() );
 
-            var bases = values.bases;
+            putOrbitSystem( orbitSystem.key, orbitSystem );
 
-            orbitSystemKey = "os-" + bases.join( "." );
+            document
+                .getElementById( "sample_cs_b_10_m_2_riffler" )
+                .setAttribute( "max", `${ orbitSystem.orbits.length - 1 }` );
 
-            var orbitSystem = new OrbitSystem( bases );
+            try {
+                document
+                    .getElementById("captionTex")
+                    .innerHTML = orbitSystem.getCaptionTex();
 
-            putOrbitSystem( orbitSystemKey, orbitSystem );
+                MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, captionTex ] );
+            } catch ( e ) {
+                console.log( `Error: ${ e }: failed to typeset equation.` );
+            }
 
-            var cellClick = `selectOrbit( 'sample_cs_b_10_m_2', '${ orbitSystemKey }', this ); toggleSelected( this );`;
-            var totalClick = `selectAllOrbits( 'sample_cs_b_10_m_2', '${ orbitSystemKey }' ); clearSelected( this );`;
+            var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isMulti(), 'sender': this.id } ] )";
+            var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
 
             drawOrbitSystemTable( "sample_cs_b_10_m_2", orbitSystem, cellClick, totalClick );
 
             insertX3DomFrame(
                 'sample_cs_b_10_m_2',
                 orbitSystem,
-                framePage = "orbitsViewer.html?" + getCurrentQueryString( orbitSystemKey ) );
+                framePage = "orbitsViewer.html?" + getCurrentQueryString( orbitSystem.key ) );
         }
 
+        function isMulti() {
+            return document.getElementById("multiToggle").checked;
+        }
 
         function initPage() {
 
@@ -274,27 +320,87 @@
 
             initialiseControls( param );
 
+            const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
+            putOrbitSystem( "COLOR_ORBITS", new ColorOrbitSystem( { "bases": bases }, orbitIndex, minPixel ) );
+
             updatePage();
 
             if ( param.toggles.table ) {
                 showHide('sample_cs_b_10_m_2_table');
             }
+
+            window.addEventListener( "message", ( event ) => {
+                if ( event.data ) {
+                    var data = event.data;
+
+                    //console.log( `data: ${ JSON.stringify( data ) }` );
+
+                    if ( data.orbitSystemKey ) {
+                        const orbitSystem = getOrbitSystem( data.orbitSystemKey );
+                        if ( event.data.sender ) {
+                            showOrbit( "sample_cs_b_10_m_2", orbitSystem, data.sender, data.multi );
+                        } else {
+                            showAllOrbits( "sample_cs_b_10_m_2", orbitSystem );
+                        }
+                    } else if ( data.colors ) {
+
+                        const [ bases, colorOrbitIndex, minPixel ] = data.colors;
+                        putOrbitSystem( "COLOR_ORBITS", new ColorOrbitSystem( bases, colorOrbitIndex, minPixel ) );
+                        updatePage();
+
+                    } else if ( data.toggleCentres ) {
+                    } else if ( data.toggleLines ) {
+                    } else if ( data.clearSelected ) {
+                        clearSelected();
+                    }
+                }
+            });
         }
     </script>
-
 </head>
 <body id="testContainer001" onload="initPage()">
-    <b>Orbit System: </b>
-    <input type="number" min="1" id="b0" value="9"/>
-    <input type="number" min="1" id="b1" value="4"/>
-    <input type="number" min="1" id="b2" value="4"/>
+    <div style="width: 100%">
+        <b>Orbit System: </b>
+        <input type="number" min="1" id="b0" value="9"/>
+        <input type="number" min="1" id="b1" value="4"/>
+        <input type="number" min="1" id="b2" value="4"/>
 
-    table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
-    grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
-    centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /> |
-    lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLineSets: 1 } )"/> |
+        | <span id="captionTex"></span> |
 
-    <a href="javascript:reopenWithArgs()">reopen</a>
+        <div style="float: right; overflow: hidden; display: inline-block; ">
+            table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
+            multi<input type="checkbox" id="multiToggle"/> |
+            gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> |
+            grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
+            centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
+            lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
+            random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
+            colors<input type="checkbox" id="colorsToggle" onchange="showHide('color-orbit-system')"/> |
+
+            <a href="javascript:reopenWithArgs()">reopen</a>
+
+            <div id="color-orbit-system" style="display: none">
+                <script>
+                    const vId = id => Number( document.getElementById(id).value );
+                    function getColorConfiguration() {
+                        return [ [ vId("red"), vId("green"), vId("blue") ], vId("orbitIndex"), vId("minPixel") ];
+                    }
+                    function applyColorOrbitSystem() {
+                        const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
+                        distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel ] } );
+                    }
+                </script>
+                colors:
+                bases<input type="number" min="1" id="red" value="4"/><input type="number" min="1" id="green" value="4"/><input type="number" min="1" id="blue" value="6"/> |
+                index<input type="number" min="0" id="orbitIndex" value="1"/> |
+                min-pixel<input type="number" min="0" max="255" id="minPixel" value="0"/> |
+                <input type="button" onclick="applyColorOrbitSystem()" value="apply">
+            </div>
+
+        </div>
+    </div>
+
+
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
 
@@ -304,6 +410,15 @@
         [ a, r, u | e, f, l, w, &lt;space&gt; ]
         see: <a href="https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html" target="_new">x3dom navigation tutorial</a>
 
+    </div>
+    <div style="width: 100%">
+        <input
+                type="range"
+                min="0"
+                max="1"
+                id="sample_cs_b_10_m_2_riffler"
+                onchange="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"
+                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
     </div>
 </body>
 </html>

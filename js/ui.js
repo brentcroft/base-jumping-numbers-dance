@@ -654,15 +654,15 @@ function writeChainSystemBlock( id, chainSystem, drawTable = false, drawControls
     }
 }
 
-function getCycleIndexMonomialTex( chainSystem ) {
-    var cimHtml = "";
-    for (const [ k, e ] of Object.entries( chainSystem.cycleIndexMonomial )) {
-        if ( k > 1 ) {
-            cimHtml = cimHtml + `a_{${ k }}^{${ e }}`;
-        }
-    }
-    return cimHtml;
-}
+//function getCycleIndexMonomialTex( chainSystem ) {
+//    var cimHtml = "";
+//    for (const [ k, e ] of Object.entries( chainSystem.cycleIndexMonomial )) {
+//        if ( k > 1 ) {
+//            cimHtml = cimHtml + `a_{${ k }}^{${ e }}`;
+//        }
+//    }
+//    return cimHtml;
+//}
 
 function getCyclePolynomialsTex( chainSystem, chain ) {
 

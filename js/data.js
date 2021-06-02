@@ -66,7 +66,15 @@ var determinant = ( m ) => m.length == 1
 var displacement      = ( p1, p2 ) => p2.map( (p,i) => p - p1[i] );
 var addition          = ( p1, p2 ) => p2.map( (p,i) => p + p1[i] );
 var subtraction       = ( p1, p2 ) => p1.map( (p,i) => p - p2[i] );
-var crossProduct      = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] );
+var crossProduct      = ( p1, p2 ) => [
+      p1[1] * p2[2] - p1[2] * p2[1],
+      p1[2] * p2[0] - p1[0] * p2[2],
+      p1[0] * p2[1] - p1[1] * p2[0]
+];
+
+
+// @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
 var dotProduct        = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] ).reduce( (a,c) => a + c );
 var scale             = ( p, s ) => p.map( x => x * s);
 
@@ -75,6 +83,7 @@ var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 
 
 var gcd = (a, b) => a ? gcd(b % a, a) : b;
 var lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
+
 
 var unitDisplacement  = ( p1, p2 ) => {
     const d = displacement( p1, p2 );
@@ -142,6 +151,60 @@ function shuffleArray( array ) {
     }
     return array;
 }
+
+/*
+
+*/
+var powers = ( bases ) => {
+        var acc = 1;
+        const p = [];
+        for ( var i = 0; i < bases.length; i++ ) {
+            p.push( acc );
+            acc = acc * bases[i];
+        }
+        return p;
+    };
+
+var powersReverse = ( bases ) => {
+        var acc = 1;
+        const p = [];
+        for ( var i = bases.length - 1; i >= 0; i-- ) {
+            p.push( acc );
+            acc = acc * bases[i];
+        }
+        return [].concat( p ).reverse();
+    };
+
+class BasePlane {
+    constructor( bases, currentDirection = [ 0, 1, 0 ] ) {
+        this.bases = bases;
+        this.powers = powers( bases );
+        this.powersReverse = powersReverse( bases );
+
+        this.rawPlane = this.powers.map( (x,i) => x - this.powersReverse[i] );
+
+        // plane of iniquity
+        this.unitNormal = unitDisplacement( [ 0, 0, 0 ], this.rawPlane );
+        this.rotationAxis = unitDisplacement( [ 0, 0, 0 ], crossProduct( currentDirection, this.unitNormal ) );
+        this.rotationAngle = Math.acos( dotProduct( currentDirection, this.unitNormal ) );
+
+        // coord index functions
+        this.indexForward = ( coord ) => this.powers.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
+        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
+    }
+
+    toString() {
+        return JSON.stringify({
+            "bases": this.bases,
+            "powers": this.powers,
+            "powersReverse": this.powersReverse,
+            "unitNormal": this.unitNormal,
+            "rotationAxis": this.rotationAxis,
+            "rotationAngle": this.rotationAngle
+        },null, 4);
+    }
+}
+
 
 // param = { bases:[1], coordId: , inverseCoordId: ,idx:[], dix:[] }
 function generateIndexes( param, index = 0, coord = [] ) {

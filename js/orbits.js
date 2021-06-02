@@ -63,10 +63,8 @@ class Orbit {
             this.centre[index] = s / this.order;
         } );
 
+        // passing lambdas gcd and lcm
         this.gcd = this.sum.reduce( gcd );
-//        this.sum.forEach( ( s ) => {
-//            this.gcd = reduce( this.gcd, s );
-//        } );
         this.lcm = this.sum.reduce( lcm );
     }
 
@@ -87,12 +85,13 @@ class Orbit {
             "gcd": this.gcd,
             "lcm": this.lcm,
             "harmonic": truncate( this.harmonic ),
-            "length": this.length,
+            "order": this.order,
             "weight": truncate( this.weight ),
             "bias": formattedWeight( this.bias ),
+            "perimeter": this.perimeter,
+            "unitPerimeter": truncate( this.unitPerimeter ),
             "members": this.coords.join( C_SEP ),
             "rotation": this.rotation,
-            "perimeter": this.perimeter,
             "lineRef": centre.lineRef,
             "centreRef": this.centreRef,
             "centreHypoteneuse": truncate( centre.hyp2 ),
@@ -107,6 +106,7 @@ class Orbit {
 class OrbitSystem {
     constructor( param ) {
         this.bases = param.bases;
+        this.basePlane = new BasePlane( this.bases );
         this.key = "os-" + this.bases.join( "." );
         this.volume = this.bases.reduce( (a,c) => a*c, 1);
         this.centre = this.bases.map( x => (x-1)/2 );
@@ -131,6 +131,22 @@ class OrbitSystem {
         return cimHtml;
     }
 
+    getCaptionHtml() {
+        var cimHtml = getCycleIndexMonomialHtml( this );
+        return cimHtml;
+    }
+
+    getSummaryHtml() {
+        var cimHtml = "Base Plane: ";
+        cimHtml += `forward=[${ this.basePlane.powers.join(',') }]`;
+        cimHtml += `, reverse=[${ this.basePlane.powersReverse.join(',') }]`;
+        cimHtml += `, unitNormal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
+        cimHtml += `, axis=[${ this.basePlane.rotationAxis.map(x=>truncate(x)).join(',') }]`;
+        cimHtml += `, angle=${ truncate( this.basePlane.rotationAngle ) }`;
+        return cimHtml;
+    }
+
+
     findTotalDigitSum() {
         this.totalDigitSum = new Array( this.bases.length ).fill( 0 );
         for ( var i = 0; i < this.idx.length; i++ ) {
@@ -141,45 +157,21 @@ class OrbitSystem {
         }
     }
 
-    getCoordId( coord ) {
-        var value = 0;
-        var acc = 1;
-        for ( var i = coord.length-1; i >= 0; i-- ) {
-            const b = coord[i];
-            value += acc * b;
-            acc = acc * this.bases[i];
-        }
-        return value;
-    }
-
-    getCoordIdInverse( coord ) {
-        var value = 0;
-        var acc = 1;
-        for ( var i = 0; i < coord.length ; i++ ) {
-            const b = coord[i];
-            value += acc * b;
-            acc = acc * this.bases[i];
-        }
-        return value;
-    }
-
     buildIndexes() {
         generateIndexes( {
             bases: this.bases,
-            coordId: this.getCoordId,
-            inverseCoordId: this.getCoordIdInverse,
+            coordId: this.basePlane.indexForward,
+            inverseCoordId: this.basePlane.indexReverse,
             idx: this.idx,
             dix: this.dix } );
     }
 
     buildRandomIndexes() {
         const randomIndexValues = shuffleArray( Array.from({length: this.volume}, (item, index) => index) );
-        const di = ( coord ) => randomIndexValues[ this.getCoordId( coord ) ];
-
         generateIndexes( {
             bases: this.bases,
-            coordId: this.getCoordId,
-            inverseCoordId: di,
+            coordId: this.basePlane.indexForward,
+            inverseCoordId: ( coord ) => randomIndexValues[ this.basePlane.indexForward( coord ) ],
             idx: this.idx,
             dix: this.dix } );
     }
@@ -311,16 +303,14 @@ class OrbitSystem {
         for ( var i = 0; i < this.orbits.length; i++ ) {
             var orbit = this.orbits[i];
 
-            var orbitOrder = orbit.coords.length;
-            harmonics[ orbitOrder ] = ( orbitOrder in harmonics ) ? ( harmonics[ orbitOrder ] + 1 ) : 1;
+            harmonics[ orbit.order ] = ( orbit.order in harmonics ) ? ( harmonics[ orbit.order ] + 1 ) : 1;
 
-            var harmonic = this.fundamental / orbitOrder;
+            var harmonic = this.fundamental / orbit.order;
 
-            cycleIndexMonomial[orbitOrder] = ( orbitOrder in cycleIndexMonomial )
-                ? cycleIndexMonomial[orbitOrder] + 1
+            cycleIndexMonomial[orbit.order] = ( orbit.order in cycleIndexMonomial )
+                ? cycleIndexMonomial[orbit.order] + 1
                 : 1
 
-            orbit.length = orbitOrder;
             orbit.harmonic = harmonic;
             orbit.weight = orbit.gcd * harmonic;
             orbit.harmonicSum = orbit.sum.map( x => x * harmonic);
@@ -329,8 +319,10 @@ class OrbitSystem {
 
             const coords = orbit.coords;
             orbit.perimeter = coords
-                    .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbitOrder ].coord ) )
+                    .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
                     .reduce( (a,c) => a + c );
+
+            orbit.unitPerimeter = Math.sqrt( orbit.perimeter ) / orbit.order;
 
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalPerimeter += orbit.perimeter;

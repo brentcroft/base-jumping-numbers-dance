@@ -10,6 +10,14 @@
             padding-right: 20pt;
         }
 
+        div#toolbar {
+            float: right;
+            overflow: hidden;
+            display: inline-block;
+            text-align: right;
+            font-size: 80%;
+        }
+
         .orbit {}
 
         .plot_frame {
@@ -93,25 +101,6 @@
     <script type="text/javascript" src="js/orbits.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/table.js"></script>
-    <script
-            id="MathJax-script"
-            type="text/javascript"
-            async
-            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML">
-    </script>
-<!--    <script-->
-<!--            id="MathJax-script"-->
-<!--            type="text/javascript"-->
-<!--            async-->
-<!--            src="js/mathjax-2.7.7.js">-->
-    </script>
-    <script>
-        MathJax = {
-          tex: {
-            tags: 'ams'
-          }
-        };
-    </script>
 
     <script type="text/javascript" src="js/x3dom-full.js"></script>
     <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
@@ -162,6 +151,7 @@
                     gears: document.getElementById( 'gearsToggle' ).checked ? 1 : 0,
                     grid: document.getElementById( 'gridToggle' ).checked ? 1 : 0,
                     centres: document.getElementById( 'centresToggle' ).checked ? 1 : 0,
+                    plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0
                 }
             };
@@ -259,12 +249,20 @@
             if ( toggles.table ) {
                 initialiseCheckBox( 'tableToggle', true );
             }
-
+            if ( toggles.gears ) {
+                initialiseCheckBox( 'gearsToggle', true );
+            }
+            if ( toggles.scale ) {
+                initialiseCheckBox( 'scaleToggle', true );
+            }
             if ( toggles.grid ) {
                 initialiseCheckBox( 'gridToggle', true );
             }
             if ( toggles.centres ) {
                 initialiseCheckBox( 'centresToggle', true );
+            }
+            if ( toggles.plane ) {
+                initialiseCheckBox( 'planeToggle', true );
             }
             if ( toggles.lines ) {
                 initialiseCheckBox( 'linesToggle', true );
@@ -289,15 +287,14 @@
                 .getElementById( "sample_cs_b_10_m_2_riffler" )
                 .setAttribute( "max", `${ orbitSystem.orbits.length - 1 }` );
 
-            try {
-                document
+            document
                     .getElementById("captionTex")
-                    .innerHTML = orbitSystem.getCaptionTex();
+                    .innerHTML = orbitSystem.getCaptionHtml();
 
-                MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, captionTex ] );
-            } catch ( e ) {
-                console.log( `Error: ${ e }: failed to typeset equation.` );
-            }
+            document
+                    .getElementById("orbit-system-summary")
+                    .innerHTML = orbitSystem.getSummaryHtml();
+
 
             var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isMulti(), 'sender': this.id } ] )";
             var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
@@ -361,21 +358,22 @@
 <body id="testContainer001" onload="initPage()">
     <div style="width: 100%">
         <b>Orbit System: </b>
-        <input type="number" min="1" id="b0" value="9"/>
-        <input type="number" min="1" id="b1" value="4"/>
+        <input type="number" min="1" id="b0" value="17"/>
+        <input type="number" min="1" id="b1" value="10"/>
         <input type="number" min="1" id="b2" value="4"/>
 
         | <span id="captionTex"></span>
 
-        <div style="float: right; overflow: hidden; display: inline-block; ">
+        <div id="toolbar">
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
-            multi<input type="checkbox" id="multiToggle"/> |
+            multi<input type="checkbox" id="multiToggle" checked="checked"/> |
             gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> |
             grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
             centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
+            plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
             lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
             random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
-            colors<input type="checkbox" id="colorsToggle" onchange="showHide('color-orbit-system')"/> |
+            more<input type="checkbox" id="colorsToggle" onchange="showHide('color-orbit-system');showHide('orbit-system-summary')"/> |
 
             <a href="javascript:reopenWithArgs()">reopen</a>
 
@@ -396,7 +394,7 @@
                 min-pixel<input type="number" min="0" max="255" id="minPixel" value="0"/> |
                 <input type="button" onclick="applyColorOrbitSystem()" value="apply">
             </div>
-
+            <div id="orbit-system-summary" style="display: none"></div>
         </div>
     </div>
 

@@ -111,6 +111,16 @@ function getCycleIndexMonomialTex( orbitSystem ) {
     return cimHtml;
 }
 
+function getCycleIndexMonomialHtml( orbitSystem ) {
+    var cimHtml = "";
+    for (const [ k, e ] of Object.entries( orbitSystem.cycleIndexMonomial )) {
+        if ( k > 1 ) {
+            cimHtml = cimHtml + `<i>a</i><sup>${ e }</sup><sub style='position: relative; left: -.5em;'>${ k }</sub>`;
+        }
+    }
+    return cimHtml;
+}
+
 
 function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick ) {
 
@@ -131,17 +141,16 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Index</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Orbit</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Length</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
-    //chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='10%'>Harmonic Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Bias</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Order</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>P<sup>2</sup></th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>H<sup>2</sup></th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>O<sup>2</sup></th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Attack</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
+//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>P<sup>2</sup></th>`;
+//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>H<sup>2</sup></th>`;
+//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>O<sup>2</sup></th>`;
     chainsText += "</tr>";
 
     const orbits = orbitSystem.orbits;
@@ -154,17 +163,15 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ orbit.id }</td>`;
         chainsText += `<td id="${ tableId }.${ orbit.id }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.members }</td>`;
         chainsText += `<td align="center">${ orbit.sum }</td>`;
-        chainsText += `<td align="center">${ orbit.length }</td>`;
-        chainsText += `<td align="center">${ orbit.harmonic }</td>`;
-        //chainsText += `<td align="center">${ orbit.harmonicSum }</td>`;
-        chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
-        chainsText += `<td align="center">${ orbit.weight }</td>`;
-        chainsText += `<td align="center">${ orbit.bias }</td>`;
+        chainsText += `<td align="center">${ orbit.order }</td>`;
         chainsText += `<td align="center">${ orbit.lineRef }</td>`;
         chainsText += `<td align="center">${ orbit.centreRef }</td>`;
-        chainsText += `<td align="center">${ orbit.perimeter }</td>`;
-        chainsText += `<td align="center">${ orbit.centreHypoteneuse }</td>`;
-        chainsText += `<td align="center">${ orbit.centreOpposite }</td>`;
+        chainsText += `<td align="center">${ orbit.unitPerimeter }</td>`;
+        chainsText += `<td align="center">${ orbit.harmonic }</td>`;
+        chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
+        chainsText += `<td align="center">${ orbit.weight }</td>`;
+//        chainsText += `<td align="center">${ orbit.centreHypoteneuse }</td>`;
+//        chainsText += `<td align="center">${ orbit.centreOpposite }</td>`;
         chainsText += "</tr>";
     }
 
@@ -178,13 +185,13 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     chainsText += "<td></td>";
     chainsText += "<td></td>";
     chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ perimeter }</span></td>`;
     chainsText += "<td></td>";
     chainsText += "<td></td>";
+    chainsText += "<td></td>";
+    chainsText += "<td></td>";
+//    chainsText += "<td></td>";
+//    chainsText += "<td></td>";
     chainsText += "</tr>";
     chainsText += "</table>";
 

@@ -61,17 +61,17 @@
                     .querySelectorAll( ".selected" )
                     .forEach( item => item.classList.remove('selected') );
             }
-
             function toggleLines( containerId ) {
                 toggleBySelector( containerId, ".orbit"  );
             }
-
             function toggleGrid( containerId ) {
                 toggleBySelector( containerId, ".grid-coords" );
             }
-
             function toggleCentres( containerId ) {
                 toggleBySelector( containerId, ".orbit-centre" );
+            }
+            function togglePlane( containerId ) {
+                toggleBySelector( containerId, ".orbit-plane" );
             }
 
 
@@ -129,9 +129,18 @@
             function getOrbitSystemItems( orbitSystem, toggles ) {
 
                 const orbits = orbitSystem.orbits;
-                const fixedPointTransparency = 0.1;
+                const fixedPointTransparency = 0.2;
                 const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
-                const root = reify( "Transform", { "translation": orbitSystem.bases.map( b => -b/2 ).join( ' ' ) } );
+
+                const [ p1, p2 ] = orbitSystem.mainDiagonal;
+                const scaleUnit = toggles.scale ? unitDisplacement( p1, p2 ) : [ 1, 1, 1 ];
+
+                // move origin to system centre and scale by scaleUnit
+                const root = reify(
+                    "Transform", {
+                        "translation": orbitSystem.bases.map( b => -b/2 ).join( ' ' ),
+                        "scale": scaleUnit.map( x => x==0?1:1/x ).join( ' ' )
+                    } );
 
                 function appendGridChildren( grid ) {
                     const [ b0, b1, b2 ] = orbitSystem.bases;
@@ -145,7 +154,10 @@
                                     .appendChild(
                                         reify(
                                             "Transform",
-                                            { "translation": [ i, j, k ].join( ' ' ) },
+                                            {
+                                                "translation": [ i, j, k ].join( ' ' ),
+                                                "scale": scaleUnit.join( ' ' )
+                                            },
                                             [
                                                 createSphereShape( gridPointRadius, 'black' ),
                                                 createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
@@ -172,12 +184,18 @@
                         )
                     );
 
+
+
+
                 // CENTRE LINES
                 const centrePoints = orbitSystem
                     .centrePoints
                     .map( x => reify(
                                     "transform",
-                                    { "translation": x.point.join( ' ' ) },
+                                    {
+                                        "translation": x.point.join( ' ' ),
+                                        "scale": scaleUnit.join( ' ' )
+                                    },
                                     [ createSphereShape( 0.1, "yellow", fixedPointTransparency ) ]
                                 ) );
 
@@ -203,7 +221,10 @@
                             .appendChild(
                                 reify(
                                     "Transform",
-                                    { "translation": `${ orbit.coords[0].coord.join( ' ' ) }` },
+                                    {
+                                        "translation": `${ orbit.coords[0].coord.join( ' ' ) }`,
+                                        "scale": scaleUnit.join( ' ' )
+                                    },
                                     [ createSphereShape( 0.1, "red", fixedPointTransparency ) ]
                                 )
                             );
@@ -218,8 +239,11 @@
                                     [
                                         createLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ),
                                         reify(
-                                            "transform", { "translation": orbit.centre.join( ' ' ) },
-                                            [ createSphereShape( 0.11, "black" ) ]
+                                            "transform", {
+                                                "translation": orbit.centre.join( ' ' ),
+                                                "scale": scaleUnit.join( ' ' )
+                                            },
+                                            [ createSphereShape( 0.11, "gray" ) ]
                                         )
                                     ],
                                     [ ( e ) => e.setAttribute( "render", Boolean( toggles.lines ) ) ]
@@ -227,6 +251,25 @@
                             );
                     }
                 }
+
+                // PLANE
+                var basePlane = orbitSystem.basePlane;
+                var planeColor = "gray";
+                var planeTransparency = 0.95;
+
+                var planeItems = createPlaneItems(
+                        orbitSystem.centre,
+                        basePlane.unitNormal,
+                        scaleUnit,
+                        basePlane.rotationAxis,
+                        basePlane.rotationAngle,
+                        [ basePlane.bases[0], 0, basePlane.bases[2] ],
+                        planeColor,
+                        planeTransparency);
+
+                root
+                    .appendChild( planeItems );
+
                 return reify( "collision", { "enabled": false }, [ root ] );
             }
 
@@ -257,9 +300,8 @@
 
             function plotOrbitSystem( orbitSystem, param ) {
 
-                var x3domContainerId =  'testContainer001';
-
-                const sceneRootId = `${ x3domContainerId }_plot_scene_root`;
+                var x3domContainerId =  'testContainer001_plot';
+                const sceneRootId = `${ x3domContainerId }_scene_root`;
                 const sceneRoot = document.getElementById( sceneRootId );
 
                 var osi = (param.toggles.gears)
@@ -267,6 +309,10 @@
                     : getOrbitSystemItems( orbitSystem, param.toggles );
 
                 sceneRoot.appendChild( osi );
+
+                var x3dRuntime = document.getElementById( x3domContainerId );
+                x3dRuntime.runtime.resetView();
+                //console.log( "Created X3DOM container: " + x3domContainerId );
             }
 
             function initPage() {
@@ -293,6 +339,8 @@
                             toggleGrid( "testContainer001" );
                         } else if ( data.toggleCentres ) {
                             toggleCentres( "testContainer001" );
+                        } else if ( data.togglePlane ) {
+                            togglePlane( "testContainer001" );
                         } else if ( data.toggleLines ) {
                             toggleLines( "testContainer001" );
                         } else if ( data.clearSelected ) {
@@ -305,6 +353,7 @@
     </head>
     <body id="testContainer001" onload="initPage()">
         <x3d id="testContainer001_plot" showStat="false" width="100%" height="100%">
+<!--            <viewpoint centreOfRotation="0 0 0" position="0 0 50"></viewpoint>-->
             <scene id="testContainer001_plot_scene_root">
             </scene>
         </x3d>

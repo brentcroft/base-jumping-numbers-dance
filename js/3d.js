@@ -53,14 +53,47 @@ function createTextShape( text = "", fontStyle ){
     return s;
 }
 
-function createFlatBoxShape( size = "0.1 0 0.1" ){
-    var s = createShape();
-    var b = document.createElement( "Box" );
-    s.appendChild(b);
+function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transparency = 0.95 ) {
+    return reify(
+        "shape",
+        {},
+        [
+            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
+            reify( "box", { "size": size } )
+        ]
+    );
+}
 
-    b.setAttribute( "size", size );
-
-    return s;
+function createPlaneItems(
+        centre = [0,0,0], unitNormal = [0,1,0],
+        scaleUnit = [1,1,1],
+        rotationAxis = [0,1,0], rotationAngle = 0,
+        size = [1,0,1],
+        planeColor = "gray", planeTransparency = 0.95 ) {
+    return reify(
+       "transform",
+       {
+           "translation": centre.join( ' ' ),
+           "scale": scaleUnit.join( ' ' ),
+           "class": "orbit-plane"
+       },
+       [
+           reify(
+               "transform", { "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle },
+               [ createPlaneShape( size.join( ' ' ), planeColor, planeTransparency ) ]
+           ),
+           reify(
+               "group",
+               {},
+               [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ]
+           ),
+           reify(
+               "transform",
+               { "translation": unitNormal.join( ' ' ) },
+               [ createSphereShape( 0.1, "black" ) ]
+           )
+       ]
+   );
 }
 
 
@@ -178,6 +211,9 @@ function createLineSetFromPoints( points, emissiveColor, lineType ) {
 function createCentreLine( p1, p2, pad = 0 ) {
     return createLineSetFromPoints( extendLine( p1, p2, pad ), "gray", 3 );
 }
+
+
+
 
 
 

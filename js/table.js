@@ -202,6 +202,6 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
         .getElementById( tableContainerId )
         .innerHTML = chainsText;
 
-    var sortColumn = 7;
-    sortTable( tableId, sortColumn, true, true );
+    [ 5,4,3]
+        .forEach( sortColumn => sortTable( tableId, sortColumn, true, true ) );
 }

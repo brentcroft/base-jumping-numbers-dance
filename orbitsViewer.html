@@ -212,44 +212,46 @@
                         )
                     );
 
+                // FIXED POINTS
+                orbitSystem
+                    .identityPoints
+                    .map( point => {
+                        return {
+                            "translation": point.coords[0].coord.join( ' ' ),
+                            "scale": scaleUnit.join( ' ' )
+                        };
+                    })
+                    .forEach( identityPoint => root
+                        .appendChild(
+                            reify(
+                                "Transform",
+                                identityPoint,
+                                [ createSphereShape( 0.1, "red", fixedPointTransparency ) ] )
+                            )
+                        );
+
+
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {
                     const orbit = orbits[i];
-                    if (orbit.coords.length == 1 ) {
-                        // identity orbit - stationary point
-                        root
-                            .appendChild(
-                                reify(
-                                    "Transform",
-                                    {
-                                        "translation": `${ orbit.coords[0].coord.join( ' ' ) }`,
-                                        "scale": scaleUnit.join( ' ' )
-                                    },
-                                    [ createSphereShape( 0.1, "red", fixedPointTransparency ) ]
-                                )
-                            );
-
-                    } else {
-                        // orbit lines
-                        root
-                            .appendChild(
-                                reify(
-                                    "Group",
-                                    { "class": "orbit", "id": ("orbit." + orbit.index ) },
-                                    [
-                                        createLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ),
-                                        reify(
-                                            "transform", {
-                                                "translation": orbit.centre.join( ' ' ),
-                                                "scale": scaleUnit.join( ' ' )
-                                            },
-                                            [ createSphereShape( 0.11, "gray" ) ]
-                                        )
-                                    ],
-                                    [ ( e ) => e.setAttribute( "render", Boolean( toggles.lines ) ) ]
-                                )
-                            );
-                    }
+                    root
+                        .appendChild(
+                            reify(
+                                "Group",
+                                { "class": "orbit", "id": ("orbit." + orbit.index ) },
+                                [
+                                    createLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ),
+                                    reify(
+                                        "transform", {
+                                            "translation": orbit.centre.join( ' ' ),
+                                            "scale": scaleUnit.join( ' ' )
+                                        },
+                                        [ createSphereShape( 0.11, "gray" ) ]
+                                    )
+                                ],
+                                [ ( e ) => e.setAttribute( "render", Boolean( toggles.lines ) ) ]
+                            )
+                        );
                 }
 
                 // PLANE

@@ -152,7 +152,8 @@
                     grid: document.getElementById( 'gridToggle' ).checked ? 1 : 0,
                     centres: document.getElementById( 'centresToggle' ).checked ? 1 : 0,
                     plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
-                    lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0
+                    lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
+                    more: document.getElementById( 'moreToggle' ).checked ? 1 : 0
                 }
             };
         }
@@ -270,6 +271,9 @@
             if ( toggles.random ) {
                 initialiseCheckBox( 'randomToggle', true );
             }
+            if ( toggles.more ) {
+                initialiseCheckBox( 'moreToggle', true );
+            }
         }
 
         function openPlot() {
@@ -325,6 +329,11 @@
             if ( param.toggles.table ) {
                 showHide('sample_cs_b_10_m_2_table');
             }
+            if ( param.toggles.more ) {
+                showHide('color-orbit-system');
+                showHide('orbit-system-summary')
+            }
+
 
             window.addEventListener( "message", ( event ) => {
                 if ( event.data ) {
@@ -358,9 +367,9 @@
 <body id="testContainer001" onload="initPage()">
     <div style="width: 100%">
         <b>Orbit System: </b>
-        <input type="number" min="1" id="b0" value="17"/>
-        <input type="number" min="1" id="b1" value="10"/>
-        <input type="number" min="1" id="b2" value="4"/>
+        <input type="number" min="1" id="b0" value="7"/>
+        <input type="number" min="1" id="b1" value="5"/>
+        <input type="number" min="1" id="b2" value="3"/>
 
         | <span id="captionTex"></span>
 
@@ -373,7 +382,7 @@
             plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
             lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
             random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
-            more<input type="checkbox" id="colorsToggle" onchange="showHide('color-orbit-system');showHide('orbit-system-summary')"/> |
+            more<input type="checkbox" id="moreToggle" onchange="showHide('color-orbit-system');showHide('orbit-system-summary')"/> |
 
             <a href="javascript:reopenWithArgs()">reopen</a>
 

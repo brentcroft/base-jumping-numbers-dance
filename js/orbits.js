@@ -137,10 +137,12 @@ class OrbitSystem {
     }
 
     getSummaryHtml() {
-        var cimHtml = "Base Plane: ";
-        cimHtml += `forward=[${ this.basePlane.powers.join(',') }]`;
-        cimHtml += `, reverse=[${ this.basePlane.powersReverse.join(',') }]`;
-        cimHtml += `, unitNormal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
+        var cimHtml = "Identity Points: ";
+        cimHtml += canonicalize( this.identityPoints.map( p => canonicalize( p.coords[0].coord ) ), ",", SQUARE_BRA );
+        cimHtml += "<br/>";
+        cimHtml += "Base Plane: ";
+        cimHtml += `[${ this.basePlane.powers.join(',') }]/[${ this.basePlane.powersReverse.join(',') }]`;
+        cimHtml += `, normal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, axis=[${ this.basePlane.rotationAxis.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, angle=${ truncate( this.basePlane.rotationAngle ) }`;
         return cimHtml;
@@ -178,6 +180,7 @@ class OrbitSystem {
 
 
     buildOrbits() {
+        this.identityPoints = [];
         this.orbits = [];
         const tally = [ ...this.dix ];
         for ( var i = 0; i < this.idx.length; i++) {
@@ -190,7 +193,12 @@ class OrbitSystem {
                     coord = this.idx[ coord.di ];
                     coords.push( coord );
                 }
-                this.orbits.push( new Orbit( this, this.orbits.length, coords ) );
+                var orbit = new Orbit( this, this.orbits.length + 1, coords );
+                if ( orbit.order == 1 ) {
+                    this.identityPoints.push( orbit );
+                } else {
+                    this.orbits.push( orbit );
+                }
             }
         }
     }

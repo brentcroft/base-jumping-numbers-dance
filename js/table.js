@@ -12,6 +12,11 @@ function showHide( id ) {
     }
 }
 
+function showHideAll( ids = [] ) {
+    ids.forEach( id => showHide( id ) );
+}
+
+
 function sortTable( tableId, columnIndex, isNumber = false, isFraction = false ) {
   var table, rows, switching, i, x, y, shouldSwitch;
 
@@ -76,10 +81,13 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
       y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
 
       if (y && !y.classList.contains("sum-total") ) {
-          var xT = x.innerHTML.toLowerCase();
-          var yT = y.innerHTML.toLowerCase();
+          var xT = x ? x.innerHTML : null;
+          var yT = y ? y.innerHTML : null;
 
           if ( xT && yT ) {
+              xT = xT.toLowerCase();
+              yT = yT.toLowerCase();
+
               var xV = isNumber ? isFraction ? Fraction( xT ) :  Number( xT ) :  xT;
               var yV = isNumber ? isFraction ? Fraction( yT ) :  Number( yT ) :  yT;
 
@@ -130,8 +138,8 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
     chainsText += "<caption>Orbit System: ";
-    chainsText += `b=[${ orbitSystem.bases.join( ', ' ) }], `;
-    chainsText += `v=${ orbitSystem.volume }, `;
+    chainsText += `b=[${ orbitSystem.basePlane.bases.join( ', ' ) }], `;
+    chainsText += `v=${ orbitSystem.basePlane.volume }, `;
     chainsText += `w=${ orbitSystem.maxWeight }, `;
     chainsText += `p=${ orbitSystem.fundamental }, `;
     chainsText += "</caption>";
@@ -139,19 +147,25 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
     var colIndex = 0;
     chainsText += "<tr>";
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Index</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Orbit</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Coord Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Order</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Action</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Point Sum</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='5%'>Order</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Attack</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
-//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>P<sup>2</sup></th>`;
-//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>H<sup>2</sup></th>`;
-//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>O<sup>2</sup></th>`;
     chainsText += "</tr>";
+
+    const identityPoints = orbitSystem.identityPoints.map( p => canonicalize( p.coords[0].coord ) ).join(", ");
+    chainsText += "<tr>";
+    chainsText += `<th align="center"><code>e</code></th>`;
+    chainsText += `<th id="${ tableId }.e" align='center'><code>${ identityPoints }</code></th>`;
+    chainsText += "<th colspan='8'></th>";
+    chainsText += "</tr>";
+
+
 
     const orbits = orbitSystem.orbits;
 
@@ -170,28 +184,18 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
         chainsText += `<td align="center">${ orbit.harmonic }</td>`;
         chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
         chainsText += `<td align="center">${ orbit.weight }</td>`;
-//        chainsText += `<td align="center">${ orbit.centreHypoteneuse }</td>`;
-//        chainsText += `<td align="center">${ orbit.centreOpposite }</td>`;
         chainsText += "</tr>";
     }
 
     var tds = orbitSystem.totalDigitSum;
-    var perimeter = orbitSystem.totalPerimeter;
+    var tos = orbitSystem.totalOrderSpace;
 
     chainsText += "<tr>";
     chainsText += "<td></td>";
     chainsText += "<td></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds.join( ', ') } )</span></td>`;
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ perimeter }</span></td>`;
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-    chainsText += "<td></td>";
-//    chainsText += "<td></td>";
-//    chainsText += "<td></td>";
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tos } )</span></td>`;
+    chainsText += "<td colspan='6'></td>";
     chainsText += "</tr>";
     chainsText += "</table>";
 
@@ -202,6 +206,10 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick )
         .getElementById( tableContainerId )
         .innerHTML = chainsText;
 
-    [ 5,4,3]
-        .forEach( sortColumn => sortTable( tableId, sortColumn, true, true ) );
+    try {
+        [5,4,3]
+            .forEach( sortColumn => sortTable( tableId, sortColumn, true, true ) );
+    } catch ( e ) {
+        console.log(e);
+    }
 }

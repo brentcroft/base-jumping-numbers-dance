@@ -299,6 +299,11 @@
                     .getElementById("orbit-system-summary")
                     .innerHTML = orbitSystem.getSummaryHtml();
 
+            document
+                    .getElementById("orbit-system-xml-text-area")
+                    .innerHTML = orbitSystem.getXml();
+
+
 
             var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isMulti(), 'sender': this.id } ] )";
             var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
@@ -330,10 +335,8 @@
                 showHide('sample_cs_b_10_m_2_table');
             }
             if ( param.toggles.more ) {
-                showHide('color-orbit-system');
-                showHide('orbit-system-summary')
+                showHideAll( ['color-orbit-system','orbit-system-summary','orbit-system-xml'] );
             }
-
 
             window.addEventListener( "message", ( event ) => {
                 if ( event.data ) {
@@ -351,7 +354,7 @@
                     } else if ( data.colors ) {
 
                         const [ bases, colorOrbitIndex, minPixel ] = data.colors;
-                        putOrbitSystem( "COLOR_ORBITS", new ColorOrbitSystem( bases, colorOrbitIndex, minPixel ) );
+                        putOrbitSystem( "COLOR_ORBITS", new ColorOrbitSystem( { "bases": bases }, colorOrbitIndex, minPixel ) );
                         updatePage();
 
                     } else if ( data.toggleCentres ) {
@@ -374,19 +377,23 @@
         | <span id="captionTex"></span>
 
         <div id="toolbar">
+            <a href="javascript:reopenWithArgs()" title="reopen with current values in url">reopen</a> |
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
             multi<input type="checkbox" id="multiToggle" checked="checked"/> |
             gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> |
-            grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
-            centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
-            plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
-            lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
-            random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
-            more<input type="checkbox" id="moreToggle" onchange="showHide('color-orbit-system');showHide('orbit-system-summary')"/> |
-
-            <a href="javascript:reopenWithArgs()">reopen</a>
+            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['color-orbit-system','orbit-system-summary'] )"/>
 
             <div id="color-orbit-system" style="display: none">
+                <hr/>
+                grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
+                centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
+                plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
+                lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
+                random<input type="checkbox" id="randomToggle" onchange="updatePage()"/>
+                xml<input type="checkbox" id="xmlToggle" onchange="showHideAll( ['orbit-system-xml'] )"/>
+                <hr/>
+                <div id="orbit-system-summary" style="display: none"></div>
+                <hr/>
                 <script>
                     const vId = id => Number( document.getElementById(id).value );
                     function getColorConfiguration() {
@@ -403,7 +410,9 @@
                 min-pixel<input type="number" min="0" max="255" id="minPixel" value="0"/> |
                 <input type="button" onclick="applyColorOrbitSystem()" value="apply">
             </div>
-            <div id="orbit-system-summary" style="display: none"></div>
+        </div>
+        <div id="orbit-system-xml" style="display: none">
+            <textarea id="orbit-system-xml-text-area" style="width: 100%; height: 40%;"></textarea>
         </div>
     </div>
 
@@ -427,5 +436,6 @@
                 onchange="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"
                 oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
     </div>
+
 </body>
 </html>

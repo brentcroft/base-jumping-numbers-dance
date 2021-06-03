@@ -47,6 +47,20 @@ class Orbit {
         this.findSums();
     }
 
+    getXml() {
+        var xml = "<orbit";
+        xml += ` id="${ this.index }"`;
+        xml += ` order="${ this.order }"`;
+        xml += ` gcd="${ this.gcd }"`;
+        xml += ` lcm="${ this.lcm }"`;
+        xml += ` centre="${ canonicalize( this.centre.map( x => truncate( x, 10000 ) ) ) }"`;
+        xml += ` sum="${ canonicalize( this.sum ) }"`;
+        xml += ">";
+        xml += "\n\t" + canonicalize( this.coords.map( c => canonicalize(c.coord ) ), ', ', SQUARE_BRA);
+        xml += "\n" + "</orbit>";
+        return xml;
+    }
+
     findSums() {
         this.basis = this.coords[0].coord.length;
         this.order = this.coords.length;
@@ -105,12 +119,8 @@ class Orbit {
 
 class OrbitSystem {
     constructor( param ) {
-        this.bases = param.bases;
-        this.basePlane = new BasePlane( this.bases );
-        this.key = "os-" + this.bases.join( "." );
-        this.volume = this.bases.reduce( (a,c) => a*c, 1);
-        this.centre = this.bases.map( x => (x-1)/2 );
-        this.mainDiagonal = [ [ 0, 0, 0 ], this.bases.map( x => x - 1) ];
+        this.basePlane = new BasePlane( param.bases );
+        this.key = "os-" + this.basePlane.bases.join( "." );
         this.idx = [];
         this.dix = [];
         if ( param.toggles && param.toggles.random ) {
@@ -126,6 +136,43 @@ class OrbitSystem {
         this.analyzeOrbits();
     }
 
+    getXml() {
+        const n = "\n";
+        const t = "  ";
+        const nt = n + t;
+        const ntt = nt + t;
+
+        var plane = this.basePlane;
+        var baseXml = nt + "<base";
+        baseXml += ` units="${ canonicalize( plane.bases ) }"`;
+        baseXml += ` volume="${ plane.volume }"`;
+        baseXml += ` forward="${ canonicalize( plane.powers ) }"`;
+        baseXml += ` reverse="${ canonicalize( plane.powersReverse ) }"`;
+        baseXml += ` normal="${ canonicalize( plane.unitNormal.map( x => truncate( x, 10000 ) ) ) }"`;
+        baseXml += ` axis="${ canonicalize( plane.rotationAxis.map( x => truncate( x, 10000 ) ) ) }"`;
+        baseXml += ` angle="${ truncate( plane.rotationAngle, 10000 ) }"`;
+        baseXml += "/>";
+
+        var identityXml = nt + "<identity>";
+        identityXml += ntt + canonicalize( this.identityPoints.map( p => canonicalize( p.coords[0].coord ) ), ", ", SQUARE_BRA );
+        identityXml += nt + "</identity>";
+
+        var orbitXml = nt + "<actions>";
+        this.orbits.forEach( orbit => {
+            orbitXml += ntt + orbit.getXml();
+        });
+        orbitXml += nt + "</actions>";
+
+        var xml = "<orbit-system";
+        xml += ` sum="${ canonicalize( this.totalDigitSum ) }"`;
+        xml += ">";
+        xml += baseXml;
+        xml += identityXml;
+        xml += orbitXml;
+        xml += n + "</orbit-system>";
+        return xml;
+    }
+
     getCaptionTex() {
         var cimHtml = "\\(" + getCycleIndexMonomialTex( this ) + "\\)";
         return cimHtml;
@@ -137,10 +184,7 @@ class OrbitSystem {
     }
 
     getSummaryHtml() {
-        var cimHtml = "Identity Points: ";
-        cimHtml += canonicalize( this.identityPoints.map( p => canonicalize( p.coords[0].coord ) ), ",", SQUARE_BRA );
-        cimHtml += "<br/>";
-        cimHtml += "Base Plane: ";
+        var cimHtml = "Base Plane: ";
         cimHtml += `[${ this.basePlane.powers.join(',') }]/[${ this.basePlane.powersReverse.join(',') }]`;
         cimHtml += `, normal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, axis=[${ this.basePlane.rotationAxis.map(x=>truncate(x)).join(',') }]`;
@@ -150,10 +194,10 @@ class OrbitSystem {
 
 
     findTotalDigitSum() {
-        this.totalDigitSum = new Array( this.bases.length ).fill( 0 );
+        this.totalDigitSum = new Array( this.basePlane.bases.length ).fill( 0 );
         for ( var i = 0; i < this.idx.length; i++ ) {
             const coord = this.idx[i].coord;
-            this.bases.forEach( (x,i) => {
+            this.basePlane.bases.forEach( (x,i) => {
                 this.totalDigitSum[i] += coord[i];
             } );
         }
@@ -161,7 +205,7 @@ class OrbitSystem {
 
     buildIndexes() {
         generateIndexes( {
-            bases: this.bases,
+            bases: this.basePlane.bases,
             coordId: this.basePlane.indexForward,
             inverseCoordId: this.basePlane.indexReverse,
             idx: this.idx,
@@ -169,9 +213,9 @@ class OrbitSystem {
     }
 
     buildRandomIndexes() {
-        const randomIndexValues = shuffleArray( Array.from({length: this.volume}, (item, index) => index) );
+        const randomIndexValues = shuffleArray( Array.from({length: this.basePlane.volume}, (item, index) => index) );
         generateIndexes( {
-            bases: this.bases,
+            bases: this.basePlane.bases,
             coordId: this.basePlane.indexForward,
             inverseCoordId: ( coord ) => randomIndexValues[ this.basePlane.indexForward( coord ) ],
             idx: this.idx,
@@ -206,7 +250,7 @@ class OrbitSystem {
     buildCentreLines() {
 
         const allowance = 0.00000000001;
-        const [ A, B ] = this.mainDiagonal;
+        const [ A, B ] = this.basePlane.diagonal;
 
         var centreLines = [
             { "points": [ A, B ], "unit": unitDisplacement( A, B ), "pd": 0 }
@@ -237,16 +281,16 @@ class OrbitSystem {
                     return 0;
                 }
 
-                const unit = displacement( centre, orbitSystem.centre );
-                const scaledUnit = scale( unitDisplacement( centre, orbitSystem.centre ), 0.5 );
+                const unit = displacement( centre, orbitSystem.basePlane.centre );
+                const scaledUnit = scale( unitDisplacement( centre, orbitSystem.basePlane.centre ), 0.5 );
 
                 for ( var i = 1; i < centreLines.length; i++) {
                     const pd = perpendicularDistance( centre, centreLines[i].points, centreLines[i].unit );
                     if ( pd < allowance ) {
                         if ( cpd > centreLines[i].pd ) {
                             centreLines[i].points = [
-                                subtraction( subtraction( orbitSystem.centre, unit ), scaledUnit),
-                                addition( addition( orbitSystem.centre, unit ), scaledUnit)
+                                subtraction( subtraction( orbitSystem.basePlane.centre, unit ), scaledUnit),
+                                addition( addition( orbitSystem.basePlane.centre, unit ), scaledUnit)
                             ];
                         }
                         return i;
@@ -254,11 +298,11 @@ class OrbitSystem {
                 }
 
                 const points = [
-                    subtraction( subtraction( orbitSystem.centre, unit ), scaledUnit),
-                    addition( addition( orbitSystem.centre, unit ), scaledUnit)
+                    subtraction( subtraction( orbitSystem.basePlane.centre, unit ), scaledUnit),
+                    addition( addition( orbitSystem.basePlane.centre, unit ), scaledUnit)
                 ];
 
-                centreLines.push( { "points": points, "unit": unitDisplacement( centre, orbitSystem.centre ), "pd": cpd }  );
+                centreLines.push( { "points": points, "unit": unitDisplacement( centre, orbitSystem.basePlane.centre ), "pd": cpd }  );
                 return centreLines.length - 1;
             }
 
@@ -288,20 +332,21 @@ class OrbitSystem {
     }
 
     findMaxWeight() {
-        this.maxWeight = ( this.bases[0] - 1 ) * this.fundamental;
-        this.bases.forEach( ( b, i ) => {
+        this.maxWeight = ( this.basePlane.bases[0] - 1 ) * this.fundamental;
+        this.basePlane.bases.forEach( ( b, i ) => {
             this.maxWeight = reduce( this.maxWeight, ( b - 1 ) * this.fundamental );
         });
     }
 
     analyzeOrbits() {
 
-        const maxIndex = this.volume - 1;
+        const maxIndex = this.basePlane.volume - 1;
 
-        var totalHarmonicSum = new Array( this.bases.length ).fill( 0 );
+        var totalHarmonicSum = new Array( this.basePlane.bases.length ).fill( 0 );
         var totalWeight = 0;
         var totalRotation = 0;
         var totalPerimeter = 0;
+         var totalOrderSpace = 1;
 
         const cycleIndexMonomial  = {};
 
@@ -335,9 +380,14 @@ class OrbitSystem {
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalPerimeter += orbit.perimeter;
             totalWeight += orbit.weight;
+
+            totalOrderSpace *= orbit.order;
         }
 
         Object.entries( cycleIndexMonomial ).sort( (a, b) => a < b );
+        this.cycleIndexMonomial = cycleIndexMonomial;
+
+        this.totalOrderSpace = totalOrderSpace;
 
         //this.hypo = Math.sqrt( base**2 + mult**2 );
         this.totalHarmonicSum = totalHarmonicSum;
@@ -346,6 +396,5 @@ class OrbitSystem {
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;
         //this.maxWeight = maxChainWeight;
-        this.cycleIndexMonomial = cycleIndexMonomial;
     }
 }

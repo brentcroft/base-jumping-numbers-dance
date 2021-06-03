@@ -47,7 +47,11 @@ function reifyData( tag, data ) {
 
 */
 function canonicalize( m, sep = C_SEP, bra = BRA ) {
-    return `${ bra[0] }${ m.join( sep ) }${ bra[1] }`;
+    try {
+        return `${ bra[0] }${ m.join( sep ) }${ bra[1] }`;
+    } catch ( e ) {
+        throw e;
+    }
 }
 
 
@@ -178,9 +182,12 @@ var powersReverse = ( bases ) => {
 class BasePlane {
     constructor( bases, currentDirection = [ 0, 1, 0 ] ) {
         this.bases = bases;
+        this.volume = this.bases.reduce( (a,c) => a*c, 1);
+        this.centre = this.bases.map( x => (x-1)/2 );
+        this.diagonal = [ [ 0, 0, 0 ], this.bases.map( x => x - 1) ];
+
         this.powers = powers( bases );
         this.powersReverse = powersReverse( bases );
-
         this.rawPlane = this.powers.map( (x,i) => x - this.powersReverse[i] );
 
         // plane of iniquity

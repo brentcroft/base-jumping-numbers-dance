@@ -132,18 +132,18 @@
                 const fixedPointTransparency = 0.2;
                 const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
 
-                const [ p1, p2 ] = orbitSystem.mainDiagonal;
+                const [ p1, p2 ] = orbitSystem.basePlane.diagonal;
                 const scaleUnit = toggles.scale ? unitDisplacement( p1, p2 ) : [ 1, 1, 1 ];
 
                 // move origin to system centre and scale by scaleUnit
                 const root = reify(
                     "Transform", {
-                        "translation": orbitSystem.bases.map( b => -b/2 ).join( ' ' ),
+                        "translation": orbitSystem.basePlane.bases.map( b => -b/2 ).join( ' ' ),
                         "scale": scaleUnit.map( x => x==0?1:1/x ).join( ' ' )
                     } );
 
                 function appendGridChildren( grid ) {
-                    const [ b0, b1, b2 ] = orbitSystem.bases;
+                    const [ b0, b1, b2 ] = orbitSystem.basePlane.bases;
                     const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
                     const gridPointRadius = 0.05;
 
@@ -260,7 +260,7 @@
                 var planeTransparency = 0.95;
 
                 var planeItems = createPlaneItems(
-                        orbitSystem.centre,
+                        orbitSystem.basePlane.centre,
                         basePlane.unitNormal,
                         scaleUnit,
                         basePlane.rotationAxis,
@@ -281,7 +281,7 @@
                 const orbits = orbitSystem.orbits;
                 const fixedPointTransparency = 0.1;
                 const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
-                const root = reify( "Transform", { "translation": orbitSystem.bases.map( b => -b/2 ).join( ' ' ) } );
+                const root = reify( "Transform", { "translation": orbitSystem.basePlane.bases.map( b => -b/2 ).join( ' ' ) } );
 
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {

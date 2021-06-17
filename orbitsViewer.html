@@ -64,6 +64,9 @@
             function toggleLines( containerId ) {
                 toggleBySelector( containerId, ".orbit"  );
             }
+            function toggleLocus( containerId ) {
+                toggleBySelector( containerId, ".orbit-system-locus"  );
+            }
             function toggleGrid( containerId ) {
                 toggleBySelector( containerId, ".grid-coords" );
             }
@@ -89,6 +92,18 @@
                     });
             }
 
+
+            function showLocus( containerId, orbitSystem, locusPoints, multi ) {
+                const locusGroup = document
+                    .getElementById( containerId )
+                    .querySelector( "group.orbit-system-locus" );
+
+                while ( locusGroup.firstChild ) {
+                    locusGroup.removeChild( locusGroup.lastChild );
+                }
+
+                locusGroup.appendChild( createLineSet( orbitSystem.getLocusPoints( locusPoints ) ) );
+            }
 
 
             function showOrbit( containerId, orbitSystem, senderId, multi ) {
@@ -259,8 +274,8 @@
                 var planeColor = "gray";
                 var planeTransparency = 0.95;
 
-                var planeItems = createPlaneItems(
-                        orbitSystem.basePlane.centre,
+                var planeItem = createPlaneItem(
+                        basePlane.centre,
                         basePlane.unitNormal,
                         scaleUnit,
                         basePlane.rotationAxis,
@@ -269,8 +284,27 @@
                         planeColor,
                         planeTransparency);
 
+                planeItem.setAttribute( "render", Boolean( toggles.plane ) );
+
                 root
-                    .appendChild( planeItems );
+                    .appendChild( planeItem );
+
+                if ( orbitSystem.locusPoints ) {
+
+                    root
+                        .appendChild(
+                            reify(
+                                "Group",
+                                {
+                                    "class": "orbit-system-locus",
+                                    "render": Boolean( toggles.locus )
+                                },
+                                [
+                                    createLineSet( orbitSystem.getLocusPoints( orbitSystem.locusPoints ) )
+                                ]
+                            )
+                        );
+                }
 
                 return reify( "collision", { "enabled": false }, [ root ] );
             }
@@ -334,6 +368,8 @@
                             const orbitSystem = window.parent.window.getOrbitSystem( data.orbitSystemKey );
                             if ( data.sender ) {
                                 showOrbit( "testContainer001", orbitSystem, data.sender, data.multi );
+                            } else if ( data.locus ) {
+                                showLocus( "testContainer001", orbitSystem, data.locus, data.multi );
                             } else {
                                 showAllOrbits( "testContainer001", orbitSystem );
                             }
@@ -345,6 +381,8 @@
                             togglePlane( "testContainer001" );
                         } else if ( data.toggleLines ) {
                             toggleLines( "testContainer001" );
+                        } else if ( data.toggleLocus ) {
+                            toggleLocus( "testContainer001" );
                         } else if ( data.clearSelected ) {
                             clearSelected();
                         }

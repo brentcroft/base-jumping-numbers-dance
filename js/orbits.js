@@ -189,6 +189,8 @@ class OrbitSystem {
         cimHtml += `, normal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, axis=[${ this.basePlane.rotationAxis.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, angle=${ truncate( this.basePlane.rotationAngle ) }`;
+        cimHtml += "<br/>";
+        cimHtml += `Origin: ${ this.originPoints }`;
         return cimHtml;
     }
 
@@ -389,12 +391,49 @@ class OrbitSystem {
 
         this.totalOrderSpace = totalOrderSpace;
 
-        //this.hypo = Math.sqrt( base**2 + mult**2 );
         this.totalHarmonicSum = totalHarmonicSum;
         this.totalPerimeter = totalPerimeter;
         this.harmonics = harmonics;
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;
-        //this.maxWeight = maxChainWeight;
+
+        // reference into each orbit
+        this.originPoints = this.orbits.map( orbit => 0 );
+        this.locusPoints = [].concat( this.originPoints );
+    }
+
+    getLocusPoints( locusLine ) {
+        return locusLine
+            .map( (index,i) => {
+                const coords = this.orbits[i].coords;
+                return coords[ index % coords.length ];
+            } );
+    }
+
+    getLocusStep( locusLine, step ) {
+        const maxLocusIndex = this.orbits.length - 1;
+
+        const rl = [].concat( locusLine ).reverse();
+        var rlStep = step;
+        if ( !(step && this.orbits.length == step.length ) ) {
+            rlStep = rl.map( (x,i) => i == 0 ? 1 : 0);
+        }
+
+        var newLocus = [];
+        var carry = 0;
+        rl.forEach( (x,i) => {
+            const orbit = this.orbits[ maxLocusIndex - i ];
+            const orbitStep = rlStep[ i ];
+            const maxOrbitOrder = orbit.order;
+
+            const d = ( x + orbitStep + carry );
+            const f = d % maxOrbitOrder;
+            newLocus.push( f );
+            carry = Math.floor( d / maxOrbitOrder );
+        } );
+
+        newLocus.reverse();
+
+        return newLocus;
     }
 }

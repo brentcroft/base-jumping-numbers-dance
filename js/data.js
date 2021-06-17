@@ -17,6 +17,8 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
             const [ key, value ] = x;
             if ( "class" == key ) {
                 value.split(",").forEach( c => e.classList.add( c ) );
+            } else if ( "type" == key ) {
+                e.type = value;
             } else {
                 e.setAttribute( key, value );
             }
@@ -36,7 +38,7 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
 */
 function reifyData( tag, data ) {
     return reify(
-        data,
+        tag,
         data.attr ? data.attr : {},
         data.children ? data.children : [],
         data.ops ? data.ops : []

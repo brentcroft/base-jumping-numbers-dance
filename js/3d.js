@@ -64,7 +64,7 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
     );
 }
 
-function createPlaneItems(
+function createPlaneItem(
         centre = [0,0,0], unitNormal = [0,1,0],
         scaleUnit = [1,1,1],
         rotationAxis = [0,1,0], rotationAngle = 0,

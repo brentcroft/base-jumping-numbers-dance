@@ -153,6 +153,7 @@
                     centres: document.getElementById( 'centresToggle' ).checked ? 1 : 0,
                     plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
+                    locus: document.getElementById( 'locusToggle' ).checked ? 1 : 0,
                     more: document.getElementById( 'moreToggle' ).checked ? 1 : 0
                 }
             };
@@ -228,7 +229,7 @@
         }
 
         function initialiseBaseInput( controlId, value ) {
-            const control = document.getElementById( controlId );
+            const control = document.getElementById( "b" + controlId );
             control.value = value;
             control.onchange = updatePage;
         }
@@ -238,14 +239,24 @@
             control.checked = checked;
         }
 
+        function initialiseExpressor( orbitSystem ) {
+            var expressor = document.getElementById( 'expressor' );
+            orbitSystem.orbits.forEach( (orbit, i) => {
+                expressor.appendChild(
+                    reify(
+                        "input",
+                        { "type": "number", "min": 0, "max": (orbit.order - 1), "id": ("o" + i), "value":0 },
+                        [],
+                        [ ( control ) => control.onchange = applyExpression ]
+                    )
+                );
+            } );
+        }
+
         function initialiseControls( param ) {
 
-            const bases = param.bases;
+            param.bases.forEach( (x, i) => initialiseBaseInput( i, x ) );
             const toggles = param.toggles;
-
-            initialiseBaseInput( 'b0', bases[0] );
-            initialiseBaseInput( 'b1', bases[1] );
-            initialiseBaseInput( 'b2', bases[2] );
 
             if ( toggles.table ) {
                 initialiseCheckBox( 'tableToggle', true );
@@ -268,6 +279,9 @@
             if ( toggles.lines ) {
                 initialiseCheckBox( 'linesToggle', true );
             }
+            if ( toggles.locus ) {
+                initialiseCheckBox( 'locusToggle', true );
+            }
             if ( toggles.random ) {
                 initialiseCheckBox( 'randomToggle', true );
             }
@@ -281,11 +295,29 @@
             openX3DomFrame( 'sample_cs_b_10_m_2', orbitSystem );
         }
 
+        function applyExpression( forward = true ) {
+
+            var locus = orbitSystem
+                .orbits
+                .map( (x, i) => Number( document.getElementById( "o" + i ).value ) );
+
+            //const exprElement = document.getElementById("expression");
+            //var locus = exprElement.value.split(",").map(x=>Number(x));
+
+            distributeMessage( 'sample_cs_b_10_m_2', { orbitSystemKey: orbitSystem.key, locus: locus } );
+
+            //const step = orbitSystem.orbits.map( (x,i) => i == 0 ? ( forward ? 1 : -1 ) : 0);
+            //exprElement.value = orbitSystem.getLocusStep( locus, step );
+        }
+
         function updatePage() {
 
             orbitSystem = new OrbitSystem( getControlValues() );
 
             putOrbitSystem( orbitSystem.key, orbitSystem );
+
+            initialiseExpressor( orbitSystem );
+
 
             document
                 .getElementById( "sample_cs_b_10_m_2_riffler" )
@@ -303,7 +335,9 @@
                     .getElementById("orbit-system-xml-text-area")
                     .innerHTML = orbitSystem.getXml();
 
-
+            //document
+            //        .getElementById("expression")
+            //        .value = orbitSystem.locusPoints;
 
             var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isMulti(), 'sender': this.id } ] )";
             var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
@@ -335,7 +369,7 @@
                 showHide('sample_cs_b_10_m_2_table');
             }
             if ( param.toggles.more ) {
-                showHideAll( ['color-orbit-system','orbit-system-summary','orbit-system-xml'] );
+                showHideAll( ['color-orbit-system','orbit-system-summary'] );
             }
 
             window.addEventListener( "message", ( event ) => {
@@ -389,10 +423,14 @@
                 centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
+                locus<input type="checkbox" id="locusToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLocus: 1 } )"/> |
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/>
                 xml<input type="checkbox" id="xmlToggle" onchange="showHideAll( ['orbit-system-xml'] )"/>
                 <hr/>
                 <div id="orbit-system-summary" style="display: none"></div>
+                <div>
+                    <div id="expressor"></div>
+                </div>
                 <hr/>
                 <script>
                     const vId = id => Number( document.getElementById(id).value );
@@ -404,8 +442,7 @@
                         distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel ] } );
                     }
                 </script>
-                colors:
-                bases<input type="number" min="1" id="red" value="4"/><input type="number" min="1" id="green" value="4"/><input type="number" min="1" id="blue" value="6"/> |
+                colors<input type="number" min="1" id="red" value="4"/><input type="number" min="1" id="green" value="4"/><input type="number" min="1" id="blue" value="6"/> |
                 index<input type="number" min="0" id="orbitIndex" value="1"/> |
                 min-pixel<input type="number" min="0" max="255" id="minPixel" value="0"/> |
                 <input type="button" onclick="applyColorOrbitSystem()" value="apply">

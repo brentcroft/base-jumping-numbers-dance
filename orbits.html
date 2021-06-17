@@ -147,6 +147,7 @@
                 ],
                 toggles: {
                     random: document.getElementById( 'randomToggle' ).checked ? 1 : 0,
+                    xml: document.getElementById( 'xmlToggle' ).checked ? 1 : 0,
                     table: document.getElementById( 'tableToggle' ).checked ? 1 : 0,
                     gears: document.getElementById( 'gearsToggle' ).checked ? 1 : 0,
                     grid: document.getElementById( 'gridToggle' ).checked ? 1 : 0,
@@ -241,6 +242,9 @@
 
         function initialiseExpressor( orbitSystem ) {
             var expressor = document.getElementById( 'expressor' );
+            while ( expressor.firstChild ) {
+                expressor.removeChild( expressor.lastChild );
+            }
             orbitSystem.orbits.forEach( (orbit, i) => {
                 expressor.appendChild(
                     reify(
@@ -470,7 +474,6 @@
                 min="0"
                 max="1"
                 id="sample_cs_b_10_m_2_riffler"
-                onchange="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"
                 oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
     </div>
 

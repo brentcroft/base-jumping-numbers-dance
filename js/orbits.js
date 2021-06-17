@@ -189,8 +189,6 @@ class OrbitSystem {
         cimHtml += `, normal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, axis=[${ this.basePlane.rotationAxis.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, angle=${ truncate( this.basePlane.rotationAngle ) }`;
-        cimHtml += "<br/>";
-        cimHtml += `Origin: ${ this.originPoints }`;
         return cimHtml;
     }
 

@@ -240,6 +240,19 @@
             control.checked = checked;
         }
 
+
+        function applyExpression( control, orbit, index ) {
+
+            control.value = ( orbit.order + Number( control.value ) ) % orbit.order;
+
+            var locus = orbitSystem
+                .orbits
+                .map( (x, i) => Number( document.getElementById( "o" + i ).value ) );
+
+            distributeMessage( 'sample_cs_b_10_m_2', { orbitSystemKey: orbitSystem.key, locus: locus } );
+        }
+
+
         function initialiseExpressor( orbitSystem ) {
             var expressor = document.getElementById( 'expressor' );
             while ( expressor.firstChild ) {
@@ -249,9 +262,9 @@
                 expressor.appendChild(
                     reify(
                         "input",
-                        { "type": "number", "min": 0, "max": (orbit.order - 1), "id": ("o" + i), "value":0 },
+                        { "type": "number", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
                         [],
-                        [ ( control ) => control.onchange = applyExpression ]
+                        [ ( control ) => control.onchange = () => applyExpression( control, orbit, i ) ]
                     )
                 );
             } );
@@ -297,21 +310,6 @@
         function openPlot() {
             const orbitSystem = getOrbitSystem( orbitSystemKey );
             openX3DomFrame( 'sample_cs_b_10_m_2', orbitSystem );
-        }
-
-        function applyExpression( forward = true ) {
-
-            var locus = orbitSystem
-                .orbits
-                .map( (x, i) => Number( document.getElementById( "o" + i ).value ) );
-
-            //const exprElement = document.getElementById("expression");
-            //var locus = exprElement.value.split(",").map(x=>Number(x));
-
-            distributeMessage( 'sample_cs_b_10_m_2', { orbitSystemKey: orbitSystem.key, locus: locus } );
-
-            //const step = orbitSystem.orbits.map( (x,i) => i == 0 ? ( forward ? 1 : -1 ) : 0);
-            //exprElement.value = orbitSystem.getLocusStep( locus, step );
         }
 
         function updatePage() {

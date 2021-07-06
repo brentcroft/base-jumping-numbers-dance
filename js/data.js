@@ -90,6 +90,27 @@ var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 
 var gcd = (a, b) => a ? gcd(b % a, a) : b;
 var lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
 
+var gcda = (a) => {
+    let result = a[0];
+    for (let i = 1; i < a.length; i++) {
+        result = gcd(a[i], result);
+        if(result == 1) {
+            return 1;
+        }
+    }
+    return result;
+};
+var lcma = (a) => {
+    let result = a[0];
+    for (let i = 1; i < a.length; i++) {
+        result = lcm(a[i], result);
+        if(result == 0) {
+            return 0;
+        }
+    }
+    return result;
+};
+
 
 var unitDisplacement  = ( p1, p2 ) => {
     const d = displacement( p1, p2 );
@@ -182,20 +203,19 @@ var powersReverse = ( bases ) => {
     };
 
 class BasePlane {
-    constructor( bases, currentDirection = [ 0, 1, 0 ] ) {
+    constructor( bases ) {
         this.bases = bases;
+        this.origin = new Array( bases.length ).fill( 0 );
+        this.diagonal = [ new Array( bases.length ).fill( 0 ), this.bases.map( x => x - 1) ];
         this.volume = this.bases.reduce( (a,c) => a*c, 1);
-        this.centre = this.bases.map( x => (x-1)/2 );
-        this.diagonal = [ [ 0, 0, 0 ], this.bases.map( x => x - 1) ];
 
         this.powers = powers( bases );
         this.powersReverse = powersReverse( bases );
         this.rawPlane = this.powers.map( (x,i) => x - this.powersReverse[i] );
 
         // plane of iniquity
-        this.unitNormal = unitDisplacement( [ 0, 0, 0 ], this.rawPlane );
-        this.rotationAxis = unitDisplacement( [ 0, 0, 0 ], crossProduct( currentDirection, this.unitNormal ) );
-        this.rotationAngle = Math.acos( dotProduct( currentDirection, this.unitNormal ) );
+        this.centre = this.bases.map( x => (x-1)/2 );
+        this.unitNormal = unitDisplacement( this.origin, this.rawPlane );
 
         // coord index functions
         this.indexForward = ( coord ) => this.powers.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
@@ -207,9 +227,8 @@ class BasePlane {
             "bases": this.bases,
             "powers": this.powers,
             "powersReverse": this.powersReverse,
-            "unitNormal": this.unitNormal,
-            "rotationAxis": this.rotationAxis,
-            "rotationAngle": this.rotationAngle
+            "centre": this.centre,
+            "unitNormal": this.unitNormal
         },null, 4);
     }
 }

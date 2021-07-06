@@ -65,11 +65,18 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
 }
 
 function createPlaneItem(
-        centre = [0,0,0], unitNormal = [0,1,0],
+        centre = [0,0,0],
+        unitNormal = [0,1,0],
         scaleUnit = [1,1,1],
-        rotationAxis = [0,1,0], rotationAngle = 0,
+        currentDirection = [0,1,0],
+        origin = [0,0,0],
         size = [1,0,1],
-        planeColor = "gray", planeTransparency = 0.95 ) {
+        planeColor = "gray",
+        planeTransparency = 0.95 ) {
+
+    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
+    var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
+
     return reify(
        "transform",
        {

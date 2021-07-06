@@ -97,6 +97,7 @@
             width: 100%;
         }
     </style>
+    <script type="text/javascript" src="js/midi.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
@@ -108,6 +109,8 @@
     <script type="text/javascript" src="js/3d.js"></script>
 
     <script>
+
+
         function getParam( defaultValues ) {
 
             var bases = defaultValues.bases;
@@ -139,15 +142,19 @@
         }
 
         function getControlValues() {
+            var baseCount = Number( document.getElementById( 'bases' ).value );
+            var emptyBases = new Array( baseCount ).fill( 0 );
+            var bases = emptyBases.map( (x,i) => {
+                try {
+                    return Number( document.getElementById( `b${i}` ).value );
+                } catch ( e ) {
+                    return 1;
+                }
+            } );
             return {
-                bases: [
-                    Number( document.getElementById( 'b0' ).value ),
-                    Number( document.getElementById( 'b1' ).value ),
-                    Number( document.getElementById( 'b2' ).value )
-                ],
+                bases: bases,
                 toggles: {
                     random: document.getElementById( 'randomToggle' ).checked ? 1 : 0,
-                    xml: document.getElementById( 'xmlToggle' ).checked ? 1 : 0,
                     table: document.getElementById( 'tableToggle' ).checked ? 1 : 0,
                     gears: document.getElementById( 'gearsToggle' ).checked ? 1 : 0,
                     grid: document.getElementById( 'gridToggle' ).checked ? 1 : 0,
@@ -155,7 +162,8 @@
                     plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
                     locus: document.getElementById( 'locusToggle' ).checked ? 1 : 0,
-                    more: document.getElementById( 'moreToggle' ).checked ? 1 : 0
+                    more: document.getElementById( 'moreToggle' ).checked ? 1 : 0,
+                    midi: document.getElementById( 'midiToggle' ).checked ? 1 : 0
                 }
             };
         }
@@ -229,11 +237,6 @@
                 .forEach( item => item.classList.remove('selected') );
         }
 
-        function initialiseBaseInput( controlId, value ) {
-            const control = document.getElementById( "b" + controlId );
-            control.value = value;
-            control.onchange = updatePage;
-        }
 
         function initialiseCheckBox( controlId, checked ) {
             const control = document.getElementById( controlId );
@@ -270,9 +273,31 @@
             } );
         }
 
+        function initialiseBases( bases ) {
+            document.getElementById( "bases" ).value = bases.length;
+            const container = document.getElementById( "baseValues" );
+            while (container.firstChild ) {
+                container.removeChild( container.lastChild );
+            }
+
+            bases.forEach( (x,i) => {
+                container
+                    .appendChild(
+                        reify(
+                            "input",
+                            { "id": "b" + i, "type": "number", "min": 1 },
+                            [],
+                            [
+                                (control) => control.value = x,
+                                (control) => control.onchange = updatePage
+                            ] ) );
+            } );
+        }
+
         function initialiseControls( param ) {
 
-            param.bases.forEach( (x, i) => initialiseBaseInput( i, x ) );
+            initialiseBases( param.bases );
+
             const toggles = param.toggles;
 
             if ( toggles.table ) {
@@ -305,6 +330,9 @@
             if ( toggles.more ) {
                 initialiseCheckBox( 'moreToggle', true );
             }
+            if ( toggles.midi ) {
+                initialiseCheckBox( 'midiToggle', true );
+            }
         }
 
         function openPlot() {
@@ -312,14 +340,67 @@
             openX3DomFrame( 'sample_cs_b_10_m_2', orbitSystem );
         }
 
+        function setMidiRepeats( orbitId, repeats ) {
+            var orbit = orbitSystem.orbits.filter( x => x.index == orbitId );
+            if ( orbit ) {
+                orbit[0].midi.repeats = repeats;
+
+                updateJson();
+            }
+        }
+
+        function setMidiChannel( orbitId, channel ) {
+            var orbit = orbitSystem.orbits.filter( x => x.index == orbitId );
+            if ( orbit ) {
+                orbit[0].midi.instrument = isPercussion ? 0 : instrument;
+                if ( orbit[0].midi.percussion == 0 ) {
+                    orbit[0].midi.channel = channel;
+                }
+
+                updateJson();
+            }
+        }
+
+        function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
+            var orbit = orbitSystem.orbits.filter( x => x.index == orbitId );
+            if ( orbit ) {
+                orbit[0].midi.instrument = isPercussion ? 0 : instrument;
+                orbit[0].midi.percussion = isPercussion ? instrument : 0;
+
+                if ( isPercussion ) {
+                    orbit[0].midi.channel = 9;
+                } else if ( orbit[0].midi.channel == 9 ){
+                    orbit[0].midi.channel = 0;
+                }
+
+                updateJson();
+            }
+        }
+
+
+        function isToggle( toggle ) {
+            return document.getElementById( toggle + "Toggle" ).checked;
+        }
+
+
+        function updateJson() {
+            document
+                    .getElementById("orbit-system-data-text-area")
+                    .innerHTML = orbitSystem.getJson();
+
+            var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isToggle('multi'), 'sender': this.id } ] )";
+            var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
+
+            drawOrbitSystemTable( "sample_cs_b_10_m_2", orbitSystem, cellClick, totalClick, isToggle('midi') );
+        }
+
+
         function updatePage() {
-
+            // TODO: global access
             orbitSystem = new OrbitSystem( getControlValues() );
-
             putOrbitSystem( orbitSystem.key, orbitSystem );
 
             initialiseExpressor( orbitSystem );
-
 
             document
                 .getElementById( "sample_cs_b_10_m_2_riffler" )
@@ -333,18 +414,7 @@
                     .getElementById("orbit-system-summary")
                     .innerHTML = orbitSystem.getSummaryHtml();
 
-            document
-                    .getElementById("orbit-system-xml-text-area")
-                    .innerHTML = orbitSystem.getXml();
-
-            //document
-            //        .getElementById("expression")
-            //        .value = orbitSystem.locusPoints;
-
-            var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isMulti(), 'sender': this.id } ] )";
-            var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
-
-            drawOrbitSystemTable( "sample_cs_b_10_m_2", orbitSystem, cellClick, totalClick );
+            updateJson();
 
             insertX3DomFrame(
                 'sample_cs_b_10_m_2',
@@ -352,13 +422,12 @@
                 framePage = "orbitsViewer.html?" + getCurrentQueryString( orbitSystem.key ) );
         }
 
-        function isMulti() {
-            return document.getElementById("multiToggle").checked;
-        }
 
-        function initPage() {
+        function initPage( urlParam = true ) {
 
-            const param = getParam( getControlValues() );
+            const param = urlParam
+                ? getParam( getControlValues() )
+                : getControlValues();
 
             initialiseControls( param );
 
@@ -367,11 +436,19 @@
 
             updatePage();
 
+            if ( !urlParam ) {
+                return;
+            }
+
+
             if ( param.toggles.table ) {
                 showHide('sample_cs_b_10_m_2_table');
             }
             if ( param.toggles.more ) {
                 showHideAll( ['color-orbit-system','orbit-system-summary'] );
+            }
+            if ( param.toggles.midi ) {
+                showHideCSS( '.midi' );
             }
 
             window.addEventListener( "message", ( event ) => {
@@ -406,13 +483,15 @@
 <body id="testContainer001" onload="initPage()">
     <div style="width: 100%">
         <b>Orbit System: </b>
-        <input type="number" min="1" id="b0" value="7"/>
-        <input type="number" min="1" id="b1" value="5"/>
-        <input type="number" min="1" id="b2" value="3"/>
-
-        | <span id="captionTex"></span>
+        <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/> :
+        <span id="baseValues">
+            <input type="number" min="1" id="b0" value="7"/>
+            <input type="number" min="1" id="b1" value="5"/>
+            <input type="number" min="1" id="b2" value="3"/>
+        </span> | <span id="captionTex"></span>
 
         <div id="toolbar">
+            <a href="javascript:playMidi( JSON.parse( orbitSystem.getJson() ) )" title="play midi">play</a> |
             <a href="javascript:reopenWithArgs()" title="reopen with current values in url">reopen</a> |
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
             multi<input type="checkbox" id="multiToggle" checked="checked"/> |
@@ -427,7 +506,7 @@
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
                 locus<input type="checkbox" id="locusToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLocus: 1 } )"/> |
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/>
-                xml<input type="checkbox" id="xmlToggle" onchange="showHideAll( ['orbit-system-xml'] )"/>
+                midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/>
                 <hr/>
                 <div id="orbit-system-summary" style="display: none"></div>
                 <div>
@@ -450,8 +529,8 @@
                 <input type="button" onclick="applyColorOrbitSystem()" value="apply">
             </div>
         </div>
-        <div id="orbit-system-xml" style="display: none">
-            <textarea id="orbit-system-xml-text-area" style="width: 100%; height: 40%;"></textarea>
+        <div style="display: none" class="midi">
+            <textarea id="orbit-system-data-text-area" style="width: 100%; height: 40%;"></textarea>
         </div>
     </div>
 

@@ -43,23 +43,43 @@ class Orbit {
     constructor( parent, index, coords ) {
         this.parent = parent;
         this.index = index;
+        this.midi = {
+            "instrument": 0,
+            "channel": 0,
+            "percussion": 0,
+            "repeats": 0
+        };
         this.coords = coords;
         this.findSums();
     }
 
-    getXml() {
-        var xml = "<orbit";
-        xml += ` id="${ this.index }"`;
-        xml += ` order="${ this.order }"`;
-        xml += ` gcd="${ this.gcd }"`;
-        xml += ` lcm="${ this.lcm }"`;
-        xml += ` centre="${ canonicalize( this.centre.map( x => truncate( x, 10000 ) ) ) }"`;
-        xml += ` sum="${ canonicalize( this.sum ) }"`;
-        xml += ">";
-        xml += "\n\t" + canonicalize( this.coords.map( c => canonicalize(c.coord ) ), ', ', SQUARE_BRA);
-        xml += "\n" + "</orbit>";
+    getJson() {
+        var xml = "{";
+        xml += ` "id": ${ this.index },`;
+        xml += ` "midi": {`;
+        xml += ` "instrument": ${ this.midi.instrument },`;
+        xml += ` "channel": ${ this.midi.channel },`;
+        xml += ` "percussion": ${ this.midi.percussion },`;
+        xml += ` "repeats": ${ this.midi.repeats }`;
+        xml += ` },`;
+        xml += ` "order": ${ this.order },`;
+        xml += ` "harmonic": ${ this.harmonic },`;
+
+        xml += ` "centre": ${ this.centreRef },`;
+        xml += ` "axis": ${ this.parent.centrePoints[this.centreRef].lineRef },`;
+        xml += ` "perimeter": ${ this.perimeter },`;
+        xml += ` "attack": ${ truncate( this.unitPerimeter ) },`;
+
+        xml += ` "sum": ${ canonicalize( this.sum, ', ', SQUARE_BRA ) },`;
+        xml += ` "gcd": ${ this.gcd },`;
+        xml += ` "lcm": ${ this.lcm },`;
+        //xml += ` "centre": ${ canonicalize( this.centre.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) },`;
+        xml += ` "points": ${ canonicalize( this.coords.map( c => canonicalize( c.coord, ', ', SQUARE_BRA ) ), ', ', SQUARE_BRA) },`;
+        xml += ` "parity": ${ canonicalize( this.parity, ', ', SQUARE_BRA) }`;
+        xml += "}";
         return xml;
     }
+
 
     findSums() {
         this.basis = this.coords[0].coord.length;
@@ -93,6 +113,7 @@ class Orbit {
         const line = this.parent.centreLines[centre.lineRef];
         return {
             "id": this.index,
+            "midi": this.midi,
             "sum": `( ${ this.sum.join( ', ' ) } )`,
             "centre": `( ${ this.centre.map( x => truncate( x )).join( ', ' ) } )`,
             "harmonicSum": `( ${ this.harmonicSum.map( x => truncate( x )).join( ', ' ) } )`,
@@ -103,8 +124,9 @@ class Orbit {
             "weight": truncate( this.weight ),
             "bias": formattedWeight( this.bias ),
             "perimeter": this.perimeter,
-            "unitPerimeter": truncate( this.unitPerimeter ),
+            "attack": truncate( this.unitPerimeter ),
             "members": this.coords.join( C_SEP ),
+            "parity": this.parity.join( C_SEP ),
             "rotation": this.rotation,
             "lineRef": centre.lineRef,
             "centreRef": this.centreRef,
@@ -136,41 +158,34 @@ class OrbitSystem {
         this.analyzeOrbits();
     }
 
-    getXml() {
+    getJson() {
         const n = "\n";
         const t = "  ";
         const nt = n + t;
         const ntt = nt + t;
 
         var plane = this.basePlane;
-        var baseXml = nt + "<base";
-        baseXml += ` units="${ canonicalize( plane.bases ) }"`;
-        baseXml += ` volume="${ plane.volume }"`;
-        baseXml += ` forward="${ canonicalize( plane.powers ) }"`;
-        baseXml += ` reverse="${ canonicalize( plane.powersReverse ) }"`;
-        baseXml += ` normal="${ canonicalize( plane.unitNormal.map( x => truncate( x, 10000 ) ) ) }"`;
-        baseXml += ` axis="${ canonicalize( plane.rotationAxis.map( x => truncate( x, 10000 ) ) ) }"`;
-        baseXml += ` angle="${ truncate( plane.rotationAngle, 10000 ) }"`;
-        baseXml += "/>";
+        var baseJson = '{';
+        baseJson += ntt + ` "volume": ${ plane.volume },`;
+        baseJson += ntt + ` "fundamental": ${ this.fundamental },`;
+        baseJson += ntt + ` "sum": ${ canonicalize( this.totalDigitSum, ', ', SQUARE_BRA ) },`;
+        baseJson += ntt + ` "units": ${ canonicalize( plane.bases, ', ', SQUARE_BRA ) },`;
+        baseJson += ntt + ` "centre": ${ canonicalize( plane.centre, ', ', SQUARE_BRA ) },`;
+        baseJson += ntt + ` "forward": ${ canonicalize( plane.powers, ', ', SQUARE_BRA ) },`;
+        baseJson += ntt + ` "reverse": ${ canonicalize( plane.powersReverse, ', ', SQUARE_BRA ) },`;
+        baseJson += ntt + ` "axis": ${ canonicalize( plane.centre.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) },`;
+        baseJson += ntt + ` "normal": ${ canonicalize( plane.unitNormal.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) }`;
+        baseJson += ntt + '}';
 
-        var identityXml = nt + "<identity>";
-        identityXml += ntt + canonicalize( this.identityPoints.map( p => canonicalize( p.coords[0].coord ) ), ", ", SQUARE_BRA );
-        identityXml += nt + "</identity>";
+        var identityJson = canonicalize( this.identityPoints.map( p => canonicalize( p.coords[0].coord, ', ', SQUARE_BRA ) ), ", ", SQUARE_BRA );
+        var orbitsJson = "[" + ntt + this.orbits.map( orbit => orbit.getJson() ).join(", " + ntt) + nt + "]";
 
-        var orbitXml = nt + "<actions>";
-        this.orbits.forEach( orbit => {
-            orbitXml += ntt + orbit.getXml();
-        });
-        orbitXml += nt + "</actions>";
-
-        var xml = "<orbit-system";
-        xml += ` sum="${ canonicalize( this.totalDigitSum ) }"`;
-        xml += ">";
-        xml += baseXml;
-        xml += identityXml;
-        xml += orbitXml;
-        xml += n + "</orbit-system>";
-        return xml;
+        var json = "{";
+        json += nt + `"base": ${ baseJson },`;
+        json += nt + `"identity": ${ identityJson },`;
+        json += nt + `"orbits": ${ orbitsJson }`;
+        json += n + "}";
+        return json;
     }
 
     getCaptionTex() {
@@ -186,9 +201,8 @@ class OrbitSystem {
     getSummaryHtml() {
         var cimHtml = "Base Plane: ";
         cimHtml += `[${ this.basePlane.powers.join(',') }]/[${ this.basePlane.powersReverse.join(',') }]`;
+        cimHtml += `, centre=[${ this.basePlane.centre.map(x=>truncate(x)).join(',') }]`;
         cimHtml += `, normal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
-        cimHtml += `, axis=[${ this.basePlane.rotationAxis.map(x=>truncate(x)).join(',') }]`;
-        cimHtml += `, angle=${ truncate( this.basePlane.rotationAngle ) }`;
         return cimHtml;
     }
 
@@ -321,14 +335,9 @@ class OrbitSystem {
     }
 
     findFundamental() {
-        this.fundamental = 1;
-        for ( var i = 0; i < this.orbits.length; i++ ) {
-            var orbit = this.orbits[i];
-            var hI = orbit.coords.length;
-            if ( hI > this.fundamental ) {
-                this.fundamental = hI;
-            }
-        }
+        this.fundamental = this.orbits.length > 0
+            ? lcma( this.orbits.map( (x,i) => x.order ) )
+            : 1;
     }
 
     findMaxWeight() {
@@ -346,7 +355,7 @@ class OrbitSystem {
         var totalWeight = 0;
         var totalRotation = 0;
         var totalPerimeter = 0;
-         var totalOrderSpace = 1;
+        var totalOrderSpace = 1;
 
         const cycleIndexMonomial  = {};
 
@@ -376,6 +385,17 @@ class OrbitSystem {
                     .reduce( (a,c) => a + c );
 
             orbit.unitPerimeter = Math.sqrt( orbit.perimeter ) / orbit.order;
+
+            orbit.parity = coords
+                .map( (x,i) => dotProduct( x.coord, this.basePlane.unitNormal ) )
+                .map( (x,i) => x < 0 ? -1 : 1 );
+
+            [
+                orbit.midi.instrument,
+                orbit.midi.percussion,
+                orbit.midi.channel,
+                orbit.midi.repeat
+            ] = getInstrumentForOrder( orbit.order );
 
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalPerimeter += orbit.perimeter;

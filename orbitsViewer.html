@@ -19,6 +19,9 @@
             }
         </style>
 
+<!--        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>-->
+<!--        <script type="text/javascript" src="d3.layout.force3d.js"></script>-->
+
         <script type="text/javascript" src="js/x3dom-full.js"></script>
         <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
@@ -270,6 +273,7 @@
                 }
 
                 // PLANE
+                var currentDirection = [0,1,0];
                 var basePlane = orbitSystem.basePlane;
                 var planeColor = "gray";
                 var planeTransparency = 0.95;
@@ -278,9 +282,9 @@
                         basePlane.centre,
                         basePlane.unitNormal,
                         scaleUnit,
-                        basePlane.rotationAxis,
-                        basePlane.rotationAngle,
-                        [ basePlane.bases[0], 0, basePlane.bases[2] ],
+                        currentDirection,
+                        basePlane.origin,
+                        [ basePlane.bases[0], 0, basePlane.bases[basePlane.bases.length-1] ],
                         planeColor,
                         planeTransparency);
 
@@ -289,22 +293,19 @@
                 root
                     .appendChild( planeItem );
 
-                if ( orbitSystem.locusPoints ) {
-
-                    root
-                        .appendChild(
-                            reify(
-                                "Group",
-                                {
-                                    "class": "orbit-system-locus",
-                                    "render": Boolean( toggles.locus )
-                                },
-                                [
-                                    createLineSet( orbitSystem.getLocusPoints( orbitSystem.locusPoints ) )
-                                ]
-                            )
-                        );
-                }
+                root
+                    .appendChild(
+                        reify(
+                            "Group",
+                            {
+                                "class": "orbit-system-locus",
+                                "render": Boolean( toggles.locus )
+                            },
+                            [
+                                createLineSet( orbitSystem.getLocusPoints( orbitSystem.locusPoints ) )
+                            ]
+                        )
+                    );
 
                 return reify( "collision", { "enabled": false }, [ root ] );
             }
@@ -333,6 +334,7 @@
                 }
                 return reify( "collision", { "enabled": false }, [ root ] );
             }
+
 
             function plotOrbitSystem( orbitSystem, param ) {
 

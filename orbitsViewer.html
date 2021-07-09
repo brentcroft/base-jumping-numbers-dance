@@ -110,14 +110,14 @@
 
 
             function showOrbit( containerId, orbitSystem, senderId, multi ) {
-                const [ tableId, orbitId ] = senderId.split( "." );
+                const [ tableId, ...orbitIds ] = senderId.split( "." );
                 const orbits = document
                     .getElementById( containerId )
                     .querySelectorAll( ".orbit" );
 
                 orbits.forEach( orbitElement => {
                         const [ cId, oId ] = orbitElement.id.split( "." );
-                        if ( orbitId != oId ) {
+                        if ( !orbitIds.includes( oId ) ) {
                             if ( multi && orbitElement.classList.contains( "selected" ) ) {
                             } else {
                                 orbitElement.setAttribute( "render", false );
@@ -150,18 +150,18 @@
                 const fixedPointTransparency = 0.2;
                 const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
 
-                const [ p1, p2 ] = orbitSystem.basePlane.diagonal;
+                const [ p1, p2 ] = orbitSystem.box.diagonal;
                 const scaleUnit = toggles.scale ? unitDisplacement( p1, p2 ) : [ 1, 1, 1 ];
 
                 // move origin to system centre and scale by scaleUnit
                 const root = reify(
                     "Transform", {
-                        "translation": orbitSystem.basePlane.bases.map( b => -b/2 ).join( ' ' ),
+                        "translation": orbitSystem.box.bases.map( b => -b/2 ).join( ' ' ),
                         "scale": scaleUnit.map( x => x==0?1:1/x ).join( ' ' )
                     } );
 
                 function appendGridChildren( grid ) {
-                    const [ b0, b1, b2 ] = orbitSystem.basePlane.bases;
+                    const [ b0, b1, b2 ] = orbitSystem.box.bases;
                     const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
                     const gridPointRadius = 0.05;
 
@@ -274,17 +274,17 @@
 
                 // PLANE
                 var currentDirection = [0,1,0];
-                var basePlane = orbitSystem.basePlane;
+                var box = orbitSystem.box;
                 var planeColor = "gray";
                 var planeTransparency = 0.95;
 
                 var planeItem = createPlaneItem(
-                        basePlane.centre,
-                        basePlane.unitNormal,
+                        box.centre,
+                        box.unitNormal,
                         scaleUnit,
                         currentDirection,
-                        basePlane.origin,
-                        [ basePlane.bases[0], 0, basePlane.bases[basePlane.bases.length-1] ],
+                        box.origin,
+                        [ box.bases[0], 0, box.bases[box.bases.length-1] ],
                         planeColor,
                         planeTransparency);
 
@@ -316,7 +316,7 @@
                 const orbits = orbitSystem.orbits;
                 const fixedPointTransparency = 0.1;
                 const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
-                const root = reify( "Transform", { "translation": orbitSystem.basePlane.bases.map( b => -b/2 ).join( ' ' ) } );
+                const root = reify( "Transform", { "translation": orbitSystem.box.bases.map( b => -b/2 ).join( ' ' ) } );
 
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {

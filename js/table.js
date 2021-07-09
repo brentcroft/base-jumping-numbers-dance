@@ -146,7 +146,9 @@ function getCycleIndexMonomialHtml( orbitSystem ) {
 }
 
 
-function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick, midi = false ) {
+function drawOrbitSystemTable( tableArgs ) {
+
+    var { containerId, orbitSystem, cellClick, totalClick, midi = false, conj = false } = tableArgs;
 
     const tableContainerId = containerId + "_table";
     const tableId = tableContainerId + "_data";
@@ -154,8 +156,8 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick, 
     var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
     chainsText += "<caption>Orbit System: ";
-    chainsText += `b=[${ orbitSystem.basePlane.bases.join( ', ' ) }], `;
-    chainsText += `v=${ orbitSystem.basePlane.volume }, `;
+    chainsText += `b=[${ orbitSystem.box.bases.join( ', ' ) }], `;
+    chainsText += `v=${ orbitSystem.box.volume }, `;
     chainsText += `w=${ orbitSystem.maxWeight }, `;
     chainsText += `f=${ orbitSystem.fundamental }, `;
     chainsText += "</caption>";
@@ -171,10 +173,11 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick, 
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Orbit</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Point Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='5%'>Order</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Perimeter</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Attack</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += "</tr>";
@@ -191,33 +194,60 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick, 
 
     for ( var i = 0; i < orbits.length; i++ ) {
 
-        var orbit = orbits[ i ].getTableRow();
+        var orbit = orbits[ i ];
 
-        var onSelectInstrument = `setMidiInstrument( ${ orbit.id }, this.value )`;
-        var onSelectPercussion = `setMidiInstrument( ${ orbit.id }, this.value, true )`;
-        var onSelectChannel = `setMidiChannel( ${ orbit.id }, this.value )`;
-        var onSelectRepeat = `setMidiRepeats( ${ orbit.id }, this.value )`;
+        var isSelfConjugate = ( orbit.index == orbit.conjugate.index );
+        var isFirstConjugate = ( orbit.index < orbit.conjugate.index );
+
+        // ignore later conjugate
+        if ( !isSelfConjugate && !isFirstConjugate && conj) {
+            continue;
+        }
+
+        var onSelectInstrument = `setMidiInstrument( ${ orbit.index }, this.value )`;
+        var onSelectPercussion = `setMidiInstrument( ${ orbit.index }, this.value, true )`;
+        var onSelectChannel = `setMidiChannel( ${ orbit.index }, this.value )`;
+        var onSelectRepeat = `setMidiRepeats( ${ orbit.index }, this.value )`;
 
         chainsText += `<tr>`;
-        chainsText += `<td align="center">${ orbit.id }</td>`;
+        chainsText += `<td align="center">${ isSelfConjugate ? orbit.index : isFirstConjugate ? orbit.index : "<sup>(" + orbit.index + ")</sup>" }</td>`;
         chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getInstrumentSelectorHtml( orbit.midi.instrument, onSelectInstrument ) }</td>`;
         chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getChannelSelectorHtml( orbit.midi.channel, onSelectChannel ) }</td>`;
         chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getPercussionInstrumentSelectorHtml( orbit.midi.percussion, onSelectPercussion ) }</td>`;
         chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getRepeatSelectorHtml( orbit.midi.repeats, onSelectRepeat ) }</td>`;
-        chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.parity }</td>`;
-        chainsText += `<td id="${ tableId }.${ orbit.id }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.members }</td>`;
-        chainsText += `<td align="center">${ orbit.sum }</td>`;
+
+        if ( isSelfConjugate && conj ) {
+
+            var scParity = orbit.parity.slice( 0, Math.ceil( orbit.parity.length / 2 ) );
+            var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
+            var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
+
+            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ scParity }</td>`;
+            chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ scMembersFirst.join( C_SEP ) } &#8600;<br/>${ scMembersRest.join( C_SEP ) } &#8598;</td>`;
+            chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
+        } else if ( isFirstConjugate && conj ) {
+            var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
+            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.parity }</td>`;
+            chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }<br/>${ conjOrbit.getMembers() }</td>`;
+            chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })<br/>(${ conjOrbit.sum.join( ', ' ) })</td>`;
+        } else {
+            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.parity }</td>`;
+            chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }</td>`;
+            chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
+        }
+
         chainsText += `<td align="center">${ orbit.order }</td>`;
-        chainsText += `<td align="center">${ orbit.lineRef }</td>`;
-        chainsText += `<td align="center">${ orbit.centreRef }</td>`;
-        chainsText += `<td align="center">${ orbit.attack }</td>`;
         chainsText += `<td align="center">${ orbit.harmonic }</td>`;
+        chainsText += `<td align="center">${ orbit.getLineRef() }</td>`;
+        chainsText += `<td align="center">${ orbit.centreRef }</td>`;
+        chainsText += `<td align="center">${ orbit.perimeter }</td>`;
+        chainsText += `<td align="center">${ truncate( orbit.attack, 1000 ) }</td>`;
         chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
-        chainsText += `<td align="center">${ orbit.weight }</td>`;
+        chainsText += `<td align="center">${ formattedWeight( orbit.bias ) }</td>`;
         chainsText += "</tr>";
     }
 
-    var tds = orbitSystem.totalDigitSum;
+    var tds = orbitSystem.box.sum;
     var tos = orbitSystem.totalOrderSpace;
 
     chainsText += "<tr>";
@@ -226,7 +256,7 @@ function drawOrbitSystemTable( containerId, orbitSystem, cellClick, totalClick, 
     chainsText += "<td colspan='1'></td>";
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tds.join( ', ') } )</span></td>`;
     chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">( ${ tos } )</span></td>`;
-    chainsText += "<td colspan='6'></td>";
+    chainsText += "<td colspan='7'></td>";
     chainsText += "</tr>";
     chainsText += "</table>";
 

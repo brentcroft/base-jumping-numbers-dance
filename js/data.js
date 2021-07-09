@@ -79,10 +79,14 @@ var crossProduct      = ( p1, p2 ) => [
 ];
 
 
+
 // @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
 var dotProduct        = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] ).reduce( (a,c) => a + c );
 var scale             = ( p, s ) => p.map( x => x * s);
+
+var reflectPoint = ( point, centre ) => subtraction( scale( centre, 2 ), point );
+
 
 var euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v )
 var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
@@ -177,76 +181,4 @@ function shuffleArray( array ) {
         array[j] = temp;
     }
     return array;
-}
-
-/*
-
-*/
-var powers = ( bases ) => {
-        var acc = 1;
-        const p = [];
-        for ( var i = 0; i < bases.length; i++ ) {
-            p.push( acc );
-            acc = acc * bases[i];
-        }
-        return p;
-    };
-
-var powersReverse = ( bases ) => {
-        var acc = 1;
-        const p = [];
-        for ( var i = bases.length - 1; i >= 0; i-- ) {
-            p.push( acc );
-            acc = acc * bases[i];
-        }
-        return [].concat( p ).reverse();
-    };
-
-class BasePlane {
-    constructor( bases ) {
-        this.bases = bases;
-        this.origin = new Array( bases.length ).fill( 0 );
-        this.diagonal = [ new Array( bases.length ).fill( 0 ), this.bases.map( x => x - 1) ];
-        this.volume = this.bases.reduce( (a,c) => a*c, 1);
-
-        this.powers = powers( bases );
-        this.powersReverse = powersReverse( bases );
-        this.rawPlane = this.powers.map( (x,i) => x - this.powersReverse[i] );
-
-        // plane of iniquity
-        this.centre = this.bases.map( x => (x-1)/2 );
-        this.unitNormal = unitDisplacement( this.origin, this.rawPlane );
-
-        // coord index functions
-        this.indexForward = ( coord ) => this.powers.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
-    }
-
-    toString() {
-        return JSON.stringify({
-            "bases": this.bases,
-            "powers": this.powers,
-            "powersReverse": this.powersReverse,
-            "centre": this.centre,
-            "unitNormal": this.unitNormal
-        },null, 4);
-    }
-}
-
-
-// param = { bases:[1], coordId: , inverseCoordId: ,idx:[], dix:[] }
-function generateIndexes( param, index = 0, coord = [] ) {
-    if ( index == param.bases.length ) {
-        const id = param.coordId( coord );
-        const di = param.inverseCoordId( coord );
-        const item = new Coord( coord, id, di );
-        param.idx[ id ] = item;
-        param.dix[ di ] = item;
-    } else {
-        for ( var i = 0; i < param.bases[index]; i++) {
-            coord.push( i );
-            generateIndexes( param, index + 1, coord );
-            coord.pop( i );
-        }
-    }
 }

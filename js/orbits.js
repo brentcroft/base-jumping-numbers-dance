@@ -68,7 +68,7 @@ class Orbit {
         xml += ` "centre": ${ this.centreRef },`;
         xml += ` "axis": ${ this.parent.centrePoints[this.centreRef].lineRef },`;
         xml += ` "perimeter": ${ this.perimeter },`;
-        xml += ` "attack": ${ truncate( this.unitPerimeter ) },`;
+        xml += ` "attack": ${ truncate( this.attack ) },`;
 
         xml += ` "sum": ${ canonicalize( this.sum, ', ', SQUARE_BRA ) },`;
         xml += ` "gcd": ${ this.gcd },`;
@@ -108,31 +108,12 @@ class Orbit {
             .map( c => c.coord );
     }
 
-    getTableRow() {
-        const centre = this.parent.centrePoints[this.centreRef];
-        const line = this.parent.centreLines[centre.lineRef];
-        return {
-            "id": this.index,
-            "midi": this.midi,
-            "sum": `( ${ this.sum.join( ', ' ) } )`,
-            "centre": `( ${ this.centre.map( x => truncate( x )).join( ', ' ) } )`,
-            "harmonicSum": `( ${ this.harmonicSum.map( x => truncate( x )).join( ', ' ) } )`,
-            "gcd": this.gcd,
-            "lcm": this.lcm,
-            "harmonic": truncate( this.harmonic ),
-            "order": this.order,
-            "weight": truncate( this.weight ),
-            "bias": formattedWeight( this.bias ),
-            "perimeter": this.perimeter,
-            "attack": truncate( this.unitPerimeter ),
-            "members": this.coords.join( C_SEP ),
-            "parity": this.parity.join( C_SEP ),
-            "rotation": this.rotation,
-            "lineRef": centre.lineRef,
-            "centreRef": this.centreRef,
-            "centreHypoteneuse": truncate( centre.hyp2 ),
-            "centreOpposite": truncate( line.pd )
-        };
+    getLineRef() {
+        return this.parent.centrePoints[this.centreRef].lineRef;
+    }
+
+    getMembers() {
+        return this.coords.join( C_SEP )
     }
 }
 
@@ -141,8 +122,8 @@ class Orbit {
 
 class OrbitSystem {
     constructor( param ) {
-        this.basePlane = new BasePlane( param.bases );
-        this.key = "os-" + this.basePlane.bases.join( "." );
+        this.box = new BaseBox( param.bases );
+        this.key = "os-" + this.box.bases.join( "." );
         this.idx = [];
         this.dix = [];
         if ( param.toggles && param.toggles.random ) {
@@ -153,7 +134,6 @@ class OrbitSystem {
         this.buildOrbits();
         this.buildCentreLines();
         this.findFundamental();
-        this.findTotalDigitSum();
         this.findMaxWeight();
         this.analyzeOrbits();
     }
@@ -164,24 +144,12 @@ class OrbitSystem {
         const nt = n + t;
         const ntt = nt + t;
 
-        var plane = this.basePlane;
-        var baseJson = '{';
-        baseJson += ntt + ` "volume": ${ plane.volume },`;
-        baseJson += ntt + ` "fundamental": ${ this.fundamental },`;
-        baseJson += ntt + ` "sum": ${ canonicalize( this.totalDigitSum, ', ', SQUARE_BRA ) },`;
-        baseJson += ntt + ` "units": ${ canonicalize( plane.bases, ', ', SQUARE_BRA ) },`;
-        baseJson += ntt + ` "centre": ${ canonicalize( plane.centre, ', ', SQUARE_BRA ) },`;
-        baseJson += ntt + ` "forward": ${ canonicalize( plane.powers, ', ', SQUARE_BRA ) },`;
-        baseJson += ntt + ` "reverse": ${ canonicalize( plane.powersReverse, ', ', SQUARE_BRA ) },`;
-        baseJson += ntt + ` "axis": ${ canonicalize( plane.centre.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) },`;
-        baseJson += ntt + ` "normal": ${ canonicalize( plane.unitNormal.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) }`;
-        baseJson += ntt + '}';
-
         var identityJson = canonicalize( this.identityPoints.map( p => canonicalize( p.coords[0].coord, ', ', SQUARE_BRA ) ), ", ", SQUARE_BRA );
         var orbitsJson = "[" + ntt + this.orbits.map( orbit => orbit.getJson() ).join(", " + ntt) + nt + "]";
 
         var json = "{";
-        json += nt + `"base": ${ baseJson },`;
+        json += nt + `"fundamental": ${ this.fundamental },`;
+        json += nt + `"base": ${ this.box },`;
         json += nt + `"identity": ${ identityJson },`;
         json += nt + `"orbits": ${ orbitsJson }`;
         json += n + "}";
@@ -200,38 +168,27 @@ class OrbitSystem {
 
     getSummaryHtml() {
         var cimHtml = "Base Plane: ";
-        cimHtml += `[${ this.basePlane.powers.join(',') }]/[${ this.basePlane.powersReverse.join(',') }]`;
-        cimHtml += `, centre=[${ this.basePlane.centre.map(x=>truncate(x)).join(',') }]`;
-        cimHtml += `, normal=[${ this.basePlane.unitNormal.map(x=>truncate(x)).join(',') }]`;
+        cimHtml += `[${ this.box.powersForward.join(',') }]/[${ this.box.powersReverse.join(',') }]`;
+        cimHtml += `, centre=[${ this.box.centre.map(x=>truncate(x)).join(',') }]`;
+        cimHtml += `, normal=[${ this.box.unitNormal.map(x=>truncate(x)).join(',') }]`;
         return cimHtml;
-    }
-
-
-    findTotalDigitSum() {
-        this.totalDigitSum = new Array( this.basePlane.bases.length ).fill( 0 );
-        for ( var i = 0; i < this.idx.length; i++ ) {
-            const coord = this.idx[i].coord;
-            this.basePlane.bases.forEach( (x,i) => {
-                this.totalDigitSum[i] += coord[i];
-            } );
-        }
     }
 
     buildIndexes() {
         generateIndexes( {
-            bases: this.basePlane.bases,
-            coordId: this.basePlane.indexForward,
-            inverseCoordId: this.basePlane.indexReverse,
+            bases: this.box.bases,
+            coordId: this.box.indexForward,
+            inverseCoordId: this.box.indexReverse,
             idx: this.idx,
             dix: this.dix } );
     }
 
     buildRandomIndexes() {
-        const randomIndexValues = shuffleArray( Array.from({length: this.basePlane.volume}, (item, index) => index) );
+        const randomIndexValues = shuffleArray( Array.from({length: this.box.volume}, (item, index) => index) );
         generateIndexes( {
-            bases: this.basePlane.bases,
-            coordId: this.basePlane.indexForward,
-            inverseCoordId: ( coord ) => randomIndexValues[ this.basePlane.indexForward( coord ) ],
+            bases: this.box.bases,
+            coordId: this.box.indexForward,
+            inverseCoordId: ( coord ) => randomIndexValues[ this.box.indexForward( coord ) ],
             idx: this.idx,
             dix: this.dix } );
     }
@@ -241,21 +198,48 @@ class OrbitSystem {
         this.identityPoints = [];
         this.orbits = [];
         const tally = [ ...this.dix ];
+
+        function extractOrbitCoordsAndTally( startIndex, idx, tally ) {
+            var coord = idx[ startIndex ];
+            const coords = [ coord ];
+            tally[ startIndex ] = -1;
+            while ( coord.di != startIndex ) {
+                tally[ coord.di ] = -1;
+                coord = idx[ coord.di ];
+                coords.push( coord );
+            }
+            return coords;
+        }
+
         for ( var i = 0; i < this.idx.length; i++) {
             if ( tally[ i ]!= -1 ) {
-                tally[ i ] = -1;
-                var coord = this.idx[ i ];
-                const coords = [ coord ];
-                while ( coord.di != i ) {
-                    tally[ coord.di ] = -1;
-                    coord = this.idx[ coord.di ];
-                    coords.push( coord );
-                }
-                var orbit = new Orbit( this, this.orbits.length + 1, coords );
+
+                const orbit = new Orbit( this, this.orbits.length + 1, extractOrbitCoordsAndTally( i, this.idx, tally ) );
+
                 if ( orbit.order == 1 ) {
                     this.identityPoints.push( orbit );
                 } else {
                     this.orbits.push( orbit );
+                }
+
+                const antipodes = reflectPoint( this.idx[ i ].coord, this.box.centre );
+                var antipodesCoord = this.idx[ this.box.indexForward( antipodes ) ];
+
+                if (tally[ antipodesCoord.di ] == -1) {
+                    // orbit is conjugate to self
+                    orbit.conjugate = orbit;
+
+                } else {
+                    const conjugateOrbit = new Orbit( this, this.orbits.length + 1, extractOrbitCoordsAndTally( antipodesCoord.id, this.idx, tally ) );
+
+                    conjugateOrbit.conjugate = orbit;
+                    orbit.conjugate = conjugateOrbit;
+
+                    if ( conjugateOrbit.order == 1 ) {
+                        this.identityPoints.push( conjugateOrbit );
+                    } else {
+                        this.orbits.push( conjugateOrbit );
+                    }
                 }
             }
         }
@@ -264,7 +248,7 @@ class OrbitSystem {
     buildCentreLines() {
 
         const allowance = 0.00000000001;
-        const [ A, B ] = this.basePlane.diagonal;
+        const [ A, B ] = this.box.diagonal;
 
         var centreLines = [
             { "points": [ A, B ], "unit": unitDisplacement( A, B ), "pd": 0 }
@@ -295,16 +279,16 @@ class OrbitSystem {
                     return 0;
                 }
 
-                const unit = displacement( centre, orbitSystem.basePlane.centre );
-                const scaledUnit = scale( unitDisplacement( centre, orbitSystem.basePlane.centre ), 0.5 );
+                const unit = displacement( centre, orbitSystem.box.centre );
+                const scaledUnit = scale( unitDisplacement( centre, orbitSystem.box.centre ), 0.5 );
 
                 for ( var i = 1; i < centreLines.length; i++) {
                     const pd = perpendicularDistance( centre, centreLines[i].points, centreLines[i].unit );
                     if ( pd < allowance ) {
                         if ( cpd > centreLines[i].pd ) {
                             centreLines[i].points = [
-                                subtraction( subtraction( orbitSystem.basePlane.centre, unit ), scaledUnit),
-                                addition( addition( orbitSystem.basePlane.centre, unit ), scaledUnit)
+                                subtraction( subtraction( orbitSystem.box.centre, unit ), scaledUnit),
+                                addition( addition( orbitSystem.box.centre, unit ), scaledUnit)
                             ];
                         }
                         return i;
@@ -312,11 +296,11 @@ class OrbitSystem {
                 }
 
                 const points = [
-                    subtraction( subtraction( orbitSystem.basePlane.centre, unit ), scaledUnit),
-                    addition( addition( orbitSystem.basePlane.centre, unit ), scaledUnit)
+                    subtraction( subtraction( orbitSystem.box.centre, unit ), scaledUnit),
+                    addition( addition( orbitSystem.box.centre, unit ), scaledUnit)
                 ];
 
-                centreLines.push( { "points": points, "unit": unitDisplacement( centre, orbitSystem.basePlane.centre ), "pd": cpd }  );
+                centreLines.push( { "points": points, "unit": unitDisplacement( centre, orbitSystem.box.centre ), "pd": cpd }  );
                 return centreLines.length - 1;
             }
 
@@ -341,17 +325,17 @@ class OrbitSystem {
     }
 
     findMaxWeight() {
-        this.maxWeight = ( this.basePlane.bases[0] - 1 ) * this.fundamental;
-        this.basePlane.bases.forEach( ( b, i ) => {
+        this.maxWeight = ( this.box.bases[0] - 1 ) * this.fundamental;
+        this.box.bases.forEach( ( b, i ) => {
             this.maxWeight = reduce( this.maxWeight, ( b - 1 ) * this.fundamental );
         });
     }
 
     analyzeOrbits() {
 
-        const maxIndex = this.basePlane.volume - 1;
+        const maxIndex = this.box.volume - 1;
 
-        var totalHarmonicSum = new Array( this.basePlane.bases.length ).fill( 0 );
+        var totalHarmonicSum = new Array( this.box.bases.length ).fill( 0 );
         var totalWeight = 0;
         var totalRotation = 0;
         var totalPerimeter = 0;
@@ -384,10 +368,10 @@ class OrbitSystem {
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
                     .reduce( (a,c) => a + c );
 
-            orbit.unitPerimeter = Math.sqrt( orbit.perimeter ) / orbit.order;
+            orbit.attack = Math.sqrt( orbit.perimeter ) / orbit.order;
 
             orbit.parity = coords
-                .map( (x,i) => dotProduct( x.coord, this.basePlane.unitNormal ) )
+                .map( (x,i) => dotProduct( x.coord, this.box.unitNormal ) )
                 .map( (x,i) => x < 0 ? -1 : 1 );
 
             [

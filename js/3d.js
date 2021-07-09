@@ -78,28 +78,31 @@ function createPlaneItem(
     var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
 
     return reify(
-       "transform",
-       {
-           "translation": centre.join( ' ' ),
-           "scale": scaleUnit.join( ' ' ),
-           "class": "orbit-plane"
-       },
-       [
-           reify(
-               "transform", { "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle },
-               [ createPlaneShape( size.join( ' ' ), planeColor, planeTransparency ) ]
-           ),
-           reify(
-               "group",
-               {},
-               [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ]
-           ),
-           reify(
-               "transform",
-               { "translation": unitNormal.join( ' ' ) },
-               [ createSphereShape( 0.1, "black" ) ]
-           )
-       ]
+        "transform",
+        {
+            "translation": centre.join( ' ' ),
+            "scale": scaleUnit.join( ' ' ),
+            "class": "orbit-plane"
+        },
+        [
+            reify(
+                "transform", { "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle },
+                [ createPlaneShape( size.join( ' ' ), planeColor, planeTransparency ) ]
+            ),
+            reify(
+                "group",
+                {},
+                [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ]
+            ),
+            reify(
+                "transform",
+                {
+                    "translation": unitNormal.join( ' ' ),
+                    "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle
+                },
+                [ createBoxShape( [0.1, 0.1, 0.1], "black" ) ]
+            )
+        ]
    );
 }
 
@@ -114,6 +117,19 @@ function createSphereShape( radius = "0.1", emissiveColor = "blue", transparency
         ]
     );
 }
+
+
+function createBoxShape( size = [0.1, 0.1, 0.1], emissiveColor = "blue", transparency = 0) {
+    return reify(
+        "shape",
+        {},
+        [
+            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
+            reify( "box", { "size": size } )
+        ]
+    );
+}
+
 
 function createPolyLineShape( lineSegments, emissiveColor = "red" ){
     var s = createShape( emissiveColor );

@@ -149,7 +149,7 @@ class OrbitSystem {
 
         var json = "{";
         json += nt + `"fundamental": ${ this.fundamental },`;
-        json += nt + `"base": ${ this.box },`;
+        json += nt + `"box": ${ JSON.stringify( this.box, null, 4 ) },`;
         json += nt + `"identity": ${ identityJson },`;
         json += nt + `"orbits": ${ orbitsJson }`;
         json += n + "}";

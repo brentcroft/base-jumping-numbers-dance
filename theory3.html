@@ -1,0 +1,489 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <!--
+        <script
+                id="MathJax-script"
+                type="text/javascript"
+                async
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                -->
+        <script
+                id="MathJax-script"
+                type="text/javascript"
+                async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+        <script>
+            MathJax = {
+              tex: {
+                tags: 'ams'
+              }
+            };
+        </script>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                width: 80%;
+                font-size: 80%;
+                padding: 20pt;
+            }
+
+            iframe {
+              resize: both;
+              width: 100%;
+              height: 200px;
+              overflow: auto;
+            }
+
+            .small {
+                font: italic 40% sans-serif;
+            }
+
+            th {
+                vertical-align: bottom;
+            }
+
+            .chain-details-legend {
+                text-align: center;
+                font-style: italic;
+            }
+
+            .grid-controls-container {
+                width: 100%;
+                text-align: right;
+                font-size: 90%;
+            }
+
+            .grid-controls {
+                display: inline;
+            }
+            .control {
+                display: inline;
+            }
+
+            .resizable {
+                resize: both;
+                overflow: auto;
+            }
+
+            .legend {
+                text-align: center;
+                font-style: italic;
+            }
+
+            .selected { background: Pink; }
+
+            th { padding-left: 2pt; padding-right: 2pt; }
+
+            .sort-asc::after { content: " \2193"; font-face: bold; }
+            .sort-desc::after { content: " \2191"; font-face: bold;  }
+
+            td.sum-total { text-align: center; }
+            span.sum-total { border-top: 1px solid;}
+
+            .chain-details { width: 100%; font-size: 80%; }
+            .chain-details tr { vertical-align: top; }
+            .chain-details tr:nth-child(even) { background: Ivory; }
+            .chain-details tr:nth-child(odd) { background: WhiteSmoke; }
+
+            .pagebreak {
+                min-height: 1px;
+                page-break-before: always;
+            }
+
+            .equation-list { list-style-type: none; }
+            .equation-list li { padding: 6pt; }
+
+            input[type=number] {
+                width: 40pt;
+                text-align: right;
+            }
+        </style>
+        <script src="js/chains.js"></script>
+        <script src="js/factors.js"></script>
+        <script src="js/svg.js"></script>
+
+        <script src="js/ui.js"></script>
+        <script>
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            var base = urlParams.has('base') ? Number( urlParams.get('base') ) : 13;
+            var mult = urlParams.has('mult') ? Number( urlParams.get('mult') ) : 4;
+
+            function swapBases() {
+                const baseElement = document.getElementById("base");
+                const multElement = document.getElementById("mult");
+
+                const baseValue = baseElement.value;
+                const multValue = multElement.value;
+
+                baseElement.value = multValue;
+                multElement.value = baseValue;
+
+                initCurrentChainSystem();
+            }
+
+            function toggleSelected( source, clear = false ) {
+
+                var tableNode = source.parentNode;
+                while ( tableNode && tableNode.tagName != "TABLE" ) {
+                    tableNode = tableNode.parentNode;
+                }
+
+                var selector = `#${ tableNode.getAttribute( "id" ) } td.selected`;
+
+                var selectedItems  = document
+                    .querySelectorAll( selector );
+
+                if (selectedItems ) {
+                    selectedItems
+                        .forEach( ( selectedItem ) => selectedItem.classList.remove( "selected" ) );
+                }
+
+                if ( !clear ) {
+                    source.classList.add( "selected" );
+                }
+            }
+
+
+            function drawChainOnGrid( id, chainSystem, chain = [ [ 0, 0 ] ], source, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain" ) {
+                removeGridChains( id, cssClass );
+                drawGridChain( id, chain, chainSystem, color, cssClass );
+                drawGridChainCentre( id, chain, chainSystem, color, cssClass );
+
+                if ( source ) {
+                    toggleSelected( source );
+                }
+            }
+
+            function drawPathOnGrid( id, chainSystem, path = [ [ 0, 0 ] ], source, color = "rgba( 255, 0, 0, 1 )", cssClass = "chain" ) {
+                drawGridPath( id, path, chainSystem, color, cssClass );
+            }
+
+
+            function drawChainsOnGrid( id, chainSystem, chains = [ [ [ 0, 0 ] ] ], source ) {
+                removeGridChains( id );
+                for ( var i = 0; i < chains.length; i++ ) {
+                    drawGridChain( id, chains[ i ], chainSystem, getColor( 10, i ) );
+                }
+
+                if ( source ) {
+                    toggleSelected( source, true );
+                }
+            }
+
+            function drawChainSystemOnGrid( id, chainSystem, source ) {
+
+                removeGridChains( id );
+
+                var chains = chainSystem.chains;
+                for ( var i = 0; i < chains.length; i++ ) {
+                    var chain = chains[ i ].coordsArray();
+                    drawGridChain( id, chain, chainSystem, getColor( 10, i ) );
+                }
+
+                if ( source ) {
+                    toggleSelected( source, true );
+                }
+            }
+
+            function drawRandomChains( id, chainSystem, drawAllChains = false, drawX3Dom = true ) {
+
+                randomChainSystem = getRandomSystem( chainSystem );
+
+                var cellClick = `drawChainOnGrid( '${ id }', randomChainSystem, arrayFromChainText( this ), this )`;
+                var totalClick = `drawChainSystemOnGrid( '${ id }', randomChainSystem, this )`;
+
+                drawChainSystemTable( id, randomChainSystem, cellClick, totalClick );
+
+                if ( drawAllChains ) {
+                    drawChainSystemOnGrid( id, randomChainSystem );
+                } else {
+                    drawChainOnGrid( id, randomChainSystem, randomChainSystem.chains[1].coordsArray() );
+                }
+
+                if ( drawX3Dom ) {
+                    openX3DomViewer( id, randomChainSystem );
+                }
+            }
+
+            function drawHarmonicChains( id, chainSystem, drawAllChains = false, drawX3Dom = true ) {
+
+                var cellClick = `drawChainOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), arrayFromChainText( this ), this )`;
+                var totalClick = `drawChainSystemOnGrid( '${ id }', getChainSystem( ${ chainSystem.base }, ${ chainSystem.mult } ), this )`;
+
+                drawChainSystemTable( id, chainSystem, cellClick, totalClick );
+
+                if ( drawAllChains ) {
+                    drawChainSystemOnGrid( id, chainSystem );
+                } else {
+                    drawChainOnGrid( id, chainSystem, chainSystem.chains[1].coordsArray() );
+                }
+
+                if ( drawX3Dom ) {
+                    openX3DomViewer( chainSystem );
+                }
+            }
+
+            function pageInit(){
+                initCurrentChainSystem( null, false );
+            }
+
+            function initCurrentChainSystem( source = null, randomSystem = false ) {
+
+                if ( source ) {
+                    const isActive = ( source === document.activeElement );
+                    if ( ! isActive) {
+                        return;
+                    }
+                }
+
+                const containerId = "default_cs";
+
+                chainSystem = getCurrentChainSystem();
+
+                setChainSystemSvg( containerId, chainSystem, dimensions = [ 600, 150 ], oversize = [ 1, 1 ], origin = [ 0, 0 ] );
+
+                writeChainSystemBlock( containerId, chainSystem, false, true, true );
+
+                if ( randomSystem ) {
+                    drawRandomChains( containerId, chainSystem );
+                } else {
+                    drawHarmonicChains( containerId, chainSystem);
+                }
+            }
+
+            function openX3DomViewer( chainSystem ) {
+                const containerId = "default_cs";
+                const viewerContainerId = containerId + "_plot";
+                const viewerContainer = document.getElementById( viewerContainerId );
+                if ( viewerContainer ) {
+                    var frameId = containerId + "_plot_frame";
+                    var iframeHtml = `<iframe id="${ frameId }" src="viewer.html?base=${ chainSystem.base }&amp;mult=${ chainSystem.mult }&amp;random=false"></iframe>`;
+                    viewerContainer.innerHTML = iframeHtml;
+                }
+            }
+
+        </script>
+    </head>
+    <body onload="pageInit()">
+        <div>
+            <h1>Jumping Bases Numbers Dance</h1>
+            Any \(n\) natural numbers greater than one,
+            in sequence (a box),
+            let's say \(b_0, b_1, ... b_n > 1\) (and call them bases),
+            generate the points of an n-dimensional grid
+            with coordinates \( (x_0, x_1, ... x_n) \),
+            where \(  0 \le x_i < b_i \),
+            and the total number of points is the product of the bases.
+            <br/><br/>
+            A non-empty sequence of coordinates,
+            where the ends join up,
+            makes an orbit in the box.
+            <br/><br/>
+            A box has many possible sets of disjoint orbits
+            that span the coordinates
+            (every coordinate appears once and in one orbit only).
+            <br/>
+            <br/>
+
+
+            <hr class="pagebreak"/>
+            <h2>Chain System Algebra</h2>
+
+            Given a box with bases \(l, m, n > 1\),
+            then a circular system of \( p \) independent equations,
+            where \( p < (lmn - 1) \),
+            can be constructed,
+            starting from any coordinate \((i_0, j_0, k_0)\)
+            and applying \( twist \) successively \( p \) times
+            until the starting coordinate recurs.
+            <br/>
+
+            \begin{align*}
+            lm.i_1 + l.j_1 + k_1 &= i_0 + n.j_0 + mn.k_0\\
+            lm.i_2 + l.j_2 + k_2 &= i_1 + n.j_1 + mn.k_1\\
+            lm.i_3 + l.j_3 + k_3 &= i_2 + n.j_2 + mn.k_2\\
+            & ... \\
+            lm.i_{p-1} + l.j_{p-1} + k_{p-1} &= i_{p-2} + n.j_{p-2} + mn.k_{p-2}\\
+            lm.i_0 + l.j_0 + k_0 &= i_{p-1} + n.j_{p-1} + mn.k_{p-1}
+            \end{align*}
+            <br/>
+        </div>
+
+        <hr/>
+        <div>
+            The sum of coordinate digits in each orbit is constrained:
+
+            \begin{align}
+            (lm - 1)\sum_{x=0}^{p-1} i_x + (l - n)\sum_{x=0}^{p-1} j_x  + (1 - mn)\sum_{x=0}^{p-1} k_x & = 0\\
+            \end{align}
+            <br/>
+            <br/>
+
+            Furthermore, for every coordinate in an orbit of length \( p \):
+
+            \begin{align*}
+                lm.i_0 + l.j_0 + k_0 &= { ( 1 - lm^2n ) \over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}i_t \\
+                                     &+ { n( 1 - lm )\over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+        </div>
+        <hr/>
+
+        <div>
+            Construct identity ladder resolving for k:
+            <br/><br/>
+
+            \begin{align*}
+            k_1 &= - l( m.i_1 + j_1 ) + i_0 + n.j_0 + mn.k_0 \\
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 + mn.k_1 \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 + mn.k_2 \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn.k_3 \\
+            &... \\
+            k_{p-1} &= - l( m.i_{p-1} + j_{p-1} ) + i_{p-2} + n.j_{p-2} + mn.k_{p-2} \\
+            k_0 &= - l( m.i_0 + j_0 ) + i_{p-1} + n.j_{p-1} + mn.k_{p-1} \\
+            \end{align*}
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Build out 1:
+            <br/><br/>
+
+            \begin{align*}
+            k_1 &=  - l( m.i_1 + j_1 ) + i_0 + n.j_0 + mn.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 2:
+            <br/><br/>
+
+            \begin{align*}
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 + mn.k_1 \\
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 + mn.( - l( m.i_1 + j_1 ) + i_0 + n.j_0 + mn.k_0 ) \\
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 - lmn( m.i_1 + j_1 ) + mn.i_0 + mn^2.j_0 + m^2n^2.k_0 \\
+            k_2 &= - l( m.i_2 + j_2 ) + ( 1 - lm^2n ).i_1 + n( 1 - lm ).j_1 + mn.i_0 + mn^2.j_0 + m^2n^2.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 3:
+            <br/><br/>
+
+            \begin{align*}
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 + mn.k_2 \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 + mn( - l( m.i_2 + j_2 ) + ( 1 - lm^2n ).i_1 + n( 1 - lm ).j_1 + mn.i_0 + mn^2.j_0 + m^2n^2.k_0 ) \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 - lmn( m.i_2 + j_2 ) + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 - lm^2n.i_2 - lmn.j_2 + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 \\
+            k_3 &= - l( m.i_3 + j_3 ) + ( 1 - lm^2n ).i_2 + n( 1 - lm ).j_2 + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 4:
+            <br/><br/>
+
+            \begin{align*}
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn.k_3 \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn.( ( 1 - lm^2n ).i_2 + n( 1 - lm ).j_2 - l( m.i_3 + j_3 ) + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 ) \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 - lmn( m.i_3 + j_3 ) + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 - lmn( m.i_3 + j_3 ) + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 \\
+            k_4 &= - l( m.i_4 + j_4 ) + ( 1 - lm^2n ).i_3 + n( 1 - lm ).j_3 + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 5:
+            <br/><br/>
+
+            \begin{align*}
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 + mn.k_4 \\
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 + mn.( ( 1 - lm^2n ).i_3 + n( 1 - lm).j_3 - l( m.i_4 + j_4 ) + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 ) \\
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 + mn( 1 - lm^2n ).i_3 + mn^2( 1 - lm).j_3 - lmn( m.i_4 + j_4 ) + m^2n^2( 1 - lm^2n ).i_2 + m^2n^3( 1 - lm ).j_2 + m^3n^3( 1 - lm^2n ).i_1 + m^3n^4( 1 - lm ).j_1 + m^4n^4.i_0 + m^4n^5.j_0 + m^5n^5.k_0 \\
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 - lmn( m.i_4 + j_4 ) + mn( 1 - lm^2n ).i_3 + mn^2( 1 - lm).j_3 + m^2n^2( 1 - lm^2n ).i_2 + m^2n^3( 1 - lm ).j_2 + m^3n^3( 1 - lm^2n ).i_1 + m^3n^4( 1 - lm ).j_1 + m^4n^4.i_0 + m^4n^5.j_0 + m^5n^5.k_0 \\
+            \end{align*}
+
+            \begin{align*}
+            k_5 &= - l( m.i_5 + j_5 ) \\
+                &+ (mn)^0( 1 - lm^2n ).i_4 + (mn)^0n( 1 - lm ).j_4 \\
+                &+ (mn)^1( 1 - lm^2n ).i_3 + (mn)^1n( 1 - lm).j_3 \\
+                &+ (mn)^2( 1 - lm^2n ).i_2 + (mn)^2n( 1 - lm ).j_2 \\
+                &+ (mn)^3( 1 - lm^2n ).i_1 + (mn)^3n( 1 - lm ).j_1 \\
+                &+ (mn)^4.i_0 + (mn)^4n.j_0 + (mn)^5.k_0 \\
+
+
+            k_5 &= - l( m.i_5 + j_5 ) \\
+                &+( 1 - lm^2n )\sum_{t=1}^{5-1} (mn)^{5-t-1}i_t \\
+                &+ n( 1 - lm )\sum_{t=1}^{5-1} (mn)^{5-t-1}j_t \\
+                &+ (mn)^4.i_0 + (mn)^4n.j_0 + (mn)^5.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Generalize for \(p\):
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}.i_0 + n(mn)^{p-1}.j_0 + (mn)^{p}.k_0 \\
+            \end{align*}
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}.i_0 + n(mn)^{p-1}.j_0 + (mn)^{p}.( - l( m.i_0 + j_0 ) + i_{p-1} + n.j_{p-1} + mn.k_{p-1} ) \\
+            \end{align*}
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}.i_0 \\
+                    &+ n(mn)^{p-1}.j_0 \\
+                    &- l(mn)^{p}( m.i_0 + j_0 ) + (mn)^{p}.i_{p-1} + (mn)^{p}n.j_{p-1} + (mn)^{p}mn.k_{p-1} \\
+            \end{align*}
+
+            Complete the sums:
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ ((mn)^{p-1} - lm^2n(mn)^{p-1}).i_0 \\
+                    &+ (n(mn)^{p-1} - l(mn)^{p}).j_0 \\
+                    &+ (mn)^{p}.i_{p-1} + (mn)^{p}n.j_{p-1} + (mn)^{p}mn.k_{p-1} \\
+            \end{align*}
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}( 1 - lm^2n ).i_0 \\
+                    &+ (mn)^{p-1}n( 1 - lm ).j_0 \\
+                    &+ (mn)^{p}( i_{p-1} + n.j_{p-1} + mn.k_{p-1} ) \\
+            \end{align*}
+
+            Recall that: \( lm.i_0 + l.j_0 + k_0 = i_{p-1} + n.j_{p-1} + mn.k_{p-1} \)<br/>
+            and \( i_0 = i_p, j_0 = j_p and k_0 = k_p \)
+
+            \begin{align*}
+                ( 1 - (mn)^{p} )( lm.i_0 + l.j_0 + k_0 ) &= ( 1 - lm^2n )\sum_{t=0}^{p-1} (mn)^{p-t-1}i_t + n( 1 - lm )\sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+            \begin{align*}
+                ( lm.i_0 + l.j_0 + k_0 ) &= { ( 1 - lm^2n ) \over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}i_t + { n( 1 - lm )\over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+        </div>
+    </body>
+</html>

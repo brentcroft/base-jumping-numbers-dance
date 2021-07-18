@@ -149,11 +149,16 @@ function createLineSet( coords, emissiveColor, attr = {} ){
 
     lineSet.setAttribute( 'vertexCount', `${ coords.length + 1 }` );
 
-    var point = "";
-    for ( var j = 0; j < coords.length; j++ ) {
-        point += `${ coords[j].coord.join( ' ' ) } `;
-    }
-    point += `${ coords[0].coord.join( ' ' ) } -1`;
+    // guarantee 3 values per coord
+    var point = coords
+        .map( (x,i) => {
+            var [ x = 0, y = 0, z = 0 ] = x.coord;
+            return `${ x } ${ y } ${ z }`;
+        } )
+        .join( ' ' );
+
+    var [ x = 0, y = 0, z = 0 ] = coords[0].coord;
+    point += ` ${ x } ${ y } ${ z } -1`;
 
     var coordinate = document.createElement( 'Coordinate' );
     coordinate.setAttribute( 'point', `${ point }` );

@@ -171,8 +171,13 @@
             };
         }
 
-        function getCurrentQueryString( orbitSystemKey ) {
+        function getCurrentQueryString( orbitSystemKey, bases ) {
             const values = getControlValues();
+
+            if ( !bases ) {
+                bases = values.bases;
+            }
+
             const toggles = values.toggles;
             const activeToggles = Object
                 .entries( toggles )
@@ -181,12 +186,19 @@
             const activeToggleKeys = activeToggles
                 .map( toggle => toggle[0]);
 
-            return (orbitSystemKey ? "id=" + orbitSystemKey + "&" : "") + `bases=${ values.bases.join(',') }&toggles=${ activeToggleKeys.join( ',' ) }`;
+            return (orbitSystemKey ? "id=" + orbitSystemKey + "&" : "") + `bases=${ bases.join(',') }&toggles=${ activeToggleKeys.join( ',' ) }`;
         }
 
         function reopenWithArgs() {
             window.location.href = "?" + getCurrentQueryString();
         }
+
+        function reopenWithRotatedArgs() {
+            var bases = getControlValues().bases;
+            bases.push(bases.shift());
+            window.location.href = "?" + getCurrentQueryString( null, bases );
+        }
+
 
         function distributeMessage( containerId, message = {} ) {
             const plotFrame = document.getElementById( containerId + "_plot_frame" );
@@ -500,14 +512,15 @@
         <b>Orbit System: </b>
         <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/> :
         <span id="baseValues">
-            <input type="number" min="1" id="b0" value="7"/>
+            <input type="number" min="1" id="b0" value="10"/>
             <input type="number" min="1" id="b1" value="5"/>
             <input type="number" min="1" id="b2" value="3"/>
-        </span> | <span id="captionTex"></span>
+        </span> |
+        <span id="captionTex"></span> |
+        <a href="javascript:reopenWithArgs()" title="reopen with current values in url">reopen</a> |
+        <a href="javascript:reopenWithRotatedArgs()" title="reopen with rotated base values in url">rotate</a>
 
         <div id="toolbar">
-            <a href="javascript:playMidi( JSON.parse( orbitSystem.getJson() ) )" title="play midi">play</a> |
-            <a href="javascript:reopenWithArgs()" title="reopen with current values in url">reopen</a> |
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
             multi<input type="checkbox" id="multiToggle" checked="checked"/> |
             gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> |
@@ -520,9 +533,10 @@
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
                 locus<input type="checkbox" id="locusToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLocus: 1 } )"/> |
-                conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/>
-                random<input type="checkbox" id="randomToggle" onchange="updatePage()"/>
-                midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/>
+                conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
+                random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
+                midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
+                <a href="javascript:playMidi( JSON.parse( orbitSystem.getJson() ) )" title="play midi">play</a>
                 <hr/>
                 <div id="orbit-system-summary" style="display: none"></div>
                 <div>

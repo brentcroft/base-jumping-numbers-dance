@@ -75,7 +75,7 @@ class Orbit {
         xml += ` "lcm": ${ this.lcm },`;
         //xml += ` "centre": ${ canonicalize( this.centre.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) },`;
         xml += ` "points": ${ canonicalize( this.coords.map( c => canonicalize( c.coord, ', ', SQUARE_BRA ) ), ', ', SQUARE_BRA) },`;
-        xml += ` "parity": ${ canonicalize( this.parity, ', ', SQUARE_BRA) }`;
+        xml += ` "valence": ${ canonicalize( this.valence, ', ', SQUARE_BRA) }`;
         xml += "}";
         return xml;
     }
@@ -370,7 +370,7 @@ class OrbitSystem {
 
             orbit.attack = Math.sqrt( orbit.perimeter ) / orbit.order;
 
-            orbit.parity = coords
+            orbit.valence = coords
                 .map( (x,i) => dotProduct( x.coord, this.box.unitNormal ) )
                 .map( (x,i) => x < 0 ? -1 : 1 );
 

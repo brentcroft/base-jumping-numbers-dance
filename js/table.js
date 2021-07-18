@@ -169,14 +169,14 @@ function drawOrbitSystemTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Channel</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Percussion</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Repeat</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};' width='20%'>Parity</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};' width='20%'>Valence</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='70%'>Orbit</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Point Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='5%'>Order</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Perimeter</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Per<sup>2</sup></th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Attack</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
@@ -218,20 +218,20 @@ function drawOrbitSystemTable( tableArgs ) {
 
         if ( isSelfConjugate && conj ) {
 
-            var scParity = orbit.parity.slice( 0, Math.ceil( orbit.parity.length / 2 ) );
+            var scValence = orbit.valence.slice( 0, Math.ceil( orbit.valence.length / 2 ) );
             var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
             var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
 
-            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ scParity }</td>`;
+            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ scValence }</td>`;
             chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ scMembersFirst.join( C_SEP ) } &#8600;<br/>${ scMembersRest.join( C_SEP ) } &#8598;</td>`;
             chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
         } else if ( isFirstConjugate && conj ) {
             var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
-            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.parity }</td>`;
+            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.valence.join( C_SEP ) }</td>`;
             chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }<br/>${ conjOrbit.getMembers() }</td>`;
             chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })<br/>(${ conjOrbit.sum.join( ', ' ) })</td>`;
         } else {
-            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.parity }</td>`;
+            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.valence.join( C_SEP ) }</td>`;
             chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }</td>`;
             chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
         }

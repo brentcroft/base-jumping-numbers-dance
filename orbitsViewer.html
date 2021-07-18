@@ -19,7 +19,7 @@
             }
         </style>
 
-<!--        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>-->
+<!--        <script src="https://d3js.org/d3.v7.min.js"></script>-->
 <!--        <script type="text/javascript" src="d3.layout.force3d.js"></script>-->
 
         <script type="text/javascript" src="js/x3dom-full.js"></script>
@@ -155,7 +155,7 @@
 
                 // move origin to system centre and scale by scaleUnit
                 const root = reify(
-                    "Transform", {
+                    "transform", {
                         "translation": orbitSystem.box.bases.map( b => -b/2 ).join( ' ' ),
                         "scale": scaleUnit.map( x => x==0?1:1/x ).join( ' ' )
                     } );
@@ -252,20 +252,31 @@
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {
                     const orbit = orbits[i];
+                    const orbitColor = colorOrbitSystem.colorForIndex( orbit.index );
                     root
                         .appendChild(
                             reify(
-                                "Group",
+                                "group",
                                 { "class": "orbit", "id": ("orbit." + orbit.index ) },
                                 [
-                                    createLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ),
+                                    createLineSet( orbit.coords, orbitColor ),
                                     reify(
-                                        "transform", {
+                                        "transform",
+                                        {
                                             "translation": orbit.centre.join( ' ' ),
                                             "scale": scaleUnit.join( ' ' )
                                         },
-                                        [ createSphereShape( 0.11, "gray" ) ]
-                                    )
+                                        [ createSphereShape( 0.09, "gray" ) ]
+                                    ),
+                                    ...orbit.coords.map( (x,i) => reify(
+                                        "transform",
+                                        {
+                                            "translation": x.coord.join( ' ' ),
+                                            "scale": scaleUnit.join( ' ' ),
+                                            "class": "orbitCoord",
+                                            "id": `orbitCoord.${ x.index }.${ i }`
+                                        },
+                                        [ createSphereShape( 0.05, orbitColor ) ] ) )
                                 ],
                                 [ ( e ) => e.setAttribute( "render", Boolean( toggles.lines ) ) ]
                             )
@@ -333,6 +344,11 @@
                     }
                 }
                 return reify( "collision", { "enabled": false }, [ root ] );
+            }
+
+            function plotData( duration ) {
+                const param = getParam();
+                const orbitSystem = window.parent.window.getOrbitSystem( param.id );
             }
 
 

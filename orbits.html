@@ -194,8 +194,14 @@
         }
 
         function reopenWithRotatedArgs() {
-            var bases = getControlValues().bases;
+            const bases = getControlValues().bases;
             bases.push(bases.shift());
+            window.location.href = "?" + getCurrentQueryString( null, bases );
+        }
+
+        function reopenWithReversedArgs() {
+            const bases = getControlValues().bases;
+            bases.reverse();
             window.location.href = "?" + getCurrentQueryString( null, bases );
         }
 
@@ -271,21 +277,23 @@
         }
 
 
-        function initialiseExpressor( orbitSystem ) {
+        function initialiseExpressor( orbitSystem, redraw = true ) {
             var expressor = document.getElementById( 'expressor' );
             while ( expressor.firstChild ) {
                 expressor.removeChild( expressor.lastChild );
             }
-            orbitSystem.orbits.forEach( (orbit, i) => {
-                expressor.appendChild(
-                    reify(
-                        "input",
-                        { "type": "number", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
-                        [],
-                        [ ( control ) => control.onchange = () => applyExpression( control, orbit, i ) ]
-                    )
-                );
-            } );
+            if ( redraw ) {
+                orbitSystem.orbits.forEach( (orbit, i) => {
+                    expressor.appendChild(
+                        reify(
+                            "input",
+                            { "type": "number", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
+                            [],
+                            [ ( control ) => control.onchange = () => applyExpression( control, orbit, i ) ]
+                        )
+                    );
+                } );
+            }
         }
 
         function initialiseBases( bases ) {
@@ -427,7 +435,7 @@
             orbitSystem = new OrbitSystem( getControlValues() );
             putOrbitSystem( orbitSystem.key, orbitSystem );
 
-            initialiseExpressor( orbitSystem );
+            initialiseExpressor( orbitSystem, isToggle( 'locus' ) );
 
             document
                 .getElementById( "sample_cs_b_10_m_2_riffler" )
@@ -516,9 +524,10 @@
             <input type="number" min="1" id="b1" value="5"/>
             <input type="number" min="1" id="b2" value="3"/>
         </span> |
-        <span id="captionTex"></span> |
         <a href="javascript:reopenWithArgs()" title="reopen with current values in url">reopen</a> |
-        <a href="javascript:reopenWithRotatedArgs()" title="reopen with rotated base values in url">rotate</a>
+        <a href="javascript:reopenWithRotatedArgs()" title="reopen with rotated base values in url">rotate</a> |
+        <a href="javascript:reopenWithReversedArgs()" title="reopen with reversed base values in url">reverse</a> |
+        <span id="captionTex"></span>
 
         <div id="toolbar">
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
@@ -532,7 +541,7 @@
                 centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
-                locus<input type="checkbox" id="locusToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLocus: 1 } )"/> |
+                locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> |
                 conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |

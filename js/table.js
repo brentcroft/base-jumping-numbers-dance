@@ -148,7 +148,7 @@ function getCycleIndexMonomialHtml( orbitSystem ) {
 
 function drawOrbitSystemTable( tableArgs ) {
 
-    var { containerId, orbitSystem, cellClick, totalClick, midi = false, conj = false } = tableArgs;
+    var { containerId, orbitSystem, cellClick, totalClick, midi = false, conj = false, perms = false } = tableArgs;
 
     const tableContainerId = containerId + "_table";
     const tableId = tableContainerId + "_data";
@@ -182,11 +182,16 @@ function drawOrbitSystemTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += "</tr>";
 
-    const identityPoints = orbitSystem.identityPoints.map( p => "{ " + canonicalize( p.coords[0].coord ) + " }" ).join(", ");
     chainsText += "<tr>";
     chainsText += `<th align="center"><code>e</code></th>`;
     chainsText += `<th colspan='5' class='midi' style='display: ${midi?"":"none"};'></th>`;
-    chainsText += `<th id="${ tableId }.e" align='center'><code>${ identityPoints }</code></th>`;
+    if ( perms ) {
+        const identityPoints = orbitSystem.identityPoints.map( p => "( " + p.coords.map( c => c.id ).join( ' ' ) + " )" ).join(", ");
+        chainsText += `<th id="${ tableId }.e" align='center'><code>${ identityPoints }</code></th>`;
+    } else {
+        const identityPoints = orbitSystem.identityPoints.map( p => "{ " + canonicalize( p.coords[0].coord ) + " }" ).join(", ");
+        chainsText += `<th id="${ tableId }.e" align='center'><code>${ identityPoints }</code></th>`;
+    }
     chainsText += "<th colspan='7'></th>";
     chainsText += "</tr>";
 
@@ -216,24 +221,41 @@ function drawOrbitSystemTable( tableArgs ) {
         chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getPercussionInstrumentSelectorHtml( orbit.midi.percussion, onSelectPercussion ) }</td>`;
         chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getRepeatSelectorHtml( orbit.midi.repeats, onSelectRepeat ) }</td>`;
 
-        if ( isSelfConjugate && conj ) {
+        if ( perms ) {
+            if ( isSelfConjugate && conj ) {
+                // self-conjugates pair off so must have even order
+                var scValence = orbit.valence.slice( 0, Math.ceil( orbit.valence.length / 2 ) );
+                var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
+                var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
 
-            var scValence = orbit.valence.slice( 0, Math.ceil( orbit.valence.length / 2 ) );
-            var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
-            var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
-
-            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ scValence }</td>`;
-            chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ scMembersFirst.join( C_SEP ) } &#8600;<br/>${ scMembersRest.join( C_SEP ) } &#8598;</td>`;
-            chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
-        } else if ( isFirstConjugate && conj ) {
-            var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
-            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.valence.join( C_SEP ) }</td>`;
-            chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }<br/>${ conjOrbit.getMembers() }</td>`;
-            chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })<br/>(${ conjOrbit.sum.join( ', ' ) })</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ scMembersFirst.map( c => c.id ).join( ' ' ) } &#8600;<br/>${ scMembersRest.map( c => c.id ).join( ' ' ) } )&#8598;</td>`;
+            } else if ( isFirstConjugate && conj ) {
+                var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
+                chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.coords.map( c => c.id ).join( ' ' ) } )<br/>( ${ conjOrbit.coords.map( c => c.id ).join( ' ' ) } )</td>`;
+            } else {
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.coords.map( c => c.id ).join( ' ' ) } )</td>`;
+            }
+            chainsText += `<td  colspan="2"></td>`;
         } else {
-            chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.valence.join( C_SEP ) }</td>`;
-            chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }</td>`;
-            chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
+            if ( isSelfConjugate && conj ) {
+                // self-conjugates pair off so must have even order
+                var scValence = orbit.valence.slice( 0, Math.ceil( orbit.valence.length / 2 ) );
+                var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
+                var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
+
+                chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ scValence }</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ scMembersFirst.join( C_SEP ) } &#8600;<br/>${ scMembersRest.join( C_SEP ) } &#8598;</td>`;
+                chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
+            } else if ( isFirstConjugate && conj ) {
+                var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
+                chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.valence.join( C_SEP ) }</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }<br/>${ conjOrbit.getMembers() }</td>`;
+                chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })<br/>(${ conjOrbit.sum.join( ', ' ) })</td>`;
+            } else {
+                chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ orbit.valence.join( C_SEP ) }</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }</td>`;
+                chainsText += `<td align="center">(${ orbit.sum.join( ', ' ) })</td>`;
+            }
         }
 
         chainsText += `<td align="center">${ orbit.order }</td>`;

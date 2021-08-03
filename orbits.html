@@ -164,6 +164,7 @@
                     plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
                     locus: document.getElementById( 'locusToggle' ).checked ? 1 : 0,
+                    perms: document.getElementById( 'permsToggle' ).checked ? 1 : 0,
                     more: document.getElementById( 'moreToggle' ).checked ? 1 : 0,
                     conj: document.getElementById( 'conjToggle' ).checked ? 1 : 0,
                     midi: document.getElementById( 'midiToggle' ).checked ? 1 : 0
@@ -347,6 +348,9 @@
             if ( toggles.lines ) {
                 initialiseCheckBox( 'linesToggle', true );
             }
+            if ( toggles.perms ) {
+                initialiseCheckBox( 'permsToggle', true );
+            }
             if ( toggles.locus ) {
                 initialiseCheckBox( 'locusToggle', true );
             }
@@ -424,6 +428,7 @@
                 totalClick: totalClick,
                 midi: isToggle('midi'),
                 conj: isToggle('conj'),
+                perms: isToggle('perms'),
             };
 
             drawOrbitSystemTable( tableArgs );
@@ -542,6 +547,7 @@
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
                 locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> |
+                perms<input type="checkbox" id="permsToggle" onchange="updatePage()" checked="checked"/> |
                 conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |

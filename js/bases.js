@@ -41,6 +41,8 @@ class BaseBox {
 
         // since each coord plus it's reflection in the centre equals the terminal
         this.sum = this.terminal.map( ( x, i ) => x * this.volume / 2 );
+        // even times odd has to be even
+        this.indexSum = ( this.volume * ( this.volume - 1 ) / 2 );
 
         // indexing
         this.powersForward = placeValuesForward( bases );

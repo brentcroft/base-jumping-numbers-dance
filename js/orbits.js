@@ -115,6 +115,14 @@ class Orbit {
     getMembers() {
         return this.coords.join( C_SEP )
     }
+
+    getIdSum() {
+        return this.coords.reduce( (a, coord ) => a + coord.id, 0 );
+    }
+
+    getDiSum() {
+        return this.coords.reduce( (a, coord ) => a + coord.di, 0 );
+    }
 }
 
 
@@ -162,8 +170,7 @@ class OrbitSystem {
     }
 
     getCaptionHtml() {
-        var cimHtml = getCycleIndexMonomialHtml( this );
-        return cimHtml;
+        return getCycleIndexMonomialHtml( this );
     }
 
     getSummaryHtml() {

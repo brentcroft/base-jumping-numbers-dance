@@ -1,7 +1,7 @@
 
 class ColorOrbitSystem extends OrbitSystem {
 
-    constructor( param, colorOrbitIndex = 1, minPixel = 0 ) {
+    constructor( param, colorOrbitIndex = 0, minPixel = 0 ) {
         super( param );
         this.colorOrbitIndex = colorOrbitIndex;
         this.minPixel = minPixel;

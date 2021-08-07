@@ -304,19 +304,23 @@
                 root
                     .appendChild( planeItem );
 
-                root
-                    .appendChild(
-                        reify(
-                            "Group",
-                            {
-                                "class": "orbit-system-locus",
-                                "render": Boolean( toggles.locus )
-                            },
-                            [
-                                createLineSet( orbitSystem.getLocusPoints( orbitSystem.locusPoints ) )
-                            ]
-                        )
-                    );
+                try {
+                    root
+                        .appendChild(
+                            reify(
+                                "Group",
+                                {
+                                    "class": "orbit-system-locus",
+                                    "render": Boolean( toggles.locus )
+                                },
+                                [
+                                    createLineSet( orbitSystem.getLocusPoints( orbitSystem.locusPoints ) )
+                                ]
+                            )
+                        );
+                } catch ( e ) {
+                    console.log( "Bad locus points: " + e );
+                }
 
                 return reify( "collision", { "enabled": false }, [ root ] );
             }

@@ -206,9 +206,12 @@ function drawOrbitSystemTable( tableArgs ) {
     const identityIdSumGcd = gcd( maxIndex, identityIdSum );
 
     chainsText += `<th id="${ tableId }.f" align='center' onclick="${ clearClick }"><code>(${ identityPointsSum })</code></th>`;
-    chainsText += `<th id="${ tableId }.f" align='center' onclick="${ clearClick }"><code>${ identityIdSum / identityIdSumGcd } * ${ identityIdSumGcd }</code></th>`;
+    chainsText += `<th id="${ tableId }.g" align='center' onclick="${ clearClick }"><code>${ identityIdSum / identityIdSumGcd } * ${ identityIdSumGcd }</code></th>`;
 
-    chainsText += "<th colspan='7'></th>";
+    chainsText += `<th align='center' onclick="${ clearClick }">1</th>`;
+    chainsText += "<th colspan='1'></th>";
+    chainsText += `<th align='center' onclick="${ clearClick }">0</th>`;
+    chainsText += "<th colspan='4'></th>";
     chainsText += "</tr>";
 
     const orbits = orbitSystem.orbits;

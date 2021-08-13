@@ -195,11 +195,20 @@
             window.location.href = "?" + getCurrentQueryString();
         }
 
-        function reopenWithRotatedArgs() {
+        function reopenWithLeftRotatedArgs() {
             const bases = getControlValues().bases;
             bases.push(bases.shift());
             window.location.href = "?" + getCurrentQueryString( null, bases );
         }
+
+        function reopenWithRightRotatedArgs() {
+            const bases = getControlValues().bases;
+            bases.reverse();
+            bases.push(bases.shift());
+            bases.reverse();
+            window.location.href = "?" + getCurrentQueryString( null, bases );
+        }
+
 
         function reopenWithReversedArgs() {
             const bases = getControlValues().bases;
@@ -529,17 +538,21 @@
 </head>
 <body id="testContainer001" onload="initPage()">
     <div style="width: 100%">
-        <b>Orbit System: </b>
-        <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/> :
+        <a onclick="reopenWithArgs()"  title="reopen with current values in url"><b>Bases: </b></a>
+
+        <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/>
+        <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
+        <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
+        <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
+
         <span id="baseValues">
-            <input type="number" min="1" id="b0" value="10"/>
-            <input type="number" min="1" id="b1" value="5"/>
-            <input type="number" min="1" id="b2" value="3"/>
+            <input type="number" min="1" id="b0" value="7"/>
+            <input type="number" min="1" id="b1" value="3"/>
+            <input type="number" min="1" id="b2" value="2"/>
         </span> |
+
         <input type="number" id="basesVolume" disabled="disabled"/> |
-        <a href="javascript:reopenWithArgs()" title="reopen with current values in url">reopen</a> |
-        <a href="javascript:reopenWithRotatedArgs()" title="reopen with rotated base values in url">rotate</a> |
-        <a href="javascript:reopenWithReversedArgs()" title="reopen with reversed base values in url">reverse</a> |
+
         <span id="captionTex"></span>
 
         <div id="toolbar">

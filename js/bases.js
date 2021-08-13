@@ -1,4 +1,22 @@
 
+
+class Coord {
+    constructor( coord = [], id, di ) {
+        this.coord = [ ...coord ];
+        this.id = id;
+        this.di = di;
+    }
+
+    jump() {
+        return ( this.di - this.id );
+    }
+
+    toString() {
+        return canonicalize( this.coord );
+    }
+}
+
+
 /*
     calculate array of base values
     accumulating forwards.

@@ -26,18 +26,6 @@ function formattedWeight( weight ) {
 }
 
 
-class Coord {
-    constructor( coord = [], id, di ) {
-        this.coord = [ ...coord ];
-        this.id = id;
-        this.di = di;
-    }
-
-    toString() {
-        return canonicalize( this.coord );
-    }
-}
-
 class Orbit {
 
     constructor( parent, index, coords ) {
@@ -51,6 +39,14 @@ class Orbit {
         };
         this.coords = coords;
         this.findSums();
+    }
+
+    isSelfConjugate() {
+        return this.index == this.conjugate.index;
+    }
+
+    isFirstConjugate() {
+        return this.index < this.conjugate.index;
     }
 
     getJson() {
@@ -75,7 +71,7 @@ class Orbit {
         xml += ` "lcm": ${ this.lcm },`;
         //xml += ` "centre": ${ canonicalize( this.centre.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) },`;
         xml += ` "points": ${ canonicalize( this.coords.map( c => canonicalize( c.coord, ', ', SQUARE_BRA ) ), ', ', SQUARE_BRA) },`;
-        xml += ` "valence": ${ canonicalize( this.valence, ', ', SQUARE_BRA) }`;
+        xml += ` "jumps": ${ canonicalize( this.jumps, ', ', SQUARE_BRA) }`;
         xml += "}";
         return xml;
     }
@@ -345,6 +341,7 @@ class OrbitSystem {
         var totalHarmonicSum = new Array( this.box.bases.length ).fill( 0 );
         var totalWeight = 0;
         var totalRotation = 0;
+        var totalJumpage = 0;
         var totalPerimeter = 0;
         var totalOrderSpace = 1;
 
@@ -377,9 +374,15 @@ class OrbitSystem {
 
             orbit.attack = Math.sqrt( orbit.perimeter ) / orbit.order;
 
-            orbit.valence = coords
-                .map( (x,i) => dotProduct( x.coord, this.box.unitNormal ) )
-                .map( (x,i) => x < 0 ? -1 : 1 );
+//            orbit.valence = coords
+//                .map( (x,i) => dotProduct( x.coord, this.box.unitNormal ) )
+//                .map( (x,i) => x < 0 ? -1 : 1 );
+
+            orbit.jumps = coords
+                .map( (x,i) => x.jump() );
+
+            orbit.jumpage = orbit.jumps
+                .reduce( (a,c) => a + Math.abs( c ), 0 );
 
             [
                 orbit.midi.instrument,
@@ -391,6 +394,7 @@ class OrbitSystem {
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalPerimeter += orbit.perimeter;
             totalWeight += orbit.weight;
+            totalJumpage += orbit.jumpage;
 
             totalOrderSpace *= orbit.order;
         }
@@ -405,6 +409,7 @@ class OrbitSystem {
         this.harmonics = harmonics;
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;
+        this.totalJumpage = totalJumpage;
 
         // reference into each orbit
         this.originPoints = this.orbits.map( orbit => 0 );

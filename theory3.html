@@ -111,13 +111,10 @@
             <hr class="pagebreak"/>
             <h2>Twist</h2>
 
-
-
-
-
             A conjugate value can be constructed,
             with respect to the first,
-            by iterating over the base and coordinate values in reverse order:
+            by iterating  in reverse order
+            over the base and coordinate values:
 
             \begin{align*}
                 di & = x_0 + x_1.b_{ n - 1 } + x_2.b_{ n - 2 }b_{ n - 1 }
@@ -160,9 +157,61 @@
         </div>
 
         <div>
+            For a coordinate \( x \) where \( id( x ) - di( x ) = 0 \):
+
+            \begin{align*}
+            x_0.\prod_{ i = 0 }^{ n - 2 }b_i + x_1.\prod_{ i = 0 }^{ n - 3 }b_i
+            + x_2.\prod_{ i = 0 }^{ n - 4 }b_i
+            + ...
+            + x_{ n - 3 }.b_0b_1 + x_{ n - 2 }.b_0 + x_{ n - 1 } & - \\
+            x_0 + x_1.b_{ n - 1 } + x_2.b_{ n - 2 }b_{ n - 1 }
+            + ...
+            + x_{ n - 3 }.\prod_{ i = 3 }^{ n - 1 }b_i + x_{ n - 2 }.\prod_{ i = 2 }^{ n - 1 }b_i + x_{ n - 1 }.\prod_{ i = 1 }^{ n - 1 }b_i & = 0\\
+            \end{align*}
+
+            Or:
+            \begin{align*}
+            x_0.( \prod_{ i = 0 }^{ n - 2 }b_i - 1 ) +
+            x_1.(\prod_{ i = 0 }^{ n - 3 }b_i - b_{ n - 1 } ) +
+            x_2.(\prod_{ i = 0 }^{ n - 4 }b_i - b_{ n - 2 }b_{ n - 1 } ) +
+            ... +
+            x_{ n - 3 }.(b_0b_1 - \prod_{ i = 3 }^{ n - 1 }b_i ) +
+            x_{ n - 2 }.(b_0 - \prod_{ i = 2 }^{ n - 1 }b_i ) +
+            x_{ n - 1 }.( 1 - \prod_{ i = 1 }^{ n - 1 }b_i ) = 0\\
+            \end{align*}
+
+            Given that the volume \( v \) is:
+
+            \begin{align*}
+            v = \prod_{ i = 0 }^{ n - 1 }b_i
+            \end{align*}
+
+            We have:
+            \begin{align*}
+            x_0.( { v \over b_{n-1} } - 1 ) +
+            x_1.( { v \over (b_{n-1}b_{n-2}) } - b_{ n - 1 } ) +
+            x_2.( { v \over (b_{n-1}b_{n-2}b_{n-3}) } - b_{ n - 2 }b_{ n - 1 } ) +
+            ... +
+            x_{ n - 3 }.(b_0b_1 - { v \over b_0b_1b_2 } ) +
+            x_{ n - 2 }.(b_0 - { v \over b_0b_1 } ) +
+            x_{ n - 1 }.( 1 - { v \over b_0 } ) = 0\\
+            \end{align*}
+
+
+
+            With general term:
+
+            \begin{align*}
+            0 = \sum_{ i = 0 }^{ n - 1 }x_i.( \prod_{ j = i }^{ n - 1 }b_j - \prod_{ k = 0 }^{ i - 1 }b_k )
+            \end{align*}
+        </div>
+
+        <div>
             Coordinates which occur on the diagonal from the origin \( ( 0, 0, ... 0 ) \)
             to the terminus \( ( b_0 - 1, b_1 - 1, ..., b_{ n - 1 } - 1 ) \) are self-conjugate.
         </div>
+
+
         <div>
             <hr class="pagebreak"/>
 

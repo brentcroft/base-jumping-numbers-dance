@@ -378,6 +378,11 @@
                 const param = getParam();
                 const orbitSystem = window.parent.window.getOrbitSystem( param.id );
 
+                if ( orbitSystem.box.bases.length != 3 ) {
+                    console.log("Aborting 3DOM : orbitSystem.box.bases.length != 3");
+                    return;
+                }
+
                 plotOrbitSystem( orbitSystem, param );
 
                 window.addEventListener( "message", ( event ) => {

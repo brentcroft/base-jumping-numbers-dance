@@ -41,6 +41,10 @@ class Orbit {
         this.findSums();
     }
 
+    tension() {
+        return ( this.radiance - this.jumpage );
+    }
+
     isSelfConjugate() {
         return this.index == this.conjugate.index;
     }
@@ -142,6 +146,23 @@ class OrbitSystem {
         this.analyzeOrbits();
     }
 
+    identityRadiance() {
+        return this.identityPoints.reduce( (a, p) => a + p.coords[0].radiant, 0 );
+    }
+
+    grossRadiance() {
+        return this.identityRadiance() + this.totalRadiance;
+    }
+
+    jumpage() {
+        return this.totalJumpage;
+    }
+
+    tension() {
+        return this.grossRadiance() - this.jumpage();
+    }
+
+
     getJson() {
         const n = "\n";
         const t = "  ";
@@ -179,6 +200,7 @@ class OrbitSystem {
 
     buildIndexes() {
         generateIndexes( {
+            volume: this.box.volume,
             bases: this.box.bases,
             coordId: this.box.indexForward,
             inverseCoordId: this.box.indexReverse,
@@ -189,6 +211,7 @@ class OrbitSystem {
     buildRandomIndexes() {
         const randomIndexValues = shuffleArray( Array.from({length: this.box.volume}, (item, index) => index) );
         generateIndexes( {
+            volume: this.box.volume,
             bases: this.box.bases,
             coordId: this.box.indexForward,
             inverseCoordId: ( coord ) => randomIndexValues[ this.box.indexForward( coord ) ],
@@ -342,8 +365,12 @@ class OrbitSystem {
         var totalWeight = 0;
         var totalRotation = 0;
         var totalJumpage = 0;
+        var totalRadiance = 0;
         var totalPerimeter = 0;
+
         var totalOrderSpace = 1;
+        var totalNetOrderSpace = 1;
+        var totalNet2Space = 0;
 
         const cycleIndexMonomial  = {};
 
@@ -374,14 +401,17 @@ class OrbitSystem {
 
             orbit.attack = Math.sqrt( orbit.perimeter ) / orbit.order;
 
-//            orbit.valence = coords
-//                .map( (x,i) => dotProduct( x.coord, this.box.unitNormal ) )
-//                .map( (x,i) => x < 0 ? -1 : 1 );
 
             orbit.jumps = coords
-                .map( (x,i) => x.jump() );
+                .map( (x,i) => x.jump );
 
+            // jumpage counts half the jump per coord
             orbit.jumpage = orbit.jumps
+                .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
+
+            orbit.radiants = coords
+                .map( (x,i) => x.radiant );
+            orbit.radiance = orbit.radiants
                 .reduce( (a,c) => a + Math.abs( c ), 0 );
 
             [
@@ -395,14 +425,24 @@ class OrbitSystem {
             totalPerimeter += orbit.perimeter;
             totalWeight += orbit.weight;
             totalJumpage += orbit.jumpage;
+            totalRadiance += orbit.radiance;
 
             totalOrderSpace *= orbit.order;
+            totalNetOrderSpace *= orbit.isSelfConjugate()
+                ? ( orbit.order / 2 )
+                : orbit.isFirstConjugate()
+                    ? orbit.order
+                    : 1;
+
+            totalNet2Space += orbit.isSelfConjugate() || orbit.isFirstConjugate() ? 1 : 0;
         }
 
         Object.entries( cycleIndexMonomial ).sort( (a, b) => a < b );
         this.cycleIndexMonomial = cycleIndexMonomial;
 
         this.totalOrderSpace = totalOrderSpace;
+        this.totalNetOrderSpace = totalNetOrderSpace;
+        this.totalNet2Space = totalNet2Space;
 
         this.totalHarmonicSum = totalHarmonicSum;
         this.totalPerimeter = totalPerimeter;
@@ -410,6 +450,7 @@ class OrbitSystem {
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;
         this.totalJumpage = totalJumpage;
+        this.totalRadiance = totalRadiance;
 
         // reference into each orbit
         this.originPoints = this.orbits.map( orbit => 0 );

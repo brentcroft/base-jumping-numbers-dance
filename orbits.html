@@ -73,6 +73,8 @@
         td.orbit { vertical-align: middle; }
         td.sum-total { text-align: center; }
         span.sum-total { border-top: 1px solid;}
+        td.product-total { text-align: center; }
+        span.product-total { border-top: 2px dotted red;}
 
         .chain-details { width: 100%; font-size: 80%; }
         .chain-details tr { vertical-align: top; }
@@ -165,6 +167,7 @@
                     plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
                     locus: document.getElementById( 'locusToggle' ).checked ? 1 : 0,
+                    jumps: document.getElementById( 'jumpsToggle' ).checked ? 1 : 0,
                     coords: document.getElementById( 'coordsToggle' ).checked ? 1 : 0,
                     more: document.getElementById( 'moreToggle' ).checked ? 1 : 0,
                     conj: document.getElementById( 'conjToggle' ).checked ? 1 : 0,
@@ -364,6 +367,9 @@
             if ( toggles.locus ) {
                 initialiseCheckBox( 'locusToggle', true );
             }
+            if ( toggles.jumps ) {
+                initialiseCheckBox( 'jumpsToggle', true );
+            }
             if ( toggles.random ) {
                 initialiseCheckBox( 'randomToggle', true );
             }
@@ -440,6 +446,7 @@
                 totalClick: totalClick,
                 midi: isToggle('midi'),
                 conj: isToggle('conj'),
+                jumps: isToggle('jumps'),
                 perms: !isToggle('coords'),
             };
 
@@ -570,6 +577,7 @@
                 locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> |
                 coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
                 conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
+                jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/> |
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
                 <a href="javascript:playMidi( JSON.parse( orbitSystem.getJson() ) )" title="play midi">play</a>

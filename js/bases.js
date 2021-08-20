@@ -1,21 +1,5 @@
 
 
-class Coord {
-    constructor( coord = [], id, di ) {
-        this.coord = [ ...coord ];
-        this.id = id;
-        this.di = di;
-    }
-
-    jump() {
-        return ( this.di - this.id );
-    }
-
-    toString() {
-        return canonicalize( this.coord );
-    }
-}
-
 
 /*
     calculate array of base values
@@ -95,12 +79,33 @@ class BaseBox {
 }
 
 
+class Coord {
+    constructor( coord = [], id, di, cid ) {
+        this.coord = [ ...coord ];
+        this.id = id;
+        this.di = di;
+        this.jump = ( this.di - this.id );
+        this.radiant = Math.abs( cid - this.id );
+    }
+
+    tension() {
+        return ( this.radiant - this.jump );
+    }
+
+    toString() {
+        return canonicalize( this.coord );
+    }
+}
+
+
+
 // param = { bases:[1], coordId: , inverseCoordId: ,idx:[], dix:[] }
 function generateIndexes( param, index = 0, coord = [] ) {
     if ( index == param.bases.length ) {
+        const volume = param.volume;
         const id = param.coordId( coord );
         const di = param.inverseCoordId( coord );
-        const item = new Coord( coord, id, di );
+        const item = new Coord( coord, id, di, ( volume - 1 ) / 2 );
         param.idx[ id ] = item;
         param.dix[ di ] = item;
     } else {

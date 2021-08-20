@@ -1,0 +1,15 @@
+<X3D xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' profile='Full' version='3.0' xsd:noNamespaceSchemaLocation='http://www.web3d.org/specifications/x3d-3.0.xsd'>
+    <Scene>
+        <Transform scale="0.5 0.5 0.5" translation="-8 0 0">
+            <Transform translation='0 0 0'>
+                <Inline url="box-pack-5x7.x3d"/>
+            </Transform>
+            <Transform translation='8 0 0'>
+                <Inline url="box-pack-5x7.x3d"/>
+            </Transform>
+            <Transform translation='16 0 0'>
+                <Inline url="box-pack-5x7.x3d"/>
+            </Transform>
+        </Transform>
+    </Scene>
+</X3D>

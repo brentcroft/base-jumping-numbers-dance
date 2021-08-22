@@ -41,8 +41,12 @@ class Orbit {
         this.findSums();
     }
 
-    tension() {
+    torsion() {
         return ( this.radiance - this.jumpage );
+    }
+
+    tension() {
+        return ( this.diameterSum - this.perimeter );
     }
 
     isSelfConjugate() {
@@ -158,10 +162,24 @@ class OrbitSystem {
         return this.totalJumpage;
     }
 
-    tension() {
+    torsion() {
         return this.grossRadiance() - this.jumpage();
     }
 
+    identityDiameterSum() {
+        const points = this.identityPoints.map( x => x.coords[0] );
+        const diameters = points.map( p => distance2( p.coord, this.idx[p.reflectId].coord ) );
+        //return 0;
+        return diameters.reduce( (a,d) => a + d) / 2;
+    }
+
+    grossDiameterSum() {
+        return this.identityDiameterSum() + this.totalDiameterSum;
+    }
+
+    tension() {
+        return this.grossDiameterSum() - this.totalPerimeter;
+    }
 
     getJson() {
         const n = "\n";
@@ -200,10 +218,9 @@ class OrbitSystem {
 
     buildIndexes() {
         generateIndexes( {
-            volume: this.box.volume,
-            bases: this.box.bases,
-            coordId: this.box.indexForward,
-            inverseCoordId: this.box.indexReverse,
+            box: this.box,
+            indexForward: this.box.indexForward,
+            indexReverse: this.box.indexReverse,
             idx: this.idx,
             dix: this.dix } );
     }
@@ -211,10 +228,9 @@ class OrbitSystem {
     buildRandomIndexes() {
         const randomIndexValues = shuffleArray( Array.from({length: this.box.volume}, (item, index) => index) );
         generateIndexes( {
-            volume: this.box.volume,
-            bases: this.box.bases,
-            coordId: this.box.indexForward,
-            inverseCoordId: ( coord ) => randomIndexValues[ this.box.indexForward( coord ) ],
+            box: this.box,
+            indexForward: this.box.indexForward,
+            indexReverse: ( coord ) => randomIndexValues[ this.box.indexForward( coord ) ],
             idx: this.idx,
             dix: this.dix } );
     }
@@ -224,11 +240,17 @@ class OrbitSystem {
         this.identityPoints = [];
         this.orbits = [];
         const tally = [ ...this.dix ];
+        const box = this.box;
+
+        function setAntipodes( coord, idx ) {
+            const antipodesId = reflectPoint( coord.coord, box.centre );
+            coord.antipodes = idx[ coord.reflectId ];
+        }
 
         function extractOrbitCoordsAndTally( startIndex, idx, tally ) {
             var coord = idx[ startIndex ];
-            const coords = [ coord ];
             tally[ startIndex ] = -1;
+            const coords = [ coord ];
             while ( coord.di != startIndex ) {
                 tally[ coord.di ] = -1;
                 coord = idx[ coord.di ];
@@ -248,8 +270,8 @@ class OrbitSystem {
                     this.orbits.push( orbit );
                 }
 
-                const antipodes = reflectPoint( this.idx[ i ].coord, this.box.centre );
-                var antipodesCoord = this.idx[ this.box.indexForward( antipodes ) ];
+                const coord = this.idx[ i ];
+                var antipodesCoord = this.idx[ coord.reflectId ];
 
                 if (tally[ antipodesCoord.di ] == -1) {
                     // orbit is conjugate to self
@@ -367,6 +389,8 @@ class OrbitSystem {
         var totalJumpage = 0;
         var totalRadiance = 0;
         var totalPerimeter = 0;
+        var totalDiameterSum = 0;
+        var totalTension = 0;
 
         var totalOrderSpace = 1;
         var totalNetOrderSpace = 1;
@@ -395,6 +419,11 @@ class OrbitSystem {
             orbit.biasFactor = ( orbit.bias[0] / orbit.bias[1] );
 
             const coords = orbit.coords;
+
+            orbit.diameterSum = coords
+                    .map( (x,i) => distance2( x.coord, this.idx[x.reflectId].coord ) )
+                    .reduce( (a,c) => a + c ) / 2;
+
             orbit.perimeter = coords
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
                     .reduce( (a,c) => a + c );
@@ -414,6 +443,8 @@ class OrbitSystem {
             orbit.radiance = orbit.radiants
                 .reduce( (a,c) => a + Math.abs( c ), 0 );
 
+
+
             [
                 orbit.midi.instrument,
                 orbit.midi.percussion,
@@ -423,6 +454,10 @@ class OrbitSystem {
 
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalPerimeter += orbit.perimeter;
+            totalDiameterSum += orbit.diameterSum;
+
+
+
             totalWeight += orbit.weight;
             totalJumpage += orbit.jumpage;
             totalRadiance += orbit.radiance;
@@ -446,6 +481,7 @@ class OrbitSystem {
 
         this.totalHarmonicSum = totalHarmonicSum;
         this.totalPerimeter = totalPerimeter;
+        this.totalDiameterSum = totalDiameterSum;
         this.harmonics = harmonics;
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;

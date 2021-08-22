@@ -45,6 +45,7 @@ class BaseBox {
         this.sum = this.terminal.map( ( x, i ) => x * this.volume / 2 );
         // even times odd has to be even
         this.indexSum = ( this.volume * ( this.volume - 1 ) / 2 );
+        this.indexCentre = ( this.volume - 1 ) / 2;
 
         // indexing
         this.powersForward = placeValuesForward( bases );
@@ -80,15 +81,16 @@ class BaseBox {
 
 
 class Coord {
-    constructor( coord = [], id, di, cid ) {
+    constructor( coord = [], id, di, box ) {
         this.coord = [ ...coord ];
         this.id = id;
         this.di = di;
+        this.reflectId = ( box.volume - id - 1 );
         this.jump = ( this.di - this.id );
-        this.radiant = Math.abs( cid - this.id );
+        this.radiant = Math.abs( box.indexCentre - this.id );
     }
 
-    tension() {
+    torsion() {
         return ( this.radiant - this.jump );
     }
 
@@ -99,17 +101,18 @@ class Coord {
 
 
 
-// param = { bases:[1], coordId: , inverseCoordId: ,idx:[], dix:[] }
+// param = { box: , indexForward: , indexReverse: ,idx:[], dix:[] }
 function generateIndexes( param, index = 0, coord = [] ) {
-    if ( index == param.bases.length ) {
-        const volume = param.volume;
-        const id = param.coordId( coord );
-        const di = param.inverseCoordId( coord );
-        const item = new Coord( coord, id, di, ( volume - 1 ) / 2 );
-        param.idx[ id ] = item;
-        param.dix[ di ] = item;
+    const { box = null, indexForward = null, indexReverse = null, idx = [], dix = [] } = param;
+    if ( index == box.bases.length ) {
+        const volume = box.volume;
+        const id = indexForward( coord );
+        const di = indexReverse( coord );
+        const item = new Coord( coord, id, di, box );
+        idx[ id ] = item;
+        dix[ di ] = item;
     } else {
-        for ( var i = 0; i < param.bases[index]; i++) {
+        for ( var i = 0; i < box.bases[index]; i++) {
             coord.push( i );
             generateIndexes( param, index + 1, coord );
             coord.pop( i );

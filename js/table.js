@@ -182,10 +182,12 @@ function drawOrbitSystemTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Dia<sup>2</sup>/2</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Per<sup>2</sup>/2</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Tension</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Radiance</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Jumpage</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Tension</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Torsion</th>`;
 //    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
 //    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += "</tr>";
@@ -220,7 +222,11 @@ function drawOrbitSystemTable( tableArgs ) {
     chainsText += "<th colspan='1'></th>";
     chainsText += `<th align='center' onclick="${ clearClick }"><code>0</code></th>`;
     chainsText += "<th colspan='1'></th>";
+
+    const identityDiameterSum = orbitSystem.identityDiameterSum();
+    chainsText += `<th colspan='1'><code>${ identityDiameterSum }</code></th>`;
     chainsText += "<th colspan='1'></th>";
+    chainsText += `<th colspan='1'><code>${ identityDiameterSum }</code></th>`;
 
     const identityRadiance = orbitSystem.identityRadiance();
     chainsText += `<th colspan='1'><code>${ identityRadiance }</code></th>`;
@@ -340,35 +346,26 @@ function drawOrbitSystemTable( tableArgs ) {
         chainsText += `<td align="center">${ orbit.centreRef }</td>`;
 
         if ( orbit.isSelfConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.perimeter / 2 }</td>`;
-        } else if ( orbit.isFirstConjugate() && conj ) {
+            chainsText += `<td align="center">${ orbit.diameterSum }</td>`;
             chainsText += `<td align="center">${ orbit.perimeter }</td>`;
-        } else {
-            chainsText += `<td align="center">${ orbit.perimeter / 2 }</td>`;
-        }
-
-        if ( orbit.isSelfConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.radiance }</td>`;
-        } else if ( orbit.isFirstConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.radiance * 2 }</td>`;
-        } else {
-            chainsText += `<td align="center">${ orbit.radiance }</td>`;
-        }
-
-        if ( orbit.isSelfConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.jumpage }</td>`;
-        } else if ( orbit.isFirstConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.jumpage * 2 }</td>`;
-        } else {
-            chainsText += `<td align="center">${ orbit.jumpage }</td>`;
-        }
-
-        if ( orbit.isSelfConjugate() && conj ) {
             chainsText += `<td align="center">${ orbit.tension() }</td>`;
+            chainsText += `<td align="center">${ orbit.radiance }</td>`;
+            chainsText += `<td align="center">${ orbit.jumpage }</td>`;
+            chainsText += `<td align="center">${ orbit.torsion() }</td>`;
         } else if ( orbit.isFirstConjugate() && conj ) {
+            chainsText += `<td align="center">${ orbit.diameterSum * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.perimeter * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.tension() * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.radiance * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.jumpage * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.torsion() * 2 }</td>`;
         } else {
+            chainsText += `<td align="center">${ orbit.diameterSum }</td>`;
+            chainsText += `<td align="center">${ orbit.perimeter }</td>`;
             chainsText += `<td align="center">${ orbit.tension() }</td>`;
+            chainsText += `<td align="center">${ orbit.radiance }</td>`;
+            chainsText += `<td align="center">${ orbit.jumpage }</td>`;
+            chainsText += `<td align="center">${ orbit.torsion() }</td>`;
         }
 
 //        chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
@@ -409,8 +406,12 @@ function drawOrbitSystemTable( tableArgs ) {
     //chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">2<sup>${ tn2s }</sup>, ${ primeFactors( tos ) }</span></td>`;
 
     chainsText += "<td colspan='3'></td>";
-//    chainsText += "<td colspan='2'></td>";
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.totalPerimeter / 2 }</span></td>`;
+
+    var grossDiameterSum = orbitSystem.grossDiameterSum();
+
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.grossDiameterSum() }</span></td>`;
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.totalPerimeter }</span></td>`;
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.tension() }</span></td>`;
 
 
     var radiance = orbitSystem.grossRadiance();
@@ -437,18 +438,18 @@ function drawOrbitSystemTable( tableArgs ) {
         chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ jumpage }</span></td>`;
     }
 
-    const tension = orbitSystem.tension();
-    const tensionGcd = gcd( tension, maxIndex + 1 );
-    const tensionGcd2 = gcd( tension / tensionGcd, maxIndex );
+    const torsion = orbitSystem.torsion();
+    const torsionGcd = gcd( torsion, maxIndex + 1 );
+    const torsionGcd2 = gcd( torsion / torsionGcd, maxIndex );
 
-    if ( tensionGcd2 != 1 && tensionGcd2 != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ tension / tensionGcd / tensionGcd2 } * ${ tensionGcd } * ${ tensionGcd2 }</span></td>`;
-    } else if ( tensionGcd2 != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ tension / tensionGcd2 } * ${ tensionGcd2 }</span></td>`;
-    } else if ( tensionGcd != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ tension / tensionGcd } * ${ tensionGcd }</span></td>`;
+    if ( torsionGcd2 != 1 && torsionGcd2 != 1 ) {
+        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion / torsionGcd / torsionGcd2 } * ${ torsionGcd } * ${ torsionGcd2 }</span></td>`;
+    } else if ( torsionGcd2 != 1 ) {
+        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion / torsionGcd2 } * ${ torsionGcd2 }</span></td>`;
+    } else if ( torsionGcd != 1 ) {
+        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion / torsionGcd } * ${ torsionGcd }</span></td>`;
     } else {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ tension }</span></td>`;
+        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion }</span></td>`;
     }
 
 

@@ -170,7 +170,7 @@ class OrbitSystem {
         const points = this.identityPoints.map( x => x.coords[0] );
         const diameters = points.map( p => distance2( p.coord, this.idx[p.reflectId].coord ) );
         //return 0;
-        return diameters.reduce( (a,d) => a + d) / 2;
+        return diameters.reduce( (a,d) => a + d);
     }
 
     grossDiameterSum() {
@@ -291,6 +291,7 @@ class OrbitSystem {
                 }
             }
         }
+        this.identityPoints.sort( (a,b) => a.coords[0].id - b.coords[0].id );
     }
 
     buildCentreLines() {
@@ -422,7 +423,7 @@ class OrbitSystem {
 
             orbit.diameterSum = coords
                     .map( (x,i) => distance2( x.coord, this.idx[x.reflectId].coord ) )
-                    .reduce( (a,c) => a + c ) / 2;
+                    .reduce( (a,c) => a + c );
 
             orbit.perimeter = coords
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )

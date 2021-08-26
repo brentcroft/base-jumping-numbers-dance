@@ -82,13 +82,13 @@ var crossProduct      = ( p1, p2 ) => [
 
 // @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
-var dotProduct        = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] ).reduce( (a,c) => a + c );
+var dotProduct        = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] ).reduce( (a,c) => a + c, 0 );
 var scale             = ( p, s ) => p.map( x => x * s);
 
 var reflectPoint = ( point, centre ) => subtraction( scale( centre, 2 ), point );
 
 
-var euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v )
+var euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v, 0 )
 var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
 
 var gcd = (a, b) => a ? gcd(b % a, a) : b;

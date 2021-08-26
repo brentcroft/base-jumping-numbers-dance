@@ -169,8 +169,7 @@ class OrbitSystem {
     identityDiameterSum() {
         const points = this.identityPoints.map( x => x.coords[0] );
         const diameters = points.map( p => distance2( p.coord, this.idx[p.reflectId].coord ) );
-        //return 0;
-        return diameters.reduce( (a,d) => a + d);
+        return diameters.reduce( (a,d) => a + d, 0);
     }
 
     grossDiameterSum() {
@@ -423,11 +422,11 @@ class OrbitSystem {
 
             orbit.diameterSum = coords
                     .map( (x,i) => distance2( x.coord, this.idx[x.reflectId].coord ) )
-                    .reduce( (a,c) => a + c );
+                    .reduce( (a,c) => a + c, 0 );
 
             orbit.perimeter = coords
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
-                    .reduce( (a,c) => a + c );
+                    .reduce( (a,c) => a + c, 0 );
 
             orbit.attack = Math.sqrt( orbit.perimeter ) / orbit.order;
 

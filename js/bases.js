@@ -52,8 +52,8 @@ class BaseBox {
         this.powersReverse = placeValuesReverse( bases );
 
         // coord index functions
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c );
+        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
 
         // plane of iniquity
         this.centre = this.bases.map( x => ( x - 1 ) / 2 );

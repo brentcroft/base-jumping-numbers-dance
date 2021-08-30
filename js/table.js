@@ -183,9 +183,9 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">Dia<sup>2</sup></th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">Brilliance</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between adjacent coordinates in an orbit.">Per<sup>2</sup></th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the diameters minus sum of the squares of the Perimeters.">Tension</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Brilliance minus the sum of the squares of the Perimeters.">Tension</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index radiant (distance from the index centre) of each coordinate.">Radiance</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index distance between adjacent coordinates in an orbit.">Jumpage</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Radiance minus the Jumpage.">Torsion</th>`;
@@ -202,7 +202,7 @@ function drawBasePlaneTable( tableArgs ) {
     }
 
     if ( perms ) {
-        const identities = basePlane.identities.map( p => "( " + p.coords.map( c => c.id ).join( ' ' ) + " )" ).join(", ");
+        const identities = basePlane.identities.map( p => "( " + p.coords.map( c => c.id ).join( ' ' ) + " )" ).join(" ");
         chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     } else {
         const identities = basePlane.identities.map( p => "{ " + canonicalize( p.coords[0].coord ) + " }" ).join(", ");
@@ -376,19 +376,23 @@ function drawBasePlaneTable( tableArgs ) {
 
 
 
-    function gcdTableTotalBlock( value, c1, c2, totalClick ) {
-        var valueGcd = gcd( value, c1 );
-        var valueGcd2 = gcd( value / valueGcd, c2 );
-
-        if ( valueGcd2 != 1 && valueGcd != 1 ) {
-            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value / valueGcd / valueGcd2 } * ${ valueGcd } * ${ valueGcd2 }</span></td>`;
-        } else if ( valueGcd2 != 1 ) {
-            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value / valueGcd2 } * ${ valueGcd2 }</span></td>`;
-        } else if ( valueGcd != 1 ) {
-            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value / valueGcd } * ${ valueGcd }</span></td>`;
-        } else {
-            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value }</span></td>`;
-        }
+    function factoredTableTotalBlock( value, trialFactors = [], totalClick, classList = [] ) {
+        var block = `<td class="sum-total ${ classList.join(' ') }" onclick="${ totalClick }"><span class="sum-total ${ classList.join(' ') }">`;
+        var v = value;
+        const factors = [];
+        trialFactors
+            .reverse()
+            .forEach( (x,i) => {
+                const factor = gcd( v, x );
+                if ( factor != 1 ) {
+                    factors.push( factor );
+                    v = v / factor;
+                }
+            } );
+        factors.push( v );
+        block += factors.reverse().reduce( (a,c) => (a?a + " * ":"") + c );
+        block += "</span></td>";
+        return block;
     }
 
 
@@ -423,20 +427,20 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
+    const trialFactors = [ maxIndex, maxIndex + 1 ];
+
     chainsText += "<td colspan='3'></td>";
-    chainsText += gcdTableTotalBlock( basePlane.box.brilliance, maxIndex + 1, maxIndex, totalClick );
-
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ basePlane.totalPerimeter }</span></td>`;
-    chainsText += `<td class="sum-total difference" onclick="${ totalClick }"><span class="sum-total">${ basePlane.tension() }</span></td>`;
-
+    chainsText += factoredTableTotalBlock( basePlane.box.brilliance, trialFactors, totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.totalPerimeter, trialFactors, totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.tension(), trialFactors, totalClick, classList = ['difference' ]  );
 
     var radiance = basePlane.grossRadiance();
     var radianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
     var radianceGcd = gcd( radiance, radianceRoot );
 
-    chainsText += gcdTableTotalBlock( radiance, radianceRoot, 2, totalClick );
-    chainsText += gcdTableTotalBlock( basePlane.jumpage(), maxIndex + 1, maxIndex, totalClick );
-    chainsText += gcdTableTotalBlock( basePlane.torsion(), maxIndex + 1, maxIndex, totalClick );
+    chainsText += factoredTableTotalBlock( radiance, [ radianceRoot, 2 ], totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.jumpage(), trialFactors, totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.torsion(), trialFactors, totalClick, classList = ['difference' ]  );
 
 
     chainsText += "</tr>";

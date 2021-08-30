@@ -332,7 +332,7 @@ function getInstrumentSelectorHtml( id, onchangeScript ) {
         + "</select>";
 }
 
-function playMidi( orbitSystem ) {
+function playMidi( basePlane ) {
 
     if (!navigator.requestMIDIAccess) {
         throw ('WebMIDI is not supported in this browser.');

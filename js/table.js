@@ -125,9 +125,9 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
   }
 }
 
-function getCycleIndexMonomialTex( orbitSystem ) {
+function getCycleIndexMonomialTex( basePlane ) {
     var cimHtml = "";
-    for (const [ k, e ] of Object.entries( orbitSystem.cycleIndexMonomial )) {
+    for (const [ k, e ] of Object.entries( basePlane.cycleIndexMonomial )) {
         if ( k > 1 ) {
             cimHtml = cimHtml + `a_{${ k }}^{${ e }}`;
         }
@@ -135,12 +135,12 @@ function getCycleIndexMonomialTex( orbitSystem ) {
     return cimHtml;
 }
 
-function getCycleIndexMonomialHtml( orbitSystem ) {
+function getCycleIndexMonomialHtml( basePlane ) {
     var cimHtml = "";
 
-    cimHtml += `(<code>e</code><sup>${ orbitSystem.identityPoints.length }</sup>) `;
+    cimHtml += `(<code>e</code><sup>${ basePlane.identities.length }</sup>) `;
 
-    for (const [ k, e ] of Object.entries( orbitSystem.cycleIndexMonomial )) {
+    for (const [ k, e ] of Object.entries( basePlane.cycleIndexMonomial )) {
         if ( k > 1 ) {
             cimHtml = cimHtml + `<i>a</i><sup>${ e }</sup><sub style='position: relative; left: -.5em;'>${ k }</sub>`;
         }
@@ -149,20 +149,21 @@ function getCycleIndexMonomialHtml( orbitSystem ) {
 }
 
 
-function drawOrbitSystemTable( tableArgs ) {
+function drawBasePlaneTable( tableArgs ) {
 
-    var { containerId, orbitSystem, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false } = tableArgs;
+    var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false } = tableArgs;
 
     const tableContainerId = containerId + "_table";
     const tableId = tableContainerId + "_data";
 
-    var chainsText = `<table id="${ tableId }" class='chain-details summary sortable'>`;
+    var chainsText = "";
+    chainsText += `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
-    chainsText += "<caption>Orbit System: ";
-    chainsText += `b=[${ orbitSystem.box.bases.join( ', ' ) }], `;
-    chainsText += `t=${ orbitSystem.box.volume - 1 }, `;
-    chainsText += `f=${ orbitSystem.fundamental }, `;
-    chainsText += "</caption>";
+//    chainsText += "<caption>Orbit System: ";
+//    chainsText += `b=[${ basePlane.box.bases.join( ', ' ) }], `;
+//    chainsText += `t=${ basePlane.box.volume - 1 }, `;
+//    chainsText += `f=${ basePlane.fundamental }, `;
+//    chainsText += "</caption>";
 
     var colIndex = 0;
     chainsText += "<tr>";
@@ -197,45 +198,45 @@ function drawOrbitSystemTable( tableArgs ) {
     chainsText += `<th colspan='4' class='midi' style='display: ${midi?"":"none"};'></th>`;
 
     if ( jumps ) {
-        chainsText += `<td align="center">[ ${ orbitSystem.identityPoints.map( p => p.coords[0].jump ).join( C_SEP ) } ]</td>`;
+        chainsText += `<td align="center">[ ${ basePlane.identities.map( p => p.coords[0].jump ).join( C_SEP ) } ]</td>`;
     }
 
     if ( perms ) {
-        const identityPoints = orbitSystem.identityPoints.map( p => "( " + p.coords.map( c => c.id ).join( ' ' ) + " )" ).join(", ");
-        chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identityPoints }</code></th>`;
+        const identities = basePlane.identities.map( p => "( " + p.coords.map( c => c.id ).join( ' ' ) + " )" ).join(", ");
+        chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     } else {
-        const identityPoints = orbitSystem.identityPoints.map( p => "{ " + canonicalize( p.coords[0].coord ) + " }" ).join(", ");
-        chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identityPoints }</code></th>`;
+        const identities = basePlane.identities.map( p => "{ " + canonicalize( p.coords[0].coord ) + " }" ).join(", ");
+        chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     }
 
-    const maxIndex = orbitSystem.box.volume - 1;
+    const maxIndex = basePlane.box.volume - 1;
 
-    const initialPointsSum = new Array( orbitSystem.box.bases.length ).fill( 0 );
-    const identityPointsSum = orbitSystem.identityPoints.reduce( (a, p) => addition( a, p.coords[0].coord ), initialPointsSum );
-    const identityIdSum = orbitSystem.identityPoints.reduce( (a, p) => a + p.coords[0].id, 0 );
+    const initialPointsSum = new Array( basePlane.box.bases.length ).fill( 0 );
+    const identityPointsSum = basePlane.identities.reduce( (a, p) => addition( a, p.coords[0].coord ), initialPointsSum );
+    const identityIdSum = basePlane.identities.reduce( (a, p) => a + p.coords[0].id, 0 );
     const identityIdSumGcd = gcd( maxIndex, identityIdSum );
 
     chainsText += `<th id="${ tableId }.f" align='center' onclick="${ clearClick }"><code>(${ identityPointsSum })</code></th>`;
     chainsText += `<th id="${ tableId }.g" align='center' onclick="${ clearClick }"><code>${ identityIdSum / identityIdSumGcd } * ${ identityIdSumGcd }</code></th>`;
 
-    chainsText += `<th align='center' onclick="${ clearClick }"><code>( 1 * ${ orbitSystem.identityPoints.length } )</code></th>`;
+    chainsText += `<th align='center' onclick="${ clearClick }"><code>( 1 * ${ basePlane.identities.length } )</code></th>`;
     chainsText += "<th colspan='1'></th>";
     chainsText += `<th align='center' onclick="${ clearClick }"><code>0</code></th>`;
     chainsText += "<th colspan='1'></th>";
 
-    const identityDiameterSum = orbitSystem.identityDiameterSum();
+    const identityDiameterSum = basePlane.identityDiameterSum();
     chainsText += `<th colspan='1'><code>${ identityDiameterSum }</code></th>`;
     chainsText += "<th colspan='1'></th>";
-    chainsText += `<th colspan='1'><code>${ identityDiameterSum }</code></th>`;
+    chainsText += `<th colspan='1' class="difference"><code>${ identityDiameterSum }</code></th>`;
 
-    const identityRadiance = orbitSystem.identityRadiance();
+    const identityRadiance = basePlane.identityRadiance();
     chainsText += `<th colspan='1'><code>${ identityRadiance }</code></th>`;
     chainsText += "<th colspan='1'></th>";
-    chainsText += `<th colspan='1'><code>${ identityRadiance }</code></th>`;
+    chainsText += `<th colspan='1' class="difference"><code>${ identityRadiance }</code></th>`;
 
     chainsText += "</tr>";
 
-    const orbits = orbitSystem.orbits;
+    const orbits = basePlane.orbits;
 
     for ( var i = 0; i < orbits.length; i++ ) {
 
@@ -348,24 +349,24 @@ function drawOrbitSystemTable( tableArgs ) {
         if ( orbit.isSelfConjugate() && conj ) {
             chainsText += `<td align="center">${ orbit.diameterSum }</td>`;
             chainsText += `<td align="center">${ orbit.perimeter }</td>`;
-            chainsText += `<td align="center">${ orbit.tension() }</td>`;
+            chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
             chainsText += `<td align="center">${ orbit.radiance }</td>`;
             chainsText += `<td align="center">${ orbit.jumpage }</td>`;
-            chainsText += `<td align="center">${ orbit.torsion() }</td>`;
+            chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         } else if ( orbit.isFirstConjugate() && conj ) {
             chainsText += `<td align="center">${ orbit.diameterSum * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.perimeter * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.tension() * 2 }</td>`;
+            chainsText += `<td align="center" class="difference">${ orbit.tension() * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.radiance * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.jumpage * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.torsion() * 2 }</td>`;
+            chainsText += `<td align="center" class="difference">${ orbit.torsion() * 2 }</td>`;
         } else {
             chainsText += `<td align="center">${ orbit.diameterSum }</td>`;
             chainsText += `<td align="center">${ orbit.perimeter }</td>`;
-            chainsText += `<td align="center">${ orbit.tension() }</td>`;
+            chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
             chainsText += `<td align="center">${ orbit.radiance }</td>`;
             chainsText += `<td align="center">${ orbit.jumpage }</td>`;
-            chainsText += `<td align="center">${ orbit.torsion() }</td>`;
+            chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         }
 
 //        chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
@@ -373,17 +374,36 @@ function drawOrbitSystemTable( tableArgs ) {
         chainsText += "</tr>";
     }
 
-    var tds = orbitSystem.box.sum;
-    var tis = orbitSystem.box.indexSum;
+
+
+    function gcdTableTotalBlock( value, c1, c2, totalClick ) {
+        var valueGcd = gcd( value, c1 );
+        var valueGcd2 = gcd( value / valueGcd, c2 );
+
+        if ( valueGcd2 != 1 && valueGcd != 1 ) {
+            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value / valueGcd / valueGcd2 } * ${ valueGcd } * ${ valueGcd2 }</span></td>`;
+        } else if ( valueGcd2 != 1 ) {
+            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value / valueGcd2 } * ${ valueGcd2 }</span></td>`;
+        } else if ( valueGcd != 1 ) {
+            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value / valueGcd } * ${ valueGcd }</span></td>`;
+        } else {
+            return `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ value }</span></td>`;
+        }
+    }
+
+
+
+    var tds = basePlane.box.sum;
+    var tis = basePlane.box.indexSum;
     var tisGcd = gcd( maxIndex, tis );
 
-    const fundamental = orbitSystem.fundamental; // / ( ( orbitSystem.fundamental & 1 ) ? 1 : 2 );
+    const fundamental = basePlane.fundamental;
 
-    var tos = orbitSystem.totalNetOrderSpace;
+    var tos = basePlane.totalNetOrderSpace;
     var tosGcd = gcd( fundamental, tos );
     var tosGcd2 =  gcd( fundamental,  tos / tosGcd );
 
-    var tn2s = orbitSystem.totalNet2Space;
+    var tn2s = basePlane.totalNet2Space;
 
     chainsText += "<tr>";
     chainsText += "<td></td>";
@@ -403,54 +423,20 @@ function drawOrbitSystemTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
-    //chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">2<sup>${ tn2s }</sup>, ${ primeFactors( tos ) }</span></td>`;
-
     chainsText += "<td colspan='3'></td>";
+    chainsText += gcdTableTotalBlock( basePlane.box.brilliance, maxIndex + 1, maxIndex, totalClick );
 
-    var grossDiameterSum = orbitSystem.grossDiameterSum();
-
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.grossDiameterSum() }</span></td>`;
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.totalPerimeter }</span></td>`;
-    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ orbitSystem.tension() }</span></td>`;
+    chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ basePlane.totalPerimeter }</span></td>`;
+    chainsText += `<td class="sum-total difference" onclick="${ totalClick }"><span class="sum-total">${ basePlane.tension() }</span></td>`;
 
 
-    var radiance = orbitSystem.grossRadiance();
+    var radiance = basePlane.grossRadiance();
     var radianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
     var radianceGcd = gcd( radiance, radianceRoot );
 
-    if ( radianceGcd != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ radiance / radianceGcd } * ${ radianceGcd }</span></td>`;
-    } else {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ radiance }</span></td>`;
-    }
-
-    const jumpage = orbitSystem.jumpage();
-    var jumpageGcd = gcd( jumpage, maxIndex + 1 );
-    var jumpageGcd2 = gcd( jumpage / jumpageGcd, maxIndex );
-
-    if ( jumpageGcd2 != 1 && jumpageGcd != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ jumpage / jumpageGcd / jumpageGcd2 } * ${ jumpageGcd } * ${ jumpageGcd2 }</span></td>`;
-    } else if ( jumpageGcd2 != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ jumpage / jumpageGcd2 } * ${ jumpageGcd2 }</span></td>`;
-    } else if ( jumpageGcd != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ jumpage / jumpageGcd } * ${ jumpageGcd }</span></td>`;
-    } else {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ jumpage }</span></td>`;
-    }
-
-    const torsion = orbitSystem.torsion();
-    const torsionGcd = gcd( torsion, maxIndex + 1 );
-    const torsionGcd2 = gcd( torsion / torsionGcd, maxIndex );
-
-    if ( torsionGcd2 != 1 && torsionGcd2 != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion / torsionGcd / torsionGcd2 } * ${ torsionGcd } * ${ torsionGcd2 }</span></td>`;
-    } else if ( torsionGcd2 != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion / torsionGcd2 } * ${ torsionGcd2 }</span></td>`;
-    } else if ( torsionGcd != 1 ) {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion / torsionGcd } * ${ torsionGcd }</span></td>`;
-    } else {
-        chainsText += `<td class="sum-total" onclick="${ totalClick }"><span class="sum-total">${ torsion }</span></td>`;
-    }
+    chainsText += gcdTableTotalBlock( radiance, radianceRoot, 2, totalClick );
+    chainsText += gcdTableTotalBlock( basePlane.jumpage(), maxIndex + 1, maxIndex, totalClick );
+    chainsText += gcdTableTotalBlock( basePlane.torsion(), maxIndex + 1, maxIndex, totalClick );
 
 
     chainsText += "</tr>";

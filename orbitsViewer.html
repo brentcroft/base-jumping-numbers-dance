@@ -96,7 +96,7 @@
             }
 
 
-            function showLocus( containerId, orbitSystem, locusPoints, multi ) {
+            function showLocus( containerId, basePlane, locusPoints, multi ) {
                 const locusGroup = document
                     .getElementById( containerId )
                     .querySelector( "group.orbit-system-locus" );
@@ -105,11 +105,11 @@
                     locusGroup.removeChild( locusGroup.lastChild );
                 }
 
-                locusGroup.appendChild( createLineSet( orbitSystem.getLocusPoints( locusPoints ) ) );
+                locusGroup.appendChild( createLineSet( basePlane.getLocusPoints( locusPoints ) ) );
             }
 
 
-            function showOrbit( containerId, orbitSystem, senderId, multi ) {
+            function showOrbit( containerId, basePlane, senderId, multi ) {
                 const [ tableId, ...orbitIds ] = senderId.split( "." );
                 const orbits = document
                     .getElementById( containerId )
@@ -133,7 +133,7 @@
                     });
             }
 
-            function showAllOrbits( containerId, orbitSystem ) {
+            function showAllOrbits( containerId, basePlane ) {
                 const orbits = document
                     .getElementById( containerId )
                     .querySelectorAll( ".orbit" )
@@ -144,24 +144,24 @@
             }
 
 
-            function getOrbitSystemItems( orbitSystem, toggles ) {
+            function getBasePlaneItems( basePlane, toggles ) {
 
-                const orbits = orbitSystem.orbits;
+                const orbits = basePlane.orbits;
                 const fixedPointTransparency = 0.2;
-                const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
+                const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
 
-                const [ p1, p2 ] = orbitSystem.box.diagonal;
+                const [ p1, p2 ] = basePlane.box.diagonal;
                 const scaleUnit = toggles.scale ? unitDisplacement( p1, p2 ) : [ 1, 1, 1 ];
 
                 // move origin to system centre and scale by scaleUnit
                 const root = reify(
                     "transform", {
-                        "translation": orbitSystem.box.bases.map( b => -b/2 ).join( ' ' ),
+                        "translation": basePlane.box.bases.map( b => -b/2 ).join( ' ' ),
                         "scale": scaleUnit.map( x => x==0?1:1/x ).join( ' ' )
                     } );
 
                 function appendGridChildren( grid ) {
-                    const [ b0, b1, b2 ] = orbitSystem.box.bases;
+                    const [ b0, b1, b2 ] = basePlane.box.bases;
                     const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
                     const gridPointRadius = 0.05;
 
@@ -206,7 +206,7 @@
 
 
                 // CENTRE LINES
-                const centrePoints = orbitSystem
+                const centrePoints = basePlane
                     .centrePoints
                     .map( x => reify(
                                     "transform",
@@ -217,7 +217,7 @@
                                     [ createSphereShape( 0.1, "yellow", fixedPointTransparency ) ]
                                 ) );
 
-                const centreLines = orbitSystem
+                const centreLines = basePlane
                     .centreLines
                     .map( centreLine => createLineSetFromPoints( centreLine.points, "gray", "3" ) );
 
@@ -231,8 +231,8 @@
                     );
 
                 // FIXED POINTS
-                orbitSystem
-                    .identityPoints
+                basePlane
+                    .identities
                     .map( point => {
                         return {
                             "translation": point.coords[0].coord.join( ' ' ),
@@ -252,7 +252,7 @@
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {
                     const orbit = orbits[i];
-                    const orbitColor = colorOrbitSystem.colorForIndex( orbit.index );
+                    const orbitColor = colorBasePlane.colorForIndex( orbit.index );
                     root
                         .appendChild(
                             reify(
@@ -285,7 +285,7 @@
 
                 // PLANE
                 var currentDirection = [0,1,0];
-                var box = orbitSystem.box;
+                var box = basePlane.box;
                 var planeColor = "gray";
                 var planeTransparency = 0.95;
 
@@ -314,7 +314,7 @@
                                     "render": Boolean( toggles.locus )
                                 },
                                 [
-                                    createLineSet( orbitSystem.getLocusPoints( orbitSystem.locusPoints ) )
+                                    createLineSet( basePlane.getLocusPoints( basePlane.locusPoints ) )
                                 ]
                             )
                         );
@@ -326,12 +326,12 @@
             }
 
 
-            function getOrbitSystemGears( orbitSystem, toggles ) {
+            function getBasePlaneGears( basePlane, toggles ) {
 
-                const orbits = orbitSystem.orbits;
+                const orbits = basePlane.orbits;
                 const fixedPointTransparency = 0.1;
-                const colorOrbitSystem = window.parent.window.getOrbitSystem( "COLOR_ORBITS" );
-                const root = reify( "Transform", { "translation": orbitSystem.box.bases.map( b => -b/2 ).join( ' ' ) } );
+                const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
+                const root = reify( "Transform", { "translation": basePlane.box.bases.map( b => -b/2 ).join( ' ' ) } );
 
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {
@@ -342,7 +342,7 @@
                                 reify(
                                     "transform",
                                     { "translation": `${ i } 0 0`, "class": "orbit", "id": ("orbit." + orbit.index ) },
-                                    [ createDialLineSet( orbit.coords, colorOrbitSystem.colorForIndex( orbit.index ) ) ]
+                                    [ createDialLineSet( orbit.coords, colorBasePlane.colorForIndex( orbit.index ) ) ]
                                 )
                             );
                     }
@@ -352,19 +352,19 @@
 
             function plotData( duration ) {
                 const param = getParam();
-                const orbitSystem = window.parent.window.getOrbitSystem( param.id );
+                const basePlane = window.parent.window.getBasePlane( param.id );
             }
 
 
-            function plotOrbitSystem( orbitSystem, param ) {
+            function plotBasePlane( basePlane, param ) {
 
                 var x3domContainerId =  'testContainer001_plot';
                 const sceneRootId = `${ x3domContainerId }_scene_root`;
                 const sceneRoot = document.getElementById( sceneRootId );
 
                 var osi = (param.toggles.gears)
-                    ? getOrbitSystemGears( orbitSystem, param.toggles )
-                    : getOrbitSystemItems( orbitSystem, param.toggles );
+                    ? getBasePlaneGears( basePlane, param.toggles )
+                    : getBasePlaneItems( basePlane, param.toggles );
 
                 sceneRoot.appendChild( osi );
 
@@ -376,14 +376,20 @@
             function initPage() {
 
                 const param = getParam();
-                const orbitSystem = window.parent.window.getOrbitSystem( param.id );
+                const basePlane = window.parent.window.getBasePlane( param.id );
 
-                if ( orbitSystem.box.bases.length != 3 ) {
-                    console.log("Aborting 3DOM : orbitSystem.box.bases.length != 3");
+                if ( basePlane.box.bases.length != 3 ) {
+                    console.log("Aborting 3DOM : basePlane.box.bases.length != 3");
+
+                    const plot = document.getElementById( "testContainer001_plot" );
+                    if ( plot ) {
+                        plot.parentNode.removeChild( plot );
+                    }
+
                     return;
                 }
 
-                plotOrbitSystem( orbitSystem, param );
+                plotBasePlane( basePlane, param );
 
                 window.addEventListener( "message", ( event ) => {
                     if ( event.data ) {
@@ -391,14 +397,14 @@
 
                         //console.log( `data: ${ JSON.stringify( data ) }` );
 
-                        if ( data.orbitSystemKey ) {
-                            const orbitSystem = window.parent.window.getOrbitSystem( data.orbitSystemKey );
+                        if ( data.basePlaneKey ) {
+                            const basePlane = window.parent.window.getBasePlane( data.basePlaneKey );
                             if ( data.sender ) {
-                                showOrbit( "testContainer001", orbitSystem, data.sender, data.multi );
+                                showOrbit( "testContainer001", basePlane, data.sender, data.multi );
                             } else if ( data.locus ) {
-                                showLocus( "testContainer001", orbitSystem, data.locus, data.multi );
+                                showLocus( "testContainer001", basePlane, data.locus, data.multi );
                             } else {
-                                showAllOrbits( "testContainer001", orbitSystem );
+                                showAllOrbits( "testContainer001", basePlane );
                             }
                         } else if ( data.toggleGrid ) {
                             toggleGrid( "testContainer001" );

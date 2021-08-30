@@ -1,5 +1,5 @@
 
-class ColorOrbitSystem extends OrbitSystem {
+class ColorBasePlane extends BasePlane {
 
     constructor( param, colorOrbitIndex = 0, minPixel = 0 ) {
         super( param );

@@ -10,12 +10,22 @@
             padding-right: 20pt;
         }
 
+        div#caption {
+            float: left;
+            overflow: hidden;
+            display: inline-block;
+            text-align: left;
+        }
+
         div#toolbar {
             float: right;
             overflow: hidden;
             display: inline-block;
             text-align: right;
             font-size: 80%;
+        }
+
+        div#summary {
         }
 
         .orbit {}
@@ -25,6 +35,10 @@
             height: 80%;
             resize: both;
             overflow: auto;
+        }
+
+        .difference {
+            color: red;
         }
 
         .small {
@@ -85,6 +99,12 @@
             min-height: 1px;
             page-break-before: always;
         }
+
+        .equation {
+            background: WhiteSmoke;
+            font-weight: bold;
+        }
+        .monomial { background: Ivory; }
 
         .equation-list { list-style-type: none; }
         .equation-list li { padding: 6pt; }
@@ -159,6 +179,7 @@
             return {
                 bases: bases,
                 toggles: {
+                    summary: document.getElementById( 'summaryToggle' ).checked ? 1 : 0,
                     random: document.getElementById( 'randomToggle' ).checked ? 1 : 0,
                     table: document.getElementById( 'tableToggle' ).checked ? 1 : 0,
                     gears: document.getElementById( 'gearsToggle' ).checked ? 1 : 0,
@@ -176,7 +197,7 @@
             };
         }
 
-        function getCurrentQueryString( orbitSystemKey, bases ) {
+        function getCurrentQueryString( basePlaneKey, bases ) {
             const values = getControlValues();
 
             if ( !bases ) {
@@ -191,7 +212,7 @@
             const activeToggleKeys = activeToggles
                 .map( toggle => toggle[0]);
 
-            return (orbitSystemKey ? "id=" + orbitSystemKey + "&" : "") + `bases=${ bases.join(',') }&toggles=${ activeToggleKeys.join( ',' ) }`;
+            return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&toggles=${ activeToggleKeys.join( ',' ) }`;
         }
 
         function reopenWithArgs() {
@@ -230,7 +251,7 @@
             messages.forEach( message => distributeMessage( containerId, message) );
         }
 
-        function showOrbit( containerId, orbitSystemKey, senderId, multi  ) {
+        function showOrbit( containerId, basePlaneKey, senderId, multi  ) {
             const [ sourceId, orbitId ] = senderId.split( "." );
             const tableCells = document
                 .getElementById( containerId + "_table" )
@@ -254,8 +275,8 @@
                 .value = orbitId;
         }
 
-        function showAllOrbits( containerId, orbitSystemKey ) {
-            showOrbit( containerId, orbitSystemKey, "." );
+        function showAllOrbits( containerId, basePlaneKey ) {
+            showOrbit( containerId, basePlaneKey, "." );
         }
 
         function toggleSelected( item ) {
@@ -283,21 +304,21 @@
 
             control.value = ( orbit.order + Number( control.value ) ) % orbit.order;
 
-            var locus = orbitSystem
+            var locus = basePlane
                 .orbits
                 .map( (x, i) => Number( document.getElementById( "o" + i ).value ) );
 
-            distributeMessage( 'sample_cs_b_10_m_2', { orbitSystemKey: orbitSystem.key, locus: locus } );
+            distributeMessage( 'sample_cs_b_10_m_2', { basePlaneKey: basePlane.key, locus: locus } );
         }
 
 
-        function initialiseExpressor( orbitSystem, redraw = true ) {
+        function initialiseExpressor( basePlane, redraw = true ) {
             var expressor = document.getElementById( 'expressor' );
             while ( expressor.firstChild ) {
                 expressor.removeChild( expressor.lastChild );
             }
             if ( redraw ) {
-                orbitSystem.orbits.forEach( (orbit, i) => {
+                basePlane.orbits.forEach( (orbit, i) => {
                     expressor.appendChild(
                         reify(
                             "input",
@@ -337,6 +358,9 @@
 
             const toggles = param.toggles;
 
+            if ( toggles.summary ) {
+                initialiseCheckBox( 'summaryToggle', true );
+            }
             if ( toggles.table ) {
                 initialiseCheckBox( 'tableToggle', true );
             }
@@ -382,12 +406,12 @@
         }
 
         function openPlot() {
-            const orbitSystem = getOrbitSystem( orbitSystemKey );
-            openX3DomFrame( 'sample_cs_b_10_m_2', orbitSystem );
+            const basePlane = getBasePlane( basePlaneKey );
+            openX3DomFrame( 'sample_cs_b_10_m_2', basePlane );
         }
 
         function setMidiRepeats( orbitId, repeats ) {
-            var orbit = orbitSystem.orbits.filter( x => x.index == orbitId );
+            var orbit = basePlane.orbits.filter( x => x.index == orbitId );
             if ( orbit ) {
                 orbit[0].midi.repeats = repeats;
 
@@ -396,7 +420,7 @@
         }
 
         function setMidiChannel( orbitId, channel ) {
-            var orbit = orbitSystem.orbits.filter( x => x.index == orbitId );
+            var orbit = basePlane.orbits.filter( x => x.index == orbitId );
             if ( orbit ) {
                 orbit[0].midi.instrument = isPercussion ? 0 : instrument;
                 if ( orbit[0].midi.percussion == 0 ) {
@@ -408,7 +432,7 @@
         }
 
         function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
-            var orbit = orbitSystem.orbits.filter( x => x.index == orbitId );
+            var orbit = basePlane.orbits.filter( x => x.index == orbitId );
             if ( orbit ) {
                 orbit[0].midi.instrument = isPercussion ? 0 : instrument;
                 orbit[0].midi.percussion = isPercussion ? instrument : 0;
@@ -432,15 +456,15 @@
         function updateJson() {
             document
                     .getElementById("orbit-system-data-text-area")
-                    .innerHTML = orbitSystem.getJson();
+                    .innerHTML = JSON.stringify( basePlane.getData(), null, 2 );
 
-            var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': isToggle('multi'), 'sender': this.id } ] )";
-            var clearClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': this.id } ] )";
-            var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key } ] )";
+            var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': this.id } ] )";
+            var clearClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': this.id } ] )";
+            var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key } ] )";
 
             const tableArgs = {
                 containerId: "sample_cs_b_10_m_2",
-                orbitSystem: orbitSystem,
+                basePlane: basePlane,
                 cellClick: cellClick,
                 clearClick: clearClick,
                 totalClick: totalClick,
@@ -450,41 +474,45 @@
                 perms: !isToggle('coords'),
             };
 
-            drawOrbitSystemTable( tableArgs );
+            drawBasePlaneTable( tableArgs );
         }
 
 
         function updatePage() {
             // TODO: global access
-            orbitSystem = new OrbitSystem( getControlValues() );
-            putOrbitSystem( orbitSystem.key, orbitSystem );
+            basePlane = new BasePlane( getControlValues() );
+            putBasePlane( basePlane.key, basePlane );
 
-            initialiseExpressor( orbitSystem, isToggle( 'locus' ) );
+            initialiseExpressor( basePlane, isToggle( 'locus' ) );
 
             document
                 .getElementById( "sample_cs_b_10_m_2_riffler" )
-                .setAttribute( "max", `${ orbitSystem.orbits.length - 1 }` );
+                .setAttribute( "max", `${ basePlane.orbits.length - 1 }` );
 
             document
                     .getElementById("captionTex")
-                    .innerHTML = orbitSystem.getCaptionHtml();
+                    .innerHTML = basePlane.getCaptionHtml();
 
+            const data = basePlane.getData();
             document
-                    .getElementById("orbit-system-summary")
-                    .innerHTML = orbitSystem.getSummaryHtml();
+                    .getElementById( "summary" )
+                    .innerHTML = "<hr/>"
+                               + "box: " + JSON.stringify( data.box ) + "<br/>"
+                               + "cycles: " + JSON.stringify( data.cycles ) + "<br/>"
+                               + "euclidean: " + JSON.stringify( data.euclidean ) + "<br/>"
+                               + "index: " + JSON.stringify( data.index ) + "<br/>";
 
             document
                     .getElementById( "basesVolume" )
-                    .value = orbitSystem.box.volume;
+                    .value = basePlane.box.volume;
 
             updateJson();
 
             insertX3DomFrame(
                 'sample_cs_b_10_m_2',
-                orbitSystem,
-                framePage = "orbitsViewer.html?" + getCurrentQueryString( orbitSystem.key ) );
+                basePlane,
+                framePage = "orbitsViewer.html?" + getCurrentQueryString( basePlane.key ) );
         }
-
 
         function initPage( urlParam = true ) {
 
@@ -495,7 +523,7 @@
             initialiseControls( param );
 
             const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
-            putOrbitSystem( "COLOR_ORBITS", new ColorOrbitSystem( { "bases": bases }, orbitIndex, minPixel ) );
+            putBasePlane( "COLOR_ORBITS", new ColorBasePlane( { "bases": bases }, orbitIndex, minPixel ) );
 
             updatePage();
 
@@ -504,11 +532,14 @@
             }
 
 
+            if ( param.toggles.summary ) {
+                showHide( 'summary' );
+            }
             if ( param.toggles.table ) {
-                showHide('sample_cs_b_10_m_2_table');
+                showHide( 'sample_cs_b_10_m_2_table' );
             }
             if ( param.toggles.more ) {
-                showHideAll( ['color-orbit-system','orbit-system-summary'] );
+                showHideAll( ['more-options'] );
             }
             if ( param.toggles.midi ) {
                 showHideCSS( '.midi' );
@@ -521,16 +552,16 @@
                     //console.log( `data: ${ JSON.stringify( data ) }` );
 
                     if ( data.orbitSystemKey ) {
-                        const orbitSystem = getOrbitSystem( data.orbitSystemKey );
+                        const basePlane = getBasePlane( data.orbitSystemKey );
                         if ( event.data.sender ) {
-                            showOrbit( "sample_cs_b_10_m_2", orbitSystem, data.sender, data.multi );
+                            showOrbit( "sample_cs_b_10_m_2", basePlane, data.sender, data.multi );
                         } else {
-                            showAllOrbits( "sample_cs_b_10_m_2", orbitSystem );
+                            showAllOrbits( "sample_cs_b_10_m_2", basePlane );
                         }
                     } else if ( data.colors ) {
 
                         const [ bases, colorOrbitIndex, minPixel ] = data.colors;
-                        putOrbitSystem( "COLOR_ORBITS", new ColorOrbitSystem( { "bases": bases }, colorOrbitIndex, minPixel ) );
+                        putBasePlane( "COLOR_ORBITS", new ColorBasePlane( { "bases": bases }, colorOrbitIndex, minPixel ) );
                         updatePage();
 
                     } else if ( data.toggleCentres ) {
@@ -540,11 +571,15 @@
                     }
                 }
             });
+
+            if ( param.id ) {
+                distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] )
+            }
         }
     </script>
 </head>
 <body id="testContainer001" onload="initPage()">
-    <div style="width: 100%">
+    <div id="caption">
         <a onclick="reopenWithArgs()"  title="reopen with current values in url"><b>Bases: </b></a>
 
         <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/>
@@ -561,28 +596,32 @@
         <input type="number" id="basesVolume" disabled="disabled"/> |
 
         <span id="captionTex"></span>
-
+    </div>
+    <div>
         <div id="toolbar">
-            table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
-            multi<input type="checkbox" id="multiToggle" checked="checked"/> |
-            gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> |
-            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['color-orbit-system','orbit-system-summary'] )"/>
 
-            <div id="color-orbit-system" style="display: none">
-                <hr/>
+            summary<input type="checkbox" id="summaryToggle" onchange="showHide('summary')"/> |
+            table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
+            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'] )"/>
+
+            <div id="more-options" style="display: none">
+
+                multi<input type="checkbox" id="multiToggle" checked="checked"/> |
+                coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
+                conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
+                jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/> ||
+
+                gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> ||
+
                 grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
                 centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
-                locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> |
-                coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
-                conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
-                jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/> |
+                locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> ||
+
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
-                <a href="javascript:playMidi( JSON.parse( orbitSystem.getJson() ) )" title="play midi">play</a>
-                <hr/>
-                <div id="orbit-system-summary" style="display: none"></div>
+                <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
                 <div>
                     <div id="expressor"></div>
                 </div>
@@ -592,7 +631,7 @@
                     function getColorConfiguration() {
                         return [ [ vId("red"), vId("green"), vId("blue") ], vId("orbitIndex"), vId("minPixel") ];
                     }
-                    function applyColorOrbitSystem() {
+                    function applyColorBasePlane() {
                         const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
                         distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel ] } );
                     }
@@ -600,15 +639,19 @@
                 colors<input type="number" min="1" id="red" value="4"/><input type="number" min="1" id="green" value="4"/><input type="number" min="1" id="blue" value="6"/> |
                 index<input type="number" min="0" id="orbitIndex" value="0"/> |
                 min-pixel<input type="number" min="0" max="255" id="minPixel" value="0"/> |
-                <input type="button" onclick="applyColorOrbitSystem()" value="apply">
+                <input type="button" onclick="applyColorBasePlane()" value="apply">
+
+            </div>
+            <div style="display: none" class="midi">
+                <hr/>
+                <textarea id="orbit-system-data-text-area" style="width: 100%; height: 40%;"></textarea>
+            </div>
+
+            <div id="summary" style="display: none">
+
             </div>
         </div>
-        <div style="display: none" class="midi">
-            <textarea id="orbit-system-data-text-area" style="width: 100%; height: 40%;"></textarea>
-        </div>
     </div>
-
-
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
 
@@ -625,7 +668,7 @@
                 min="0"
                 max="1"
                 id="sample_cs_b_10_m_2_riffler"
-                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': orbitSystem.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
+                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
     </div>
 
 </body>

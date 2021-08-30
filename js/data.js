@@ -91,7 +91,7 @@ var reflectPoint = ( point, centre ) => subtraction( scale( centre, 2 ), point )
 var euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v, 0 )
 var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
 
-var gcd = (a, b) => a ? gcd(b % a, a) : b;
+var gcd = (a, b) => a ? gcd( b % a, a) : b;
 var lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
 
 var gcda = (a) => {

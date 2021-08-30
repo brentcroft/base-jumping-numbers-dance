@@ -245,7 +245,7 @@ function createCentreLine( p1, p2, pad = 0 ) {
 
 
 
-function insertX3DomFrame( containerId, orbitSystem, framePage ) {
+function insertX3DomFrame( containerId, basePlane, framePage ) {
     const viewerContainerId = containerId + "_plot";
     const viewerContainer = document.getElementById( viewerContainerId );
     if ( viewerContainer ) {
@@ -257,8 +257,8 @@ function insertX3DomFrame( containerId, orbitSystem, framePage ) {
 
 
 
-function openX3DomFrame( containerId, orbitSystem, framePage = 'orbitsViewer.html' ) {
+function openX3DomFrame( containerId, basePlane, framePage = 'orbitsViewer.html' ) {
     const windowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
 
-    window.open( `${ framePage }?id=${ orbitSystem.key }`, containerId, windowFeatures );
+    window.open( `${ framePage }?id=${ basePlane.key }`, containerId, windowFeatures );
 }

@@ -429,24 +429,24 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
-    const trialFactors = [
+    const trialCommonDenominators = [
         maxIndex,
         maxIndex + 1,
         ( (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 ) ),
     ];
 
     chainsText += "<td colspan='3'></td>";
-    chainsText += factoredTableTotalBlock( basePlane.box.brilliance, trialFactors, totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.totalPerimeter, trialFactors, totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.tension(), trialFactors, totalClick, classList = ['difference' ]  );
+    chainsText += factoredTableTotalBlock( basePlane.box.brilliance, trialCommonDenominators, totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.totalPerimeter, trialCommonDenominators, totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.tension(), trialCommonDenominators, totalClick, classList = ['difference' ]  );
 
     var radiance = basePlane.grossRadiance();
     var radianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
     var radianceGcd = gcd( radiance, radianceRoot );
 
     chainsText += factoredTableTotalBlock( radiance, [ radianceRoot, 2 ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.jumpage(), trialFactors, totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.torsion(), trialFactors, totalClick, classList = ['difference' ]  );
+    chainsText += factoredTableTotalBlock( basePlane.jumpage(), trialCommonDenominators, totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.torsion(), trialCommonDenominators, totalClick, classList = ['difference' ]  );
 
 
     chainsText += "</tr>";

@@ -221,7 +221,7 @@ function drawBasePlaneTable( tableArgs ) {
 
     chainsText += `<th align='center' onclick="${ clearClick }"><code>( 1 * ${ basePlane.identities.length } )</code></th>`;
     chainsText += "<th colspan='1'></th>";
-    chainsText += `<th align='center' onclick="${ clearClick }"><code>0</code></th>`;
+    chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
     chainsText += "<th colspan='1'></th>";
 
     const identityDiameterSum = basePlane.identityDiameterSum();

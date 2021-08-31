@@ -5,13 +5,14 @@ class ColorBasePlane extends BasePlane {
         super( param );
         this.colorOrbitIndex = colorOrbitIndex;
         this.minPixel = minPixel;
+        this.colorPoints = this.orbits[ this.colorOrbitIndex % this.orbits.length ].getCoordArray();
     }
 
     colorForIndex( index ) {
-        const colorPoints = this.orbits[ this.colorOrbitIndex % this.orbits.length ].getCoordArray();
-        const colorPoint = colorPoints[ index % colorPoints.length ];
+        const colorPoint = this.colorPoints[ index % this.colorPoints.length ];
+        const picker = (x,i) => this.minPixel + Math.round( ( 256 - this.minPixel ) * x / this.box.bases[i] );
         return colorPoint
-            .map( (x,i) => this.minPixel + Math.round( ( 256 - this.minPixel ) * x / this.box.bases[i] ) )
+            .map( (x,i) => picker(x,i) )
             .map( x => x.toString( 16 ).padStart( 2, '0' ) )
             .reduce( (a,c) => a + c, "#" );
     }

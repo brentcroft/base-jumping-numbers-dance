@@ -553,8 +553,8 @@
 
                     //console.log( `data: ${ JSON.stringify( data ) }` );
 
-                    if ( data.orbitSystemKey ) {
-                        const basePlane = getBasePlane( data.orbitSystemKey );
+                    if ( data.basePlaneKey ) {
+                        const basePlane = getBasePlane( data.basePlaneKey );
                         if ( event.data.sender ) {
                             showOrbit( "sample_cs_b_10_m_2", basePlane, data.sender, data.multi );
                         } else {
@@ -575,7 +575,7 @@
             });
 
             if ( param.id ) {
-                distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] )
+                distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] )
             }
         }
     </script>
@@ -670,7 +670,7 @@
                 min="0"
                 max="1"
                 id="sample_cs_b_10_m_2_riffler"
-                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'orbitSystemKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
+                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
     </div>
 
 </body>

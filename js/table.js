@@ -380,7 +380,7 @@ function drawBasePlaneTable( tableArgs ) {
         var block = `<td class="sum-total ${ classList.join(' ') }" onclick="${ totalClick }"><span class="sum-total ${ classList.join(' ') }">`;
         var v = value;
         const factors = [];
-        trialFactors
+        [ ...trialFactors ]
             .reverse()
             .forEach( (x,i) => {
                 const factor = gcd( v, x );
@@ -389,7 +389,9 @@ function drawBasePlaneTable( tableArgs ) {
                     v = v / factor;
                 }
             } );
-        factors.push( v );
+        if ( v != 1) {
+            factors.push( v );
+        }
         block += factors.reverse().reduce( (a,c) => (a?a + " * ":"") + c );
         block += "</span></td>";
         return block;
@@ -427,7 +429,11 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
-    const trialFactors = [ maxIndex, maxIndex + 1 ];
+    const trialFactors = [
+        maxIndex,
+        maxIndex + 1,
+        ( (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 ) ),
+    ];
 
     chainsText += "<td colspan='3'></td>";
     chainsText += factoredTableTotalBlock( basePlane.box.brilliance, trialFactors, totalClick );

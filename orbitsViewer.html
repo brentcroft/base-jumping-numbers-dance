@@ -374,29 +374,48 @@
                 );
 
                 // IDENTITIES
-                for ( var i = 0; i < basePlane.identities.length; i++ ) {
-                    basePlane
-                        .identities
-                        .forEach( identity => {
-                            root
-                                .appendChild(
-                                    reify(
-                                        "transform",
-                                        {
-                                            "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
-                                        },
-                                        [
-                                            createSphereShape( 1, "red" ),
-                                            createLineSet( [ new Point( [ 0, 0, 0 ] ), new Point( [ 0, 0, zOff * ( 1 + orbits.length ) ] ) ] )
-                                        ]
-                                    )
-                                );
-                        } );
-                }
+                const attr = { "linetype": "96" };
+
                 root
                     .appendChild(
-                        createLineSet( [ new Point( [ 0, 0, zOff * ( orbits.length ) ] ), new Point( [ basePlane.box.volume, 0, zOff * ( orbits.length ) ] ) ] )
+                        reify(
+                            "group",
+                            {
+                                "class": "grid-coords"
+                            },
+                            [
+                                ...basePlane
+                                    .identities
+                                    .map( identity => reify(
+                                            "transform",
+                                            {
+                                                "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
+                                            },
+                                            [
+                                                createSphereShape( 1, "red" ),
+                                                createLineSet( [ new Point( [ 0, 0, 0 ] ), new Point( [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
+                                            ]
+                                        )
+                                    ),
+
+                                createLineSet(
+                                            [ new Point( [ 0, 0, zOff * ( -1 ) ] ), new Point( [ basePlane.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
+                                            "black",
+                                            attr
+                                        ),
+
+                                ...basePlane
+                                    .orbits
+                                    .map( ( orbit, i ) => createLineSet(
+                                            [ new Point( [ 0, 0, zOff * ( i ) ] ), new Point( [ basePlane.box.volume - 1, 0, zOff * ( i ) ] ) ],
+                                            "black",
+                                            attr
+                                        )
+                                    )
+                            ]
+                        )
                     );
+
 
                 // ORBITS
                 for ( var i = 0; i < orbits.length; i++ ) {
@@ -421,7 +440,16 @@
                                                         "translation": `${ point.indexes[ indexId ].id + point.indexes[ indexId ].jump / 2 } 0 0`,
                                                     },
                                                     [
-                                                        createTorusShape( point.indexes[ indexId ].jump / 2, 0.1, color )
+                                                        createTorusShape( ( point.indexes[ indexId ].jump / 2) , 0.1, color ),
+                                                        reify(
+                                                            "transform",
+                                                            {
+                                                                "translation": `${ point.indexes[ indexId ].jump / 2 } 0 0`,
+                                                            },
+                                                            [
+                                                                createSphereShape( 0.3, color )
+                                                            ]
+                                                        )
                                                     ]
                                                 )
                                             )

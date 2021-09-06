@@ -187,8 +187,7 @@ function createLineSetFromPoints( points, emissiveColor, lineType ) {
 }
 
 function createLineSet( coords, emissiveColor, attr = {} ){
-
-    var shape = createShape( emissiveColor, "1", attr );
+    var shape = createShape( emissiveColor, attr.linetype ? attr.linetype : "1", attr );
     var lineSet = document.createElement( "LineSet" );
     shape.appendChild( lineSet );
 

@@ -45,8 +45,6 @@ class BaseBox {
         this.indexSum = ( this.volume * ( this.volume - 1 ) / 2 );
         this.indexCentre = ( this.volume - 1 ) / 2;
 
-
-
         // fixed points
         this.origin = new Array( bases.length ).fill( 0 );
         this.terminal = this.bases.map( x => x - 1 );
@@ -157,9 +155,11 @@ class Ray {
     }
 }
 
-
-
 // param = { box: , indexForward: , indexReverse: ,idx:[], dix:[] }
+/**
+    walks the box bases creating coordinate points
+    calculates and assigns index values
+*/
 function generateIndexes( param, index = 0, coord = [] ) {
     const { box = null, indexForward = null, indexReverse = null, idx = [], dix = [] } = param;
     if ( index == box.bases.length ) {

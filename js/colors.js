@@ -1,11 +1,13 @@
 
-class ColorBasePlane extends BasePlane {
+class ColorBasePlane extends IndexedBox {
 
-    constructor( param, colorOrbitIndex = 0, minPixel = 0 ) {
-        super( param );
+    constructor( bases, colorOrbitIndex = 0, minPixel = 0 ) {
+        super( bases );
         this.colorOrbitIndex = colorOrbitIndex;
         this.minPixel = minPixel;
-        this.colorPoints = this.orbits[ this.colorOrbitIndex % this.orbits.length ].getCoordArray();
+        const orbits = this.indexPlanes[0].orbits;
+        const orbit = orbits[ this.colorOrbitIndex % orbits.length ];
+        this.colorPoints = orbit.getCoordArray();
     }
 
     colorForIndex( index ) {

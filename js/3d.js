@@ -64,6 +64,18 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
     );
 }
 
+
+function createTorusShape( outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0 ) {
+    return reify(
+        "shape",
+        {},
+        [
+            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
+            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": PI, "subdivision": "48,48" } )
+        ]
+    );
+}
+
 function createPlaneItem(
         centre = [0,0,0],
         unitNormal = [0,1,0],
@@ -107,13 +119,22 @@ function createPlaneItem(
 }
 
 
-function createSphereShape( radius = "0.1", emissiveColor = "blue", transparency = 0) {
+function createSphereShape( radius = "0.1", emissiveColor = "blue", transparency = 0, tooltip ) {
     return reify(
         "shape",
-        {},
+        {
+            "title": tooltip
+        },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
             reify( "sphere", { "radius": radius } )
+        ],
+        [
+            s => {
+                if ( tooltip ) {
+                    s.setAttribute( "tooltip", tooltip );
+                }
+            }
         ]
     );
 }
@@ -141,6 +162,30 @@ function createPolyLineShape( lineSegments, emissiveColor = "red" ){
     return s;
 }
 
+function createLineSetFromPoints( points, emissiveColor, lineType ) {
+
+    if ( points.length == 0 ) {
+        return null;
+    }
+
+    var shape = createShape( emissiveColor, lineType );
+    var lineSet = document.createElement( "lineset" );
+    shape.appendChild( lineSet );
+
+    lineSet.setAttribute( 'vertexCount', `${ points.length }` );
+
+    var pointText = "";
+    for ( var j = 0; j < points.length; j++ ) {
+        pointText += `${ points[j].join( ' ' ) } `;
+    }
+
+    var coordinate = document.createElement( 'coordinate' );
+    coordinate.setAttribute( 'point', `${ pointText }` );
+    lineSet.append( coordinate );
+
+    return shape;
+}
+
 function createLineSet( coords, emissiveColor, attr = {} ){
 
     var shape = createShape( emissiveColor, "1", attr );
@@ -160,7 +205,7 @@ function createLineSet( coords, emissiveColor, attr = {} ){
     var [ x = 0, y = 0, z = 0 ] = coords[0].coord;
     point += ` ${ x } ${ y } ${ z } -1`;
 
-    var coordinate = document.createElement( 'Coordinate' );
+    var coordinate = document.createElement( 'coordinate' );
     coordinate.setAttribute( 'point', `${ point }` );
     lineSet.append( coordinate );
 
@@ -210,39 +255,9 @@ function createDialLineSet( coords, emissiveColor, attr = {} ){
 }
 
 
-
-function createLineSetFromPoints( points, emissiveColor, lineType ) {
-
-    if ( points.length == 0 ) {
-        return null;
-    }
-
-    var shape = createShape( emissiveColor, lineType );
-    var lineSet = document.createElement( "lineset" );
-    shape.appendChild( lineSet );
-
-    lineSet.setAttribute( 'vertexCount', `${ points.length }` );
-
-    var pointText = "";
-    for ( var j = 0; j < points.length; j++ ) {
-        pointText += `${ points[j].join( ' ' ) } `;
-    }
-
-    var coordinate = document.createElement( 'coordinate' );
-    coordinate.setAttribute( 'point', `${ pointText }` );
-    lineSet.append( coordinate );
-
-    return shape;
-}
-
-
 function createCentreLine( p1, p2, pad = 0 ) {
     return createLineSetFromPoints( extendLine( p1, p2, pad ), "gray", 3 );
 }
-
-
-
-
 
 
 function insertX3DomFrame( containerId, basePlane, framePage ) {

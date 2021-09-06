@@ -9,14 +9,14 @@
             padding-right: 20pt;
         }
 
-        div#caption {
+        .caption {
             float: left;
             overflow: hidden;
             display: inline-block;
             text-align: left;
         }
 
-        div#toolbar {
+        .toolbar {
             float: right;
             overflow: hidden;
             display: inline-block;
@@ -24,7 +24,14 @@
             font-size: 80%;
         }
 
-        div#summary {
+        .summaryLeft {
+            font-size: 80%;
+            text-align: left;
+        }
+
+        .summaryRight {
+            font-size: 80%;
+            text-align: right;
         }
 
         .orbit {}
@@ -121,8 +128,14 @@
             width: 100%;
         }
     </style>
+
+
     <script type="text/javascript" src="js/midi.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
+
+    <script type="text/javascript" src="js/jbnd.js"></script>
+
+
     <script type="text/javascript" src="js/bases.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
     <script type="text/javascript" src="js/factors.js"></script>
@@ -133,6 +146,7 @@
     <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
     <script type="text/javascript" src="js/3d.js"></script>
+
 
     <script>
 
@@ -480,8 +494,12 @@
 
 
         function updatePage() {
+
+            const param = getControlValues();
+
             // TODO: global access
-            basePlane = new BasePlane( getControlValues() );
+            const box = new IndexedBox( param.bases );
+            basePlane = box.indexPlanes[0];
             putBasePlane( basePlane.key, basePlane );
 
             initialiseExpressor( basePlane, isToggle( 'locus' ) );
@@ -494,14 +512,9 @@
                     .getElementById("captionTex")
                     .innerHTML = basePlane.getCaptionHtml();
 
-            const data = basePlane.getData();
             document
                     .getElementById( "summary" )
-                    .innerHTML = "<hr/>"
-                               + "box: " + JSON.stringify( data.box ) + "<br/>"
-                               + "cycles: " + JSON.stringify( data.cycles ) + "<br/>"
-                               + "euclidean: " + JSON.stringify( data.euclidean ) + "<br/>"
-                               + "index: " + JSON.stringify( data.index ) + "<br/>";
+                    .innerHTML = `<pre>${ box.getDataHtml() }</pre>`;
 
             document
                     .getElementById( "basesVolume" )
@@ -524,7 +537,7 @@
             initialiseControls( param );
 
             const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
-            putBasePlane( "COLOR_ORBITS", new ColorBasePlane( { "bases": bases }, orbitIndex, minPixel ) );
+            putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, orbitIndex, minPixel ) );
 
             updatePage();
 
@@ -551,7 +564,13 @@
 
                     //console.log( `data: ${ JSON.stringify( data ) }` );
 
-                    if ( data.basePlaneKey ) {
+                    if ( data.basis ) {
+                        if ( "point" == data.basis ) {
+                            const selectedPoint = document.getElementById( "selectedPoint" );
+                            selectedPoint.innerHTML = "<pre>" + data.report + "</pre>";
+                        }
+
+                    } else if ( data.basePlaneKey ) {
                         const basePlane = getBasePlane( data.basePlaneKey );
                         if ( event.data.sender ) {
                             showOrbit( "sample_cs_b_10_m_2", basePlane, data.sender, data.multi );
@@ -575,33 +594,43 @@
             if ( param.id ) {
                 distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] )
             }
+
+            distributeMessage( 'sample_cs_b_10_m_2', {
+                basis: "point",
+                report: basePlane.identities[0].coords[0].report()
+            } );
+
         }
     </script>
 </head>
 <body id="testContainer001" onload="initPage()">
-    <div id="caption">
-        <a onclick="reopenWithArgs()"  title="reopen with current values in url"><b>Bases: </b></a>
-
-        <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/>
-        <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
-        <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
-        <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
-
-        <span id="baseValues">
-            <input type="number" min="1" id="b0" value="7"/>
-            <input type="number" min="1" id="b1" value="3"/>
-            <input type="number" min="1" id="b2" value="2"/>
-        </span> |
-
-        <input type="number" id="basesVolume" disabled="disabled"/> |
-
-        <span id="captionTex"></span>
-    </div>
     <div>
-        <div id="toolbar">
+        <div id="caption" class="caption">
+            <a onclick="reopenWithArgs()"  title="reopen with current values in url"><b>Bases: </b></a>
 
-            summary<input type="checkbox" id="summaryToggle" onchange="showHide('summary')"/> |
+            <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/>
+            <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
+            <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
+            <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
+
+            <span id="baseValues">
+                <input type="number" min="1" id="b0" value="7"/>
+                <input type="number" min="1" id="b1" value="3"/>
+                <input type="number" min="1" id="b2" value="2"/>
+            </span> |
+
+            <input type="number" id="basesVolume" disabled="disabled"/> |
+
+            <span id="captionTex"></span>
+            <br/>
+        </div>
+
+
+        <div id="toolbar" class="toolbar">
+
+            summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'])"/> |
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
+            gears<input type="checkbox" id="gearsToggle" onchange="updatePage()" checked="checked"/> ||
             more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'] )"/>
 
             <div id="more-options" style="display: none">
@@ -611,12 +640,11 @@
                 conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
                 jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/> ||
 
-                gears<input type="checkbox" id="gearsToggle" onchange="updatePage()"/> ||
 
                 grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
                 centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
-                lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
+                lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )" checked="checked"/> |
                 locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> ||
 
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
@@ -646,10 +674,15 @@
                 <hr/>
                 <textarea id="orbit-system-data-text-area" style="width: 100%; height: 40%;"></textarea>
             </div>
-
-            <div id="summary" style="display: none">
-            </div>
         </div>
+    </div>
+    <div>
+        <table width="100%">
+            <tr>
+                <td class="summaryLeft"><span id="selectedPoint" style="display: none"></span></td>
+                <td class="summaryRight"><span id="summary" style="display: none"></span></td>
+            </tr>
+        </table>
     </div>
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>

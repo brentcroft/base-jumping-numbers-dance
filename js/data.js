@@ -169,6 +169,12 @@ function reduce( n, d ) {
 }
 
 
+function rotateArray( array, times = 1 ) {
+    for ( var i = 0; i < times; i++ ) {
+        array.push( array.shift() );
+    }
+}
+
 /*
     Randomize array in-place using Durstenfeld shuffle algorithm
     https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
@@ -182,3 +188,29 @@ function shuffleArray( array ) {
     }
     return array;
 }
+
+
+
+/**
+ The sum of the length of each ray from each coordinate
+ to its reflection in the box centre.
+*/
+function getBrilliance( bases ) {
+
+        const volume = bases.reduce( (a,c) => a*c, 1 );
+        const volumeFactor = ( b ) => ( volume / b );
+        const sumTriangles = ( n ) => n * ( n + 1 ) / 2;
+        const sumSquares = ( n ) => n * ( n + 1 ) * ( 2 * n + 1 ) / 6;
+
+        const d = bases.map( b => volume * ( b - 1 )**2 );
+        const e = bases.map( b => 4 * volumeFactor( b ) * ( b - 1 ) * sumTriangles( b - 1 ) );
+        const f = bases.map( b => 4 * volumeFactor( b ) * sumSquares( b - 1 ) );
+
+        const [ c, s, t ] = [
+            d.reduce( (a,c) => a + c, 0 ),
+            e.reduce( (a,c) => a + c, 0 ),
+            f.reduce( (a,c) => a + c, 0 )
+        ];
+
+        return c - s + t;
+    }

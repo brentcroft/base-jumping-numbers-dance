@@ -38,54 +38,7 @@ class Orbit {
             "repeats": 0
         };
         this.coords = coords;
-        this.findSums();
-    }
 
-    torsion() {
-        return ( this.radiance - this.jumpage );
-    }
-
-    tension() {
-        return ( this.diameterSum - this.perimeter );
-    }
-
-    isSelfConjugate() {
-        return this.index == this.conjugate.index;
-    }
-
-    isFirstConjugate() {
-        return this.index < this.conjugate.index;
-    }
-
-    getJson() {
-        var xml = "{";
-        xml += ` "id": ${ this.index },`;
-        xml += ` "midi": {`;
-        xml += ` "instrument": ${ this.midi.instrument },`;
-        xml += ` "channel": ${ this.midi.channel },`;
-        xml += ` "percussion": ${ this.midi.percussion },`;
-        xml += ` "repeats": ${ this.midi.repeats }`;
-        xml += ` },`;
-        xml += ` "order": ${ this.order },`;
-        xml += ` "harmonic": ${ this.harmonic },`;
-
-        xml += ` "centre": ${ this.centreRef },`;
-        xml += ` "axis": ${ this.parent.centrePoints[this.centreRef].lineRef },`;
-        xml += ` "perimeter": ${ this.perimeter },`;
-        xml += ` "attack": ${ truncate( this.attack ) },`;
-
-        xml += ` "sum": ${ canonicalize( this.sum, ', ', SQUARE_BRA ) },`;
-        xml += ` "gcd": ${ this.gcd },`;
-        xml += ` "lcm": ${ this.lcm },`;
-        //xml += ` "centre": ${ canonicalize( this.centre.map( x => truncate( x, 10000 ) ), ', ', SQUARE_BRA ) },`;
-        xml += ` "points": ${ canonicalize( this.coords.map( c => canonicalize( c.coord, ', ', SQUARE_BRA ) ), ', ', SQUARE_BRA) },`;
-        xml += ` "jumps": ${ canonicalize( this.jumps, ', ', SQUARE_BRA) }`;
-        xml += "}";
-        return xml;
-    }
-
-
-    findSums() {
         this.basis = this.coords[0].coord.length;
         this.order = this.coords.length;
         this.centre = new Array( this.basis ).fill( 0 );
@@ -106,6 +59,22 @@ class Orbit {
         this.lcm = this.sum.reduce( lcm );
     }
 
+    torsion() {
+        return ( this.radiance - this.jumpage );
+    }
+
+    tension() {
+        return ( this.brilliance - this.perimeter );
+    }
+
+    isSelfConjugate() {
+        return this.index == this.conjugate.index;
+    }
+
+    isFirstConjugate() {
+        return this.index < this.conjugate.index;
+    }
+
     getCoordArray() {
         return this
             .coords
@@ -121,11 +90,11 @@ class Orbit {
     }
 
     getIdSum() {
-        return this.coords.reduce( (a, coord ) => a + coord.id, 0 );
+        return this.coords.reduce( (a, coord ) => a + coord.indexes[this.parent.id].id, 0 );
     }
 
     getDiSum() {
-        return this.coords.reduce( (a, coord ) => a + coord.di, 0 );
+        return this.coords.reduce( (a, coord ) => a + coord.di.indexes[this.parent.id], 0 );
     }
 }
 
@@ -151,7 +120,7 @@ class BasePlane {
     }
 
     identityRadiance() {
-        return this.identities.reduce( (a, p) => a + p.coords[0].radiant, 0 );
+        return this.identities.reduce( (a, p) => a + p.coords[0].radiant, 0 ) / 2;
     }
 
     grossRadiance() {
@@ -166,7 +135,7 @@ class BasePlane {
         return this.grossRadiance() - this.jumpage();
     }
 
-    identityDiameterSum() {
+    identityBrilliance() {
         const points = this.identities.map( x => x.coords[0] );
         const diameters = points.map( p => distance2( p.coord, this.idx[p.reflectId].coord ) );
         return diameters.reduce( (a,d) => a + d, 0);
@@ -429,7 +398,7 @@ class BasePlane {
             orbit.radiants = coords
                 .map( (x,i) => x.radiant );
             orbit.radiance = orbit.radiants
-                .reduce( (a,c) => a + Math.abs( c ), 0 );
+                .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
 
             [
                 orbit.midi.instrument,
@@ -467,7 +436,7 @@ class BasePlane {
         this.totalPerimeter = totalPerimeter;
         this.totalDiameterSum = totalDiameterSum;
 
-        if ( ( totalDiameterSum + this.identityDiameterSum() ) != this.box.brilliance ) {
+        if ( ( totalDiameterSum + this.identityBrilliance() ) != this.box.brilliance ) {
             throw `Error: totalDiameterSum != this.box.brilliance: ${ totalDiameterSum } != ${ this.box.brilliance }`;
         }
 

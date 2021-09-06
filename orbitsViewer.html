@@ -421,16 +421,16 @@
 
                 // PLANE
                 var currentDirection = [0,1,0];
-                var planeColor = "gray";
-                var planeTransparency = 0.95;
+                var planeColor = "black";
+                var planeTransparency = 0.5;
 
                 var planeItem = createPlaneItem(
-                        [ basePlane.box.indexCentre, 0, 0 ],
+                        [ indexCentre, 0, zOff * (orbits.length - 2) / 2 ],
                         [ 1, 0, 0 ],
-                        scaleUnit,
+                        scale( [ 0.001, -1 * zOff, 1 + orbits.length ], 1 ),
                         currentDirection,
                         [ 0, 0, 0 ],
-                        [ 0, 1, 1 ],
+                        [ 1, 1, 1 ],
                         planeColor,
                         planeTransparency);
 
@@ -516,10 +516,9 @@
 
                 sceneRoot.appendChild( osi );
 
-                //var x3dRuntime = document.getElementById( x3domContainerId );
+                var x3dRuntime = document.getElementById( x3domContainerId );
                 //x3dRuntime.runtime.showAll( "negZ");
-                //x3dRuntime.runtime.resetView();
-                //x3dRuntime.runtime.uprightView();
+                x3dRuntime.runtime.resetView();
 
                 //console.log( "Created X3DOM container: " + x3domContainerId );
             }
@@ -604,7 +603,6 @@
     </head>
     <body id="testContainer001" onload="initPage()">
         <x3d id="testContainer001_plot" showStat="false" width="100%" height="100%">
-<!--            <viewpoint centreOfRotation="0 0 0" position="0 0 50"></viewpoint>-->
             <scene id="testContainer001_plot_scene_root">
             </scene>
         </x3d>

@@ -65,13 +65,13 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
 }
 
 
-function createTorusShape( outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0 ) {
+function createTorusShape( outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI ) {
     return reify(
         "shape",
         {},
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
-            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": PI, "subdivision": "48,48", "lit": false } )
+            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": false } )
         ]
     );
 }
@@ -100,22 +100,47 @@ function createPlaneItem(
             reify(
                 "transform", { "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle },
                 [ createPlaneShape( size.join( ' ' ), planeColor, planeTransparency ) ]
-            ),
-            reify(
-                "group",
-                {},
-                [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ]
-            ),
-            reify(
-                "transform",
-                {
-                    "translation": unitNormal.join( ' ' ),
-                    "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle
-                },
-                [ createBoxShape( [0.1, 0.1, 0.1], "black" ) ]
             )
         ]
    );
+}
+
+
+function createPlaneItemWithNormal(
+        centre = [0,0,0],
+        unitNormal = [0,1,0],
+        scaleUnit = [1,1,1],
+        currentDirection = [0,1,0],
+        origin = [0,0,0],
+        size = [1,0,1],
+        planeColor = "gray",
+        planeTransparency = 0.95 ) {
+
+    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
+    var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
+
+    const planeItem = createPlaneItem(
+                              centre,
+                              unitNormal,
+                              scaleUnit,
+                              currentDirection,
+                              origin,
+                              size,
+                              planeColor,
+                              planeTransparency);
+
+    planeItem.appendChild( reify( "group", {}, [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ] ) );
+    planeItem.appendChild(
+        reify(
+            "transform",
+            {
+                "translation": unitNormal.join( ' ' ),
+                "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle
+            },
+            [ createBoxShape( [0.1, 0.1, 0.1], "black" ) ]
+        )
+    );
+    return planeItem;
 }
 
 

@@ -294,7 +294,7 @@
                 var planeColor = "gray";
                 var planeTransparency = 0.95;
 
-                var planeItem = createPlaneItem(
+                var planeItem = createPlaneItemWithNormal(
                         basePlane.centre,
                         basePlane.unitNormal,
                         scale( scaleUnit, 1 ),
@@ -395,7 +395,7 @@
                                                 "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
                                             },
                                             [
-                                                createSphereShape( 0.5, "red" ),
+                                                createSphereShape( 0.5, "red", 0, identity.coords[0].report() ),
                                                 createLineSet( [ new Point( [ 0, 0, 0 ] ), new Point( [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
                                             ]
                                         )
@@ -434,53 +434,93 @@
                         planeColor,
                         planeTransparency);
 
-                //planeItem.setAttribute( "render", Boolean( toggles.plane ) );
+                planeItem.setAttribute( "render", Boolean( toggles.plane ) );
 
                 root
                     .appendChild( planeItem );
 
 
                 // ORBITS
-                for ( var i = 0; i < orbits.length; i++ ) {
-                    const orbit = orbits[i];
-                    const color = colorBasePlane.colorForIndex( orbit.index );
-                    if (orbit.coords.length > 1 ) {
-                        root
-                            .appendChild(
-                                reify(
-                                    "transform",
-                                    {
-                                        "translation": `0 0 ${ zOff * i }`,
-                                        "class": "orbit",
-                                        "id": ("orbit." + orbit.index )
-                                    },
-                                    [
-                                        ...orbit
-                                            .coords
-                                            .map( ( point, i ) => reify(
-                                                    "transform",
-                                                    {
-                                                        "translation": `${ point.indexes[ indexId ].id + point.indexes[ indexId ].jump / 2 } 0 0`,
-                                                    },
-                                                    [
-                                                        createTorusShape( ( point.indexes[ indexId ].jump / 2) , 0.1, color ),
-                                                        reify(
+                const radiants = toggles.radiants;
+
+                if ( radiants ) {
+                    basePlane
+                        .idx
+                        .forEach( ( entry, i ) => {
+                            const point = entry.indexes[indexId]
+                            const color = colorBasePlane.colorForIndex( Math.abs( point.radiant ) );
+                            root
+                                .appendChild(
+                                    reify(
+                                        "transform",
+                                        {
+                                            "translation": `${ indexCentre } 0 0`,
+                                            "class": "orbit"
+                                        },
+                                        [
+                                            createTorusShape( ( point.radiant / 2) , 0.1, color, 0, PI ),
+                                            reify(
+                                                "transform",
+                                                {
+                                                    "translation": `${ point.radiant / 2 } 0 0`,
+                                                },
+                                                [
+                                                    createSphereShape( 0.3, color, 0, entry.report() )
+                                                ]
+                                            )
+                                        ]
+                                    )
+                                );
+
+                        } );
+                } else {
+
+                    for ( var i = 0; i < orbits.length; i++ ) {
+                        const orbit = orbits[i];
+                        const color = colorBasePlane.colorForIndex( orbit.index );
+                        if (orbit.coords.length > 1 ) {
+                            root
+                                .appendChild(
+                                    reify(
+                                        "transform",
+                                        {
+                                            "translation": `0 0 ${ zOff * i }`,
+                                            "class": "orbit",
+                                            "id": ("orbit." + orbit.index )
+                                        },
+                                        [
+                                            ...orbit
+                                                .coords
+                                                .map( ( entry, i ) => {
+                                                        const point = entry.indexes[ indexId ];
+                                                        return reify(
                                                             "transform",
                                                             {
-                                                                "translation": `${ point.indexes[ indexId ].jump / 2 } 0 0`,
+                                                                "translation": `${ point.id + point.jump / 2 } 0 0`,
                                                             },
                                                             [
-                                                                createSphereShape( 0.3, color )
+                                                                createTorusShape( ( point.jump / 2) , 0.1, color ),
+                                                                reify(
+                                                                    "transform",
+                                                                    {
+                                                                        "translation": `${ point.jump / 2 } 0 0`,
+                                                                    },
+                                                                    [
+                                                                        createSphereShape( 0.3, color, 0, entry.report() )
+                                                                    ]
+                                                                )
                                                             ]
-                                                        )
-                                                    ]
+                                                        );
+                                                    }
                                                 )
-                                            )
-                                    ]
-                                )
-                            );
+                                        ]
+                                    )
+                                );
+                        }
                     }
                 }
+
+
                 return reify(
                     "collision",
                     { "enabled": false },
@@ -548,8 +588,6 @@
                     .map( s => s.parentNode );
                 const tooltipped = shapes
                     .filter( s => s.getAttribute( "tooltip" ) );
-
-                console.log( `tooltipped.length = ${ tooltipped.length }` );
 
                 tooltipped
                     .forEach( s => {

@@ -204,6 +204,7 @@
                     lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
                     locus: document.getElementById( 'locusToggle' ).checked ? 1 : 0,
                     jumps: document.getElementById( 'jumpsToggle' ).checked ? 1 : 0,
+                    radiants: document.getElementById( 'radiantsToggle' ).checked ? 1 : 0,
                     coords: document.getElementById( 'coordsToggle' ).checked ? 1 : 0,
                     more: document.getElementById( 'moreToggle' ).checked ? 1 : 0,
                     conj: document.getElementById( 'conjToggle' ).checked ? 1 : 0,
@@ -409,6 +410,9 @@
             if ( toggles.jumps ) {
                 initialiseCheckBox( 'jumpsToggle', true );
             }
+            if ( toggles.radiants ) {
+                initialiseCheckBox( 'radiantsToggle', true );
+            }
             if ( toggles.random ) {
                 initialiseCheckBox( 'randomToggle', true );
             }
@@ -486,6 +490,7 @@
                 midi: isToggle('midi'),
                 conj: isToggle('conj'),
                 jumps: isToggle('jumps'),
+                radiants: isToggle('radiants'),
                 perms: !isToggle('coords'),
             };
 
@@ -628,10 +633,10 @@
 
         <div id="toolbar" class="toolbar">
 
-            summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'])"/> |
+            summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this.checked ? 1 : -1 )"/> |
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
             cycles<input type="checkbox" id="gearsToggle" onchange="updatePage()" checked="checked"/> |
-            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'] )"/>
+            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this.checked ? 1 : -1 )"/>
 
             <div id="more-options" style="display: none">
 
@@ -640,6 +645,7 @@
                 coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
                 conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
                 jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/>
+                radiants<input type="checkbox" id="radiantsToggle" onchange="updatePage()"/> |
 
                 <hr/>
                 grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )" checked="checked"/> |

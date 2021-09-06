@@ -12,20 +12,20 @@ function showHideCSS( selector ) {
         } );
 }
 
-function showHide( id ) {
+function showHide( id, force = 0 ) {
     var c = document.getElementById( id );
     if ( c ) {
         var s = c.style.display;
-        if ( s == '' ) {
-            c.style.display  =  'none';
-        } else {
+        if ( ( force && force != -1 ) || s != '' ) {
             c.style.display  =  '';
+        } else {
+            c.style.display  =  'none';
         }
     }
 }
 
-function showHideAll( ids = [] ) {
-    ids.forEach( id => showHide( id ) );
+function showHideAll( ids = [], force ) {
+    ids.forEach( id => showHide( id, force ) );
 }
 
 

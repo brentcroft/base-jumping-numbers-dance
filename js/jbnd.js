@@ -168,7 +168,7 @@ class IndexPlane {
 
 
     identityRadiance() {
-        return this.identities.reduce( (a, p) => a + p.coords[0].indexes[this.id].radiant, 0 ) / 2;
+        return this.identities.reduce( (a, p) => a + Math.abs( p.coords[0].indexes[this.id].radiant ), 0 ) / 2;
     }
 
     identityJumpage() {
@@ -236,7 +236,7 @@ class IndexPlane {
             di: di,
             reflectId: reflectId,
             jump: ( di - id ),
-            radiant: Math.abs( reflectId - id )
+            radiant: ( reflectId - id )
         };
     }
 

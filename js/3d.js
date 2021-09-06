@@ -71,7 +71,7 @@ function createTorusShape( outerRadius = 1, size = 0.1, emissiveColor = "blue", 
         {},
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
-            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": PI, "subdivision": "48,48" } )
+            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": PI, "subdivision": "48,48", "lit": false } )
         ]
     );
 }

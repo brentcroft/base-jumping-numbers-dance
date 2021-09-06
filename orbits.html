@@ -630,23 +630,25 @@
 
             summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'])"/> |
             table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
-            gears<input type="checkbox" id="gearsToggle" onchange="updatePage()" checked="checked"/> |
+            cycles<input type="checkbox" id="gearsToggle" onchange="updatePage()" checked="checked"/> |
             more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'] )"/>
 
             <div id="more-options" style="display: none">
 
-                multi<input type="checkbox" id="multiToggle" checked="checked"/> |
+                <hr/>
+                multi<input type="checkbox" id="multiToggle"/> |
                 coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
                 conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
-                jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/> ||
+                jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/>
 
-
-                grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
+                <hr/>
+                grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )" checked="checked"/> |
                 centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
                 plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
                 lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )" checked="checked"/> |
-                locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/> ||
+                locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/>
 
+                <hr/>
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
                 <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>

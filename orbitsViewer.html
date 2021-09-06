@@ -358,30 +358,33 @@
             /**
 
             */
-            function getBasePlaneBraids( basePlane, toggles ) {
+            function getBasePlaneCycles( basePlane, toggles ) {
 
                 const indexId = basePlane.id;
                 const orbits = basePlane.orbits;
                 const fixedPointTransparency = 0.1;
                 const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
                 const indexCentre = basePlane.box.indexCentre;
-                const zOff = -5;
-                const scale = [ 0.1, 0.1, 0.1 ];
+
+                const zOff = -1;
+                const scaleUnit = scale( [ 1, 1, 1 ], 10 / basePlane.box.volume );
 
                 const root = reify(
                     "transform",
                     { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` }
                 );
 
-                // IDENTITIES
+                // IDENTITIES GRID
                 const attr = { "linetype": "96" };
 
                 root
                     .appendChild(
                         reify(
-                            "group",
+                            "collision",
                             {
-                                "class": "grid-coords"
+                                "class": "grid-coords",
+                                "enabled": false,
+                                "render": Boolean( toggles.grid )
                             },
                             [
                                 ...basePlane
@@ -392,7 +395,7 @@
                                                 "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
                                             },
                                             [
-                                                createSphereShape( 1, "red" ),
+                                                createSphereShape( 0.5, "red" ),
                                                 createLineSet( [ new Point( [ 0, 0, 0 ] ), new Point( [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
                                             ]
                                         )
@@ -408,13 +411,33 @@
                                     .orbits
                                     .map( ( orbit, i ) => createLineSet(
                                             [ new Point( [ 0, 0, zOff * ( i ) ] ), new Point( [ basePlane.box.volume - 1, 0, zOff * ( i ) ] ) ],
-                                            "black",
+                                            colorBasePlane.colorForIndex( orbit.index ),
                                             attr
                                         )
                                     )
                             ]
                         )
                     );
+
+                // PLANE
+                var currentDirection = [0,1,0];
+                var planeColor = "gray";
+                var planeTransparency = 0.95;
+
+                var planeItem = createPlaneItem(
+                        [ basePlane.box.indexCentre, 0, 0 ],
+                        [ 1, 0, 0 ],
+                        scaleUnit,
+                        currentDirection,
+                        [ 0, 0, 0 ],
+                        [ 0, 1, 1 ],
+                        planeColor,
+                        planeTransparency);
+
+                //planeItem.setAttribute( "render", Boolean( toggles.plane ) );
+
+                root
+                    .appendChild( planeItem );
 
 
                 // ORBITS
@@ -464,7 +487,7 @@
                     [
                         reify(
                             "transform",
-                            { "scale": `${ scale.join( ' ' ) }` },
+                            { "scale": `${ scaleUnit.join( ' ' ) }` },
                             [
                                 root
                             ]
@@ -487,19 +510,17 @@
                 const sceneRootId = `${ x3domContainerId }_scene_root`;
                 const sceneRoot = document.getElementById( sceneRootId );
 
-<!--                var osi = (param.toggles.gears)-->
-<!--                    ? getBasePlaneGears( basePlane, param.toggles )-->
-<!--                    : getBasePlaneItems( basePlane, param.toggles );-->
-
-                var osi = (param.toggles.gears)
-                    ? getBasePlaneBraids( basePlane, param.toggles )
+                var osi = (param.toggles.gears || basePlane.box.bases.length != 3 )
+                    ? getBasePlaneCycles( basePlane, param.toggles )
                     : getBasePlaneItems( basePlane, param.toggles );
 
                 sceneRoot.appendChild( osi );
 
-                var x3dRuntime = document.getElementById( x3domContainerId );
-                x3dRuntime.runtime.showAll();
-                x3dRuntime.runtime.resetView();
+                //var x3dRuntime = document.getElementById( x3domContainerId );
+                //x3dRuntime.runtime.showAll( "negZ");
+                //x3dRuntime.runtime.resetView();
+                //x3dRuntime.runtime.uprightView();
+
                 //console.log( "Created X3DOM container: " + x3domContainerId );
             }
 
@@ -519,17 +540,6 @@
 
                 const param = getParam();
                 const basePlane = window.parent.window.getBasePlane( param.id );
-
-                if ( basePlane.box.bases.length != 3 ) {
-                    console.log("Aborting 3DOM : basePlane.box.bases.length != 3");
-
-                    const plot = document.getElementById( "testContainer001_plot" );
-                    if ( plot ) {
-                        plot.parentNode.removeChild( plot );
-                    }
-
-                    return;
-                }
 
                 plotBasePlane( basePlane, param );
 

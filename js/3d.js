@@ -64,14 +64,15 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
     );
 }
 
-
-function createTorusShape( outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI ) {
+function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI, cssClass = "" } = {} ) {
     return reify(
         "shape",
-        {},
+        {
+            "class": cssClass
+        },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
-            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": false } )
+            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": false  } )
         ]
     );
 }

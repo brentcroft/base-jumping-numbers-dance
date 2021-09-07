@@ -458,7 +458,14 @@
                                             "class": "orbit"
                                         },
                                         [
-                                            createTorusShape( ( point.radiant / 2) , 0.1, color, 0, PI ),
+                                            createTorusShape( {
+                                                    outerRadius: ( point.radiant / 2),
+                                                    size: 0.1,
+                                                    emissiveColor: color,
+                                                    transparency: 0,
+                                                    angle: PI,
+                                                    cssClass: "orbit"
+                                                 } ),
                                             reify(
                                                 "transform",
                                                 {
@@ -485,7 +492,7 @@
                                         "transform",
                                         {
                                             "translation": `0 0 ${ zOff * i }`,
-                                            "class": "orbit",
+                                            "class": "orbitation",
                                             "id": ("orbit." + orbit.index )
                                         },
                                         [
@@ -499,7 +506,15 @@
                                                                 "translation": `${ point.id + point.jump / 2 } 0 0`,
                                                             },
                                                             [
-                                                                createTorusShape( ( point.jump / 2) , 0.1, color ),
+                                                                createTorusShape( {
+                                                                        outerRadius: ( point.jump / 2),
+                                                                        size: 0.1,
+                                                                        emissiveColor: color,
+                                                                        transparency: 0,
+                                                                        angle: PI,
+                                                                        cssClass: "orbit"
+                                                                     } ),
+
                                                                 reify(
                                                                     "transform",
                                                                     {

@@ -152,6 +152,8 @@ class IndexPlane {
 
     identityPerimeter() {
         return 0;
+//        const stationaryCentres = 2 + (this.identities.length % 2 );
+//        return ( this.identities.length - stationaryCentres ) * 2;
     }
 
     identityTension() {
@@ -172,7 +174,9 @@ class IndexPlane {
     }
 
     identityJumpage() {
-        return this.identities.length / 2;
+//        return 0;
+        const stationaryCentres = 2 + (this.identities.length % 2 );
+        return ( this.identities.length - stationaryCentres ) / 2;
     }
 
     identityTorsion() {

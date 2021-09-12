@@ -21,16 +21,16 @@
             overflow: hidden;
             display: inline-block;
             text-align: right;
-            font-size: 80%;
+            font-size: 70%;
         }
 
         .summaryLeft {
-            font-size: 80%;
+            font-size: 70%;
             text-align: left;
         }
 
         .summaryRight {
-            font-size: 80%;
+            font-size: 70%;
             text-align: right;
         }
 
@@ -121,14 +121,23 @@
             width: 40pt;
             text-align: right;
         }
+        input.colourField {
+            font-size: 80%;
+            width: 30pt;
+        }
+
+
         input[type=checkbox] {
             font-style: italic;
         }
         input[type=range] {
             width: 100%;
         }
+
     </style>
 
+
+    <script type="text/javascript" src="js/toggles.js"></script>
 
     <script type="text/javascript" src="js/midi.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
@@ -191,25 +200,14 @@
                     return 1;
                 }
             } );
+
+            const currentToggles = Object
+                    .keys( toggleKeys )
+                    .filter( k => isToggle( k ) );
+
             return {
                 bases: bases,
-                toggles: {
-                    summary: document.getElementById( 'summaryToggle' ).checked ? 1 : 0,
-                    random: document.getElementById( 'randomToggle' ).checked ? 1 : 0,
-                    table: document.getElementById( 'tableToggle' ).checked ? 1 : 0,
-                    gears: document.getElementById( 'gearsToggle' ).checked ? 1 : 0,
-                    grid: document.getElementById( 'gridToggle' ).checked ? 1 : 0,
-                    centres: document.getElementById( 'centresToggle' ).checked ? 1 : 0,
-                    plane: document.getElementById( 'planeToggle' ).checked ? 1 : 0,
-                    lines: document.getElementById( 'linesToggle' ).checked ? 1 : 0,
-                    locus: document.getElementById( 'locusToggle' ).checked ? 1 : 0,
-                    jumps: document.getElementById( 'jumpsToggle' ).checked ? 1 : 0,
-                    radiants: document.getElementById( 'radiantsToggle' ).checked ? 1 : 0,
-                    coords: document.getElementById( 'coordsToggle' ).checked ? 1 : 0,
-                    more: document.getElementById( 'moreToggle' ).checked ? 1 : 0,
-                    conj: document.getElementById( 'conjToggle' ).checked ? 1 : 0,
-                    midi: document.getElementById( 'midiToggle' ).checked ? 1 : 0
-                }
+                toggles: currentToggles
             };
         }
 
@@ -220,15 +218,7 @@
                 bases = values.bases;
             }
 
-            const toggles = values.toggles;
-            const activeToggles = Object
-                .entries( toggles )
-                .filter( toggle => toggle[1] > 0 );
-
-            const activeToggleKeys = activeToggles
-                .map( toggle => toggle[0]);
-
-            return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&toggles=${ activeToggleKeys.join( ',' ) }`;
+            return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&toggles=${ values.toggles.join( ',' ) }`;
         }
 
         function reopenWithArgs() {
@@ -338,7 +328,7 @@
                     expressor.appendChild(
                         reify(
                             "input",
-                            { "type": "number", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
+                            { "type": "number", "class": "colourField", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
                             [],
                             [ ( control ) => control.onchange = () => applyExpression( control, orbit, i ) ]
                         )
@@ -372,56 +362,11 @@
 
             initialiseBases( param.bases );
 
-            const toggles = param.toggles;
-
-            if ( toggles.summary ) {
-                initialiseCheckBox( 'summaryToggle', true );
-            }
-            if ( toggles.table ) {
-                initialiseCheckBox( 'tableToggle', true );
-            }
-            if ( toggles.gears ) {
-                initialiseCheckBox( 'gearsToggle', true );
-            }
-            if ( toggles.scale ) {
-                initialiseCheckBox( 'scaleToggle', true );
-            }
-            if ( toggles.conj ) {
-                initialiseCheckBox( 'conjToggle', true );
-            }
-            if ( toggles.grid ) {
-                initialiseCheckBox( 'gridToggle', true );
-            }
-            if ( toggles.centres ) {
-                initialiseCheckBox( 'centresToggle', true );
-            }
-            if ( toggles.plane ) {
-                initialiseCheckBox( 'planeToggle', true );
-            }
-            if ( toggles.lines ) {
-                initialiseCheckBox( 'linesToggle', true );
-            }
-            if ( toggles.coords ) {
-                initialiseCheckBox( 'coordsToggle', true );
-            }
-            if ( toggles.locus ) {
-                initialiseCheckBox( 'locusToggle', true );
-            }
-            if ( toggles.jumps ) {
-                initialiseCheckBox( 'jumpsToggle', true );
-            }
-            if ( toggles.radiants ) {
-                initialiseCheckBox( 'radiantsToggle', true );
-            }
-            if ( toggles.random ) {
-                initialiseCheckBox( 'randomToggle', true );
-            }
-            if ( toggles.more ) {
-                initialiseCheckBox( 'moreToggle', true );
-            }
-            if ( toggles.midi ) {
-                initialiseCheckBox( 'midiToggle', true );
-            }
+            Object
+                .entries(param.toggles)
+                .forEach( ([key, value]) => {
+                    initialiseCheckBox( `${ key }Toggle`, Boolean( value ) );
+                } );
         }
 
         function openPlot() {
@@ -468,7 +413,11 @@
 
 
         function isToggle( toggle ) {
-            return document.getElementById( toggle + "Toggle" ).checked;
+            const toggleControl = document.getElementById( toggle + "Toggle" );
+            if ( !toggleControl ) {
+                console.log( `No such toggle control: ${ toggle }Toggle` );
+            }
+            return toggleControl.checked;
         }
 
 
@@ -535,9 +484,15 @@
 
         function initPage( urlParam = true ) {
 
+            const cv = getControlValues();
+
+            if ( urlParam ) {
+                cv.toggles = {...toggleKeys};
+            }
+
             const param = urlParam
-                ? getParam( getControlValues() )
-                : getControlValues();
+                ? getParam( cv )
+                : cv;
 
             initialiseControls( param );
 
@@ -558,6 +513,9 @@
             }
             if ( param.toggles.more ) {
                 showHideAll( ['more-options'] );
+            }
+            if ( param.toggles.colours ) {
+                showHideAll( ['colours'] );
             }
             if ( param.toggles.midi ) {
                 showHideCSS( '.midi' );
@@ -585,7 +543,7 @@
                     } else if ( data.colors ) {
 
                         const [ bases, colorOrbitIndex, minPixel ] = data.colors;
-                        putBasePlane( "COLOR_ORBITS", new ColorBasePlane( { "bases": bases }, colorOrbitIndex, minPixel ) );
+                        putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, colorOrbitIndex, minPixel ) );
                         updatePage();
 
                     } else if ( data.toggleCentres ) {
@@ -633,49 +591,59 @@
 
         <div id="toolbar" class="toolbar">
 
-            summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this.checked ? 1 : -1 )"/> |
-            table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table')"/> |
-            cycles<input type="checkbox" id="gearsToggle" onchange="updatePage()" checked="checked"/> |
-            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this.checked ? 1 : -1 )"/>
+            summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this )" title="display a table of identities and orbits"/> |
+            table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table', this)" title="display a table of identities and orbits"/> |
+            conj.<input type="checkbox" id="conjToggle" onchange="updatePage()"/> |
+            3d<input type="checkbox" id="grid3dToggle" onchange="updatePage()"/> |
+            radiants<input type="checkbox" id="radiantsToggle" onchange="updatePage()"/>
+            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/>
 
             <div id="more-options" style="display: none">
 
                 <hr/>
                 multi<input type="checkbox" id="multiToggle"/> |
                 coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
-                conj.<input type="checkbox" id="conjToggle" onchange="updatePage()" checked="checked"/> |
                 jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/>
-                radiants<input type="checkbox" id="radiantsToggle" onchange="updatePage()"/> |
-
                 <hr/>
-                grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )" checked="checked"/> |
-                centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" checked="checked"/> |
-                plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )" checked="checked"/> |
-                lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )" checked="checked"/> |
+                grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
+                centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /> |
+                plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/> |
+                lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
                 locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/>
+                scale 3d<input type="checkbox" id="scale3dToggle" onchange="updatePage()"/>
 
                 <hr/>
+                colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/>
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
                 <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
                 <div>
-                    <div id="expressor"></div>
+                    <hr/>
+                    orbits: <div id="expressor"></div>
                 </div>
-                <hr/>
-                <script>
-                    const vId = id => Number( document.getElementById(id).value );
-                    function getColorConfiguration() {
-                        return [ [ vId("red"), vId("green"), vId("blue") ], vId("orbitIndex"), vId("minPixel") ];
-                    }
-                    function applyColorBasePlane() {
-                        const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
-                        distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel ] } );
-                    }
-                </script>
-                colors<input type="number" min="1" id="red" value="4"/><input type="number" min="1" id="green" value="4"/><input type="number" min="1" id="blue" value="6"/> |
-                index<input type="number" min="0" id="orbitIndex" value="0"/> |
-                min-pixel<input type="number" min="0" max="255" id="minPixel" value="0"/> |
-                <input type="button" onclick="applyColorBasePlane()" value="apply">
+
+                <div id="colours" style="display: none">
+                    <hr/>
+                    <script>
+                        const vId = id => Number( document.getElementById(id).value );
+                        function getColorConfiguration() {
+                            return [ [ vId("red"), vId("green"), vId("blue") ], vId("orbitIndex"), vId("minPixel") ];
+                        }
+                        function applyColorBasePlane() {
+                            const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
+                            distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel ] } );
+                        }
+                    </script>
+                    rgb
+                    <input type="number" min="1" id="red" value="4" class="colourField"/>
+                    <input type="number" min="1" id="green" value="4" class="colourField"/>
+                    <input type="number" min="1" id="blue" value="6" class="colourField"/> |
+                    index <input type="number" min="0" id="orbitIndex" value="0" class="colourField"/> |
+                    min-pixel <input type="number" min="0" max="255" id="minPixel" value="0" class="colourField"/> |
+                    <a href="javascript:applyColorBasePlane()">apply</a>
+                </div>
+
+
 
             </div>
             <div style="display: none" class="midi">

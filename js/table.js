@@ -12,7 +12,8 @@ function showHideCSS( selector ) {
         } );
 }
 
-function showHide( id, force = 0 ) {
+function showHide( id, control ) {
+    const force = control ? control.checked ? 1 : -1 : 0;
     var c = document.getElementById( id );
     if ( c ) {
         var s = c.style.display;
@@ -24,8 +25,8 @@ function showHide( id, force = 0 ) {
     }
 }
 
-function showHideAll( ids = [], force ) {
-    ids.forEach( id => showHide( id, force ) );
+function showHideAll( ids = [], control ) {
+    ids.forEach( id => showHide( id, control ) );
 }
 
 
@@ -427,10 +428,13 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
+    const edgeGcd = gcd( basePlane.box.bases[0], basePlane.box.bases[basePlane.box.bases.length - 1] );
+
+    const brilliance = basePlane.box.brilliance;
+    const brillianceGcd = gcd( brilliance, basePlane.grossPerimeter() );
+
     const trialCommonDenominators = [
-        maxIndex,
-        maxIndex + 1,
-        ( (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 ) ),
+        brillianceGcd
     ];
 
     chainsText += "<td colspan='3'></td>";

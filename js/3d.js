@@ -110,7 +110,7 @@ function createPlaneItem(
 
 function createPlaneItemWithNormal(
         centre = [0,0,0],
-        unitNormal = [0,1,0],
+        planeNormal = [0,1,0],
         scaleUnit = [1,1,1],
         currentDirection = [0,1,0],
         origin = [0,0,0],
@@ -118,8 +118,9 @@ function createPlaneItemWithNormal(
         planeColor = "gray",
         planeTransparency = 0.95 ) {
 
-    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
-    var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
+    const unitNormal = normalize( planeNormal );
+    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection,  planeNormal ) );
+    var rotationAngle = Math.acos( dotProduct( currentDirection, planeNormal ) );
 
     const planeItem = createPlaneItem(
                               centre,
@@ -136,7 +137,7 @@ function createPlaneItemWithNormal(
         reify(
             "transform",
             {
-                "translation": unitNormal.join( ' ' ),
+                "translation": planeNormal.join( ' ' ),
                 "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle
             },
             [ createBoxShape( [0.1, 0.1, 0.1], "black" ) ]

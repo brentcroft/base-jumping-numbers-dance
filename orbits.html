@@ -177,6 +177,9 @@
 
             const toggleParam = urlParams.get('toggles');
             if ( toggleParam ) {
+                Object
+                    .keys( toggles )
+                    .forEach( k => toggles[k] = 0 );
                 toggleParam
                     .split(',')
                     .forEach( x => toggles[x] = 1 );
@@ -306,9 +309,27 @@
         }
 
 
-        function applyExpression( control, orbit, index ) {
+        function applyExpression( control, id, size, incrementPlaces = true ) {
 
-            control.value = ( orbit.order + Number( control.value ) ) % orbit.order;
+            function maybeIncrementPlaces( control, id ) {
+                if ( Number( control.value ) >= Number( control.max ) ) {
+                    control.value = 0;
+                    const nextId = (id+1) % size;
+                    const nextPlace = document.getElementById( "o" + nextId );
+                    nextPlace.value = Number( nextPlace.value ) + 1;
+                    maybeIncrementPlaces( nextPlace, nextId );
+                } else if ( Number( control.value ) < 0 ) {
+                    control.value = Number( control.max ) - 1;
+                    const nextId = (id+1) % size;
+                    const nextPlace = document.getElementById( "o" + nextId );
+                    nextPlace.value = Number( nextPlace.value ) - 1;
+                    maybeIncrementPlaces( nextPlace, nextId );
+                }
+            }
+
+            if ( incrementPlaces ) {
+                maybeIncrementPlaces( control, id );
+            }
 
             var locus = basePlane
                 .orbits
@@ -324,13 +345,22 @@
                 expressor.removeChild( expressor.lastChild );
             }
             if ( redraw ) {
+                expressor.appendChild( reify(
+                        "span",
+                        {},
+                        [],
+                        [ s => {
+                            s.innerHTML = "phase: ";
+                        } ]
+                    )
+                );
                 basePlane.orbits.forEach( (orbit, i) => {
                     expressor.appendChild(
                         reify(
                             "input",
                             { "type": "number", "class": "colourField", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
                             [],
-                            [ ( control ) => control.onchange = () => applyExpression( control, orbit, i ) ]
+                            [ ( control ) => control.onchange = () => applyExpression( control, i, basePlane.orbits.length ) ]
                         )
                     );
                 } );
@@ -577,9 +607,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="7"/>
-                <input type="number" min="1" id="b1" value="3"/>
-                <input type="number" min="1" id="b2" value="2"/>
+                <input type="number" min="1" id="b0" value="8"/>
+                <input type="number" min="1" id="b1" value="2"/>
+                <input type="number" min="1" id="b2" value="3"/>
             </span> |
 
             <input type="number" id="basesVolume" disabled="disabled"/> |
@@ -590,37 +620,36 @@
 
 
         <div id="toolbar" class="toolbar">
-
-            summary<input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this )" title="display a table of identities and orbits"/> |
-            table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table', this)" title="display a table of identities and orbits"/> |
-            conj.<input type="checkbox" id="conjToggle" onchange="updatePage()"/> |
-            3d<input type="checkbox" id="grid3dToggle" onchange="updatePage()"/> |
-            radiants<input type="checkbox" id="radiantsToggle" onchange="updatePage()"/>
-            more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/>
+            <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this )"/></label> |
+            <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table', this)" title="display a table of identities and orbits"/></label> |
+            <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="grid3dToggle" onchange="updatePage()"/></label> |
+            <label title="show each radiant instead of a chord diagram">radiants<input type="checkbox" id="radiantsToggle" onchange="updatePage()"/></label> |
+            <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
 
             <div id="more-options" style="display: none">
 
                 <hr/>
-                multi<input type="checkbox" id="multiToggle"/> |
-                grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/> |
-                centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /> |
-                plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/> |
-                lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/> |
+                <label title="show the box grid structure">grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/></label> |
+                <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |
+                <label title="show the identity plane">plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/></label> |
+                <label title="show orbit lines">lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/></label> |
+                <label title="show the phase controls and the corresponding locus">locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/></label> |
+                <label title="scale 3d to a square">scale 3d<input type="checkbox" id="scale3dToggle" onchange="updatePage()"/></label>
 
                 <hr/>
-                coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/> |
-                jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/>
-                locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/>
-                scale 3d<input type="checkbox" id="scale3dToggle" onchange="updatePage()"/>
+                <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updatePage()"/></label> |
+                <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/></label> |
+                <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/></label> |
+                <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label>
 
                 <hr/>
-                colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/>
+                colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/> |
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
                 <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
                 <div>
                     <hr/>
-                    orbits: <div id="expressor"></div>
+                    <div id="expressor"></div>
                 </div>
 
                 <div id="colours" style="display: none">
@@ -653,6 +682,7 @@
             </div>
         </div>
     </div>
+
     <div>
         <table width="100%">
             <tr>
@@ -663,6 +693,7 @@
     </div>
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
+
 
     <div id="sample_cs_b_10_m_2_plot"></div>
 

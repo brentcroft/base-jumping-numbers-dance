@@ -39,13 +39,13 @@ class Orbit {
         };
         this.coords = coords;
 
-        this.basis = this.coords[0].coord.length;
+        this.rank = this.coords[0].coord.length;
         this.order = this.coords.length;
-        this.centre = new Array( this.basis ).fill( 0 );
+        this.centre = new Array( this.rank ).fill( 0 );
 
-        this.sum = new Array( this.basis ).fill( 0 );
+        this.sum = new Array( this.rank ).fill( 0 );
         this.coords.forEach( ( item, index ) => {
-            for ( var i = 0; i < this.basis; i++ ) {
+            for ( var i = 0; i < this.rank; i++ ) {
                 this.sum[i] += item.coord[i];
             }
         } );
@@ -147,7 +147,7 @@ class BasePlane {
 
     getCaptionHtml() {
         var cimHtml = "plane: <span class='equation'>" + this.box.getPlaneEquationTx() + "</span>, ";
-        cimHtml += " <span class='equation'>|e| - 1 = " + this.box.rawPlaneGcd + "</span>";
+        cimHtml += " <span class='equation'>|e| - 1 = " + this.box.identityPlaneGcd + "</span>";
         cimHtml += " | orbits: <span class='monomial'>" + getCycleIndexMonomialHtml( this ) + "</span>";
         return cimHtml;
     }
@@ -341,7 +341,7 @@ class BasePlane {
 
         const maxIndex = this.box.volume - 1;
 
-        var totalHarmonicSum = new Array( this.box.bases.length ).fill( 0 );
+        var totalHarmonicSum = new Array( this.box.rank ).fill( 0 );
         var totalWeight = 0;
         var totalRotation = 0;
         var totalJumpage = 0;

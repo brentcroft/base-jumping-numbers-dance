@@ -115,12 +115,12 @@ var lcma = (a) => {
     return result;
 };
 
-
-var unitDisplacement  = ( p1, p2 ) => {
-    const d = displacement( p1, p2 );
+var normalize = (d) => {
     const ed = Math.sqrt( euclideanDistance2( d ) );
     return d.map( x => x / ed );
 };
+
+var unitDisplacement  = ( p1, p2 ) => normalize( displacement( p1, p2 ) );
 
 var perpendicularDistance = ( point, line, lineUnit ) => {
     const [ A, B ] = line;
@@ -212,5 +212,5 @@ function getBrilliance( bases ) {
             f.reduce( (a,c) => a + c, 0 )
         ];
 
-        return c - s + t;
+        return ( c - s + t ) / 2;
     }

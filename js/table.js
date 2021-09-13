@@ -160,15 +160,9 @@ function drawBasePlaneTable( tableArgs ) {
     var chainsText = "";
     chainsText += `<table id="${ tableId }" class='chain-details summary sortable'>`;
 
-//    chainsText += "<caption>Orbit System: ";
-//    chainsText += `b=[${ basePlane.box.bases.join( ', ' ) }], `;
-//    chainsText += `t=${ basePlane.box.volume - 1 }, `;
-//    chainsText += `f=${ basePlane.fundamental }, `;
-//    chainsText += "</caption>";
-
     var colIndex = 0;
     chainsText += "<tr>";
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Index</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Id</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Instrument</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Channel</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Percussion</th>`;
@@ -210,9 +204,10 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     }
 
-    const maxIndex = basePlane.box.volume - 1;
+    const volume = basePlane.box.volume;
+    const maxIndex = volume - 1;
 
-    const initialPointsSum = new Array( basePlane.box.bases.length ).fill( 0 );
+    const initialPointsSum = new Array( basePlane.box.rank ).fill( 0 );
     const identityPointsSum = basePlane.identities.reduce( (a, p) => addition( a, p.coords[0].coord ), initialPointsSum );
     const identityIdSum = basePlane.identities.reduce( (a, p) => a + p.coords[0].indexes[basePlane.id].id, 0 );
     const identityIdSumGcd = gcd( maxIndex, identityIdSum );
@@ -377,19 +372,24 @@ function drawBasePlaneTable( tableArgs ) {
 
     function factoredTableTotalBlock( value, trialFactors = [], totalClick, classList = [] ) {
         var block = `<td class="sum-total ${ classList.join(' ') }" onclick="${ totalClick }"><span class="sum-total ${ classList.join(' ') }">`;
-        var v = value;
+
         const factors = [];
-        [ ...trialFactors ]
-            .reverse()
-            .forEach( (x,i) => {
-                const factor = gcd( v, x );
-                if ( factor != 1 ) {
-                    factors.push( factor );
-                    v = v / factor;
-                }
-            } );
-        if ( v != 1) {
-            factors.push( v );
+        if ( value == 0 ) {
+            factors.push( value );
+        } else {
+            var v = value;
+            [ ...trialFactors ]
+                .reverse()
+                .forEach( (x,i) => {
+                    const factor = gcd( v, x );
+                    if ( factor == x ) {
+                        factors.push( factor );
+                        v = v / factor;
+                    }
+                } );
+            if ( v != 1) {
+                factors.push( v );
+            }
         }
         block += factors.reverse().reduce( (a,c) => ( a ? a + " * " : "" ) + c, 0 );
         block += "</span></td>";
@@ -428,12 +428,15 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
-    const edgeGcd = gcd( basePlane.box.bases[0], basePlane.box.bases[basePlane.box.bases.length - 1] );
+    const edgeGcd = gcd( basePlane.box.bases[0], basePlane.box.bases[basePlane.box.rank - 1] );
 
     const brilliance = basePlane.box.brilliance;
     const brillianceGcd = gcd( brilliance, basePlane.grossPerimeter() );
 
     const trialCommonDenominators = [
+        volume + 1,
+        volume,
+        ( (volume % 2) == 0 ? ( volume / 2 ) : ( ( volume + 1 ) / 2 ) ),
         brillianceGcd
     ];
 

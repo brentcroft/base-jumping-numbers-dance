@@ -19,9 +19,6 @@
             }
         </style>
 
-<!--        <script src="https://d3js.org/d3.v7.min.js"></script>-->
-<!--        <script type="text/javascript" src="d3.layout.force3d.js"></script>-->
-
         <script type="text/javascript" src="js/toggles.js"></script>
 
         <script type="text/javascript" src="js/x3dom-full.js"></script>
@@ -70,7 +67,7 @@
                     .forEach( item => item.classList.remove('selected') );
             }
             function toggleLines( containerId ) {
-                toggleBySelector( containerId, ".orbit"  );
+                toggleBySelector( containerId, ".orbit-line"  );
             }
             function toggleLocus( containerId ) {
                 toggleBySelector( containerId, ".orbit-system-locus"  );
@@ -118,7 +115,7 @@
                 const [ tableId, ...orbitIds ] = senderId.split( "." );
                 const orbits = document
                     .getElementById( containerId )
-                    .querySelectorAll( ".orbit" );
+                    .querySelectorAll( ".orbit-line" );
 
                 orbits.forEach( orbitElement => {
                         const [ cId, oId ] = orbitElement.id.split( "." );
@@ -141,7 +138,7 @@
             function showAllOrbits( containerId, basePlane ) {
                 const orbits = document
                     .getElementById( containerId )
-                    .querySelectorAll( ".orbit" )
+                    .querySelectorAll( ".orbit-line" )
                     .forEach( orbitElement => {
                         orbitElement.setAttribute( "render", true );
                         orbitElement.classList.remove("selected");
@@ -264,7 +261,7 @@
                         .appendChild(
                             reify(
                                 "group",
-                                { "class": "orbit", "id": ("orbit." + orbit.index ) },
+                                { "class": "orbit-line", "id": ("orbit." + orbit.index ) },
                                 [
                                     createLineSet( orbit.coords, orbitColor ),
                                     reify(
@@ -297,8 +294,8 @@
 
                 var planeItem = createPlaneItemWithNormal(
                         basePlane.centre,
-                        basePlane.unitNormal,
-                        scaleUnit,
+                        basePlane.identityPlaneNormal,
+                        [1,1,1],
                         currentDirection,
                         basePlane.box.origin,
                         [ basePlane.bases[0], 0, basePlane.bases[basePlane.bases.length-1] ],
@@ -347,7 +344,7 @@
                             .appendChild(
                                 reify(
                                     "transform",
-                                    { "translation": `${ i } 0 0`, "class": "orbit", "id": ("orbit." + orbit.index ) },
+                                    { "translation": `${ i } 0 0`, "class": "orbit-line", "id": ("orbit." + orbit.index ) },
                                     [ createDialLineSet( orbit.coords, colorBasePlane.colorForIndex( orbit.index ) ) ]
                                 )
                             );
@@ -465,7 +462,7 @@
                                                     emissiveColor: color,
                                                     transparency: 0,
                                                     angle: PI,
-                                                    cssClass: "orbit",
+                                                    cssClass: "orbit-line",
                                                     toggles: toggles
                                                  } ),
                                             reify(
@@ -494,7 +491,7 @@
                                         "transform",
                                         {
                                             "translation": `0 0 ${ zOff * i }`,
-                                            "class": "orbit",
+                                            "class": "orbit-line",
                                             "id": ("orbit." + orbit.index )
                                         },
                                         [
@@ -568,7 +565,7 @@
                 const sceneRootId = `${ x3domContainerId }_scene_root`;
                 const sceneRoot = document.getElementById( sceneRootId );
 
-                var osi = (param.toggles.grid3d == 1 && basePlane.box.bases.length == 3 )
+                var osi = (param.toggles.grid3d == 1 && basePlane.box.rank == 3 )
                     ? getBasePlaneItems( basePlane, param.toggles )
                     : getBasePlaneCycles( basePlane, param.toggles );
 

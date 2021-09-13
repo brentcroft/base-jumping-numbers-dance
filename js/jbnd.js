@@ -3,7 +3,16 @@
 class Box {
     constructor( bases ) {
         this.bases = [...bases];
+        this.rank = this.bases.length;
         this.volume = this.bases.reduce( ( a, c ) => a * c, 1 );
+        this.surfaceArea = this.bases.map( (x,i) => (this.rank-1) * x * this.bases[ ( i + 1 ) % this.rank ] ).reduce( (a,c) => a + c, 0 );
+
+        this.volumeUnits = [ 1 ];
+        for ( var i = 2; i < this.volume; i++ ) {
+            if ( 1 == gcd( i, this.volume ) ) {
+                this.volumeUnits.push( i );
+            }
+        }
 
         this.brilliance = getBrilliance( this.bases );
         this.radiance = ( this.volume % 2 == 0 )
@@ -27,6 +36,8 @@ class Box {
         return {
            bases: this.bases,
            volume: this.volume,
+           volumeUnits: this.volumeUnits,
+           area: this.surfaceArea,
            sum: this.sum,
            idSum: this.indexSum,
            brilliance: this.brilliance,
@@ -87,16 +98,17 @@ function placeValuesReverseArray( bases ) {
 
 
 
-class IndexPlane {
+class PointIndex {
     constructor( box, id = 0 ) {
         this.box = box;
         this.id = id;
         this.key = `plane-${ id }`;
 
+        // local copy
         this.bases = [ ...box.bases ];
-        rotateArray( this.bases, this.id );
 
         // indexers
+        rotateArray( this.bases, this.id );
         this.powersForward = placeValuesForwardArray( this.bases );
         this.powersReverse = placeValuesReverseArray( this.bases );
 
@@ -110,16 +122,16 @@ class IndexPlane {
 
         // plane of identity
         this.centre = this.bases.map( x => ( x - 1 ) / 2 );
-        this.rawPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
-        this.rawPlaneGcd = Math.abs( gcda( this.rawPlane ) );
-        this.unitNormal = unitDisplacement( this.box.origin, this.rawPlane );
+        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
+        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
     }
 
     getPlaneEquationTx() {
-        const basis = this.rawPlane.length;
+        const basis = this.identityPlane.length;
         const varIds = d => [ "x", "y", "z", "w", "v", "u", "t", "s", "r", "q", "p" ].map( x => `<i>${ x }</i>` )[d];
         var plane = this
-            .rawPlane
+            .identityPlane
             .map( x => x );
 
         const pad = s => `${ s }`.padStart( 2, " " );
@@ -138,7 +150,7 @@ class IndexPlane {
 
     getCaptionHtml() {
         var cimHtml = "plane: <span class='equation'>" + this.getPlaneEquationTx() + "</span>, ";
-        cimHtml += " <span class='equation'>|e| - 1 = " + this.rawPlaneGcd + "</span>";
+        cimHtml += " <span class='equation'>|e| - 1 = " + this.identityPlaneGcd + "</span>";
         cimHtml += " | orbits: <span class='monomial'>" + getCycleIndexMonomialHtml( this ) + "</span>";
         return cimHtml;
     }
@@ -146,7 +158,7 @@ class IndexPlane {
 
     identityBrilliance() {
         const points = this.identities.map( x => x.coords[0] );
-        const diameters = points.map( p => distance2( p.coord, this.idx[p.indexes[this.id].reflectId].coord ) );
+        const diameters = points.map( p => distance2( p.coord, this.centre ) );
         return diameters.reduce( (a,d) => a + d, 0);
     }
 
@@ -432,7 +444,7 @@ class IndexPlane {
             const coords = orbit.coords;
 
             orbit.brilliance = coords
-                    .map( (x,i) => distance2( x.coord, this.idx[x.indexes[this.id].reflectId].coord ) )
+                    .map( (x,i) => distance2( x.coord, this.centre ) )
                     .reduce( (a,c) => a + c, 0 );
 
             orbit.perimeter = coords
@@ -489,10 +501,6 @@ class IndexPlane {
         this.totalHarmonicSum = totalHarmonicSum;
         this.totalPerimeter = totalPerimeter;
         this.totalBrilliance = totalBrilliance;
-
-//        if ( ( totalBrilliance + this.identityBrilliance() ) != this.box.brilliance ) {
-//            throw `Error: totalBrilliance != this.box.brilliance: ${ totalBrilliance } != ${ this.box.brilliance }`;
-//        }
 
         this.harmonics = harmonics;
         this.maxIndex = maxIndex;
@@ -567,10 +575,10 @@ class IndexedBox {
         this.indexPlanes = [];
 
         if ( bases.length <= 2 ) {
-            this.indexPlanes.push( new IndexPlane( this.box, 0 ) );
+            this.indexPlanes.push( new PointIndex( this.box, 0 ) );
         } else {
             for ( var i = 0; i < bases.length; i++ ) {
-                this.indexPlanes.push( new IndexPlane( this.box, i ) );
+                this.indexPlanes.push( new PointIndex( this.box, i ) );
             }
         }
 

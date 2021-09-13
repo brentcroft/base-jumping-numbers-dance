@@ -60,26 +60,26 @@ class BaseBox {
 
         // plane of iniquity
         this.centre = this.bases.map( x => ( x - 1 ) / 2 );
-        this.rawPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
-        this.rawPlaneGcd = Math.abs( gcda( this.rawPlane ) );
-        this.unitNormal = unitDisplacement( this.origin, this.rawPlane );
+        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
+        this.identityPlaneNormal = unitDisplacement( this.origin, this.identityPlane );
     }
 
     getPlaneEquationTx() {
-        const basis = this.rawPlane.length;
+        const rank = this.identityPlane.length;
         const varIds = d => [ "x", "y", "z" ].map( x => `<i>${ x }</i>` )[d];
         var plane = this
-            .rawPlane
+            .identityPlane
             .map( x => x );
         var planeMid = plane
             .map( ( x, i ) => `${ x < 0 ? " + " : " - " }${ Math.abs( x ) }${ varIds( i ) }` )
-            .slice( 1, basis - 1 )
+            .slice( 1, rank - 1 )
             .join("");
 
         var eqn = `${ -1 * plane[0] }${ varIds( 0 ) }`;
         eqn += `${ planeMid }`;
         eqn += " = ";
-        eqn += `${ plane[ basis - 1 ] }${ varIds( basis - 1) }`;
+        eqn += `${ plane[ rank - 1 ] }${ varIds( rank - 1) }`;
         return eqn;
     }
 
@@ -117,8 +117,8 @@ class BaseBox {
            idSum: this.indexSum,
            id: this.powersForward,
            di: this.powersReverse,
-           plane: this.rawPlane,
-           gcd: this.rawPlaneGcd,
+           plane: this.identityPlane,
+           gcd: this.identityPlaneGcd,
        };
     }
 
@@ -162,7 +162,7 @@ class Ray {
 */
 function generateIndexes( param, index = 0, coord = [] ) {
     const { box = null, indexForward = null, indexReverse = null, idx = [], dix = [] } = param;
-    if ( index == box.bases.length ) {
+    if ( index == box.rank ) {
         const volume = box.volume;
         const id = indexForward( coord );
         const di = indexReverse( coord );

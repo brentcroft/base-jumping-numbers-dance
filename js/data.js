@@ -78,7 +78,8 @@ var crossProduct      = ( p1, p2 ) => [
       p1[0] * p2[1] - p1[1] * p2[0]
 ];
 
-
+var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
+var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every((val, index) => val === a[index]);
 
 // @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
@@ -192,25 +193,24 @@ function shuffleArray( array ) {
 
 
 /**
- The sum of the length of each ray from each coordinate
- to its reflection in the box centre.
+     Twice the sum of the distance from each coordinate to the box centre.
 */
 function getBrilliance( bases ) {
 
-        const volume = bases.reduce( (a,c) => a*c, 1 );
-        const volumeFactor = ( b ) => ( volume / b );
-        const sumTriangles = ( n ) => n * ( n + 1 ) / 2;
-        const sumSquares = ( n ) => n * ( n + 1 ) * ( 2 * n + 1 ) / 6;
+    const volume = bases.reduce( (a,c) => a*c, 1 );
+    const volumeFactor = ( b ) => ( volume / b );
+    const sumTriangles = ( n ) => n * ( n + 1 ) / 2;
+    const sumSquares = ( n ) => n * ( n + 1 ) * ( 2 * n + 1 ) / 6;
 
-        const d = bases.map( b => volume * ( b - 1 )**2 );
-        const e = bases.map( b => 4 * volumeFactor( b ) * ( b - 1 ) * sumTriangles( b - 1 ) );
-        const f = bases.map( b => 4 * volumeFactor( b ) * sumSquares( b - 1 ) );
+    const d = bases.map( b => volume * ( b - 1 )**2 );
+    const e = bases.map( b => 4 * volumeFactor( b ) * ( b - 1 ) * sumTriangles( b - 1 ) );
+    const f = bases.map( b => 4 * volumeFactor( b ) * sumSquares( b - 1 ) );
 
-        const [ c, s, t ] = [
-            d.reduce( (a,c) => a + c, 0 ),
-            e.reduce( (a,c) => a + c, 0 ),
-            f.reduce( (a,c) => a + c, 0 )
-        ];
+    const [ c, s, t ] = [
+        d.reduce( (a,c) => a + c, 0 ),
+        e.reduce( (a,c) => a + c, 0 ),
+        f.reduce( (a,c) => a + c, 0 )
+    ];
 
-        return ( c - s + t ) / 2;
-    }
+    return ( c - s + t ) / 2;
+}

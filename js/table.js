@@ -184,8 +184,6 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index radiant (distance from the index centre) of each coordinate.">Radiance</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index distance between adjacent coordinates in an orbit.">Jumpage</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Radiance minus the Jumpage.">Torsion</th>`;
-//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>GCD / LCM</th>`;
-//    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Weight</th>`;
     chainsText += "</tr>";
 
     chainsText += "<tr>";
@@ -362,13 +360,8 @@ function drawBasePlaneTable( tableArgs ) {
             chainsText += `<td align="center">${ orbit.jumpage }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         }
-
-//        chainsText += `<td align="center">( ${ orbit.gcd }, ${ orbit.lcm } )</td>`;
-//        chainsText += `<td align="center">${ formattedWeight( orbit.bias ) }</td>`;
         chainsText += "</tr>";
     }
-
-
 
     function factoredTableTotalBlock( value, trialFactors = [], totalClick, classList = [] ) {
         var block = `<td class="sum-total ${ classList.join(' ') }" onclick="${ totalClick }"><span class="sum-total ${ classList.join(' ') }">`;
@@ -395,8 +388,6 @@ function drawBasePlaneTable( tableArgs ) {
         block += "</span></td>";
         return block;
     }
-
-
 
     var tds = basePlane.box.sum;
     var tis = basePlane.box.indexSum;
@@ -441,7 +432,7 @@ function drawBasePlaneTable( tableArgs ) {
     ];
 
     chainsText += "<td colspan='3'></td>";
-    chainsText += factoredTableTotalBlock( basePlane.box.brilliance, [ ...trialCommonDenominators ], totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.grossBrilliance(), [ ...trialCommonDenominators ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossPerimeter(), [ ...trialCommonDenominators ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
 

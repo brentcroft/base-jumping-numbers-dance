@@ -166,7 +166,7 @@
                 function appendGridChildren( grid ) {
                     const [ b0, b1, b2 ] = basePlane.box.bases;
                     const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
-                    const gridPointRadius = 0.05;
+                    const gridPointRadius = 0.07;
 
                     for ( var i = 0; i < b0; i++ ) {
                         for ( var j = 0; j < b1; j++ ) {
@@ -280,7 +280,7 @@
                                             "class": "orbitCoord",
                                             "id": `orbitCoord.${ x.index }.${ i }`
                                         },
-                                        [ createSphereShape( 0.05, orbitColor, 0, x.report() ) ] ) )
+                                        [ createSphereShape( 0.07, orbitColor, 0, x.report() ) ] ) )
                                 ],
                                 [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
                             )

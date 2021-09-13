@@ -260,15 +260,15 @@
             messages.forEach( message => distributeMessage( containerId, message) );
         }
 
-        function showOrbit( containerId, basePlaneKey, senderId, multi  ) {
-            const [ sourceId, orbitId ] = senderId.split( "." );
+        function showOrbit( containerId, basePlane, senderId, multi  ) {
+            const [ sourceId, ...orbitId ] = senderId.split( "." );
             const tableCells = document
                 .getElementById( containerId + "_table" )
                 .querySelectorAll( "td.orbit" );
 
             tableCells.forEach( tableCell => {
-                const [ cId, oId ] = tableCell.id.split( "." );
-                if ( orbitId != oId ) {
+                const [ cId, ...oId ] = tableCell.id.split( "." );
+                if ( !arrayContains( oId, orbitId ) ) {
                     if ( !(multi && tableCell.classList.contains( "selected" ) ) ) {
                        tableCell.classList.remove("selected");
                     }
@@ -284,8 +284,8 @@
                 .value = orbitId;
         }
 
-        function showAllOrbits( containerId, basePlaneKey ) {
-            showOrbit( containerId, basePlaneKey, "." );
+        function showAllOrbits( containerId, basePlane ) {
+            showOrbit( containerId, basePlane, "." );
         }
 
         function toggleSelected( item ) {
@@ -345,13 +345,12 @@
                 expressor.removeChild( expressor.lastChild );
             }
             if ( redraw ) {
+                expressor.appendChild( reify( "hr" ) );
                 expressor.appendChild( reify(
                         "span",
                         {},
                         [],
-                        [ s => {
-                            s.innerHTML = "phase: ";
-                        } ]
+                        [ s => s.innerHTML = "phase: " ]
                     )
                 );
                 basePlane.orbits.forEach( (orbit, i) => {
@@ -397,6 +396,19 @@
                 .forEach( ([key, value]) => {
                     initialiseCheckBox( `${ key }Toggle`, Boolean( value ) );
                 } );
+
+            function setNumberField( id, value ) {
+                document.getElementById( id ).value = value;
+            }
+            const colourFields = [ "colour-red", "colour-green", "colour-blue", "colour-orbitIndex", "colour-minPixel" ];
+
+            setNumberField( "colour-red", colourPointIndexDefault.bases[0] );
+            setNumberField( "colour-green", colourPointIndexDefault.bases[1] );
+            setNumberField( "colour-blue", colourPointIndexDefault.bases[2] );
+            setNumberField( "colour-orbitIndex", colourPointIndexDefault.orbitIndex );
+            setNumberField( "colour-minPixel", colourPointIndexDefault.minPixel );
+            setNumberField( "colour-maxPixel", colourPointIndexDefault.maxPixel );
+
         }
 
         function openPlot() {
@@ -526,6 +538,7 @@
 
             initialiseControls( param );
 
+
             const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
             putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, orbitIndex, minPixel ) );
 
@@ -585,7 +598,7 @@
             });
 
             if ( param.id ) {
-                distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] )
+                distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] );
             }
 
             distributeMessage( 'sample_cs_b_10_m_2', {
@@ -607,9 +620,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="8"/>
+                <input type="number" min="1" id="b0" value="2"/>
                 <input type="number" min="1" id="b1" value="2"/>
-                <input type="number" min="1" id="b2" value="3"/>
+                <input type="number" min="1" id="b2" value="2"/>
             </span> |
 
             <input type="number" id="basesVolume" disabled="disabled"/> |
@@ -647,8 +660,8 @@
                 random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
                 midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
                 <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
+
                 <div>
-                    <hr/>
                     <div id="expressor"></div>
                 </div>
 
@@ -657,19 +670,28 @@
                     <script>
                         const vId = id => Number( document.getElementById(id).value );
                         function getColorConfiguration() {
-                            return [ [ vId("red"), vId("green"), vId("blue") ], vId("orbitIndex"), vId("minPixel") ];
+                            return [ [ vId("colour-red"), vId("colour-green"), vId("colour-blue") ], vId("colour-orbitIndex"), vId("colour-minPixel"), vId("colour-maxPixel") ];
                         }
                         function applyColorBasePlane() {
-                            const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
-                            distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel ] } );
+                            const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
+                            distributeMessage( "sample_cs_b_10_m_2", { colors: [ bases, orbitIndex, minPixel, maxPixel ] } );
+                        }
+                        function masterColorBasePlane() {
+                            const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
+                            initialiseBases( bases );
+                            updatePage();
+                            distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': 'colourBasePlane' } ] );
+                            distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'colourBasePlane.' + orbitIndex } ] );
                         }
                     </script>
                     rgb
-                    <input type="number" min="1" id="red" value="4" class="colourField"/>
-                    <input type="number" min="1" id="green" value="4" class="colourField"/>
-                    <input type="number" min="1" id="blue" value="6" class="colourField"/> |
-                    index <input type="number" min="0" id="orbitIndex" value="0" class="colourField"/> |
-                    min-pixel <input type="number" min="0" max="255" id="minPixel" value="0" class="colourField"/> |
+                    <input type="number" min="1" id="colour-red" value="4" class="colourField"/>
+                    <input type="number" min="1" id="colour-green" value="4" class="colourField"/>
+                    <input type="number" min="1" id="colour-blue" value="6" class="colourField"/> |
+                    index <input type="number" min="1" id="colour-orbitIndex" value="1" class="colourField"/> |
+                    <a href="javascript:masterColorBasePlane()">master</a> |
+                    min-pixel <input type="number" min="0" max="255" id="colour-minPixel" value="50" class="colourField"/> |
+                    max-pixel <input type="number" min="0" max="255" id="colour-maxPixel" value="200" class="colourField"/> |
                     <a href="javascript:applyColorBasePlane()">apply</a>
                 </div>
 

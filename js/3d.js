@@ -137,7 +137,7 @@ function createPlaneItemWithNormal(
         reify(
             "transform",
             {
-                "translation": planeNormal.join( ' ' ),
+                "translation": unitNormal.join( ' ' ),
                 "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle
             },
             [ createBoxShape( [0.1, 0.1, 0.1], "black" ) ]

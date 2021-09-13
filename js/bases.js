@@ -83,32 +83,6 @@ class BaseBox {
         return eqn;
     }
 
-    /**
-     The sum of the length of each ray from each coordinate
-     to its reflection in the box centre.
-    */
-    getBrilliance() {
-
-        const sumTriangles = ( n ) => n * ( n + 1 ) / 2;
-        const sumSquares = ( n ) => n * ( n + 1 ) * ( 2 * n + 1 ) / 6;
-        const volumeFactor = ( b ) => ( this.volume / b );
-
-        const bases = this.bases;
-
-        const d = bases.map( b => this.volume * ( b - 1 )**2 );
-        const e = bases.map( b => 4 * volumeFactor( b ) * ( b - 1 ) * sumTriangles( b - 1 ) );
-        const f = bases.map( b => 4 * volumeFactor( b ) * sumSquares( b - 1 ) );
-
-        const [ c, s, t ] = [
-            d.reduce( (a,c) => a + c, 0 ),
-            e.reduce( (a,c) => a + c, 0 ),
-            f.reduce( (a,c) => a + c, 0 )
-        ];
-
-        return c - s + t;
-    }
-
-
     getJson() {
         return {
            bases: this.bases,
@@ -136,7 +110,6 @@ class Coord {
         this.reflectId = ( box.volume - id - 1 );
         this.jump = ( this.di - this.id );
         this.radiant = Math.abs( this.reflectId - this.id );
-        //this.radiant = Math.abs( box.indexCentre - this.id );
     }
 
     torsion() {

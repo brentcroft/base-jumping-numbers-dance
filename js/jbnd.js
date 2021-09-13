@@ -14,6 +14,7 @@ class Box {
             }
         }
 
+        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
         this.brilliance = getBrilliance( this.bases );
         this.radiance = ( this.volume % 2 == 0 )
             ? ( this.volume / 2 ) ** 2
@@ -36,7 +37,7 @@ class Box {
         return {
            bases: this.bases,
            volume: this.volume,
-           volumeUnits: this.volumeUnits,
+           units: this.volumeUnits.length,
            area: this.surfaceArea,
            sum: this.sum,
            idSum: this.indexSum,
@@ -52,13 +53,14 @@ class Box {
 
 
 class Point {
-    constructor( coord = [] ) {
+    constructor( coord = [], centre ) {
         this.coord = [ ...coord ];
+        this.brilliance = centre ? distance2( this.coord, centre ) * 2 : 0;
         this.indexes = [];
     }
 
     report() {
-        return "Point: " + canonicalize( this.coord ) + "\n"
+        return `Point: ${ canonicalize( this.coord ) }, brilliance: ${ this.brilliance } \n`
             + this.indexes.map( ( x, i ) => `${ i }: ${ JSON.stringify( x ) }` ).join( "\n" );
     }
 
@@ -155,52 +157,60 @@ class PointIndex {
         return cimHtml;
     }
 
-
+    // BRILLIANCE
     identityBrilliance() {
         const points = this.identities.map( x => x.coords[0] );
-        const diameters = points.map( p => distance2( p.coord, this.centre ) );
-        return diameters.reduce( (a,d) => a + d, 0);
+        const radii = points.map( p => 2 * distance2( p.coord, this.centre ) );
+        return radii.reduce( (a,r) => a + r, 0);
     }
 
+    grossBrilliance() {
+        return this.box.brilliance;
+        // this.identityBrilliance() + this.totalBrilliance;
+    }
+
+    // PERIMETER
     identityPerimeter() {
         return 0;
 //        const stationaryCentres = 2 + (this.identities.length % 2 );
-//        return ( this.identities.length - stationaryCentres ) * 2;
-    }
-
-    identityTension() {
-        return this.identityBrilliance() - this.identityPerimeter();
+//        return 2 * ( this.identities.length - stationaryCentres );
     }
 
     grossPerimeter() {
         return this.identityPerimeter() + this.totalPerimeter;
     }
 
-    grossTension() {
-        return this.box.brilliance - this.grossPerimeter();
+    // TENSION
+    identityTension() {
+        return this.identityBrilliance() - this.identityPerimeter();
     }
 
+    grossTension() {
+        return this.grossBrilliance() - this.grossPerimeter();
+    }
 
+    // RADIANCE
     identityRadiance() {
         return this.identities.reduce( (a, p) => a + Math.abs( p.coords[0].indexes[this.id].radiant ), 0 ) / 2;
-    }
-
-    identityJumpage() {
-//        return 0;
-        const stationaryCentres = 2 + (this.identities.length % 2 );
-        return ( this.identities.length - stationaryCentres ) / 2;
-    }
-
-    identityTorsion() {
-        return this.identityRadiance() - this.identityJumpage();
     }
 
     grossRadiance() {
         return this.identityRadiance() + this.totalRadiance;
     }
 
+    // JUMPAGE
+    identityJumpage() {
+        const stationaryCentres = 2 + (this.identities.length % 2 );
+        return ( this.identities.length - stationaryCentres ) / 2;
+    }
+
     grossJumpage() {
         return this.identityJumpage() + this.totalJumpage;
+    }
+
+    // TORSION
+    identityTorsion() {
+        return this.identityRadiance() - this.identityJumpage();
     }
 
     grossTorsion() {
@@ -233,7 +243,8 @@ class PointIndex {
         };
     }
 
-    indexPoint( point, boxVolume ){
+    indexPoint( point ) {
+        const boxVolume = this.box.volume;
         const id = this.indexForward( point.coord );
         const di = this.indexReverse( point.coord );
         const reflectId = ( boxVolume - id - 1 );
@@ -444,15 +455,12 @@ class PointIndex {
             const coords = orbit.coords;
 
             orbit.brilliance = coords
-                    .map( (x,i) => distance2( x.coord, this.centre ) )
+                    .map( x => x.brilliance )
                     .reduce( (a,c) => a + c, 0 );
 
             orbit.perimeter = coords
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
                     .reduce( (a,c) => a + c, 0 );
-
-            orbit.attack = Math.sqrt( orbit.perimeter ) / orbit.order;
-
 
             orbit.jumps = coords
                 .map( (x,i) => x.indexes[this.id].jump );
@@ -549,22 +557,7 @@ class PointIndex {
     }
 }
 
-// param = { box: , indexForward: , indexReverse: ,idx:[], dix:[] }
-/**
-    walks the box bases creating and indexing Points
-*/
-function buildIndexes( boxVolume, bases = [ 0 ], indexers = [], place = 0, locusStack = [] ) {
-    if ( place == bases.length ) {
-        const point = new Point( locusStack );
-        indexers.forEach( indexer => indexer.indexPoint( point, boxVolume ) );
-    } else {
-        for ( var i = 0; i < bases[place]; i++) {
-            locusStack.push( i );
-            buildIndexes( boxVolume, bases, indexers, place + 1, locusStack );
-            locusStack.pop( i );
-        }
-    }
-}
+
 
 
 class IndexedBox {
@@ -582,7 +575,7 @@ class IndexedBox {
             }
         }
 
-        buildIndexes( this.box.volume, this.box.bases, this.indexPlanes );
+        this.buildIndexes();
 
         this.indexPlanes.forEach( plane => {
             plane.buildOrbits();
@@ -592,6 +585,20 @@ class IndexedBox {
             plane.analyzeOrbits();
         } );
     }
+
+    buildIndexes( place = 0, locusStack = [] ) {
+        if ( place == this.box.bases.length ) {
+            const point = new Point( locusStack, this.box.centre );
+            this.indexPlanes.forEach( indexer => indexer.indexPoint( point ) );
+        } else {
+            for ( var i = 0; i < this.box.bases[place]; i++) {
+                locusStack.push( i );
+                this.buildIndexes( place + 1, locusStack );
+                locusStack.pop( i );
+            }
+        }
+    }
+
 
     getDataHtml() {
         const sep = ", ";

@@ -4,21 +4,13 @@ class Box {
     constructor( bases ) {
         this.bases = [...bases];
         this.rank = this.bases.length;
-        this.volume = this.bases.reduce( ( a, c ) => a * c, 1 );
-        this.surfaceArea = this.bases.map( (x,i) => (this.rank-1) * x * this.bases[ ( i + 1 ) % this.rank ] ).reduce( (a,c) => a + c, 0 );
 
-        this.volumeUnits = [ 1 ];
-        for ( var i = 2; i < this.volume; i++ ) {
-            if ( 1 == gcd( i, this.volume ) ) {
-                this.volumeUnits.push( i );
-            }
-        }
+        this.volume = getVolume( this.bases );
+        this.radiance = getRadiance( this.volume );
+        this.volumeUnits = getUnits( this.volume );
 
-        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+        this.surfaceArea = getSurfaceArea( this.bases );
         this.brilliance = getBrilliance( this.bases );
-        this.radiance = ( this.volume % 2 == 0 )
-            ? ( this.volume / 2 ) ** 2
-            : ( ( this.volume + 1 ) * this.volume ) / 2
 
         // since each coord plus it's reflection in the centre equals the terminal
         this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
@@ -31,16 +23,19 @@ class Box {
         this.origin = new Array( bases.length ).fill( 0 );
         this.terminal = this.bases.map( x => x - 1 );
         this.diagonal = [ this.origin, this.terminal ];
+
+        // abstract fixed point when volume is even
+        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
     }
 
     getJson() {
         return {
            bases: this.bases,
-           volume: this.volume,
-           units: this.volumeUnits.length,
-           area: this.surfaceArea,
            sum: this.sum,
            idSum: this.indexSum,
+           units: this.volumeUnits.length,
+           volume: this.volume,
+           area: this.surfaceArea,
            brilliance: this.brilliance,
            radiance: this.radiance
        };
@@ -68,35 +63,6 @@ class Point {
         return canonicalize( this.coord );
     }
 }
-
-
-/*
-    calculate array of base values
-    accumulating forwards.
-*/
-function placeValuesForwardArray( bases ) {
-        var acc = 1;
-        const p = [];
-        for ( var i = 0; i < bases.length; i++ ) {
-            p.push( acc );
-            acc = acc * bases[i];
-        }
-        return p;
-    };
-/*
-    calculate array of base values
-    accumulating in reverse.
-*/
-function placeValuesReverseArray( bases ) {
-        var acc = 1;
-        const p = [];
-        for ( var i = bases.length - 1; i >= 0; i-- ) {
-            p.push( acc );
-            acc = acc * bases[i];
-        }
-        return [].concat( p ).reverse();
-    };
-
 
 
 
@@ -165,8 +131,8 @@ class PointIndex {
     }
 
     grossBrilliance() {
-        return this.box.brilliance;
-        // this.identityBrilliance() + this.totalBrilliance;
+        //return this.box.brilliance;
+        return this.identityBrilliance() + this.totalBrilliance;
     }
 
     // PERIMETER
@@ -230,8 +196,8 @@ class PointIndex {
             },
 
             euclidean: {
-                d: this.box.brilliance,
-                p: this.totalPerimeter,
+                d: this.grossBrilliance(),
+                p: this.grossPerimeter(),
                 //this.tension()
             },
 
@@ -257,12 +223,19 @@ class PointIndex {
         this.idx[ id ] = point;
         this.dix[ di ] = point;
 
+        const maxIndex = boxVolume - 1;
+        const halfMaxIndex = maxIndex / 2;
+        const isNonTrivialIndexIdentity = (id, di) => (di == id)
+            && (id != 0)
+            && (id != maxIndex)
+            && (id != halfMaxIndex);
+
         // point references data by index
         point.indexes[this.id] = {
             id: id,
             di: di,
             reflectId: reflectId,
-            jump: ( di - id ),
+            jump: isNonTrivialIndexIdentity( id, di ) ? 1 : ( di - id ),
             radiant: ( reflectId - id )
         };
     }

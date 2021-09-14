@@ -261,14 +261,15 @@
         }
 
         function showOrbit( containerId, basePlane, senderId, multi  ) {
-            const [ sourceId, ...orbitId ] = senderId.split( "." );
             const tableCells = document
                 .getElementById( containerId + "_table" )
                 .querySelectorAll( "td.orbit" );
 
+            const [ sourceId, ...oids ] = senderId.split( "." );
+
             tableCells.forEach( tableCell => {
                 const [ cId, ...oId ] = tableCell.id.split( "." );
-                if ( !arrayContains( oId, orbitId ) ) {
+                if ( !arrayContains( oId, oids ) ) {
                     if ( !(multi && tableCell.classList.contains( "selected" ) ) ) {
                        tableCell.classList.remove("selected");
                     }
@@ -281,7 +282,7 @@
 
             document
                 .getElementById( containerId + "_riffler" )
-                .value = orbitId;
+                .value = oids[0];
         }
 
         function showAllOrbits( containerId, basePlane ) {
@@ -549,7 +550,7 @@
             }
 
             if ( param.toggles.summary ) {
-                showHide( 'summary' );
+                showHideAll( [ 'selectedPoint', 'summary' ] );
             }
             if ( param.toggles.table ) {
                 showHide( 'sample_cs_b_10_m_2_table' );
@@ -620,9 +621,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="2"/>
+                <input type="number" min="1" id="b0" value="8"/>
                 <input type="number" min="1" id="b1" value="2"/>
-                <input type="number" min="1" id="b2" value="2"/>
+                <input type="number" min="1" id="b2" value="3"/>
             </span> |
 
             <input type="number" id="basesVolume" disabled="disabled"/> |
@@ -656,9 +657,9 @@
                 <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label>
 
                 <hr/>
-                colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/> |
-                random<input type="checkbox" id="randomToggle" onchange="updatePage()"/> |
-                midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/> |
+                <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label> |
+                <label title="random">random<input type="checkbox" id="randomToggle" onchange="updatePage()"/></label> |
+                <label title="midi">midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/></label> |
                 <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
 
                 <div>
@@ -680,7 +681,6 @@
                             const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
                             initialiseBases( bases );
                             updatePage();
-                            distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': 'colourBasePlane' } ] );
                             distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'colourBasePlane.' + orbitIndex } ] );
                         }
                     </script>

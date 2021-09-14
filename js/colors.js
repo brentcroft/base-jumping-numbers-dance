@@ -1,9 +1,9 @@
 
 colourPointIndexDefault = {
     bases: [ 8, 3, 6 ],
-    orbitIndex: 1,
-    minPixel: 0,
-    maxPixel: 255,
+    orbitIndex: 2,
+    minPixel: 25,
+    maxPixel: 200,
 };
 
 class ColorBasePlane extends IndexedBox {

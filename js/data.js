@@ -79,7 +79,7 @@ var crossProduct      = ( p1, p2 ) => [
 ];
 
 var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
-var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every((val, index) => val === a[index]);
+var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v => a.includes( v ) );
 
 // @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
@@ -190,7 +190,32 @@ function shuffleArray( array ) {
     return array;
 }
 
+function getVolume( bases ) {
+    return bases.reduce( ( a, c ) => a * c, 1 );
+}
 
+function getRadiance( volume ) {
+    return ( volume % 2 == 0 )
+            ? ( volume / 2 ) ** 2
+            : ( ( volume + 1 ) * volume ) / 2;
+}
+
+function getUnits( volume ) {
+    const units = [ 1 ];
+    for ( var i = 2; i < volume; i++ ) {
+        if ( 1 == gcd( i, volume ) ) {
+            units.push( i );
+        }
+    }
+    return units;
+}
+
+function getSurfaceArea( bases ) {
+    const rank = bases.length;
+    return bases
+        .map( (x,i) => ( rank - 1 ) * x * bases[ ( i + 1 ) % rank ] )
+        .reduce( (a,c) => a + c, 0 );
+}
 
 /**
      Twice the sum of the distance from each coordinate to the box centre.
@@ -214,3 +239,33 @@ function getBrilliance( bases ) {
 
     return ( c - s + t ) / 2;
 }
+
+
+/*
+    calculate array of base values
+    accumulating forwards.
+*/
+function placeValuesForwardArray( bases ) {
+        var acc = 1;
+        const p = [];
+        for ( var i = 0; i < bases.length; i++ ) {
+            p.push( acc );
+            acc = acc * bases[i];
+        }
+        return p;
+    };
+/*
+    calculate array of base values
+    accumulating in reverse.
+*/
+function placeValuesReverseArray( bases ) {
+        var acc = 1;
+        const p = [];
+        for ( var i = bases.length - 1; i >= 0; i-- ) {
+            p.push( acc );
+            acc = acc * bases[i];
+        }
+        return [].concat( p ).reverse();
+    };
+
+

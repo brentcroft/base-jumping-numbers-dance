@@ -180,7 +180,7 @@
                                                 "scale": scaleUnit.join( ' ' )
                                             },
                                             [
-                                                createSphereShape( gridPointRadius, 'black' ),
+                                                createSphereShape( gridPointRadius, 'black', 0.95, `(${ [ i, j, k ].join( ',' ) })` ),
                                                 createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
                                             ]
                                         )
@@ -393,7 +393,7 @@
                                                 "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
                                             },
                                             [
-                                                createSphereShape( 0.5, "red", 0, identity.coords[0].report() ),
+                                                //createSphereShape( 0.5, "red", 0, identity.coords[0].report() ),
                                                 createLineSet( [ new Point( [ 0, 0, 0 ] ), new Point( [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
                                             ]
                                         )
@@ -480,6 +480,43 @@
 
                         } );
                 } else {
+                    basePlane
+                        .identities
+                        .map( identityOrbit => identityOrbit.coords[0] )
+                        .map( identityPoint => {
+                            return {
+                                ...identityPoint.indexes[ indexId ],
+                                "report": identityPoint.report()
+                            };
+                        })
+                        .map( identity => reify(
+                                "transform",
+                                {
+                                    "translation": `${ identity.id } 0 ${ -1 * zOff }`,
+                                    "id": `identity.e.${ identity.id }`
+                                },
+                                [
+                                    createSphereShape( 0.3, identity.jump ? "red" : "black", 0, identity.report ),
+                                    reify(
+                                        "transform",
+                                        {
+                                            "rotation": `0 1 0 ${ PI / 2 }`
+                                        },
+                                        [
+                                            createTorusShape( {
+                                                outerRadius: ( identity.jump / 2),
+                                                size: 0.1,
+                                                emissiveColor: "yellow",
+                                                transparency: 0,
+                                                angle: 2 * PI,
+                                                cssClass: "identity-line",
+                                                toggles: toggles
+                                             } )
+                                        ] )
+                                ]
+                            )
+                        )
+                        .forEach( x => root.appendChild(x) );
 
                     for ( var i = 0; i < orbits.length; i++ ) {
                         const orbit = orbits[i];
@@ -542,7 +579,10 @@
                     [
                         reify(
                             "transform",
-                            { "scale": `${ scaleUnit.join( ' ' ) }` },
+                            {
+                                "scale": `${ scaleUnit.join( ' ' ) }`,
+                                "rotation": `0 1 0 ${ PI }`
+                            },
                             [
                                 root
                             ]

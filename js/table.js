@@ -178,10 +178,10 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">Brilliance</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">Euclidean Radiance</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between adjacent coordinates in an orbit.">Per<sup>2</sup></th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Brilliance minus the sum of the squares of the Perimeters.">Tension</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index radiant (distance from the index centre) of each coordinate.">Radiance</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index radiant (distance from the index centre) of each coordinate.">Index Radiance</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index distance between adjacent coordinates in an orbit.">Jumpage</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Radiance minus the Jumpage.">Torsion</th>`;
     chainsText += "</tr>";

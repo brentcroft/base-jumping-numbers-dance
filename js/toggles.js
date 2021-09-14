@@ -15,6 +15,6 @@ toggleKeys = {
     radiants: 0,
     random: 0,
     scale3d: 0,
-    summary: 0,
+    summary: 1,
     table: 0,
 }

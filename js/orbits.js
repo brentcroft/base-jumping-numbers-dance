@@ -26,6 +26,7 @@ function formattedWeight( weight ) {
 }
 
 
+
 class Orbit {
 
     constructor( parent, index, coords ) {
@@ -60,11 +61,11 @@ class Orbit {
     }
 
     torsion() {
-        return ( this.radiance - this.jumpage );
+        return ( this.indexRadiance - this.indexPerimeter );
     }
 
     tension() {
-        return ( this.brilliance - this.perimeter );
+        return ( this.euclideanRadiance - this.euclideanPerimeter );
     }
 
     isSelfConjugate() {

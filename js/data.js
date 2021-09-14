@@ -195,9 +195,7 @@ function getVolume( bases ) {
 }
 
 function getRadiance( volume ) {
-    return ( volume % 2 == 0 )
-            ? ( volume / 2 ) ** 2
-            : ( ( volume + 1 ) * volume ) / 2;
+    return ( volume ** 2 - ( volume % 2 ) ) / 4;
 }
 
 function getUnits( volume ) {
@@ -213,14 +211,15 @@ function getUnits( volume ) {
 function getSurfaceArea( bases ) {
     const rank = bases.length;
     return bases
-        .map( (x,i) => ( rank - 1 ) * x * bases[ ( i + 1 ) % rank ] )
+        .map( (x,i) => [ x - 1, bases[ ( i + 1 ) % rank ] - 1 ] )
+        .map( x => ( rank - 1 ) * x[0] * x[1] )
         .reduce( (a,c) => a + c, 0 );
 }
 
 /**
      Twice the sum of the distance from each coordinate to the box centre.
 */
-function getBrilliance( bases ) {
+function getEuclideanRadiance( bases ) {
 
     const volume = bases.reduce( (a,c) => a*c, 1 );
     const volumeFactor = ( b ) => ( volume / b );

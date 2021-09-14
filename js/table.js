@@ -178,12 +178,12 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">Euclidean Radiance</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the squares of the (euclidean) distance between adjacent coordinates in an orbit.">Per<sup>2</sup></th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Brilliance minus the sum of the squares of the Perimeters.">Tension</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index radiant (distance from the index centre) of each coordinate.">Index Radiance</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The sum of the index distance between adjacent coordinates in an orbit.">Jumpage</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Radiance minus the Jumpage.">Torsion</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Radiance is the sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">E-Rad</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Perimeter is the sum of the squares of the (euclidean) distance between adjacent coordinates in an orbit.">E-Per<sup>2</sup></th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Radiance minus the sum of the squares of the Perimeters.">Tension</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Radiance is the sum of the index radiants (distance from the index centre) from each coordinate.">I-Rad</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Perimeter is the sum of the index distance between adjacent coordinates in an orbit.">I-Per</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Radiance minus the Index Perimeter.">Torsion</th>`;
     chainsText += "</tr>";
 
     chainsText += "<tr>";
@@ -218,13 +218,13 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
     chainsText += "<th colspan='1'></th>";
 
-    chainsText += `<th colspan='1'><code>${ basePlane.identityBrilliance() }</code></th>`;
-    chainsText += `<th colspan='1'><code>${ basePlane.identityPerimeter() }</code></th>`;
-    chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityTension() }</code></th>`;
+    chainsText += `<th colspan='1'><code>${ basePlane.identityEuclideanRadiance() }</code></th>`;
+    chainsText += `<th colspan='1'><code>${ basePlane.identityEuclideanPerimeter() }</code></th>`;
+    chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityEuclideanTension() }</code></th>`;
 
-    chainsText += `<th colspan='1'><code>${ basePlane.identityRadiance() }</code></th>`;
-    chainsText += `<th colspan='1'><code>${ basePlane.identityJumpage() }</code></th>`;
-    chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityTorsion() }</code></th>`;
+    chainsText += `<th colspan='1'><code>${ basePlane.identityIndexRadiance() }</code></th>`;
+    chainsText += `<th colspan='1'><code>${ basePlane.identityIndexPerimeter() }</code></th>`;
+    chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityIndexTorsion() }</code></th>`;
 
     chainsText += "</tr>";
 
@@ -339,25 +339,25 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td align="center">${ orbit.centreRef }</td>`;
 
         if ( orbit.isSelfConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.brilliance }</td>`;
-            chainsText += `<td align="center">${ orbit.perimeter }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanRadiance }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanPerimeter }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
-            chainsText += `<td align="center">${ orbit.radiance }</td>`;
-            chainsText += `<td align="center">${ orbit.jumpage }</td>`;
+            chainsText += `<td align="center">${ orbit.indexRadiance }</td>`;
+            chainsText += `<td align="center">${ orbit.indexPerimeter }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         } else if ( orbit.isFirstConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.brilliance * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.perimeter * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanRadiance * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanPerimeter * 2 }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.radiance * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.jumpage * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.indexRadiance * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.indexPerimeter * 2 }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() * 2 }</td>`;
         } else {
-            chainsText += `<td align="center">${ orbit.brilliance }</td>`;
-            chainsText += `<td align="center">${ orbit.perimeter }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanRadiance }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanPerimeter }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
-            chainsText += `<td align="center">${ orbit.radiance }</td>`;
-            chainsText += `<td align="center">${ orbit.jumpage }</td>`;
+            chainsText += `<td align="center">${ orbit.indexRadiance }</td>`;
+            chainsText += `<td align="center">${ orbit.indexPerimeter }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         }
         chainsText += "</tr>";
@@ -422,7 +422,7 @@ function drawBasePlaneTable( tableArgs ) {
     const edgeGcd = gcd( basePlane.box.bases[0], basePlane.box.bases[basePlane.box.rank - 1] );
 
     const brilliance = basePlane.box.brilliance;
-    const brillianceGcd = gcd( brilliance, basePlane.grossPerimeter() );
+    const brillianceGcd = gcd( brilliance, basePlane.grossEuclideanPerimeter() );
 
     const trialCommonDenominators = [
         volume + 1,
@@ -432,18 +432,18 @@ function drawBasePlaneTable( tableArgs ) {
     ];
 
     chainsText += "<td colspan='3'></td>";
-    chainsText += factoredTableTotalBlock( basePlane.grossBrilliance(), [ ...trialCommonDenominators ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.grossPerimeter(), [ ...trialCommonDenominators ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.grossTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
+    chainsText += factoredTableTotalBlock( basePlane.grossEuclideanRadiance(), [ ...trialCommonDenominators ], totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.grossEuclideanPerimeter(), [ ...trialCommonDenominators ], totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.grossEuclideanTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
 
-    var radiance = basePlane.grossRadiance();
+    var radiance = basePlane.grossIndexRadiance();
     var radianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
     var radianceGcd = gcd( radiance, radianceRoot );
-    var torsionGcd = gcd( basePlane.grossJumpage(), basePlane.grossTorsion() );
+    var torsionGcd = gcd( basePlane.grossIndexPerimeter(), basePlane.grossIndexTorsion() );
 
     chainsText += factoredTableTotalBlock( radiance, [ radianceRoot ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.grossJumpage(), [ torsionGcd ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.grossTorsion(), [ torsionGcd ], totalClick, classList = ['difference' ]  );
+    chainsText += factoredTableTotalBlock( basePlane.grossIndexPerimeter(), [ torsionGcd ], totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.grossIndexTorsion(), [ torsionGcd ], totalClick, classList = ['difference' ]  );
 
 
     chainsText += "</tr>";

@@ -7,10 +7,10 @@ class Box {
 
         this.volume = getVolume( this.bases );
         this.radiance = getRadiance( this.volume );
-        this.volumeUnits = getUnits( this.volume );
+        //this.volumeUnits = getUnits( this.volume );
 
         this.surfaceArea = getSurfaceArea( this.bases );
-        this.brilliance = getBrilliance( this.bases );
+        this.brilliance = getEuclideanRadiance( this.bases );
 
         // since each coord plus it's reflection in the centre equals the terminal
         this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
@@ -33,11 +33,11 @@ class Box {
            bases: this.bases,
            sum: this.sum,
            idSum: this.indexSum,
-           units: this.volumeUnits.length,
+           //units: this.volumeUnits.length,
            volume: this.volume,
            area: this.surfaceArea,
-           brilliance: this.brilliance,
-           radiance: this.radiance
+           erad: this.brilliance,
+           irad: this.radiance
        };
     }
 
@@ -50,12 +50,12 @@ class Box {
 class Point {
     constructor( coord = [], centre ) {
         this.coord = [ ...coord ];
-        this.brilliance = centre ? distance2( this.coord, centre ) * 2 : 0;
+        this.euclideanRadiance = centre ? distance2( this.coord, centre ) * 2 : 0;
         this.indexes = [];
     }
 
     report() {
-        return `Point: ${ canonicalize( this.coord ) }, brilliance: ${ this.brilliance } \n`
+        return `Point: ${ canonicalize( this.coord ) }, erad: ${ this.brilliance } \n`
             + this.indexes.map( ( x, i ) => `${ i }: ${ JSON.stringify( x ) }` ).join( "\n" );
     }
 
@@ -123,64 +123,67 @@ class PointIndex {
         return cimHtml;
     }
 
-    // BRILLIANCE
-    identityBrilliance() {
+    // EUCLIDEAN RADIANCE
+    identityEuclideanRadiance() {
         const points = this.identities.map( x => x.coords[0] );
         const radii = points.map( p => 2 * distance2( p.coord, this.centre ) );
         return radii.reduce( (a,r) => a + r, 0);
     }
 
-    grossBrilliance() {
+    grossEuclideanRadiance() {
         //return this.box.brilliance;
-        return this.identityBrilliance() + this.totalBrilliance;
+        return this.identityEuclideanRadiance() + this.totalEuclideanRadiance;
     }
 
-    // PERIMETER
-    identityPerimeter() {
+    // EUCLIDEAN PERIMETER
+    identityEuclideanPerimeter() {
         return 0;
 //        const stationaryCentres = 2 + (this.identities.length % 2 );
 //        return 2 * ( this.identities.length - stationaryCentres );
     }
 
-    grossPerimeter() {
-        return this.identityPerimeter() + this.totalPerimeter;
+    grossEuclideanPerimeter() {
+        return this.identityEuclideanPerimeter() + this.totalEuclideanPerimeter;
     }
 
-    // TENSION
-    identityTension() {
-        return this.identityBrilliance() - this.identityPerimeter();
+    // EUCLIDEAN TENSION
+    identityEuclideanTension() {
+        return this.identityEuclideanRadiance() - this.identityEuclideanPerimeter();
     }
 
-    grossTension() {
-        return this.grossBrilliance() - this.grossPerimeter();
+    grossEuclideanTension() {
+        return this.grossEuclideanRadiance() - this.grossEuclideanPerimeter();
     }
 
-    // RADIANCE
-    identityRadiance() {
+    // INDEX RADIANCE
+    identityIndexRadiance() {
         return this.identities.reduce( (a, p) => a + Math.abs( p.coords[0].indexes[this.id].radiant ), 0 ) / 2;
     }
 
-    grossRadiance() {
-        return this.identityRadiance() + this.totalRadiance;
+    grossIndexRadiance() {
+        return this.identityIndexRadiance() + this.totalIndexRadiance;
     }
 
-    // JUMPAGE
-    identityJumpage() {
-        const stationaryCentres = 2 + (this.identities.length % 2 );
-        return ( this.identities.length - stationaryCentres ) / 2;
+    // INDEX PERIMETER
+    identityIndexPerimeter() {
+        return this.identities
+            .map( identityOrbit => identityOrbit.coords[0] )
+            .map( indexedIdentity => indexedIdentity.indexes[ this.id ] )
+            .map( identity => identity.jump )
+            .reduce( (a,c) => a + c );
     }
 
-    grossJumpage() {
-        return this.identityJumpage() + this.totalJumpage;
+    grossIndexPerimeter() {
+        return this.identityIndexPerimeter() + this.totalIndexPerimeter;
     }
 
-    // TORSION
-    identityTorsion() {
-        return this.identityRadiance() - this.identityJumpage();
+    // INDEX TORSION
+    identityIndexTorsion() {
+        return this.identityIndexRadiance() - this.identityIndexPerimeter();
     }
 
-    grossTorsion() {
-        return this.grossRadiance() - this.grossJumpage();
+    grossIndexTorsion() {
+        return this.grossIndexRadiance() - this.grossIndexPerimeter();
     }
 
     getData() {
@@ -196,14 +199,14 @@ class PointIndex {
             },
 
             euclidean: {
-                d: this.grossBrilliance(),
-                p: this.grossPerimeter(),
+                d: this.grossEuclideanRadiance(),
+                p: this.grossEuclideanPerimeter(),
                 //this.tension()
             },
 
             index: {
-                d: this.grossRadiance(),
-                p: this.grossJumpage(),
+                d: this.grossIndexRadiance(),
+                p: this.grossIndexPerimeter(),
                 //this.torsion()
             }
         };
@@ -230,12 +233,14 @@ class PointIndex {
             && (id != maxIndex)
             && (id != halfMaxIndex);
 
+        const nonTrivialIndexJump = 0.5;
+
         // point references data by index
         point.indexes[this.id] = {
             id: id,
             di: di,
             reflectId: reflectId,
-            jump: isNonTrivialIndexIdentity( id, di ) ? 1 : ( di - id ),
+            jump: isNonTrivialIndexIdentity( id, di ) ? nonTrivialIndexJump : ( di - id ),
             radiant: ( reflectId - id )
         };
     }
@@ -393,10 +398,11 @@ class PointIndex {
         var totalHarmonicSum = new Array( this.bases.length ).fill( 0 );
         var totalWeight = 0;
         var totalRotation = 0;
-        var totalJumpage = 0;
-        var totalRadiance = 0;
-        var totalPerimeter = 0;
-        var totalBrilliance = 0;
+
+        var totalEuclideanRadiance = 0;
+        var totalEuclideanPerimeter = 0;
+        var totalIndexRadiance = 0;
+        var totalIndexPerimeter = 0;
         var totalTension = 0;
 
         var totalOrderSpace = 1;
@@ -427,24 +433,24 @@ class PointIndex {
 
             const coords = orbit.coords;
 
-            orbit.brilliance = coords
-                    .map( x => x.brilliance )
+            orbit.euclideanRadiance = coords
+                    .map( x => x.euclideanRadiance )
                     .reduce( (a,c) => a + c, 0 );
 
-            orbit.perimeter = coords
+            orbit.euclideanPerimeter = coords
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
                     .reduce( (a,c) => a + c, 0 );
 
             orbit.jumps = coords
                 .map( (x,i) => x.indexes[this.id].jump );
 
-            orbit.jumpage = orbit.jumps
+            orbit.indexPerimeter = orbit.jumps
                 .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
 
             orbit.radiants = coords
                 .map( (x,i) => x.indexes[this.id].radiant );
 
-            orbit.radiance = orbit.radiants
+            orbit.indexRadiance = orbit.radiants
                 .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
 
             [
@@ -455,12 +461,12 @@ class PointIndex {
             ] = getInstrumentForOrder( orbit.order );
 
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
-            totalPerimeter += orbit.perimeter;
-            totalBrilliance += orbit.brilliance;
+            totalEuclideanPerimeter += orbit.euclideanPerimeter;
+            totalEuclideanRadiance += orbit.euclideanRadiance;
 
             totalWeight += orbit.weight;
-            totalJumpage += orbit.jumpage;
-            totalRadiance += orbit.radiance;
+            totalIndexPerimeter += orbit.indexPerimeter;
+            totalIndexRadiance += orbit.indexRadiance;
 
             totalOrderSpace *= orbit.order;
             totalNetOrderSpace *= orbit.isSelfConjugate()
@@ -480,14 +486,16 @@ class PointIndex {
         this.totalNet2Space = totalNet2Space;
 
         this.totalHarmonicSum = totalHarmonicSum;
-        this.totalPerimeter = totalPerimeter;
-        this.totalBrilliance = totalBrilliance;
+
+        this.totalIndexRadiance = totalIndexRadiance;
+        this.totalIndexPerimeter = totalIndexPerimeter;
+
+        this.totalEuclideanRadiance = totalEuclideanRadiance;
+        this.totalEuclideanPerimeter = totalEuclideanPerimeter;
 
         this.harmonics = harmonics;
         this.maxIndex = maxIndex;
         this.totalWeight = totalWeight;
-        this.totalJumpage = totalJumpage;
-        this.totalRadiance = totalRadiance;
 
         // reference into each orbit
         this.originPoints = this.orbits.map( orbit => 0 );

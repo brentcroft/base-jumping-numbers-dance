@@ -154,8 +154,8 @@ function createSphereShape( radius = "0.1", emissiveColor = "blue", transparency
             "title": tooltip
         },
         [
-            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
-            reify( "sphere", { "radius": radius } )
+            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency} ) ] ),
+            reify( "sphere", { "radius": radius, "lit": true  } )
         ],
         [
             s => {

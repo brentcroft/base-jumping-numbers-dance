@@ -10,7 +10,7 @@ class Box {
         //this.volumeUnits = getUnits( this.volume );
 
         this.surfaceArea = getSurfaceArea( this.bases );
-        this.brilliance = getEuclideanRadiance( this.bases );
+        this.euclideanRadiance = getEuclideanRadiance( this.bases );
 
         // since each coord plus it's reflection in the centre equals the terminal
         this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
@@ -36,7 +36,7 @@ class Box {
            //units: this.volumeUnits.length,
            volume: this.volume,
            area: this.surfaceArea,
-           erad: this.brilliance,
+           erad: this.euclideanRadiance,
            irad: this.radiance
        };
     }
@@ -50,12 +50,12 @@ class Box {
 class Point {
     constructor( coord = [], centre ) {
         this.coord = [ ...coord ];
-        this.euclideanRadiance = centre ? distance2( this.coord, centre ) * 2 : 0;
+        this.euclideanRadiance = centre ? 2 * distance2( this.coord, centre ) : 0;
         this.indexes = [];
     }
 
     report() {
-        return `Point: ${ canonicalize( this.coord ) }, erad: ${ this.brilliance } \n`
+        return `Point: ${ canonicalize( this.coord ) }, erad: ${ this.euclideanRadiance } \n`
             + this.indexes.map( ( x, i ) => `${ i }: ${ JSON.stringify( x ) }` ).join( "\n" );
     }
 
@@ -126,12 +126,12 @@ class PointIndex {
     // EUCLIDEAN RADIANCE
     identityEuclideanRadiance() {
         const points = this.identities.map( x => x.coords[0] );
-        const radii = points.map( p => 2 * distance2( p.coord, this.centre ) );
+        const radii = points.map( p => p.euclideanRadiance );
         return radii.reduce( (a,r) => a + r, 0);
     }
 
     grossEuclideanRadiance() {
-        //return this.box.brilliance;
+        //return this.box.euclideanRadiance;
         return this.identityEuclideanRadiance() + this.totalEuclideanRadiance;
     }
 
@@ -433,24 +433,24 @@ class PointIndex {
 
             const coords = orbit.coords;
 
+            // EUCLIDEAN
             orbit.euclideanRadiance = coords
                     .map( x => x.euclideanRadiance )
                     .reduce( (a,c) => a + c, 0 );
 
             orbit.euclideanPerimeter = coords
                     .map( (x,i) => distance2( x.coord, coords[ ( i + 1 ) % orbit.order ].coord ) )
-                    .reduce( (a,c) => a + c, 0 );
+                    .reduce( (a,c) => a + c, 0 ) / 2;
+
+            // INDEX
+            orbit.indexRadiance = coords
+                .map( (x,i) => x.indexes[this.id].radiant )
+                .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
 
             orbit.jumps = coords
                 .map( (x,i) => x.indexes[this.id].jump );
 
             orbit.indexPerimeter = orbit.jumps
-                .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
-
-            orbit.radiants = coords
-                .map( (x,i) => x.indexes[this.id].radiant );
-
-            orbit.indexRadiance = orbit.radiants
                 .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
 
             [
@@ -558,13 +558,15 @@ class IndexedBox {
 
         this.buildIndexes();
 
-        this.indexPlanes.forEach( plane => {
-            plane.buildOrbits();
-            plane.buildCentreLines();
-            plane.findFundamental();
-            plane.findMaxWeight();
-            plane.analyzeOrbits();
-        } );
+        this.indexPlanes
+            .forEach( plane => {
+                    plane.buildOrbits();
+                    plane.buildCentreLines();
+                    plane.findFundamental();
+                    plane.findMaxWeight();
+                    plane.analyzeOrbits();
+                }
+            );
     }
 
     buildIndexes( place = 0, locusStack = [] ) {

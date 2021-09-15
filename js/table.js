@@ -30,7 +30,7 @@ function showHideAll( ids = [], control ) {
 }
 
 
-function sortTable( tableId, columnIndex, isNumber = false, isFraction = false ) {
+function sortTable( tableId, columnIndex, isNumber = false, isFraction = false, isProduct = false ) {
   var table, rows, switching, i, x, y, shouldSwitch;
 
   table = document.getElementById( tableId );
@@ -67,7 +67,7 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
         s = s.substring( 1, s.length - 1 );
         s = s.trim();
     }
-    var f = s.split( /\s*[\/\|,]\s*/ );
+    const f = s.split( /\s*[\/\|,\*]\s*/ );
     f[0] = Number( f[0].trim() );
 
     if ( f[0] == 0 ) {
@@ -80,6 +80,22 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
 
     return ( f[0] == f[1] ) ? 1 : ( f[0] / f[1] );
   }
+
+  function Product( s ) {
+    s = s.trim();
+    if ( s.startsWith( "(" ) && s.endsWith( ")" ) ) {
+        s = s.substring( 1, s.length - 1 );
+        s = s.trim();
+    }
+    return s
+        .split( /<br[\/]?>/ )
+        .map( x => x
+            .split( /\s*[\*]\s*/ )
+            .map( x => Number( x.trim() ) )
+            .reduce( (a,c) => a * c, 1 ) )
+        .reduce( (a,c) => a + c, 0 );
+  }
+
 
   /* Make a loop that will continue until
   no switching has been done: */
@@ -105,8 +121,8 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false )
               xT = xT.toLowerCase();
               yT = yT.toLowerCase();
 
-              var xV = isNumber ? isFraction ? Fraction( xT ) :  Number( xT ) :  xT;
-              var yV = isNumber ? isFraction ? Fraction( yT ) :  Number( yT ) :  yT;
+              var xV = isNumber ? isFraction ? Fraction( xT ) : isProduct ? Product( xT ) : Number( xT ) :  xT;
+              var yV = isNumber ? isFraction ? Fraction( yT ) : isProduct ? Product( yT ) : Number( yT ) :  yT;
 
               // Check if the two rows should switch place:
               if ( descending ? (xV < yV) : (xV > yV)) {
@@ -171,10 +187,11 @@ function drawBasePlaneTable( tableArgs ) {
     if ( jumps ) {
         chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='30%'>Jumps</th>`;
     }
+
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='40%'>Orbit</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Point Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Id Sum</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )' width='8%'>Order</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, false, true )' width='8%'>Id Sum</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, false, true )' width='8%'>Order</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
@@ -421,14 +438,14 @@ function drawBasePlaneTable( tableArgs ) {
 
     const edgeGcd = gcd( basePlane.box.bases[0], basePlane.box.bases[basePlane.box.rank - 1] );
 
-    const brilliance = basePlane.box.brilliance;
-    const brillianceGcd = gcd( brilliance, basePlane.grossEuclideanPerimeter() );
+    const euclideanRadiance = basePlane.box.euclideanRadiance;
+    const euclideanRadianceGcd = gcd( euclideanRadiance, basePlane.grossEuclideanPerimeter() );
 
     const trialCommonDenominators = [
         volume + 1,
         volume,
         ( (volume % 2) == 0 ? ( volume / 2 ) : ( ( volume + 1 ) / 2 ) ),
-        brillianceGcd
+        euclideanRadianceGcd
     ];
 
     chainsText += "<td colspan='3'></td>";

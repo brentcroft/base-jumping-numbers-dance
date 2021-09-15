@@ -1,6 +1,6 @@
 //
 toggleKeys = {
-    centres: 1,
+    centres: 0,
     colours: 0,
     conj: 1,
     coords: 0,
@@ -11,7 +11,7 @@ toggleKeys = {
     locus: 0,
     midi: 0,
     more: 0,
-    plane: 1,
+    plane: 0,
     radiants: 0,
     random: 0,
     scale3d: 0,

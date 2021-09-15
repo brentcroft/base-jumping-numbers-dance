@@ -217,7 +217,7 @@ function getSurfaceArea( bases ) {
 }
 
 /**
-     Twice the sum of the distance from each coordinate to the box centre.
+     The sum of the distances from each coordinate to the box centre.
 */
 function getEuclideanRadiance( bases ) {
 

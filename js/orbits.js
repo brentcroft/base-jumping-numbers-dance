@@ -119,6 +119,39 @@ class Orbit {
 
 class Index {
 
+    indexPoint( point ) {
+        const boxVolume = this.box.volume;
+        const id = this.indexForward( point.coord );
+        const di = this.indexReverse( point.coord );
+        const reflectId = ( boxVolume - id - 1 );
+
+        if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
+            throw `id out of range: id=${ id }, volume=${ boxVolume }`;
+        }
+
+        // index references point
+        this.idx[ id ] = point;
+        this.dix[ di ] = point;
+
+        const maxIndex = boxVolume - 1;
+        const halfMaxIndex = maxIndex / 2;
+        const isNonTrivialIndexIdentity = (id, di) => (di == id)
+            && (id != 0)
+            && (id != maxIndex)
+            && (id != halfMaxIndex);
+
+        const nonTrivialIndexJump = 0.5;
+
+        // point references data by index
+        point.indexes[this.id] = {
+            id: id,
+            di: di,
+            reflectId: reflectId,
+            jump: isNonTrivialIndexIdentity( id, di ) ? nonTrivialIndexJump : ( di - id ),
+            radiant: ( reflectId - id )
+        };
+    }
+
     initialise() {
         this.buildOrbits();
         this.buildCentreLines();
@@ -502,206 +535,3 @@ class Index {
     }
 
 }
-
-
-class RadiantIndex extends Index {
-    constructor( box, id = 0 ) {
-        super();
-        this.box = box;
-        this.id = id;
-        this.key = `plane-${ id }`;
-
-        // local copy
-        this.bases = [ ...box.bases ];
-
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
-
-        this.powersForward = placeValuesForwardArray( this.bases );
-        this.powersReverse = placeValuesReverseArray( this.bases );
-
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => ( this.box.volume - 1 ) - this.indexForward( coord );
-
-        // plane of identity
-        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
-        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
-        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-    }
-
-    indexPoint( point ) {
-        const boxVolume = this.box.volume;
-        const id = this.indexForward( point.coord );
-        const di = this.indexReverse( point.coord );
-        const reflectId = ( boxVolume - id - 1 );
-
-        if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
-            throw `id out of range: id=${ id }, volume=${ boxVolume }`;
-        }
-
-        // index references point
-        this.idx[ id ] = point;
-        this.dix[ di ] = point;
-
-        const maxIndex = boxVolume - 1;
-        const halfMaxIndex = maxIndex / 2;
-        const isNonTrivialIndexIdentity = (id, di) => (di == id)
-            && (id != 0)
-            && (id != maxIndex)
-            && (id != halfMaxIndex);
-
-        const nonTrivialIndexJump = 0.5;
-
-        // point references data by index
-        point.indexes[this.id] = {
-            id: id,
-            di: di,
-            reflectId: reflectId,
-            jump: isNonTrivialIndexIdentity( id, di ) ? nonTrivialIndexJump : ( di - id ),
-            radiant: ( reflectId - id )
-        };
-    }
-
-
-    getPlaneEquationTx() {
-        return "(radiance)";
-    }
-
-}
-
-class PointIndex extends Index {
-    constructor( box, id = 0 ) {
-        super();
-        this.box = box;
-        this.id = id;
-        this.key = `plane-${ id }`;
-
-        // local copy
-        this.bases = [ ...box.bases ];
-
-        // indexers
-        rotateArray( this.bases, this.id );
-        this.powersForward = placeValuesForwardArray( this.bases );
-        this.powersReverse = placeValuesReverseArray( this.bases );
-
-        // coord index functions
-        const rotateId = (i) => ( i + this.id ) % this.bases.length;
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
-
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
-
-        // plane of identity
-        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
-        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
-        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-    }
-
-
-    initialise() {
-        this.buildOrbits();
-        this.buildCentreLines();
-        this.findFundamental();
-        this.findMaxWeight();
-        this.analyzeOrbits();
-    }
-
-    getPlaneEquationTx() {
-        const basis = this.identityPlane.length;
-        const varIds = d => [ "x", "y", "z", "w", "v", "u", "t", "s", "r", "q", "p" ].map( x => `<i>${ x }</i>` )[d];
-        var plane = this
-            .identityPlane
-            .map( x => x );
-
-        const pad = s => `${ s }`.padStart( 2, " " );
-
-        var planeMid = plane
-            .map( ( x, i ) => `${ x < 0 ? " + " : " - " }${ pad( Math.abs( x ) ) }${ varIds( i ) }` )
-            .slice( 1, basis - 1 )
-            .join("");
-
-        var eqn = `${ pad( -1 * plane[0] ) }${ varIds( 0 ) }`;
-        eqn += `${ planeMid }`;
-        eqn += " = ";
-        eqn += `${ pad( plane[ basis - 1 ] ) }${ varIds( basis - 1) }`;
-        return eqn;
-    }
-
-    getCaptionHtml() {
-        var cimHtml = "plane: <span class='equation'>" + this.getPlaneEquationTx() + "</span>, ";
-        cimHtml += " <span class='equation'>|e| - 1 = " + this.identityPlaneGcd + "</span>";
-        cimHtml += " | orbits: <span class='monomial'>" + getCycleIndexMonomialHtml( this ) + "</span>";
-        return cimHtml;
-    }
-
-    indexPoint( point ) {
-        const boxVolume = this.box.volume;
-        const id = this.indexForward( point.coord );
-        const di = this.indexReverse( point.coord );
-        const reflectId = ( boxVolume - id - 1 );
-
-        if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
-            throw `id out of range: id=${ id }, volume=${ boxVolume }`;
-        }
-
-        // index references point
-        this.idx[ id ] = point;
-        this.dix[ di ] = point;
-
-        const maxIndex = boxVolume - 1;
-        const halfMaxIndex = maxIndex / 2;
-        const isNonTrivialIndexIdentity = (id, di) => (di == id)
-            && (id != 0)
-            && (id != maxIndex)
-            && (id != halfMaxIndex);
-
-        const nonTrivialIndexJump = 0.5;
-
-        // point references data by index
-        point.indexes[this.id] = {
-            id: id,
-            di: di,
-            reflectId: reflectId,
-            jump: isNonTrivialIndexIdentity( id, di ) ? nonTrivialIndexJump : ( di - id ),
-            radiant: ( reflectId - id )
-        };
-    }
-
-
-    getLocusPoints( locusLine ) {
-        return locusLine
-            .map( (index,i) => {
-                const coords = this.orbits[i].coords;
-                return coords[ index % coords.length ];
-            } );
-    }
-
-    getLocusStep( locusLine, step ) {
-        const maxLocusIndex = this.orbits.length - 1;
-
-        const rl = [].concat( locusLine ).reverse();
-        var rlStep = step;
-        if ( !(step && this.orbits.length == step.length ) ) {
-            rlStep = rl.map( (x,i) => i == 0 ? 1 : 0);
-        }
-
-        var newLocus = [];
-        var carry = 0;
-        rl.forEach( (x,i) => {
-            const orbit = this.orbits[ maxLocusIndex - i ];
-            const orbitStep = rlStep[ i ];
-            const maxOrbitOrder = orbit.order;
-
-            const d = ( x + orbitStep + carry );
-            const f = d % maxOrbitOrder;
-            newLocus.push( f );
-            carry = Math.floor( d / maxOrbitOrder );
-        } );
-
-        newLocus.reverse();
-
-        return newLocus;
-    }
-}
-

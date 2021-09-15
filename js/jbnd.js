@@ -59,6 +59,105 @@ class Box {
 
 
 
+class RadiantIndex extends Index {
+    constructor( box, id = 0 ) {
+        super();
+        this.box = box;
+        this.id = id;
+        this.key = `plane-${ id }`;
+
+        // local copy
+        this.bases = [ ...box.bases ];
+
+        this.idx = new Array( this.box.volume );
+        this.dix = new Array( this.box.volume );
+
+        this.powersForward = placeValuesForwardArray( this.bases );
+        this.powersReverse = placeValuesReverseArray( this.bases );
+
+        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => ( this.box.volume - 1 ) - this.indexForward( coord );
+
+        // plane of identity
+        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
+        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+    }
+
+    getPlaneEquationTx() {
+        return "(radiance)";
+    }
+}
+
+class PointIndex extends Index {
+    constructor( box, id = 0 ) {
+        super();
+        this.box = box;
+        this.id = id;
+        this.key = `plane-${ id }`;
+
+        // local copy
+        this.bases = [ ...box.bases ];
+
+        // indexers
+        rotateArray( this.bases, this.id );
+        this.powersForward = placeValuesForwardArray( this.bases );
+        this.powersReverse = placeValuesReverseArray( this.bases );
+
+        // coord index functions
+        const rotateId = (i) => ( i + this.id ) % this.bases.length;
+        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
+
+        this.idx = new Array( this.box.volume );
+        this.dix = new Array( this.box.volume );
+
+        // plane of identity
+        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
+        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+    }
+
+    getLocusPoints( locusLine ) {
+        return locusLine
+            .map( (index,i) => {
+                const coords = this.orbits[i].coords;
+                return coords[ index % coords.length ];
+            } );
+    }
+
+    getLocusStep( locusLine, step ) {
+        const maxLocusIndex = this.orbits.length - 1;
+
+        const rl = [].concat( locusLine ).reverse();
+        var rlStep = step;
+        if ( !(step && this.orbits.length == step.length ) ) {
+            rlStep = rl.map( (x,i) => i == 0 ? 1 : 0);
+        }
+
+        var newLocus = [];
+        var carry = 0;
+        rl.forEach( (x,i) => {
+            const orbit = this.orbits[ maxLocusIndex - i ];
+            const orbitStep = rlStep[ i ];
+            const maxOrbitOrder = orbit.order;
+
+            const d = ( x + orbitStep + carry );
+            const f = d % maxOrbitOrder;
+            newLocus.push( f );
+            carry = Math.floor( d / maxOrbitOrder );
+        } );
+
+        newLocus.reverse();
+
+        return newLocus;
+    }
+}
+
+
+
+
+
 class IndexedBox {
     constructor( bases = [] ) {
         this.box = new Box( bases );

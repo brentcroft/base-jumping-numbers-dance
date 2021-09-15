@@ -453,12 +453,12 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanPerimeter(), [ ...trialCommonDenominators ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
 
-    var radiance = basePlane.grossIndexRadiance();
-    var radianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
-    var radianceGcd = gcd( radiance, radianceRoot );
+    var indexRadiance = basePlane.grossIndexRadiance();
+    var indexRadianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
+    var indexRadianceGcd = gcd( indexRadiance, indexRadianceRoot );
     var torsionGcd = gcd( basePlane.grossIndexPerimeter(), basePlane.grossIndexTorsion() );
 
-    chainsText += factoredTableTotalBlock( radiance, [ radianceRoot ], totalClick );
+    chainsText += factoredTableTotalBlock( indexRadiance, [ indexRadianceRoot ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossIndexPerimeter(), [ torsionGcd ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossIndexTorsion(), [ torsionGcd ], totalClick, classList = ['difference' ]  );
 

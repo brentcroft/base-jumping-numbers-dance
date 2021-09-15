@@ -13,7 +13,7 @@ class ColorBasePlane extends IndexedBox {
         this.colorOrbitIndex = colorOrbitIndex;
         this.minPixel = minPixel;
         this.maxPixel = maxPixel;
-        const orbits = this.indexPlanes[0].orbits;
+        const orbits = this.indexPlanes[1].orbits;
         const orbit = orbits[ this.colorOrbitIndex % orbits.length ];
         this.colorPoints = orbit.getCoordArray();
     }

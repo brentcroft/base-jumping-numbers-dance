@@ -194,9 +194,10 @@
         }
 
         function getControlValues() {
-            var baseCount = Number( document.getElementById( 'bases' ).value );
-            var emptyBases = new Array( baseCount ).fill( 0 );
-            var bases = emptyBases.map( (x,i) => {
+            const planeIndex = Number( document.getElementById( 'planeIndex' ).value );
+            const baseCount = Number( document.getElementById( 'bases' ).value );
+            const emptyBases = new Array( baseCount ).fill( 0 );
+            const bases = emptyBases.map( (x,i) => {
                 try {
                     return Number( document.getElementById( `b${i}` ).value );
                 } catch ( e ) {
@@ -209,6 +210,7 @@
                     .filter( k => isToggle( k ) );
 
             return {
+                planeIndex: planeIndex,
                 bases: bases,
                 toggles: currentToggles
             };
@@ -496,7 +498,7 @@
 
             // TODO: global access
             const box = new IndexedBox( param.bases );
-            basePlane = box.indexPlanes[0];
+            basePlane = box.indexPlanes[ param.planeIndex % box.indexPlanes.length ];
             putBasePlane( basePlane.key, basePlane );
 
             initialiseExpressor( basePlane, isToggle( 'locus' ) );
@@ -516,6 +518,11 @@
             document
                     .getElementById( "basesVolume" )
                     .value = basePlane.box.volume;
+
+            document
+                    .getElementById( "planeIndex" )
+                    .max = box.indexPlanes.length - 1;
+
 
             updateJson();
 
@@ -627,6 +634,8 @@
             </span> |
 
             <input type="number" id="basesVolume" disabled="disabled"/> |
+
+            index: <input type="number" min="0" id="planeIndex" value="0" onchange="updatePage()"/> |
 
             <span id="captionTex"></span>
             <br/>

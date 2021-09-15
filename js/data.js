@@ -194,7 +194,7 @@ function getVolume( bases ) {
     return bases.reduce( ( a, c ) => a * c, 1 );
 }
 
-function getRadiance( volume ) {
+function getIndexRadiance( volume ) {
     return ( volume ** 2 - ( volume % 2 ) ) / 4;
 }
 

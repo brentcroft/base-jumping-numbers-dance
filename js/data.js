@@ -56,6 +56,7 @@ function canonicalize( m, sep = C_SEP, bra = BRA ) {
     }
 }
 
+var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys;
 
 
 // @see: https://stackoverflow.com/questions/44474864/compute-determinant-of-a-matrix

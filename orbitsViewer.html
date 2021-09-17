@@ -25,13 +25,11 @@
         <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
         <script type="text/javascript" src="js/data.js"></script>
-
-
-        <script type="text/javascript" src="js/3d.js"></script>
-
         <script type="text/javascript" src="js/orbits.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/jbnd.js"></script>
 
+        <script type="text/javascript" src="js/3d.js"></script>
 
         <script>
             function getParam() {
@@ -241,7 +239,8 @@
                         return {
                             "translation": point.coords[0].coord.join( ' ' ),
                             "scale": scaleUnit.join( ' ' ),
-                            "report": point.coords[0].report()
+                            "report": point.coords[0].report(),
+                            "json": point.coords[0].json()
                         };
                     })
                     .forEach( identityPoint => root
@@ -249,75 +248,43 @@
                             reify(
                                 "Transform",
                                 identityPoint,
-                                [ createSphereShape( 0.1, "red", fixedPointTransparency, identityPoint.report ) ] )
+                                [ createSphereShape( 0.1, "red", fixedPointTransparency, JSON.stringify( identityPoint.json ) ) ] )
                             )
                         );
 
 
                 // ORBITS
-                if ( toggles.radiants ) {
-                    basePlane
-                        .idx
-                        .forEach( ( point, i ) => {
-                            const pointIndexData = point.indexes[basePlane.id];
-                            const pointColour = colorBasePlane.colorForIndex( Math.abs( pointIndexData.radiant ) );
-                            root
-                                .appendChild(
+                for ( var i = 0; i < orbits.length; i++ ) {
+                    const orbit = orbits[i];
+                    const orbitColor = colorBasePlane.colorForIndex( orbit.index );
+                    root
+                        .appendChild(
+                            reify(
+                                "group",
+                                { "class": "orbit-line", "id": ("orbit." + orbit.index ) },
+                                [
+                                    createLineSet( orbit.coords, orbitColor ),
                                     reify(
-                                        "group",
+                                        "transform",
                                         {
-                                            "class": "orbit-line"
+                                            "translation": orbit.centre.join( ' ' ),
+                                            "scale": scaleUnit.join( ' ' )
                                         },
-                                        [
-                                            createLineSet( [ new Point( point.coord ), new Point( basePlane.box.centre ) ], pointColour ),
-                                            reify(
-                                                "transform",
-                                                {
-                                                    "translation": point.coord.join( ' ' ),
-                                                    "scale": scaleUnit.join( ' ' ),
-                                                    "class": "orbitCoord",
-                                                    "id": `orbitCoord.${ point.index }.${ i }`
-                                                },
-                                                [ createSphereShape( 0.07, pointColour, 0, point.report() ) ] )
-                                        ],
-                                        [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
-                                    )
-                                );
-
-                        } );
-                } else {
-                    for ( var i = 0; i < orbits.length; i++ ) {
-                        const orbit = orbits[i];
-                        const orbitColor = colorBasePlane.colorForIndex( orbit.index );
-                        root
-                            .appendChild(
-                                reify(
-                                    "group",
-                                    { "class": "orbit-line", "id": ("orbit." + orbit.index ) },
-                                    [
-                                        createLineSet( orbit.coords, orbitColor ),
-                                        reify(
-                                            "transform",
-                                            {
-                                                "translation": orbit.centre.join( ' ' ),
-                                                "scale": scaleUnit.join( ' ' )
-                                            },
-                                            [ createSphereShape( 0.09, "gray" ) ]
-                                        ),
-                                        ...orbit.coords.map( (x,i) => reify(
-                                            "transform",
-                                            {
-                                                "translation": x.coord.join( ' ' ),
-                                                "scale": scaleUnit.join( ' ' ),
-                                                "class": "orbitCoord",
-                                                "id": `orbitCoord.${ x.index }.${ i }`
-                                            },
-                                            [ createSphereShape( 0.07, orbitColor, 0, x.report() ) ] ) )
-                                    ],
-                                    [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
-                                )
-                            );
-                    }
+                                        [ createSphereShape( 0.09, "gray" ) ]
+                                    ),
+                                    ...orbit.coords.map( (x,i) => reify(
+                                        "transform",
+                                        {
+                                            "translation": x.coord.join( ' ' ),
+                                            "scale": scaleUnit.join( ' ' ),
+                                            "class": "orbitCoord",
+                                            "id": `orbitCoord.${ x.index }.${ i }`
+                                        },
+                                        [ createSphereShape( 0.07, orbitColor, 0, JSON.stringify( x.getJson() ) ) ] ) )
+                                ],
+                                [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
+                            )
+                        );
                 }
 
 
@@ -364,30 +331,6 @@
             }
 
 
-            function getBasePlaneGears( basePlane, toggles ) {
-
-                const orbits = basePlane.orbits;
-                const fixedPointTransparency = 0.1;
-                const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
-                const root = reify( "Transform", { "translation": basePlane.box.bases.map( b => -b/2 ).join( ' ' ) } );
-
-                // ORBITS
-                for ( var i = 0; i < orbits.length; i++ ) {
-                    const orbit = orbits[i];
-                    if (orbit.coords.length > 1 ) {
-                        root
-                            .appendChild(
-                                reify(
-                                    "transform",
-                                    { "translation": `${ i } 0 0`, "class": "orbit-line", "id": ("orbit." + orbit.index ) },
-                                    [ createDialLineSet( orbit.coords, colorBasePlane.colorForIndex( orbit.index ) ) ]
-                                )
-                            );
-                    }
-                }
-                return reify( "collision", { "enabled": false }, [ root ] );
-            }
-
             /**
 
             */
@@ -428,14 +371,14 @@
                                                 "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
                                             },
                                             [
-                                                createSphereShape( 0.3, "red", 0.5, identity.coords[0].report() ),
-                                                createLineSet( [ new Point( [ 0, 0, 0 ] ), new Point( [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
+                                                createSphereShape( 0.3, "red", 0.5, JSON.stringify( identity.coords[0].getJson() ) ),
+                                                createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
                                             ]
                                         )
                                     ),
 
                                 createLineSet(
-                                            [ new Point( [ 0, 0, zOff * ( -1 ) ] ), new Point( [ basePlane.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
+                                            [ new Point( -1, [ 0, 0, zOff * ( -1 ) ] ), new Point( [ -1, basePlane.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
                                             "black",
                                             attr
                                         ),
@@ -443,7 +386,7 @@
                                 ...basePlane
                                     .orbits
                                     .map( ( orbit, i ) => createLineSet(
-                                            [ new Point( [ 0, 0, zOff * ( i ) ] ), new Point( [ basePlane.box.volume - 1, 0, zOff * ( i ) ] ) ],
+                                            [ new Point( -1, [ 0, 0, zOff * ( i ) ] ), new Point( -1, [ basePlane.box.volume - 1, 0, zOff * ( i ) ] ) ],
                                             colorBasePlane.colorForIndex( orbit.index ),
                                             attr
                                         )
@@ -474,139 +417,97 @@
 
 
                 // ORBITS
-                const radiants = toggles.radiants;
-
-                if ( radiants ) {
-                    basePlane
-                        .idx
-                        .forEach( ( entry, i ) => {
-                            const point = entry.indexes[indexId]
-                            const color = colorBasePlane.colorForIndex( Math.abs( point.radiant ) );
-                            root
-                                .appendChild(
-                                    reify(
-                                        "transform",
-                                        {
-                                            "translation": `${ indexCentre } 0 0`,
-                                            "class": "cycle"
-                                        },
-                                        [
-                                            createTorusShape( {
-                                                    outerRadius: ( point.radiant / 2),
-                                                    size: 0.1,
-                                                    emissiveColor: color,
-                                                    transparency: 0,
-                                                    angle: PI,
-                                                    cssClass: "orbit-line",
-                                                    toggles: toggles
-                                                 } ),
-                                            reify(
-                                                "transform",
-                                                {
-                                                    "translation": `${ point.radiant / 2 } 0 0`,
-                                                },
-                                                [
-                                                    createSphereShape( 0.3, color, 0, entry.report() )
-                                                ]
-                                            )
-                                        ]
-                                    )
-                                );
-
-                        } );
-                } else {
-                    basePlane
-                        .identities
-                        .map( identityOrbit => identityOrbit.coords[0] )
-                        .map( identityPoint => {
-                            return {
-                                ...identityPoint.indexes[ indexId ],
-                                "report": identityPoint.report()
-                            };
-                        })
-                        .map( identity => reify(
-                                "transform",
-                                {
-                                    "translation": `${ identity.id } 0 ${ -1 * zOff }`,
-                                    "id": `identity.e.${ identity.id }`
-                                },
-                                [
-                                    createSphereShape( 0.3, "black", 0.5, identity.report ),
-                                    reify(
-                                        "transform",
-                                        {
-                                            "rotation": `0 1 0 ${ PI / 2 }`
-                                        },
-                                        [
-                                            createTorusShape( {
-                                                outerRadius: ( identity.jump / 2),
-                                                size: 0.1,
-                                                emissiveColor: "yellow",
-                                                transparency: 0,
-                                                angle: 2 * PI,
-                                                cssClass: "identity-line",
-                                                toggles: toggles
-                                             } )
-                                        ] )
-                                ]
-                            )
+                basePlane
+                    .identities
+                    .map( identityOrbit => identityOrbit.coords[0] )
+                    .map( identityPoint => {
+                        return {
+                            ...identityPoint.indexes[ indexId ],
+                            "report": identityPoint.report(),
+                            "json": identityPoint.getJson()
+                        };
+                    })
+                    .map( identity => reify(
+                            "transform",
+                            {
+                                "translation": `${ identity.id } 0 ${ -1 * zOff }`,
+                                "id": `identity.e.${ identity.id }`
+                            },
+                            [
+                                createSphereShape( 0.3, "black", 0.5, JSON.stringify( identity.json ) ),
+                                reify(
+                                    "transform",
+                                    {
+                                        "rotation": `0 1 0 ${ PI / 2 }`
+                                    },
+                                    [
+                                        createTorusShape( {
+                                            outerRadius: ( identity.jump / 2),
+                                            size: 0.1,
+                                            emissiveColor: "yellow",
+                                            transparency: 0,
+                                            angle: 2 * PI,
+                                            cssClass: "identity-line",
+                                            toggles: toggles
+                                         } )
+                                    ] )
+                            ]
                         )
-                        .forEach( x => root.appendChild(x) );
+                    )
+                    .forEach( x => root.appendChild(x) );
 
-                    for ( var i = 0; i < orbits.length; i++ ) {
-                        const orbit = orbits[i];
-                        const color = colorBasePlane.colorForIndex( orbit.index );
-                        if (orbit.coords.length > 1 ) {
-                            root
-                                .appendChild(
-                                    reify(
-                                        "transform",
-                                        {
-                                            "translation": `0 0 ${ zOff * i }`,
-                                            "class": "orbit-line",
-                                            "id": ("orbit." + orbit.index )
-                                        },
-                                        [
-                                            ...orbit
-                                                .coords
-                                                .map( ( entry, i ) => {
-                                                        const point = entry.indexes[ indexId ];
-                                                        return reify(
-                                                            "transform",
-                                                            {
-                                                                "translation": `${ point.id + point.jump / 2 } 0 0`,
-                                                            },
-                                                            [
-                                                                createTorusShape( {
-                                                                        outerRadius: ( point.jump / 2),
-                                                                        size: 0.1,
-                                                                        emissiveColor: color,
-                                                                        transparency: 0,
-                                                                        angle: PI,
-                                                                        cssClass: "orbitation",
-                                                                        toggles: toggles
-                                                                     } ),
+                for ( var i = 0; i < orbits.length; i++ ) {
+                    const orbit = orbits[i];
+                    const color = colorBasePlane.colorForIndex( orbit.index );
+                    if (orbit.coords.length > 1 ) {
+                        root
+                            .appendChild(
+                                reify(
+                                    "transform",
+                                    {
+                                        "translation": `0 0 ${ zOff * i }`,
+                                        "class": "orbit-line",
+                                        "id": ("orbit." + orbit.index )
+                                    },
+                                    [
+                                        ...orbit
+                                            .coords
+                                            .map( ( entry, i ) => {
+                                                    const point = entry.indexes[ indexId ];
+                                                    return reify(
+                                                        "transform",
+                                                        {
+                                                            "translation": `${ point.id + point.jump / 2 } 0 0`,
+                                                        },
+                                                        [
+                                                            createTorusShape( {
+                                                                    outerRadius: ( point.jump / 2),
+                                                                    size: 0.1,
+                                                                    emissiveColor: color,
+                                                                    transparency: 0,
+                                                                    angle: PI,
+                                                                    cssClass: "orbitation",
+                                                                    toggles: toggles
+                                                                 } ),
 
-                                                                reify(
-                                                                    "transform",
-                                                                    {
-                                                                        "translation": `${ point.jump / 2 } 0 0`,
-                                                                    },
-                                                                    [
-                                                                        createSphereShape( 0.3, color, 0, entry.report() )
-                                                                    ]
-                                                                )
-                                                            ]
-                                                        );
-                                                    }
-                                                )
-                                        ]
-                                    )
-                                );
-                        }
+                                                            reify(
+                                                                "transform",
+                                                                {
+                                                                    "translation": `${ point.jump / 2 } 0 0`,
+                                                                },
+                                                                [
+                                                                    createSphereShape( 0.3, color, 0, JSON.stringify( entry.getJson() ) )
+                                                                ]
+                                                            )
+                                                        ]
+                                                    );
+                                                }
+                                            )
+                                    ]
+                                )
+                            );
                     }
                 }
-
 
                 return reify(
                     "collision",
@@ -684,7 +585,7 @@
                             s.onclick = function( event ) {
                                 distributeMessage( {
                                     basis: "point",
-                                    report: s.getAttribute( "tooltip" )
+                                    json: JSON.parse( s.getAttribute( "tooltip" ) )
                                 } );
                                 s.classlist.add( "selected" );
                             };

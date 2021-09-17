@@ -28,16 +28,6 @@ class Box {
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
     }
 
-
-    buildRadiants() {
-        this.radiants = [];
-
-        for ( var i = 0; i < ( this.volume / 2 ) ; i++) {
-            const orbit = new Orbit( this, this.radiants.length + 1, [] );
-            this.orbits.push( conjugateOrbit );
-        }
-    }
-
     getJson() {
         return {
            bases: this.bases,
@@ -61,16 +51,7 @@ class Box {
 
 class RadiantIndex extends Index {
     constructor( box, id = 0 ) {
-        super();
-        this.box = box;
-        this.id = id;
-        this.key = `plane-${ id }`;
-
-        // local copy
-        this.bases = [ ...box.bases ];
-
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
+        super( box, id );
 
         this.powersForward = placeValuesForwardArray( this.bases );
         this.powersReverse = placeValuesReverseArray( this.bases );
@@ -91,13 +72,7 @@ class RadiantIndex extends Index {
 
 class PointIndex extends Index {
     constructor( box, id = 0 ) {
-        super();
-        this.box = box;
-        this.id = id;
-        this.key = `plane-${ id }`;
-
-        // local copy
-        this.bases = [ ...box.bases ];
+        super( box, id );
 
         // indexers
         rotateArray( this.bases, this.id );
@@ -108,9 +83,6 @@ class PointIndex extends Index {
         const rotateId = (i) => ( i + this.id ) % this.bases.length;
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
         this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
-
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
 
         // plane of identity
         this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
@@ -162,26 +134,30 @@ class IndexedBox {
     constructor( bases = [] ) {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
-
-        this.indexPlanes = [];
+        this.box.points = [];
+        this.indexPlanes = [ new RadiantIndex( this.box, 0 ) ];
 
         if ( bases.length <= 2 ) {
-            this.indexPlanes.push( new PointIndex( this.box, 0 ) );
+            this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length ) );
         } else {
             for ( var i = 0; i < bases.length; i++ ) {
-                this.indexPlanes.push( new PointIndex( this.box, i ) );
+                this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length ) );
             }
         }
 
-        this.indexPlanes.push( new RadiantIndex( this.box, this.indexPlanes.length ) );
-
         this.buildIndexes();
+
+        // set conjugates
+        const numPoints = this.box.points.length;
+        this.box.points.forEach( point => point.conjugate = this.box.points[ numPoints - point.id - 1] );
+
         this.indexPlanes.forEach( plane => plane.initialise() );
     }
 
     buildIndexes( place = 0, locusStack = [] ) {
         if ( place == this.box.bases.length ) {
-            const point = new Point( locusStack, this.box.centre );
+            const point = new Point( this.box.points.length, locusStack, this.box.centre );
+            this.box.points.push( point );
             this.indexPlanes.forEach( indexer => indexer.indexPoint( point ) );
         } else {
             for ( var i = 0; i < this.box.bases[place]; i++) {
@@ -191,7 +167,6 @@ class IndexedBox {
             }
         }
     }
-
 
     getDataHtml() {
         const sep = ", ";
@@ -206,7 +181,7 @@ class IndexedBox {
         dataHtml += "\n";
         dataHtml += this
             .indexPlanes
-            .map( plane => planeDataFn( plane.getData() ) )
+            .map( plane => planeDataFn( plane.getJson() ) )
             .join( "\n" );
 
         return dataHtml;

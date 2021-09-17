@@ -185,14 +185,14 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Repeat</th>`;
 
     if ( jumps ) {
-        chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='30%'>Jumps</th>`;
+        chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='20%'>Jumps</th>`;
     }
 
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='40%'>Orbit</th>`;
+    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' width='30%'>Orbit</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Point Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, false, true )' width='8%'>Id Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, false, true )' width='8%'>Order</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
+    //chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Radiance is the sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">E-Rad</th>`;
@@ -208,7 +208,7 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th colspan='4' class='midi' style='display: ${midi?"":"none"};'></th>`;
 
     if ( jumps ) {
-        chainsText += `<td align="center">[ ${ basePlane.identities.map( p => p.coords[0].jump ).join( C_SEP ) } ]</td>`;
+        chainsText += `<td align="center">[ ${ basePlane.identities.map( p => p.getJumps() ).join( C_SEP ) } ]</td>`;
     }
 
     if ( perms ) {
@@ -231,7 +231,7 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th id="${ tableId }.g" align='center' onclick="${ clearClick }"><code>${ identityIdSum / identityIdSumGcd } * ${ identityIdSumGcd }</code></th>`;
 
     chainsText += `<th align='center' onclick="${ clearClick }"><code>( 1<sup>${ basePlane.identities.length }</sup> )</code></th>`;
-    chainsText += "<th colspan='1'></th>";
+    //chainsText += "<th colspan='1'></th>";
     chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
     chainsText += "<th colspan='1'></th>";
 
@@ -279,10 +279,12 @@ function drawBasePlaneTable( tableArgs ) {
         if ( perms ) {
             if ( orbit.isSelfConjugate() && conj ) {
                 // self-conjugates pair off so must have even order
-                var scValenceFirst = orbit.jumps.slice( 0, Math.ceil( orbit.jumps.length / 2 ) );
-                var scValenceRest = orbit.jumps.slice( Math.ceil( orbit.jumps.length / 2 ), orbit.jumps.length );
-                var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
-                var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
+                const orbitJumps = orbit.getJumps();
+
+                const scValenceFirst = orbitJumps.slice( 0, Math.ceil( orbitJumps.length / 2 ) );
+                const scValenceRest = orbitJumps.slice( Math.ceil( orbitJumps.length / 2 ), orbitJumps.length );
+                const scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
+                const scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
 
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ scValenceFirst.join( C_SEP ) } &#8600;<br/>${ scValenceRest.join( C_SEP ) } &#8598;]</td>`;
@@ -292,17 +294,23 @@ function drawBasePlaneTable( tableArgs ) {
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
             } else if ( orbit.isFirstConjugate() && conj ) {
                 var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
-                var conjOrbitIdSum = conjOrbit.getIdSum();
+                var conjOrbitIdSum = 0
+                try {
+                    conjOrbitIdSum = conjOrbit.getIdSum();
+                } catch ( e ) {
+                    throw `Error: ${ e }`;
+                }
+
                 var conjOrbitSpaceGcd = gcd( maxIndex, conjOrbitIdSum );
                 if ( jumps ) {
-                    chainsText += `<td align="center">[ ${ orbit.jumps.join( C_SEP ) } ]<br/>[ ${ conjOrbit.jumps.join( C_SEP ) } ]</td>`;
+                    chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]<br/>[ ${ conjOrbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
                 chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } )<br/>( ${ conjOrbit.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } )</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })<br/>(${ conjOrbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }<br/>${ conjOrbitIdSum / conjOrbitSpaceGcd } * ${ conjOrbitSpaceGcd }</td>`;
             } else {
                 if ( jumps ) {
-                    chainsText += `<td align="center">[ ${ orbit.jumps.join( C_SEP ) } ]</td>`;
+                    chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
                 chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } )</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
@@ -311,14 +319,16 @@ function drawBasePlaneTable( tableArgs ) {
         } else {
             if ( orbit.isSelfConjugate() && conj ) {
                 // self-conjugates pair off so must have even order
-                var scValenceFirst = orbit.jumps.slice( 0, Math.ceil( orbit.jumps.length / 2 ) );
-                var scValenceRest = orbit.jumps.slice( Math.ceil( orbit.jumps.length / 2 ), orbit.jumps.length );
+                const orbitJumps = orbit.getJumps();;
+                var scValenceFirst = orbitJumps.slice( 0, Math.ceil( orbitJumps.length / 2 ) );
+                var scValenceRest = orbitJumps.slice( Math.ceil( orbitJumps.length / 2 ), orbitJumps.length );
                 var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
                 var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
 
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ scValenceFirst.join( C_SEP ) } &#8600;<br/>${ scValenceRest.join( C_SEP ) } &#8598;]</td>`;
                 }
+
                 chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ scMembersFirst.join( C_SEP ) } &#8600;<br/>${ scMembersRest.join( C_SEP ) } &#8598;</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
@@ -328,14 +338,14 @@ function drawBasePlaneTable( tableArgs ) {
                 var conjOrbitSpaceGcd = gcd( maxIndex, conjOrbitIdSum );
 
                 if ( jumps ) {
-                    chainsText += `<td align="center">[ ${ orbit.jumps.join( C_SEP ) } ]<br/>[ ${ conjOrbit.jumps.join( C_SEP ) } ]</td>`;
+                    chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]<br/>[ ${ conjOrbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
                 chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }<br/>${ conjOrbit.getMembers() }</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })<br/>(${ conjOrbit.sum.join( ', ' ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }<br/>${ conjOrbitIdSum / conjOrbitSpaceGcd } * ${ conjOrbitSpaceGcd }</td>`;
             } else {
                 if ( jumps ) {
-                    chainsText += `<td align="center">[ ${ orbit.jumps.join( C_SEP ) } ]</td>`;
+                    chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
                 chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">${ orbit.getMembers() }</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
@@ -351,30 +361,23 @@ function drawBasePlaneTable( tableArgs ) {
             chainsText += `<td align="center">${ orbit.order } * 1</td>`;
         }
 
-        chainsText += `<td align="center">${ orbit.harmonic }</td>`;
+        //chainsText += `<td align="center">${ orbit.harmonic }</td>`;
         chainsText += `<td align="center">${ orbit.getLineRef() }</td>`;
         chainsText += `<td align="center">${ orbit.centreRef }</td>`;
 
-        if ( orbit.isSelfConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.euclideanRadiance }</td>`;
-            chainsText += `<td align="center">${ orbit.euclideanPerimeter }</td>`;
-            chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
-            chainsText += `<td align="center">${ orbit.indexRadiance }</td>`;
-            chainsText += `<td align="center">${ orbit.indexPerimeter }</td>`;
-            chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
-        } else if ( orbit.isFirstConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.euclideanRadiance * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.euclideanPerimeter * 2 }</td>`;
+        if ( orbit.isFirstConjugate() && conj ) {
+            chainsText += `<td align="center">${ orbit.euclideanRadiance() * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanPerimeter() * 2 }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.indexRadiance * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.indexPerimeter * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.indexRadiance() * 2 }</td>`;
+            chainsText += `<td align="center">${ orbit.indexPerimeter() * 2 }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() * 2 }</td>`;
         } else {
-            chainsText += `<td align="center">${ orbit.euclideanRadiance }</td>`;
-            chainsText += `<td align="center">${ orbit.euclideanPerimeter }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanRadiance() }</td>`;
+            chainsText += `<td align="center">${ orbit.euclideanPerimeter() }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
-            chainsText += `<td align="center">${ orbit.indexRadiance }</td>`;
-            chainsText += `<td align="center">${ orbit.indexPerimeter }</td>`;
+            chainsText += `<td align="center">${ orbit.indexRadiance() }</td>`;
+            chainsText += `<td align="center">${ orbit.indexPerimeter() }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         }
         chainsText += "</tr>";
@@ -448,7 +451,7 @@ function drawBasePlaneTable( tableArgs ) {
         euclideanRadianceGcd
     ];
 
-    chainsText += "<td colspan='3'></td>";
+    chainsText += "<td colspan='2'></td>";
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanRadiance(), [ ...trialCommonDenominators ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanPerimeter(), [ ...trialCommonDenominators ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );

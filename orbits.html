@@ -38,7 +38,7 @@
 
         .plot_frame {
             width: 100%;
-            height: 80%;
+            height: 60%;
             resize: both;
             overflow: auto;
         }
@@ -125,7 +125,9 @@
             font-size: 80%;
             width: 30pt;
         }
-
+        input[type=button] {
+            font-size: 80%;
+        }
 
         input[type=checkbox] {
             font-style: italic;
@@ -142,21 +144,20 @@
     <script type="text/javascript" src="js/midi.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
 
-
-
     <script type="text/javascript" src="js/bases.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/jbnd.js"></script>
 
 
     <script type="text/javascript" src="js/factors.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/table.js"></script>
+    <script type="text/javascript" src="js/3d.js"></script>
 
     <script type="text/javascript" src="js/x3dom-full.js"></script>
     <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
-    <script type="text/javascript" src="js/3d.js"></script>
 
 
     <script>
@@ -177,6 +178,9 @@
                     .map( x => Number( x ) );
             }
 
+            const indexParam = urlParams.get('planeIndex');
+            const planeIndex = ( indexParam ) ? Number( indexParam ): 1;
+
             const toggleParam = urlParams.get('toggles');
             if ( toggleParam ) {
                 Object
@@ -188,6 +192,7 @@
             }
 
             return {
+                planeIndex: planeIndex,
                 id: urlParams.get('id'),
                 bases: bases,
                 orbits: urlParams.get('orbits'),
@@ -218,14 +223,17 @@
             };
         }
 
-        function getCurrentQueryString( basePlaneKey, bases ) {
+        function getCurrentQueryString( basePlaneKey, bases, planeIndex ) {
             const values = getControlValues();
 
             if ( !bases ) {
                 bases = values.bases;
             }
+            if ( !planeIndex ) {
+                planeIndex = values.planeIndex;
+            }
 
-            return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&toggles=${ values.toggles.join( ',' ) }`;
+            return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&planeIndex=${ values.planeIndex }&toggles=${ values.toggles.join( ',' ) }`;
         }
 
         function reopenWithArgs() {
@@ -262,6 +270,25 @@
 
         function distributeMessages( containerId, messages = [] ) {
             messages.forEach( message => distributeMessage( containerId, message) );
+        }
+
+        function getSelectedOrbitIds( tableId  ) {
+
+            const tableCells = document
+                .getElementById( tableId )
+                .querySelectorAll( "td.orbit" );
+
+            const selectedOrbitIds = [];
+
+            tableCells.forEach( tableCell => {
+                const [ _, ...oIds ] = tableCell.id.split( "." );
+                if ( tableCell.classList.contains( "selected" ) ) {
+                    oIds
+                        .forEach( oId => selectedOrbitIds.push( oId ) );
+                }
+            } )
+
+            return selectedOrbitIds;
         }
 
         function showOrbit( containerId, basePlane, senderId, multi  ) {
@@ -405,6 +432,9 @@
             function setNumberField( id, value ) {
                 document.getElementById( id ).value = value;
             }
+
+            setNumberField( "planeIndex", param.planeIndex );
+
             const colourFields = [ "colour-red", "colour-green", "colour-blue", "colour-orbitIndex", "colour-minPixel" ];
 
             setNumberField( "colour-red", colourPointIndexDefault.bases[0] );
@@ -469,9 +499,14 @@
 
 
         function updateJson() {
+
+            document
+                .getElementById( "sample_cs_b_10_m_2_riffler" )
+                .setAttribute( "max", `${ basePlane.orbits.length - 1 }` );
+
             document
                     .getElementById("orbit-system-data-text-area")
-                    .innerHTML = JSON.stringify( basePlane.getData(), null, 2 );
+                    .innerHTML = JSON.stringify( basePlane.getJson(), null, 2 );
 
             var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': this.id } ] )";
             var clearClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': this.id } ] )";
@@ -486,52 +521,55 @@
                 midi: isToggle('midi'),
                 conj: isToggle('conj'),
                 jumps: isToggle('jumps'),
-                radiants: isToggle('radiants'),
                 perms: !isToggle('coords'),
             };
 
             drawBasePlaneTable( tableArgs );
+
+            insertX3DomFrame(
+                'sample_cs_b_10_m_2',
+                basePlane,
+                framePage = "orbitsViewer.html?" + getCurrentQueryString( basePlane.key ) );
         }
 
+        function updatePlane() {
+
+            const param = getControlValues();
+
+            const planeIndex = param.planeIndex % indexedBox.indexPlanes.length;
+
+            basePlane = indexedBox.indexPlanes[ planeIndex ];
+            putBasePlane( basePlane.key, basePlane );
+
+            initialiseExpressor( basePlane, isToggle( 'locus' ) );
+
+            document
+                    .getElementById("captionTex")
+                    .innerHTML = basePlane.getCaptionHtml();
+
+            updateJson();
+        }
 
         function updatePage() {
 
             const param = getControlValues();
 
             // TODO: global access
-            const box = new IndexedBox( param.bases );
-            basePlane = box.indexPlanes[ param.planeIndex % box.indexPlanes.length ];
-            putBasePlane( basePlane.key, basePlane );
-
-            initialiseExpressor( basePlane, isToggle( 'locus' ) );
-
-            document
-                .getElementById( "sample_cs_b_10_m_2_riffler" )
-                .setAttribute( "max", `${ basePlane.orbits.length - 1 }` );
-
-            document
-                    .getElementById("captionTex")
-                    .innerHTML = basePlane.getCaptionHtml();
+            indexedBox = new IndexedBox( param.bases );
 
             document
                     .getElementById( "summary" )
-                    .innerHTML = `<pre>${ box.getDataHtml() }</pre>`;
+                    .innerHTML = `<pre>${ indexedBox.getDataHtml() }</pre>`;
 
             document
                     .getElementById( "basesVolume" )
-                    .value = basePlane.box.volume;
+                    .value = indexedBox.box.volume;
 
             document
                     .getElementById( "planeIndex" )
-                    .max = box.indexPlanes.length - 1;
+                    .max = indexedBox.indexPlanes.length - 1;
 
-
-            updateJson();
-
-            insertX3DomFrame(
-                'sample_cs_b_10_m_2',
-                basePlane,
-                framePage = "orbitsViewer.html?" + getCurrentQueryString( basePlane.key ) );
+            updatePlane();
         }
 
         function initPage( urlParam = true ) {
@@ -562,10 +600,16 @@
                 showHideAll( [ 'selectedPoint', 'summary' ] );
             }
             if ( param.toggles.table ) {
-                showHide( 'sample_cs_b_10_m_2_table' );
+                showHideAll(['tableControls','sample_cs_b_10_m_2_table']);
+            }
+            if ( param.toggles.chart ) {
+                showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler']);
             }
             if ( param.toggles.more ) {
                 showHideAll( ['more-options'] );
+            }
+            if ( param.toggles.editor ) {
+                showHideAll( ['editor'] );
             }
             if ( param.toggles.colours ) {
                 showHideAll( ['colours'] );
@@ -573,6 +617,8 @@
             if ( param.toggles.midi ) {
                 showHideCSS( '.midi' );
             }
+
+            selectedPoints = [];
 
             window.addEventListener( "message", ( event ) => {
                 if ( event.data ) {
@@ -582,8 +628,29 @@
 
                     if ( data.basis ) {
                         if ( "point" == data.basis ) {
+                            const matchingPoints = selectedPoints.filter( x => x.coord.every( (v,i) => v === data.json.coord[i] ) );
+                            if ( matchingPoints.length > 0 ) {
+                                matchingPoints.forEach( x => selectedPoints.splice( selectedPoints.indexOf( x ), 1 ) );
+                            } else if ( selectedPoints.length > 1 ) {
+                                selectedPoints[1] = data.json;
+                            } else {
+                                selectedPoints.push( data.json );
+                            }
+
+                            var html = "";
+                            selectedPoints
+                                .map( point => {
+                                    const indexRows = point.indexes.map( ( x, i ) => i + ": " + JSON.stringify( x ) ).join("\n")
+                                    html += `<pre>Point: id: [${ point.id }], coord: [${ point.coord }], erad: ${ point.euclideanRadiance }\n${ indexRows }</pre>`;
+                                } )
+                                .join();
+
                             const selectedPoint = document.getElementById( "selectedPoint" );
-                            selectedPoint.innerHTML = "<pre>" + data.report + "</pre>";
+                            selectedPoint.innerHTML = html;
+
+                            const selectedPointIds = document.getElementById( "selectedPointIds" );
+                            selectedPointIds.value = selectedPoints.map( p => p.id ).join( ", ");
+
                         }
 
                     } else if ( data.basePlaneKey ) {
@@ -597,7 +664,7 @@
 
                         const [ bases, colorOrbitIndex, minPixel ] = data.colors;
                         putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, colorOrbitIndex, minPixel ) );
-                        updatePage();
+                        updatePlane();
 
                     } else if ( data.toggleCentres ) {
                     } else if ( data.toggleLines ) {
@@ -610,34 +677,29 @@
             if ( param.id ) {
                 distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] );
             }
-
-            distributeMessage( 'sample_cs_b_10_m_2', {
-                basis: "point",
-                report: basePlane.identities[0].coords[0].report()
-            } );
-
         }
     </script>
 </head>
 <body id="testContainer001" onload="initPage()">
     <div>
         <div id="caption" class="caption">
-            <a onclick="reopenWithArgs()"  title="reopen with current values in url"><b>Bases: </b></a>
+            <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
+
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="7"/>
-                <input type="number" min="1" id="b1" value="5"/>
-                <input type="number" min="1" id="b2" value="3"/>
+                <input type="number" min="1" id="b0" value="4"/>
+                <input type="number" min="1" id="b1" value="3"/>
+                <input type="number" min="1" id="b2" value="2"/>
             </span> |
 
-            <input type="number" id="basesVolume" disabled="disabled"/> |
+            <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            index: <input type="number" min="0" id="planeIndex" value="0" onchange="updatePage()"/> |
+            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="0" onchange="updatePlane()"/></label> |
 
             <span id="captionTex"></span>
             <br/>
@@ -646,36 +708,124 @@
 
         <div id="toolbar" class="toolbar">
             <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this )"/></label> |
-            <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHide('sample_cs_b_10_m_2_table', this)" title="display a table of identities and orbits"/></label> |
-            <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="grid3dToggle" onchange="updatePage()"/></label> |
-            <label title="show each radiant instead of a chord diagram">radiants<input type="checkbox" id="radiantsToggle" onchange="updatePage()"/></label> |
+            <label title="display a chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
+            <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
+            <label title="orbit surgery">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
             <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
 
-            <div id="more-options" style="display: none">
-
+            <div id="chartControls" style="display: none">
                 <hr/>
+                <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="grid3dToggle" onchange="updateJson()"/></label> |
+                <label title="scale 3d to a square">square<input type="checkbox" id="scale3dToggle" onchange="updateJson()"/></label> |
                 <label title="show the box grid structure">grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/></label> |
                 <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |
                 <label title="show the identity plane">plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/></label> |
                 <label title="show orbit lines">lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/></label> |
-                <label title="show the phase controls and the corresponding locus">locus<input type="checkbox" id="locusToggle" onchange="updatePage()"/></label> |
-                <label title="scale 3d to a square">scale 3d<input type="checkbox" id="scale3dToggle" onchange="updatePage()"/></label>
-
-                <hr/>
-                <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updatePage()"/></label> |
-                <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updatePage()"/></label> |
-                <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updatePage()"/></label> |
-                <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label>
-
-                <hr/>
-                <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label> |
-                <label title="random">random<input type="checkbox" id="randomToggle" onchange="updatePage()"/></label> |
-                <label title="midi">midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/></label> |
-                <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
-
+                <label title="show the phase controls and the corresponding locus">locus<input type="checkbox" id="locusToggle" onchange="updateJson()"/></label>
                 <div>
                     <div id="expressor"></div>
                 </div>
+            </div>
+
+            <div id="tableControls" style="display: none">
+                <hr/>
+                <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
+                <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
+                <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
+                <label title="midi">midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/></label> |
+                <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
+            </div>
+
+            <div id="editor" style="display: none">
+                <hr/>
+                <script>
+                        // selectedPoints
+
+                        function addOrbits( basePlane, orbits ) {
+                            const mergeType = Number( document.getElementById("orbitOperation").value );
+                            basePlane.mergeOrbits( orbits, mergeType );
+                            updateJson();
+                        }
+
+                        function conjugateOrbits( basePlane, orbits ) {
+                            const mergeType = Number( document.getElementById("orbitOperation").value );
+                            basePlane.conjugateOrbits( orbits, mergeType );
+                            updateJson();
+                        }
+
+                        function joinPoints( ) {
+                            const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
+                            const pointIds = selectedPointIds
+                                .split( "," )
+                                .map( x => Number( x ) )
+
+                            if ( pointIds.length > 1 ) {
+                                basePlane.joinPoints( pointIds );
+                                updateJson();
+                            }
+                        }
+
+                        function conjugateAddSelected() {
+                            const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
+
+                            if ( selectedPointIds ) {
+                                const pointIds = selectedPointIds
+                                    .split( "," )
+                                    .map( x => Number( x ) )
+
+                                if ( pointIds.length > 1 ) {
+                                    joinPoints( basePlane, pointIds );
+                                    updateJson();
+                                }
+
+                            }
+                        }
+                        function conjugateSubtractSelected() {
+                            const orbitIds = getSelectedOrbitIds( 'sample_cs_b_10_m_2_table', basePlane );
+                            if ( orbitIds.length > 1 ) {
+                                conjugateOrbits( basePlane, orbitIds );
+                                updateJson();
+                            }
+                        }
+
+                        function rotateSelectedOrbits() {
+                            const orbitIds = getSelectedOrbitIds( 'sample_cs_b_10_m_2_table', basePlane );
+                            if ( orbitIds.length > 0 ) {
+                                basePlane.rotateOrbits( orbitIds );
+                                updateJson();
+
+                                const messages = orbitIds
+                                    .map( orbitId => {
+                                            return {
+                                                'basePlaneKey': basePlane.key,
+                                                'multi': isToggle('multi'),
+                                                'sender': ('dummy.' + orbitId)
+                                            };
+                                        });
+
+                                //console.log( messages );
+
+                                distributeMessages(
+                                    'sample_cs_b_10_m_2',
+                                    messages
+                                );
+                            }
+                        }
+
+                    </script>
+                selected points:
+                <label>ids: <input type="text" id="selectedPointIds" class="colourField"/></label>
+                <label><input type="button" onclick="joinPoints()" value="join"/></label> |
+                <label><input type="button" onclick="conjugateAddSelected()" value="union"/></label> |
+                <label><input type="button" onclick="conjugateSubtractSelected()" value="intersection"/></label> |
+                <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label>
+            </div>
+
+            <div id="more-options" style="display: none">
+                <hr/>
+                <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
+
+                <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
 
                 <div id="colours" style="display: none">
                     <hr/>
@@ -691,7 +841,7 @@
                         function masterColorBasePlane() {
                             const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
                             initialiseBases( bases );
-                            updatePage();
+                            updatePlane();
                             distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'colourBasePlane.' + orbitIndex } ] );
                         }
                     </script>
@@ -705,9 +855,6 @@
                     max-pixel <input type="number" min="0" max="255" id="colour-maxPixel" value="200" class="colourField"/> |
                     <a href="javascript:applyColorBasePlane()">apply</a>
                 </div>
-
-
-
             </div>
             <div style="display: none" class="midi">
                 <hr/>
@@ -727,21 +874,21 @@
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
 
+    <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>
 
-    <div id="sample_cs_b_10_m_2_plot"></div>
-
-    <div class='legend'>
+    <div id="sample_cs_b_10_m_2_plot_legend" style="display: none" class='legend'>
         [ a, r, u | e, f, l, w, &lt;space&gt; ]
         see: <a href="https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html" target="_new">x3dom navigation tutorial</a>
-
     </div>
+
     <div style="width: 100%">
         <input
                 type="range"
                 min="0"
                 max="1"
                 id="sample_cs_b_10_m_2_riffler"
-                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"/>
+                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"
+                style="display: none" />
     </div>
 
 </body>

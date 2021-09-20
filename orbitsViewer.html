@@ -109,6 +109,9 @@
             }
 
 
+
+
+
             function showOrbit( containerId, basePlane, senderId, multi ) {
                 const [ tableId, ...orbitIds ] = senderId.split( "." );
                 const orbits = document
@@ -179,7 +182,7 @@
                                                 "scale": scaleUnit.join( ' ' )
                                             },
                                             [
-                                                createSphereShape( gridPointRadius, 'black', 0.80, `(${ [ i, j, k ].join( ',' ) })` ),
+                                                createSphereShape( `grid-point-${ [ i, j, k ].join( '.' ) }`, gridPointRadius, 'black', 0.80, `(${ [ i, j, k ].join( ',' ) })` ),
                                                 createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
                                             ]
                                         )
@@ -216,7 +219,7 @@
                                         "translation": x.point.join( ' ' ),
                                         "scale": scaleUnit.join( ' ' )
                                     },
-                                    [ createSphereShape( 0.1, "yellow", fixedPointTransparency ) ]
+                                    [ createSphereShape( null, 0.1, "yellow", fixedPointTransparency ) ]
                                 ) );
 
                 const centreLines = basePlane
@@ -235,22 +238,28 @@
                 // FIXED POINTS
                 basePlane
                     .identities
-                    .map( point => {
-                        return {
-                            "translation": point.coords[0].coord.join( ' ' ),
-                            "scale": scaleUnit.join( ' ' ),
-                            "report": point.coords[0].report(),
-                            "json": point.coords[0].json()
-                        };
-                    })
+                    .forEach(
+                        orbit => orbit
+                            .coords
+                            .map( point => {
+                                return {
+                                        "pointId": "point-" + point.coord.join( '.' ),
+                                        "translation": point.coord.join( ' ' ),
+                                        "scale": scaleUnit.join( ' ' ),
+                                        "report": point.report(),
+                                        "json": point.getJson()
+                                    };
+                                }
+                            )
                     .forEach( identityPoint => root
                         .appendChild(
                             reify(
                                 "Transform",
                                 identityPoint,
-                                [ createSphereShape( 0.1, "red", fixedPointTransparency, JSON.stringify( identityPoint.json ) ) ] )
+                                [ createSphereShape( identityPoint.pointId, 0.1, "red", fixedPointTransparency, JSON.stringify( identityPoint.json ) ) ] )
                             )
-                        );
+                        )
+                    );
 
 
                 // ORBITS
@@ -270,7 +279,7 @@
                                             "translation": orbit.centre.join( ' ' ),
                                             "scale": scaleUnit.join( ' ' )
                                         },
-                                        [ createSphereShape( 0.09, "gray" ) ]
+                                        [ createSphereShape( "orbit." + orbit.index + ".0" , 0.09, "gray" ) ]
                                     ),
                                     ...orbit.coords.map( (x,i) => reify(
                                         "transform",
@@ -280,7 +289,7 @@
                                             "class": "orbitCoord",
                                             "id": `orbitCoord.${ x.index }.${ i }`
                                         },
-                                        [ createSphereShape( 0.07, orbitColor, 0, JSON.stringify( x.getJson() ) ) ] ) )
+                                        [ createSphereShape( "orbit." + orbit.index + "." + i, 0.07, orbitColor, 0, JSON.stringify( x.getJson() ) ) ] ) )
                                 ],
                                 [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
                             )
@@ -331,9 +340,38 @@
             }
 
 
-            /**
 
-            */
+            function setSelectedPoints( containerId, selectedPoints ) {
+                const existingSelectedPoints = document
+                    .getElementById( containerId )
+                    .querySelectorAll( "sphere.selected" );
+
+                const standardRadius = 0.3;
+                const selectedRadius = 0.5;
+
+                existingSelectedPoints
+                    .forEach( sphereElement => {
+                        sphereElement.setAttribute( "radius", standardRadius );
+                        sphereElement.classList.remove("selected");
+                        console.log( `de-selected point: ${ sphereElement.id }` );
+                    });
+
+                selectedPoints
+                    .forEach( p => {
+                        const idSuffix = p.coord.join("-");
+                        const sphereElement = document.querySelector( `sphere#point-${ idSuffix }` );
+
+                        if ( sphereElement && sphereElement.tagName == "SPHERE" ) {
+                            sphereElement.setAttribute( "radius", selectedRadius );
+                            sphereElement.classList.add("selected")
+                            //console.log( `selected point: ${ JSON.stringify( p ) }` );
+                        } else {
+                            console.log( `selected point not found: ${ JSON.stringify( p ) }` );
+                        }
+                    } );
+            }
+
+
             function getBasePlaneCycles( basePlane, toggles ) {
 
                 const indexId = basePlane.id;
@@ -371,7 +409,7 @@
                                                 "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
                                             },
                                             [
-                                                createSphereShape( 0.3, "red", 0.5, JSON.stringify( identity.coords[0].getJson() ) ),
+                                                createSphereShape( `grid-point-${ identity.coords[0].coord.join( '-' ) }`, 0.3, "red", 0.5, JSON.stringify( identity.coords[0].getJson() ) ),
                                                 createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
                                             ]
                                         )
@@ -424,7 +462,8 @@
                         return {
                             ...identityPoint.indexes[ indexId ],
                             "report": identityPoint.report(),
-                            "json": identityPoint.getJson()
+                            "json": identityPoint.getJson(),
+                            coord: identityPoint.coord
                         };
                     })
                     .map( identity => reify(
@@ -434,7 +473,7 @@
                                 "id": `identity.e.${ identity.id }`
                             },
                             [
-                                createSphereShape( 0.3, "black", 0.5, JSON.stringify( identity.json ) ),
+                                createSphereShape( `point-${ identity.coord.join("-") }`, 0.3, "black", 0.5, JSON.stringify( identity.json ) ),
                                 reify(
                                     "transform",
                                     {
@@ -496,7 +535,7 @@
                                                                     "translation": `${ point.jump / 2 } 0 0`,
                                                                 },
                                                                 [
-                                                                    createSphereShape( 0.3, color, 0, JSON.stringify( entry.getJson() ) )
+                                                                    createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) )
                                                                 ]
                                                             )
                                                         ]
@@ -566,6 +605,8 @@
             }
 
 
+
+
             function initPage() {
 
                 const param = getParam();
@@ -583,11 +624,15 @@
                 tooltipped
                     .forEach( s => {
                             s.onclick = function( event ) {
+                                const tooltipData = s.getAttribute( "tooltip" );
+                                const point = JSON.parse( tooltipData );
+
+                                console.log( `selected point: [${ point.coord.join(", ") }], raw: ${ point.id }, ${basePlane.id}=${ JSON.stringify( point.indexes[ basePlane.id ] ) }` );
+
                                 distributeMessage( {
                                     basis: "point",
-                                    json: JSON.parse( s.getAttribute( "tooltip" ) )
+                                    json: point
                                 } );
-                                s.classlist.add( "selected" );
                             };
                     });
 
@@ -599,8 +644,9 @@
                         //console.log( `data: ${ JSON.stringify( data ) }` );
 
                         if ( data.basis ) {
-                            if ( "point" == data.basis ) {
 
+                            if ( "selected-points" == data.basis ) {
+                                setSelectedPoints( "testContainer001", data.points );
                             }
 
                         } else if ( data.basePlaneKey ) {

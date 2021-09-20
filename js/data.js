@@ -15,7 +15,9 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
     if ( attr ) {
         Object.entries(attr).forEach( x => {
             const [ key, value ] = x;
-            if ( "class" == key ) {
+            if ( value === null || value === "") {
+                // do nothing
+            } else if ( "class" == key ) {
                 value.split(",").forEach( c => e.classList.add( c ) );
             } else if ( "type" == key ) {
                 e.type = value;

@@ -1,4 +1,6 @@
 
+var nonTrivialIndexJump = 0.5;
+
 class Index {
 
     constructor( box, id = 0 ) {
@@ -12,7 +14,6 @@ class Index {
         this.idx = new Array( this.box.volume );
         this.dix = new Array( this.box.volume );
     }
-
 
     initialise() {
         this.buildOrbits();
@@ -48,7 +49,6 @@ class Index {
 
         const maxIndex = boxVolume - 1;
         const halfMaxIndex = maxIndex / 2;
-        const nonTrivialIndexJump = 0.5;
 
         // point references data by index
         point.indexes[this.id] = {
@@ -60,187 +60,99 @@ class Index {
         };
     }
 
+    joinPoints( pointIds, joinType = 0 ) {
 
-    joinPoints( pointIds ) {
+        console.log( `join: type=${ joinType }, ids: ${ pointIds }` );
 
-        const [ p1, p2 ] = pointIds.map( id => this.box.points[ id ] );
-        const [ p1c, p2c ] = [ p1.conjugate, p2.conjugate ];
+        const [ p1, q1 ] = pointIds.map( id => this.idx[ id ] );
+        const [ p1c, q1c ] = [ p1.conjugate, q1.conjugate ];
 
-        const [ d1, d2, d1c, d2c ] = [
+        const [ ip1, iq1, ip1c, iq1c ] = [
             p1.indexes[this.id],
-            p2.indexes[this.id],
+            q1.indexes[this.id],
             p1c.indexes[this.id],
+            q1c.indexes[this.id]
+        ];
+
+        // therefore dix must be maintained
+        const [ p0, p0c ] = [ this.dix[ip1.id], this.dix[ip1c.id] ];
+        const [ p2, p2c ] = [ this.idx[ip1.di], this.idx[ip1c.di] ];
+        const [ q0, q0c ] = [ this.dix[iq1.id], this.dix[iq1c.id] ];
+        const [ q2, q2c ] = [ this.idx[iq1.di], this.idx[iq1c.di] ];
+        const [ ip0, ip0c, ip2, ip2c ] = [
+            p0.indexes[this.id],
+            p0c.indexes[this.id],
+            p2.indexes[this.id],
             p2c.indexes[this.id]
         ];
-
-        const [ di1, di2, di1c, di2c ] = [
-            d1.di,
-            d2.di,
-            d1c.di,
-            d2c.di
+        const [ iq0, iq0c, iq2, iq2c, ] = [
+            q0.indexes[this.id],
+            q0c.indexes[this.id],
+            q2.indexes[this.id],
+            q2c.indexes[this.id]
         ];
 
-        // point references data by index
-        d1.di = di2;
-        d2.di = di1;
-        d1c.di = di2c;
-        d2c.di = di1c;
+        // cache changing di values
+        const [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq0c, diq1c ] = [
+            ip1.di,
+            ip2.di,
+            ip1c.di,
+            ip2c.di,
+            iq0.di,
+            iq1.di,
+            iq0c.di,
+            iq1c.di
+        ];
 
-        [ d1, d2, d1c, d2c ]
-            .forEach( p => p.jump = ( p.di - p.id ) );
+        console.log( `id cache: type=${ [ ip1.id, ip2.id, ip1c.id, ip2c.id, iq0.id, iq1.id, iq0c.id, iq1c.id ] }` );
+        console.log( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq0c, diq1c ] }` );
+
+        switch( joinType ) {
+            case 0: {
+                    ip1.di = iq1.id;
+                    iq0.di = ip2.id;
+
+                    ip1c.di = iq1c.id;
+                    iq0c.di = ip2c.id;
+
+                    const result = [ ip1, ip1c, iq0, iq0c ];
+                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                }
+                break;
+
+            case 1: {
+                    ip1.di = iq2.id;
+                    iq1.di = ip2.id;
+
+                    ip1c.di = iq2c.id;
+                    iq1c.di = ip2c.id;
+
+                    const result = [ ip1, ip1c, iq1, iq1c ];
+                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                }
+                break;
+
+            default:
+        }
+
+        this.dix[ip2.di] = p2;
+        this.dix[ip2c.di] = p2c;
+
+        this.dix[ip1.di] = p1;
+        this.dix[ip1c.di] = p1c;
+
+        this.dix[iq0.di] = q0;
+        this.dix[iq0c.di] = q0c;
+
+        this.dix[iq1.di] = q1;
+        this.dix[iq1c.di] = q1c;
+
+        [ ip2, ip2c, ip1, ip1c, iq0, iq0c, iq1, iq1c ]
+            .forEach( p => p.jump = this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialIndexJump : ( p.di - p.id ) );
 
         this.initialise();
     }
 
-    getJson() {
-        return {
-            id: this.id,
-            equation: this.getPlaneEquationTx(),
-            box: this.box.getJson(),
-
-            cycles: {
-                fixed: this.identities.length,
-                orbits: this.orbits.length,
-                order: this.fundamental
-            },
-
-            euclidean: {
-                d: this.grossEuclideanRadiance(),
-                p: this.grossEuclideanPerimeter(),
-                //this.tension()
-            },
-
-            index: {
-                d: this.grossIndexRadiance(),
-                p: this.grossIndexPerimeter(),
-                //this.torsion()
-            }
-        };
-    }
-
-    updateOrbitIndexes() {
-        this.orbits.forEach( ( orbit, index ) => orbit.index = index + 1 );
-    }
-
-    findFundamental() {
-        this.fundamental = this.orbits.length > 0
-            ? lcma( this.orbits.map( (x,i) => x.order ) )
-            : 1;
-    }
-
-    findMaxWeight() {
-        this.maxWeight = ( this.bases[0] - 1 ) * this.fundamental;
-        this.bases.forEach( ( b, i ) => {
-            this.maxWeight = reduce( this.maxWeight, ( b - 1 ) * this.fundamental );
-        });
-    }
-
-
-    // EUCLIDEAN RADIANCE
-    identityEuclideanRadiance() {
-        return this
-            .identities
-            .map( x => x.coords[0] )
-            .map( p => p.euclideanRadiance )
-            .reduce( (a,r) => a + r, 0);
-    }
-
-    orbitEuclideanRadiance() {
-        return this
-            .orbits
-            .map( p => p.euclideanRadiance() )
-            .reduce( (a,r) => a + r, 0);
-    }
-
-    grossEuclideanRadiance() {
-        //return this.box.euclideanRadiance;
-        return this.identityEuclideanRadiance() + this.orbitEuclideanRadiance();
-        //return this.identityEuclideanRadiance() + this.totalEuclideanRadiance;
-    }
-
-
-    // EUCLIDEAN PERIMETER
-    identityEuclideanPerimeter() {
-        return 0;
-    }
-
-    orbitEuclideanPerimeter() {
-        return this
-            .orbits
-            .map( p => p.euclideanPerimeter() )
-            .reduce( (a,r) => a + r, 0);
-    }
-
-    grossEuclideanPerimeter() {
-        //return this.identityEuclideanPerimeter() + this.totalEuclideanPerimeter;
-        return this.identityEuclideanPerimeter() + this.orbitEuclideanPerimeter();
-    }
-
-
-    // EUCLIDEAN TENSION
-    identityEuclideanTension() {
-        return this.identityEuclideanRadiance() - this.identityEuclideanPerimeter();
-    }
-
-    grossEuclideanTension() {
-        return this.grossEuclideanRadiance() - this.grossEuclideanPerimeter();
-    }
-
-
-    // INDEX RADIANCE
-    identityIndexRadiance() {
-        return this
-            .identities
-            .map( x => x
-                .coords
-                .map( p => Math.abs( p.indexes[this.id].radiant ) )
-                .reduce( (a,c) => a + c, 0 ) )
-            .reduce( (a, c) => a + c, 0 ) / 2;
-    }
-
-    orbitIndexRadiance() {
-        return this
-            .orbits
-            .map( x => x
-                .coords
-                .map( p => Math.abs( p.indexes[this.id].radiant ) )
-                .reduce( (a,c) => a + c, 0 ) )
-            .reduce( (a, c) => a + c, 0 ) / 2;
-    }
-
-    grossIndexRadiance() {
-        //return this.identityIndexRadiance() + this.orbitIndexRadiance();
-        return this.identityIndexRadiance() + this.totalIndexRadiance;
-    }
-
-    // INDEX PERIMETER
-    identityIndexPerimeter() {
-        return this.identities
-            .map( identityOrbit => identityOrbit.coords[0] )
-            .map( indexedIdentity => indexedIdentity.indexes[ this.id ] )
-            .map( identity => identity.jump )
-            .reduce( (a,c) => a + c, 0 );
-    }
-
-    orbitIndexPerimeter() {
-        return this
-            .orbits
-            .reduce( (a, orbit) => a + orbit.indexPerimeter(), 0 );
-    }
-
-    grossIndexPerimeter() {
-        //return this.identityIndexPerimeter() + this.totalIndexPerimeter;
-        return this.identityIndexPerimeter() + this.orbitIndexPerimeter();
-    }
-
-    // INDEX TORSION
-    identityIndexTorsion() {
-        return this.identityIndexRadiance() - this.identityIndexPerimeter();
-    }
-
-    grossIndexTorsion() {
-        return this.grossIndexRadiance() - this.grossIndexPerimeter();
-    }
 
     buildOrbits() {
         this.identities = [];
@@ -524,7 +436,6 @@ class Index {
     }
 
     rotateOrbits( orbitIds, times = 1 ) {
-
         const orbits = orbitIds
             .map( id => this.orbits.filter( x => x.index == id )[0] )
             .filter( orbit => orbit.isSelfConjugate() || orbit.isFirstConjugate() );
@@ -635,6 +546,156 @@ class Index {
             this.updateOrbitIndexes();
         }
         this.analyzeOrbits();
+    }
+
+    getJson() {
+        return {
+            id: this.id,
+            equation: this.getPlaneEquationTx(),
+            box: this.box.getJson(),
+
+            cycles: {
+                fixed: this.identities.length,
+                orbits: this.orbits.length,
+                order: this.fundamental
+            },
+
+            euclidean: {
+                d: this.grossEuclideanRadiance(),
+                p: this.grossEuclideanPerimeter(),
+                //this.tension()
+            },
+
+            index: {
+                d: this.grossIndexRadiance(),
+                p: this.grossIndexPerimeter(),
+                //this.torsion()
+            }
+        };
+    }
+
+    updateOrbitIndexes() {
+        this.orbits.forEach( ( orbit, index ) => orbit.index = index + 1 );
+    }
+
+    findFundamental() {
+        this.fundamental = this.orbits.length > 0
+            ? lcma( this.orbits.map( (x,i) => x.order ) )
+            : 1;
+    }
+
+    findMaxWeight() {
+        this.maxWeight = ( this.bases[0] - 1 ) * this.fundamental;
+        this.bases.forEach( ( b, i ) => {
+            this.maxWeight = reduce( this.maxWeight, ( b - 1 ) * this.fundamental );
+        });
+    }
+
+
+    // EUCLIDEAN RADIANCE
+    identityEuclideanRadiance() {
+        return this
+            .identities
+            .map( x => x.coords[0] )
+            .map( p => p.euclideanRadiance )
+            .reduce( (a,r) => a + r, 0);
+    }
+
+    orbitEuclideanRadiance() {
+        return this
+            .orbits
+            .map( p => p.euclideanRadiance() )
+            .reduce( (a,r) => a + r, 0);
+    }
+
+    grossEuclideanRadiance() {
+        //return this.box.euclideanRadiance;
+        return this.identityEuclideanRadiance() + this.orbitEuclideanRadiance();
+        //return this.identityEuclideanRadiance() + this.totalEuclideanRadiance;
+    }
+
+
+    // EUCLIDEAN PERIMETER
+    identityEuclideanPerimeter() {
+        return 0;
+    }
+
+    orbitEuclideanPerimeter() {
+        return this
+            .orbits
+            .map( p => p.euclideanPerimeter() )
+            .reduce( (a,r) => a + r, 0);
+    }
+
+    grossEuclideanPerimeter() {
+        //return this.identityEuclideanPerimeter() + this.totalEuclideanPerimeter;
+        return this.identityEuclideanPerimeter() + this.orbitEuclideanPerimeter();
+    }
+
+
+    // EUCLIDEAN TENSION
+    identityEuclideanTension() {
+        return this.identityEuclideanRadiance() - this.identityEuclideanPerimeter();
+    }
+
+    grossEuclideanTension() {
+        return this.grossEuclideanRadiance() - this.grossEuclideanPerimeter();
+    }
+
+
+    // INDEX RADIANCE
+    identityIndexRadiance() {
+        return this
+            .identities
+            .map( x => x
+                .coords
+                .map( p => Math.abs( p.indexes[this.id].radiant ) )
+                .reduce( (a,c) => a + c, 0 ) )
+            .reduce( (a, c) => a + c, 0 ) / 2;
+    }
+
+    orbitIndexRadiance() {
+        return this
+            .orbits
+            .map( x => x
+                .coords
+                .map( p => Math.abs( p.indexes[this.id].radiant ) )
+                .reduce( (a,c) => a + c, 0 ) )
+            .reduce( (a, c) => a + c, 0 ) / 2;
+    }
+
+    grossIndexRadiance() {
+        //return this.identityIndexRadiance() + this.orbitIndexRadiance();
+        return this.identityIndexRadiance() + this.totalIndexRadiance;
+    }
+
+    // INDEX PERIMETER
+    identityIndexPerimeter() {
+        return this.identities
+            .map( identityOrbit => identityOrbit.coords[0] )
+            .map( indexedIdentity => indexedIdentity.indexes[ this.id ] )
+            .map( identity => identity.jump )
+            .reduce( (a,c) => a + c, 0 );
+    }
+
+    orbitIndexPerimeter() {
+        return this
+            .orbits
+            .reduce( (a, orbit) => a + orbit.indexPerimeter(), 0 );
+    }
+
+    grossIndexPerimeter() {
+        //return this.identityIndexPerimeter() + this.totalIndexPerimeter;
+        return this.identityIndexPerimeter() + this.orbitIndexPerimeter();
+    }
+
+    // INDEX TORSION
+    identityIndexTorsion() {
+        return this.identityIndexRadiance() - this.identityIndexPerimeter();
+    }
+
+    grossIndexTorsion() {
+        return this.grossIndexRadiance() - this.grossIndexPerimeter();
     }
 
 }

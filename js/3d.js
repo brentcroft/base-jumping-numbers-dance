@@ -72,7 +72,7 @@ function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue"
         },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
-            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": false  } )
+            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": "false" } )
         ],
         [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
     );
@@ -147,7 +147,7 @@ function createPlaneItemWithNormal(
 }
 
 
-function createSphereShape( radius = "0.1", emissiveColor = "blue", transparency = 0, tooltip ) {
+function createSphereShape( id, radius = "0.1", emissiveColor = "blue", transparency = 0, tooltip ) {
     return reify(
         "shape",
         {
@@ -155,7 +155,7 @@ function createSphereShape( radius = "0.1", emissiveColor = "blue", transparency
         },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency} ) ] ),
-            reify( "sphere", { "radius": radius, "lit": true  } )
+            reify( "sphere", { "id": id, "radius": radius, "lit": true  } )
         ],
         [
             s => {

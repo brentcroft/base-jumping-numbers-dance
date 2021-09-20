@@ -632,6 +632,7 @@
                             if ( matchingPoints.length > 0 ) {
                                 matchingPoints.forEach( x => selectedPoints.splice( selectedPoints.indexOf( x ), 1 ) );
                             } else if ( selectedPoints.length > 1 ) {
+                                selectedPoints[0] = selectedPoints[1];
                                 selectedPoints[1] = data.json;
                             } else {
                                 selectedPoints.push( data.json );
@@ -649,8 +650,12 @@
                             selectedPoint.innerHTML = html;
 
                             const selectedPointIds = document.getElementById( "selectedPointIds" );
-                            selectedPointIds.value = selectedPoints.map( p => p.id ).join( ", ");
+                            selectedPointIds.value = selectedPoints.map( p => p.indexes[basePlane.id].id ).join( ", ");
 
+                            distributeMessages(
+                                'sample_cs_b_10_m_2', [
+                                    { 'basis': 'selected-points', 'points': selectedPoints }
+                                ] );
                         }
 
                     } else if ( data.basePlaneKey ) {
@@ -692,9 +697,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="4"/>
-                <input type="number" min="1" id="b1" value="3"/>
-                <input type="number" min="1" id="b2" value="2"/>
+                <input type="number" min="1" id="b0" value="7"/>
+                <input type="number" min="1" id="b1" value="2"/>
+                <input type="number" min="1" id="b2" value="3"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -739,8 +744,6 @@
             <div id="editor" style="display: none">
                 <hr/>
                 <script>
-                        // selectedPoints
-
                         function addOrbits( basePlane, orbits ) {
                             const mergeType = Number( document.getElementById("orbitOperation").value );
                             basePlane.mergeOrbits( orbits, mergeType );
@@ -753,38 +756,14 @@
                             updateJson();
                         }
 
-                        function joinPoints( ) {
+                        function joinPoints( joinType = 0 ) {
                             const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
-                            const pointIds = selectedPointIds
-                                .split( "," )
-                                .map( x => Number( x ) )
-
+                            const pointIds = selectedPointIds.split( "," ).map( x => Number( x ) )
                             if ( pointIds.length > 1 ) {
-                                basePlane.joinPoints( pointIds );
+                                basePlane.joinPoints( pointIds, joinType );
                                 updateJson();
-                            }
-                        }
-
-                        function conjugateAddSelected() {
-                            const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
-
-                            if ( selectedPointIds ) {
-                                const pointIds = selectedPointIds
-                                    .split( "," )
-                                    .map( x => Number( x ) )
-
-                                if ( pointIds.length > 1 ) {
-                                    joinPoints( basePlane, pointIds );
-                                    updateJson();
-                                }
-
-                            }
-                        }
-                        function conjugateSubtractSelected() {
-                            const orbitIds = getSelectedOrbitIds( 'sample_cs_b_10_m_2_table', basePlane );
-                            if ( orbitIds.length > 1 ) {
-                                conjugateOrbits( basePlane, orbitIds );
-                                updateJson();
+                                document.getElementById( 'selectedPointIds' ).value = "";
+                                selectedPoints = [];
                             }
                         }
 
@@ -812,13 +791,24 @@
                             }
                         }
 
+                        function clearPointSelections() {
+                            document.getElementById( 'selectedPointIds' ).value = "";
+                            selectedPoints = [];
+                            distributeMessages(
+                                'sample_cs_b_10_m_2', [
+                                    { 'basis': 'selected-points', 'points': selectedPoints }
+                                ] )
+                        }
+
+
                     </script>
                 selected points:
                 <label>ids: <input type="text" id="selectedPointIds" class="colourField"/></label>
-                <label><input type="button" onclick="joinPoints()" value="join"/></label> |
-                <label><input type="button" onclick="conjugateAddSelected()" value="union"/></label> |
-                <label><input type="button" onclick="conjugateSubtractSelected()" value="intersection"/></label> |
-                <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label>
+
+                <label><input type="button" onclick="joinPoints( 0 )" value="join"/></label> |
+                <label><input type="button" onclick="joinPoints( 1 )" value="split"/></label> |
+                <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
+                <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
             </div>
 
             <div id="more-options" style="display: none">

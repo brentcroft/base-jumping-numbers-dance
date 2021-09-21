@@ -33,11 +33,19 @@ class Index {
             && (id != halfMaxIndex);
     }
 
+    getJump( id, di ) {
+        if (this.isNonTrivialIndexIdentity( id, di ) ) {
+            return nonTrivialIndexJump;
+        } else {
+            return ( di - id );
+        }
+    }
+
     indexPoint( point ) {
         const boxVolume = this.box.volume;
         const id = this.indexForward( point.coord );
         const di = this.indexReverse( point.coord );
-        const reflectId = ( boxVolume - id - 1 );
+        const conjugateId = ( boxVolume - id - 1 );
 
         if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
             throw `id out of range: id=${ id }, volume=${ boxVolume }`;
@@ -54,9 +62,9 @@ class Index {
         point.indexes[this.id] = {
             id: id,
             di: di,
-            reflectId: reflectId,
-            jump: this.isNonTrivialIndexIdentity( id, di ) ? nonTrivialIndexJump : ( di - id ),
-            radiant: ( reflectId - id )
+            conjugateId: conjugateId,
+            jump: this.getJump( id, di ),
+            radiant: ( conjugateId - id )
         };
     }
 
@@ -148,7 +156,7 @@ class Index {
         this.dix[iq1c.di] = q1c;
 
         [ ip2, ip2c, ip1, ip1c, iq0, iq0c, iq1, iq1c ]
-            .forEach( p => p.jump = this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialIndexJump : ( p.di - p.id ) );
+            .forEach( p => p.jump = this.getJump( p.di - p.id ) );
 
         this.initialise();
     }
@@ -217,7 +225,7 @@ class Index {
                 }
 
                 const point = this.idx[ i ];
-                var antipodesCoord = this.idx[ point.indexes[indexId].reflectId ];
+                var antipodesCoord = this.idx[ point.indexes[indexId].conjugateId ];
 
                 if (tally[ antipodesCoord.indexes[indexId].di ] == -1) {
                     // orbit is conjugate to self

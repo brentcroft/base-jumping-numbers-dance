@@ -116,14 +116,13 @@ class Orbit {
             const nextPoint = this.coords[ (i + 1) % this.coords.length ].indexes[ this.parent.id ];
 
             point.di = nextPoint.id;
-            point.jump = ( point.di - point.id );
+            point.jump = this.parent.getJump( point.id, point.di );
         }
     }
 
 
     // INDEX
     indexRadiance() {
-
         return this
             .coords
             .map( (x,i) => x.indexes[this.parent.id].radiant )

@@ -38,7 +38,7 @@
 
         .plot_frame {
             width: 100%;
-            height: 60%;
+            height: 80%;
             resize: both;
             overflow: auto;
         }
@@ -637,17 +637,6 @@
                             } else {
                                 selectedPoints.push( data.json );
                             }
-
-                            var html = "";
-                            selectedPoints
-                                .map( point => {
-                                    const indexRows = point.indexes.map( ( x, i ) => i + ": " + JSON.stringify( x ) ).join("\n")
-                                    html += `<pre>Point: id: [${ point.id }], coord: [${ point.coord }], erad: ${ point.euclideanRadiance }\n${ indexRows }</pre>`;
-                                } )
-                                .join();
-
-                            const selectedPoint = document.getElementById( "selectedPoint" );
-                            selectedPoint.innerHTML = html;
 
                             const selectedPointIds = document.getElementById( "selectedPointIds" );
                             selectedPointIds.value = selectedPoints.map( p => p.indexes[basePlane.id].id ).join( ", ");

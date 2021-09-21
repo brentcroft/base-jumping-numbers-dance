@@ -10,7 +10,6 @@ class Index {
 
         // local copy
         this.bases = [ ...box.bases ];
-
         this.idx = new Array( this.box.volume );
         this.dix = new Array( this.box.volume );
     }
@@ -26,11 +25,9 @@ class Index {
     isNonTrivialIndexIdentity( id, di ) {
         const boxVolume = this.box.volume;
         const maxIndex = boxVolume - 1;
-        const halfMaxIndex = maxIndex / 2;
         return (di == id)
             && (id != 0)
-            && (id != maxIndex)
-            && (id != halfMaxIndex);
+            && gcd( id, maxIndex) == 1;
     }
 
     getJump( id, di ) {
@@ -116,26 +113,35 @@ class Index {
         console.log( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq0c, diq1c ] }` );
 
         switch( joinType ) {
+
+
             case 0: {
-                    ip1.di = iq1.id;
-                    iq0.di = ip2.id;
-
-                    ip1c.di = iq1c.id;
-                    iq0c.di = ip2c.id;
-
-                    const result = [ ip1, ip1c, iq0, iq0c ];
-                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
-                }
-                break;
-
-            case 1: {
+                    // if p1 points at q2
                     ip1.di = iq2.id;
+                    // then q1 must point at p2
                     iq1.di = ip2.id;
 
+                    // conjugates
                     ip1c.di = iq2c.id;
                     iq1c.di = ip2c.id;
 
                     const result = [ ip1, ip1c, iq1, iq1c ];
+                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                }
+                break;
+
+
+            case 1: {
+                    // if p1 points at q1
+                    ip1.di = iq1.id;
+                    // then q0 must point at p2
+                    iq0.di = ip2.id;
+
+                    // conjugates
+                    ip1c.di = iq1c.id;
+                    iq0c.di = ip2c.id;
+
+                    const result = [ ip1, ip1c, iq0, iq0c ];
                     console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
@@ -343,7 +349,7 @@ class Index {
 
         const allowance = 0.00000000001;
         const [ A, B ] = this.box.diagonal;
-        const boxCentre = this.box.centre;
+        const boxCentre = this.centre;
 
         var centreLines = [
             { "points": [ A, B ], "unit": unitDisplacement( A, B ), "pd": 0 }
@@ -382,8 +388,8 @@ class Index {
                     if ( pd < allowance ) {
                         if ( cpd > centreLines[i].pd ) {
                             centreLines[i].points = [
-                                subtraction( subtraction( indexPlane.box.centre, unit ), scaledUnit),
-                                addition( addition( indexPlane.box.centre, unit ), scaledUnit)
+                                subtraction( subtraction( indexPlane.centre, unit ), scaledUnit),
+                                addition( addition( indexPlane.centre, unit ), scaledUnit)
                             ];
                         }
                         return i;

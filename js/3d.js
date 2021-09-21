@@ -64,20 +64,6 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
     );
 }
 
-function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI, cssClass = "", toggles = {} } = {} ) {
-    return reify(
-        "shape",
-        {
-            "class": cssClass
-        },
-        [
-            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
-            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": "false" } )
-        ],
-        [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
-    );
-}
-
 function createPlaneItem(
         centre = [0,0,0],
         unitNormal = [0,1,0],
@@ -90,6 +76,7 @@ function createPlaneItem(
 
     var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
     var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
+
 
     return reify(
         "transform",
@@ -119,8 +106,8 @@ function createPlaneItemWithNormal(
         planeTransparency = 0.95 ) {
 
     const unitNormal = normalize( planeNormal );
-    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection,  planeNormal ) );
-    var rotationAngle = Math.acos( dotProduct( currentDirection, planeNormal ) );
+    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection,  unitNormal ) );
+    var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
 
     const planeItem = createPlaneItem(
                               centre,
@@ -132,7 +119,14 @@ function createPlaneItemWithNormal(
                               planeColor,
                               planeTransparency);
 
-    planeItem.appendChild( reify( "group", {}, [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ] ) );
+    planeItem.appendChild(
+        reify(
+            "group",
+            {},
+            [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ]
+        )
+    );
+
     planeItem.appendChild(
         reify(
             "transform",
@@ -167,6 +161,19 @@ function createSphereShape( id, radius = "0.1", emissiveColor = "blue", transpar
     );
 }
 
+function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI, cssClass = "", toggles = {} } = {} ) {
+    return reify(
+        "shape",
+        {
+            "class": cssClass
+        },
+        [
+            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
+            reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": "false" } )
+        ],
+        [ ( e ) => e.setAttribute( "render", toggles.lines == 1 ) ]
+    );
+}
 
 function createBoxShape( size = [0.1, 0.1, 0.1], emissiveColor = "blue", transparency = 0) {
     return reify(

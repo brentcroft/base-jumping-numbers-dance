@@ -75,11 +75,7 @@ var determinant = ( m ) => m.length == 1
 var displacement      = ( p1, p2 ) => p2.map( (p,i) => p - p1[i] );
 var addition          = ( p1, p2 ) => p2.map( (p,i) => p + p1[i] );
 var subtraction       = ( p1, p2 ) => p1.map( (p,i) => p - p2[i] );
-var crossProduct      = ( p1, p2 ) => [
-      p1[1] * p2[2] - p1[2] * p2[1],
-      p1[2] * p2[0] - p1[0] * p2[2],
-      p1[0] * p2[1] - p1[1] * p2[0]
-];
+var scale             = ( p, s ) => p.map( x => x * s);
 
 var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
 var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v => a.includes( v ) );
@@ -87,7 +83,11 @@ var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v
 // @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
 var dotProduct        = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] ).reduce( (a,c) => a + c, 0 );
-var scale             = ( p, s ) => p.map( x => x * s);
+var crossProduct      = ( p1, p2 ) => [
+      p1[1] * p2[2] - p1[2] * p2[1],
+      p1[2] * p2[0] - p1[0] * p2[2],
+      p1[0] * p2[1] - p1[1] * p2[0]
+];
 
 var reflectPoint = ( point, centre ) => subtraction( scale( centre, 2 ), point );
 

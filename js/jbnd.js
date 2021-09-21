@@ -24,7 +24,7 @@ class Box {
         this.terminal = this.bases.map( x => x - 1 );
         this.diagonal = [ this.origin, this.terminal ];
 
-        // abstract fixed point when volume is even
+        //
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
     }
 
@@ -59,6 +59,9 @@ class RadiantIndex extends Index {
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
         this.indexReverse = ( coord ) => ( this.box.volume - 1 ) - this.indexForward( coord );
 
+        // abstract fixed point when volume is even
+        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+
         // plane of identity
         this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
@@ -83,6 +86,10 @@ class PointIndex extends Index {
         const rotateId = (i) => ( i + this.id ) % this.bases.length;
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
         this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
+
+
+        // abstract fixed point when volume is even
+        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
 
         // plane of identity
         this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );

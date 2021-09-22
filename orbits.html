@@ -175,9 +175,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="7"/>
+                <input type="number" min="1" id="b0" value="3"/>
                 <input type="number" min="1" id="b1" value="2"/>
-                <input type="number" min="1" id="b2" value="3"/>
+                <input type="number" min="1" id="b2" value="2"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -282,6 +282,7 @@
                 <label>ids: <input type="text" id="selectedPointIds" class="colourField"/></label>
 
                 <label><input type="button" onclick="joinPoints( 0 )" value="twist"/></label> |
+                <label><input type="button" onclick="joinPoints( 1 )" value="join"/></label> |
                 <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
                 <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
             </div>

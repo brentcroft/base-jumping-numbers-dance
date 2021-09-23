@@ -161,6 +161,28 @@ function createSphereShape( id, radius = "0.1", emissiveColor = "blue", transpar
     );
 }
 
+function createConeShape( id, radius = "0.1", emissiveColor = "blue", transparency = 0, tooltip ) {
+    return reify(
+        "shape",
+        {
+            "title": tooltip
+        },
+        [
+            reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency} ) ] ),
+            reify( "cone", { "id": id, "bottomRadius": radius, "height": radius, "lit": true  } )
+        ],
+        [
+            s => {
+                if ( tooltip ) {
+                    s.setAttribute( "tooltip", tooltip );
+                }
+            }
+        ]
+    );
+}
+
+
+
 function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI, cssClass = "", toggles = {} } = {} ) {
     return reify(
         "shape",

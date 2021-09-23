@@ -355,16 +355,13 @@ function getBasePlaneCycles( basePlane, toggles ) {
     const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
     const indexCentre = basePlane.box.indexCentre;
 
-    const zOff = -1;
+    const zOff = 1;
     const scaleUnit = scale( [ 1, 1, 1 ], 10 / basePlane.box.volume );
 
-    const root = reify(
-        "transform",
-        { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` }
-    );
+    const root = reify( "transform", { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` } );
 
     // IDENTITIES GRID
-    const attr = { "linetype": "96" };
+    const attr = { "linetype": "0" };
 
     root
         .appendChild(
@@ -385,13 +382,13 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                 },
                                 [
                                     //createSphereShape( `grid-point-${ identity.coords[0].coord.join( '-' ) }`, 0.2, "red", 0.3, JSON.stringify( identity.coords[0].getJson() ) ),
-                                    createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "gray", attr )
+                                    createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "black", attr )
                                 ]
                             )
                         ),
 
                     createLineSet(
-                                [ new Point( -1, [ 0, 0, zOff * ( -1 ) ] ), new Point( [ -1, basePlane.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
+                                [ new Point( -1, [ 0, 0, zOff * ( -1 ) ] ), new Point( -1, [ basePlane.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
                                 "black",
                                 attr
                             ),
@@ -448,7 +445,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                     "id": `identity.e.${ identity.id }`
                 },
                 [
-                    createSphereShape( `point-${ identity.coord.join("-") }`, 0.17, "red", 0.5, JSON.stringify( identity.json ) ),
+                    createSphereShape( `point-${ identity.coord.join("-") }`, 0.17, "red", 0.3, JSON.stringify( identity.json ) ),
                     reify(
                         "transform",
                         {
@@ -488,6 +485,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                 .coords
                                 .map( ( entry, i ) => {
                                         const point = entry.indexes[ indexId ];
+                                        const pointParity = point.jump < 0 ? -1 : 1;
                                         return reify(
                                             "transform",
                                             {
@@ -510,6 +508,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                                         "translation": `${ point.jump / 2 } 0 0`,
                                                     },
                                                     [
+                                                        //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 0.17, "red", 0.5, JSON.stringify( entry.getJson() ) )
                                                         createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) )
                                                     ]
                                                 )
@@ -526,18 +525,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
     return reify(
         "collision",
         { "enabled": false },
-        [
-            reify(
-                "transform",
-                {
-                    "scale": `${ scaleUnit.join( ' ' ) }`,
-                    "rotation": `0 1 0 ${ PI }`
-                },
-                [
-                    root
-                ]
-            )
-        ]
+        [ reify( "transform", { "scale": `${ scaleUnit.join( ' ' ) }` }, [ root ] ) ]
     );
 }
 

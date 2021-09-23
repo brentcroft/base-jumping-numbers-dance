@@ -98,32 +98,30 @@ class Index {
         ];
 
         // cache changing di values
-        const [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq0c, diq1c ] = [
-            ip1.di,
-            ip2.di,
-            ip1c.di,
-            ip2c.di,
-            iq0.di,
-            iq1.di,
-            iq0c.di,
-            iq1c.di
+        const [
+            dip0,  dip1,  dip2,
+            dip0c, dip1c, dip2c,
+            diq0,  diq1,  diq2,
+            diq0c, diq1c, diq2c
+        ] = [
+            ip0.di,  ip1.di,  ip2.di,
+            ip0c.di, ip1c.di, ip2c.di,
+            iq0.di,  iq1.di,  iq2.di,
+            iq0c.di, iq1c.di, iq2c.di
         ];
 
-        console.log( `id cache: type=${ [ ip1.id, ip2.id, ip1c.id, ip2c.id, iq0.id, iq1.id, iq0c.id, iq1c.id ] }` );
-        console.log( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq0c, diq1c ] }` );
+        console.log( `id cache: type=${ [ ip1.id, ip2.id, ip1c.id, ip2c.id, iq0.id, iq1.id, iq2.id, iq0c.id, iq1c.id, iq2c.id ] }` );
+        console.log( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq2, diq0c, diq1c, diq2c ] }` );
 
         switch( joinType ) {
 
-
             case 0: {
-                    // if p1 points at q2
-                    ip1.di = iq2.id;
                     // then q1 must point at p2
                     iq1.di = ip2.id;
-
-                    // conjugates
-                    ip1c.di = iq2c.id;
                     iq1c.di = ip2c.id;
+                    // if p1 points at q2
+                    ip1.di = iq2.id;
+                    ip1c.di = iq2c.id;
 
                     const result = [ ip1, ip1c, iq1, iq1c ];
                     console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
@@ -132,28 +130,49 @@ class Index {
 
 
             case 1: {
-                    // if p1 points at q1
-                    ip1.di = iq1.id;
                     // then q0 must point at p2
                     iq0.di = ip2.id;
-
-                    // conjugates
-                    ip1c.di = iq1c.id;
                     iq0c.di = ip2c.id;
+                    // if p1 points at q1
+                    ip1.di = iq1.id;
+                    ip1c.di = iq1c.id;
 
                     const result = [ ip1, ip1c, iq0, iq0c ];
                     console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
 
+
+            case 2: {
+                    // then q0 must point at q2
+                    iq0.di = iq2.id;
+                    iq0c.di = iq2c.id;
+                    // and q1 points at p2
+                    iq1.di = ip2.id;
+                    iq1c.di = ip2c.id;
+                    // if p1 points at q1
+                    ip1.di = iq1.id;
+                    ip1c.di = iq1c.id;
+
+                    const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
+                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                }
+                break;
+
+
             default:
         }
+
+        // reset dix
+        this.dix[ip0.di] = p0;
+        this.dix[ip0c.di] = p0c;
+
+        this.dix[ip1.di] = p1;
+        this.dix[ip1c.di] = p1c;
 
         this.dix[ip2.di] = p2;
         this.dix[ip2c.di] = p2c;
 
-        this.dix[ip1.di] = p1;
-        this.dix[ip1c.di] = p1c;
 
         this.dix[iq0.di] = q0;
         this.dix[iq0c.di] = q0c;
@@ -161,8 +180,16 @@ class Index {
         this.dix[iq1.di] = q1;
         this.dix[iq1c.di] = q1c;
 
-        [ ip2, ip2c, ip1, ip1c, iq0, iq0c, iq1, iq1c ]
-            .forEach( p => p.jump = this.getJump( p.di - p.id ) );
+        this.dix[iq2.di] = q2;
+        this.dix[iq2c.di] = q2c;
+
+        // reset jumps
+        [
+            ip0,  ip1,  ip2,
+            ip0c, ip1c, ip2c,
+            iq0,  iq1,  iq2,
+            iq0c, iq1c, iq2c
+        ].forEach( p => p.jump = this.getJump( p.di - p.id ) );
 
         this.initialise();
     }

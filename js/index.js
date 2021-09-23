@@ -79,11 +79,14 @@ class Index {
             q1c.indexes[this.id]
         ];
 
-        // therefore dix must be maintained
+        // dix must be maintained
         const [ p0, p0c ] = [ this.dix[ip1.id], this.dix[ip1c.id] ];
-        const [ p2, p2c ] = [ this.idx[ip1.di], this.idx[ip1c.di] ];
         const [ q0, q0c ] = [ this.dix[iq1.id], this.dix[iq1c.id] ];
+
+        //
+        const [ p2, p2c ] = [ this.idx[ip1.di], this.idx[ip1c.di] ];
         const [ q2, q2c ] = [ this.idx[iq1.di], this.idx[iq1c.di] ];
+
         const [ ip0, ip0c, ip2, ip2c ] = [
             p0.indexes[this.id],
             p0c.indexes[this.id],
@@ -129,7 +132,7 @@ class Index {
                 break;
 
 
-            case 1: {
+            case 1: if ( ip1.di != iq1.id ){
                     // then q0 must point at p2
                     iq0.di = ip2.id;
                     iq0c.di = ip2c.id;
@@ -139,23 +142,29 @@ class Index {
 
                     const result = [ ip1, ip1c, iq0, iq0c ];
                     console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                } else {
+                    const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
+                    throw ( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
 
 
-            case 2: {
+            case 2: if ( ip1.di != iq1.id ) {
                     // then q0 must point at q2
-                    iq0.di = iq2.id;
-                    iq0c.di = iq2c.id;
+                    iq0.di = diq1;//iq2.id;
+                    iq0c.di = diq1c;//iq2c.id;
                     // and q1 points at p2
-                    iq1.di = ip2.id;
-                    iq1c.di = ip2c.id;
+                    iq1.di = dip1;//ip2.id;
+                    iq1c.di = dip1c;//ip2c.id;
                     // if p1 points at q1
-                    ip1.di = iq1.id;
-                    ip1c.di = iq1c.id;
+                    ip1.di = diq0;//iq1.id;
+                    ip1c.di = diq0c;//iq1c.id;
 
                     const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
                     console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                } else {
+                    const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
+                    throw ( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
 
@@ -172,7 +181,6 @@ class Index {
 
         this.dix[ip2.di] = p2;
         this.dix[ip2c.di] = p2c;
-
 
         this.dix[iq0.di] = q0;
         this.dix[iq0c.di] = q0c;

@@ -27,6 +27,8 @@
         .summaryLeft {
             font-size: 70%;
             text-align: left;
+            color: red;
+            font-style: bold;
         }
 
         .summaryRight {
@@ -190,7 +192,7 @@
 
 
         <div id="toolbar" class="toolbar">
-            <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['selectedPoint','summary'], this )"/></label> |
+            <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
             <label title="display a chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
             <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
             <label title="orbit surgery">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
@@ -238,10 +240,15 @@
                             const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
                             const pointIds = selectedPointIds.split( "," ).map( x => Number( x ) )
                             if ( pointIds.length > 1 ) {
-                                basePlane.joinPoints( pointIds, joinType );
-                                updateJson();
-                                document.getElementById( 'selectedPointIds' ).value = "";
-                                selectedPoints = [];
+                                try {
+                                    document.getElementById( 'pointOperationErrorMessage' ).innerHTML = "";
+                                    basePlane.joinPoints( pointIds, joinType );
+                                    updateJson();
+                                    document.getElementById( 'selectedPointIds' ).value = "";
+                                    selectedPoints = [];
+                                } catch ( e ) {
+                                    document.getElementById( 'pointOperationErrorMessage' ).innerHTML = e;
+                                }
                             }
                         }
 
@@ -281,9 +288,9 @@
                 selected points:
                 <label>ids: <input type="text" id="selectedPointIds" class="colourField"/></label>
 
-                <label><input type="button" onclick="joinPoints( 0 )" value="twist"/></label> |
-                <label><input type="button" onclick="joinPoints( 1 )" value="join"/></label> |
-                <label><input type="button" onclick="joinPoints( 2 )" value="splice"/></label> |
+                <label><input type="button" onclick="joinPoints( 0 )" value="twist" title="p1&#8594;q2 &amp; q1&#8594;p2"/></label> |
+                <label><input type="button" onclick="joinPoints( 1 )" value="join" title="p1&#8594;q1 &amp; q0&#8594;p2"/></label> |
+                <label><input type="button" onclick="joinPoints( 2 )" value="splice" title="p1&#8594;q1 &amp; q1&#8594;p2 &amp; q0&#8594;q2"/></label> |
                 <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
                 <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
             </div>
@@ -333,7 +340,7 @@
     <div>
         <table width="100%">
             <tr>
-                <td class="summaryLeft"><span id="selectedPoint" style="display: none"></span></td>
+                <td class="summaryLeft"><span id="pointOperationErrorMessage"></span></td>
                 <td class="summaryRight"><span id="summary" style="display: none"></span></td>
             </tr>
         </table>

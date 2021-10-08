@@ -179,6 +179,12 @@ function rotateArray( array, times = 1 ) {
     }
 }
 
+function rotateReverseArray( array, times = 1 ) {
+    for ( var i = 0; i < times; i++ ) {
+        array.unshift( array.pop() );
+    }
+}
+
 /*
     Randomize array in-place using Durstenfeld shuffle algorithm
     https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array

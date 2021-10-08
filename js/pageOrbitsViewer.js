@@ -178,25 +178,24 @@ function getBasePlaneItems( basePlane, toggles ) {
 
 
     // PLANE
-    var currentDirection = [0,0,0];
-    currentDirection[ 0 ] = 1;
+    var currentDirection = [0,1,0];
+    currentDirection[ 1 ] = 1;
     var planeColor = "gray";
     var planeTransparency = 0.95;
 
-    var planeItem = createPlaneItemWithNormal(
-            basePlane.centre,
-            basePlane.identityPlaneNormal,
-            [1,1,1],
-            currentDirection,
-            [0,0,0],
-            [ basePlane.bases[0], 0, basePlane.bases[basePlane.bases.length-1] ],
-            planeColor,
-            planeTransparency);
+    var planeItem = createPlaneItemWithNormal( {
+            centre: basePlane.centre,
+            planeNormal: basePlane.identityPlaneNormal,
+            scaleUnit: [1,1,1],
+            currentDirection: [0,1,0],
+            origin: [0,0,0],
+            size: [ basePlane.bases[0], 0, basePlane.bases[basePlane.bases.length-1] ],
+            planeColor: planeColor,
+            planeTransparency: planeTransparency
+        } );
 
     planeItem.setAttribute( "render", toggles.plane == 1 );
 
-    root
-        .appendChild( planeItem );
 
 
     // CENTRE LINES
@@ -215,14 +214,14 @@ function getBasePlaneItems( basePlane, toggles ) {
         .centreLines
         .map( centreLine => createLineSetFromPoints( centreLine.points, "gray", "3" ) );
 
-    root
-        .appendChild(
-            reify(
-                "group",
-                { "class": "orbit-centre", "render": toggles.centres == 1 },
-                centrePoints.concat( centreLines )
-            )
-        );
+    const centreItems = reify(
+        "group",
+        { "class": "orbit-centre", "render": toggles.centres == 1 },
+        centrePoints.concat( centreLines )
+    );
+
+    root.appendChild( planeItem );
+    root.appendChild( centreItems );
 
     // FIXED POINTS
     basePlane

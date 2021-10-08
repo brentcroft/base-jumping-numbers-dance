@@ -66,17 +66,12 @@ function createPlaneShape( size = "0.1 0 0.1", emissiveColor = "yellow", transpa
 
 function createPlaneItem(
         centre = [0,0,0],
-        unitNormal = [0,1,0],
         scaleUnit = [1,1,1],
-        currentDirection = [0,1,0],
-        origin = [0,0,0],
+        rotationAxis = [ 0, 0, 0 ],
+        rotationAngle = 0,
         size = [1,0,1],
         planeColor = "gray",
         planeTransparency = 0.95 ) {
-
-    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
-    var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
-
 
     return reify(
         "transform",
@@ -95,7 +90,9 @@ function createPlaneItem(
 }
 
 
-function createPlaneItemWithNormal(
+function createPlaneItemWithNormal( param ) {
+
+    const {
         centre = [0,0,0],
         planeNormal = [0,1,0],
         scaleUnit = [1,1,1],
@@ -103,18 +100,18 @@ function createPlaneItemWithNormal(
         origin = [0,0,0],
         size = [1,0,1],
         planeColor = "gray",
-        planeTransparency = 0.95 ) {
+        planeTransparency = 0.95
+    } = param;
 
     const unitNormal = normalize( planeNormal );
-    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection,  unitNormal ) );
+    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
     var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
 
     const planeItem = createPlaneItem(
                               centre,
-                              unitNormal,
                               scaleUnit,
-                              currentDirection,
-                              origin,
+                              rotationAxis,
+                              rotationAngle,
                               size,
                               planeColor,
                               planeTransparency);

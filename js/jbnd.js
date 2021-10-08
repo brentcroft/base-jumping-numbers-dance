@@ -77,7 +77,11 @@ class PointIndex extends Index {
     constructor( box, id = 0 ) {
         super( box, id );
 
-        // indexers
+
+        // unrotated
+        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+
+        // rotate bases array and create indexers
         rotateArray( this.bases, this.id );
         this.powersForward = placeValuesForwardArray( this.bases );
         this.powersReverse = placeValuesReverseArray( this.bases );
@@ -87,14 +91,15 @@ class PointIndex extends Index {
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
         this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
 
-
-        // abstract fixed point when volume is even
-        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
-
-        // plane of identity
+        // calculate plane of identity under rotation
         this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+
+        // reverse plane rotation
+        rotateReverseArray( this.identityPlane, this.id );
+
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+
     }
 
     getLocusPoints( locusLine ) {

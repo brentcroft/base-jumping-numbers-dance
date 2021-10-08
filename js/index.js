@@ -1,5 +1,6 @@
 
 var nonTrivialIndexJump = 0.5;
+var nonTrivialPerimeterJump = 0.0;
 
 class Index {
 
@@ -645,8 +646,7 @@ class Index {
     identityEuclideanRadiance() {
         return this
             .identities
-            .map( x => x.coords[0] )
-            .map( p => p.euclideanRadiance )
+            .map( p => p.euclideanRadiance() )
             .reduce( (a,r) => a + r, 0);
     }
 
@@ -666,7 +666,12 @@ class Index {
 
     // EUCLIDEAN PERIMETER
     identityEuclideanPerimeter() {
-        return 0;
+        return this
+            .identities
+            .map( orbit => orbit.coords[0] )
+            .map( p => p.indexes[this.id] )
+            .map( p => this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialPerimeterJump : 0 )
+            .reduce( (a,r) => a + r, 0);
     }
 
     orbitEuclideanPerimeter() {

@@ -17,6 +17,7 @@ toggleKeys = {
     summary: 0,
     table: 0,
     products: 1,
+    productByOrbits: 0,
     multi: 1,
     editor: 1,
     negpol: 0

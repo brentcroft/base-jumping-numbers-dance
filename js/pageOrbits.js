@@ -339,7 +339,7 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
-function drawProductTable( indexes = [], show = true ) {
+function drawProductTable( show = true, byOrbits = true ) {
 
     document.getElementById( 'products' ).innerHTML = "";
 
@@ -350,31 +350,35 @@ function drawProductTable( indexes = [], show = true ) {
     const blanks = 1;
     const tab = " ";
 
-    try {
-        const header = " *" + tab + indexedBox
-            .box
-            .points
-            .map( a => String( a.id ).padStart( 2 ) )
-            .join( tab );
+    const originPoint = basePlane.identities[0].coords[0];
 
-        const columns = indexedBox
-            .box
-            .points
-            .map( a => String( a.id ).padStart( 2 ) + tab + indexedBox
-                .box
-                .points
-                .map( b => {
-                    const c = indexedBox.boxFunction( indexes, a, b );
-                    return blanks && (c.id == 0 || c.conjugate.id == 0) ? "  " : String( c.id ).padStart( 2 );
-                } )
-                .join( tab )
-            );
+    const points = [
+        originPoint,
+        ...basePlane
+            .orbits
+            .flatMap( orbit => [...orbit.coords] )
+    ];
 
-        document.getElementById( 'products' ).innerHTML = `<hr><pre>${ header }${ '\n' }${ columns.join('\n') }</pre>`;
+    const facetOf = (a) => a.indexes[basePlane.id];
 
-    } catch ( e ) {
-        document.getElementById( 'products' ).innerHTML = e;
+    if (!byOrbits) {
+        points.sort( (a,b) => facetOf(a).id - facetOf(b).id );
     }
+
+    const header = " *" + tab + points
+        .map( a => String( facetOf(a).id ).padStart( 2 ) )
+        .join( tab );
+
+    const columns = points
+        .map( a => String( facetOf(a).id ).padStart( 2 ) + tab + points
+            .map( b => {
+                var c = basePlane.convolve( a, b ) || originPoint;
+                return blanks && (c.id == 0 || c.conjugate.id == 0) ? "  " : String( facetOf(c).id ).padStart( 2 );
+            } )
+            .join( tab )
+        );
+
+    document.getElementById( 'products' ).innerHTML = `Index Products: <br/><pre>${ header }${ '\n' }${ columns.join('\n') }</pre>`;
 }
 
 
@@ -440,7 +444,7 @@ function updatePlane() {
 
     updateJson();
 
-    drawProductTable( [ planeIndex ], isToggle( 'products') );
+    drawProductTable( isToggle( 'products'), isToggle( 'productByOrbits') );
 }
 
 function updatePage() {

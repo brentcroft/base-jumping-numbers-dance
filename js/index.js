@@ -59,7 +59,7 @@ class Index {
         return orbit ? orbit : this.identities.find( identity => identity.coords.includes( point ) );
     }
 
-    pointsOperation( a, b, inverse ) {
+    pointsOperation( a, b, inverse = false ) {
         const orbit = this.getOrbit( b );
         if ( !orbit.isIdentity() && orbit.engages( a ) ) {
             const position = orbit.position( a );

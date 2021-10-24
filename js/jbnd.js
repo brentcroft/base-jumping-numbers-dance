@@ -158,8 +158,13 @@ class IndexedBox {
 
         // set conjugates
         const numPoints = this.box.points.length;
-        this.box.points.forEach( point => point.conjugate = this.box.points[ numPoints - point.id - 1] );
-
+        this.box.points.forEach( point => {
+            point.conjugate = this.box.points[ numPoints - point.id - 1];
+            if ( point.coord.filter( x => x == 0 ).length == this.box.rank ) {
+                this.originPoint = point;
+                this.terminalPoint = point.conjugate;
+            }
+        } );
         this.indexPlanes.forEach( plane => plane.initialise() );
     }
 
@@ -167,16 +172,13 @@ class IndexedBox {
         var locus = b;
         indexes
             .map( i => this.indexPlanes[i] )
-            .forEach( index => locus = index.convolve( a, locus ) || this.origin );
+            .forEach( index => locus = index.convolve( a, locus ) || this.originPoint );
         return locus;
     };
 
     buildIndexes( place = 0, locusStack = [] ) {
         if ( place == this.box.bases.length ) {
             const point = new Point( this.box.points.length, locusStack, this.box.centre );
-            if ( point.coord.filter( x => x == 0 ).length == place ) {
-                this.origin = point;
-            }
             this.box.points.push( point );
             this.indexPlanes.forEach( indexer => indexer.indexPoint( point ) );
         } else {

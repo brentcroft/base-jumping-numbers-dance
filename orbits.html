@@ -180,8 +180,8 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="1"/>x
-                <input type="number" min="1" id="b1" value="3"/>x
-                <input type="number" min="1" id="b2" value="4"/>
+                <input type="number" min="1" id="b1" value="4"/>x
+                <input type="number" min="1" id="b2" value="10"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -378,7 +378,11 @@
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
     <div id="productsTable" style="display: none">
-        <div id="products"></div>
+        <hr>
+        <div id="products" class="caption"></div>
+        <div  class="toolbar">
+            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="updatePlane()"/></label>
+        </div>
     </div>
     <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>
 

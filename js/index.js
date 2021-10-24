@@ -8,9 +8,6 @@ class Index {
         this.box = box;
         this.id = id;
         this.key = `plane-${ id }`;
-
-        // local copy
-        this.bases = [ ...box.bases ];
         this.idx = new Array( this.box.volume );
         this.dix = new Array( this.box.volume );
     }
@@ -39,14 +36,37 @@ class Index {
         }
     }
 
+    stepForward( point, p = 1 ) {
+        for ( var i = 0; i < p; i++ ) {
+            point = this.idx[ point.indexes[this.id].di ];
+        }
+        return point;
+    }
+
+    stepBackward( point, p = 1 ) {
+        for ( var i = 0; i < p; i++ ) {
+            point = this.dix[ point.indexes[this.id].id ];
+        }
+        return point;
+    }
+
+    getPoint( coord ) {
+        return this.idx[ this.indexReverse( coord ) ];
+    }
+
+    getOrbit( point ) {
+        return [ ...this.identities, ...this.orbits ]
+            .find( orbit => orbit.coords.includes( point ) );
+    }
+
     indexPoint( point ) {
         const boxVolume = this.box.volume;
-        const id = this.indexForward( point.coord );
-        const di = this.indexReverse( point.coord );
+        const di = this.indexForward( point.coord );
+        const id = this.indexReverse( point.coord );
         const conjugateId = ( boxVolume - id - 1 );
 
         if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
-            throw `id out of range: id=${ id }, volume=${ boxVolume }`;
+            throw `id out of range: id=${ id }, di=${ di }, volume=${ boxVolume }`;
         }
 
         // index references point
@@ -203,7 +223,6 @@ class Index {
         this.initialise();
     }
 
-
     buildOrbits() {
         this.identities = [];
         this.orbits = [];
@@ -294,7 +313,7 @@ class Index {
 
         const maxIndex = this.box.volume - 1;
 
-        var totalHarmonicSum = new Array( this.bases.length ).fill( 0 );
+        var totalHarmonicSum = new Array( this.box.bases.length ).fill( 0 );
         var totalWeight = 0;
         var totalRotation = 0;
 
@@ -385,7 +404,7 @@ class Index {
 
         const allowance = 0.00000000001;
         const [ A, B ] = this.box.diagonal;
-        const boxCentre = this.centre;
+        const boxCentre = this.box.centre;
 
         var centreLines = [
             { "points": [ A, B ], "unit": unitDisplacement( A, B ), "pd": 0 }
@@ -417,15 +436,15 @@ class Index {
                 }
 
                 const unit = displacement( centre, centre );
-                const scaledUnit = scale( unitDisplacement( centre, boxCentre ), 0.5 );
+                const scaledUnit = scale( unitDisplacement( centre, boxCentre ), 1 );
 
                 for ( var i = 1; i < centreLines.length; i++) {
                     const pd = perpendicularDistance( centre, centreLines[i].points, centreLines[i].unit );
                     if ( pd < allowance ) {
                         if ( cpd > centreLines[i].pd ) {
                             centreLines[i].points = [
-                                subtraction( subtraction( indexPlane.centre, unit ), scaledUnit),
-                                addition( addition( indexPlane.centre, unit ), scaledUnit)
+                                subtraction( subtraction( indexPlane.box.centre, unit ), scaledUnit),
+                                addition( addition( indexPlane.box.centre, unit ), scaledUnit)
                             ];
                         }
                         return i;
@@ -601,6 +620,10 @@ class Index {
     getJson() {
         return {
             id: this.id,
+            powers: {
+                forward: this.powersForward,
+                reverse: this.powersReverse
+            },
             equation: this.getPlaneEquationTx(),
             box: this.box.getJson(),
 
@@ -635,8 +658,8 @@ class Index {
     }
 
     findMaxWeight() {
-        this.maxWeight = ( this.bases[0] - 1 ) * this.fundamental;
-        this.bases.forEach( ( b, i ) => {
+        this.maxWeight = ( this.box.bases[0] - 1 ) * this.fundamental;
+        this.box.bases.forEach( ( b, i ) => {
             this.maxWeight = reduce( this.maxWeight, ( b - 1 ) * this.fundamental );
         });
     }

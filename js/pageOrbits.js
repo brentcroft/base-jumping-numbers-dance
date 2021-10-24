@@ -243,6 +243,16 @@ function initialiseBases( bases ) {
     }
 
     bases.forEach( (x,i) => {
+        if ( i > 0 ) {
+            container
+                .appendChild(
+                    reify(
+                        "span",
+                        {},
+                        [],
+                        [ (span) => span.innerHTML = " x " ]
+                    ) );
+        }
         container
             .appendChild(
                 reify(
@@ -326,6 +336,72 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
+function convolutionTable( show = true, inverse = false ) {
+    document.getElementById( 'convolutionTable' ).innerHTML = "";
+    if ( !show ) {
+        return;
+    }
+
+    const tab = " ";
+    try {
+        const header = "  " + tab + indexedBox
+            .box
+            .points
+            .map( a => String( a.id ).padStart( 2 ) )
+            .join( tab );
+
+        const spacer = "  " + tab + indexedBox
+            .box
+            .points
+            .map( a => "--" )
+            .join( tab );
+
+        const columns = indexedBox
+            .box
+            .points
+            .map( a => String( a.id ).padStart( 2 ) + tab + indexedBox
+                .box
+                .points
+                .map( b => {
+                    const x = 1;
+                    const id = indexedBox.boxFunction( a, b ).id;
+                    return x && (id == b.id) ? "  " : String( id ).padStart( 2 );
+                } )
+                .join( tab )
+            );
+
+        const inverseColumns = indexedBox
+            .box
+            .points
+            .map( a => String( a.id ).padStart( 2 ) + tab + indexedBox
+                .box
+                .points
+                .map( b => {
+                    const x = 1;
+                    const id = indexedBox.boxFunctionInverse( a, b ).id;
+                    return x && (id == b.id) ? "  " : String( id ).padStart( 2 );
+                } )
+                .join( tab )
+            );
+
+        var tablesHtml = "<table width='100%'><tr><td class='summaryLeft'>";
+        tablesHtml += `<pre>${ header }${ '\n' }${ '\n' }${ columns.join('\n') }</pre>`;
+        if ( inverse ) {
+            tablesHtml += "</td><td class='summaryRight'>";
+            tablesHtml += `<pre>${ header }${ '\n' }${ '\n' }${ inverseColumns.join('\n') }</pre>`;
+        }
+        tablesHtml += "</td></tr></table>";
+
+        document.getElementById( 'convolutionTable' ).innerHTML = tablesHtml;
+
+    } catch ( e ) {
+        document.getElementById( 'convolutionTable' ).innerHTML = e;
+    }
+}
+
+
+
+
 function isToggle( toggle ) {
     const toggleControl = document.getElementById( toggle + "Toggle" );
     if ( !toggleControl ) {
@@ -392,7 +468,7 @@ function updatePage() {
     const param = getControlValues();
 
     // TODO: global access
-    indexedBox = new IndexedBox( param.bases );
+    indexedBox = new IndexedBox( param.bases, param );
 
     document
             .getElementById( "summary" )
@@ -407,6 +483,8 @@ function updatePage() {
             .max = indexedBox.indexPlanes.length - 1;
 
     updatePlane();
+
+    convolutionTable( isToggle( 'convTable') );
 }
 
 function initPage( urlParam = true ) {

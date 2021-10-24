@@ -166,7 +166,7 @@ function createConeShape( id, radius = "0.1", emissiveColor = "blue", transparen
         },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency} ) ] ),
-            reify( "cone", { "id": id, "bottomRadius": radius, "height": radius, "lit": true  } )
+            reify( "cone", { "id": id, "bottomRadius": radius / 4, "height": radius, "lit": true  } )
         ],
         [
             s => {

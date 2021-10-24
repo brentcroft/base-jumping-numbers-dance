@@ -121,13 +121,14 @@ function getBasePlaneItems( basePlane, toggles ) {
     const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
 
     const [ p1, p2 ] = basePlane.box.diagonal;
+    const maxBase = basePlane.box.bases.reduce( (a,c) => c > a ? c : a, 0 );
 
     const scaleUnit = toggles.scale3d ? scale( unitDisplacement( p1, p2 ), 2 ) : [ .8, .8, .8 ];
 
     // move origin to system centre and scale by scaleUnit
     const root = reify(
         "transform", {
-            "translation": scale( basePlane.centre, -1 ).join( ' ' ),
+            "translation": scale( basePlane.box.centre, -1 ).join( ' ' ),
             "scale": scaleUnit.map( x => x==0 ? 1 : 1/x ).join( ' ' )
         } );
 
@@ -180,16 +181,16 @@ function getBasePlaneItems( basePlane, toggles ) {
     // PLANE
     var currentDirection = [0,1,0];
     currentDirection[ 1 ] = 1;
-    var planeColor = "gray";
+    var planeColor = "black";
     var planeTransparency = 0.95;
 
     var planeItem = createPlaneItemWithNormal( {
-            centre: basePlane.centre,
+            centre: basePlane.box.centre,
             planeNormal: basePlane.identityPlaneNormal,
             scaleUnit: [1,1,1],
             currentDirection: [0,1,0],
             origin: [0,0,0],
-            size: [ basePlane.bases[0], 0, basePlane.bases[basePlane.bases.length-1] ],
+            size: [ basePlane.box.bases[0], 0, basePlane.box.bases[basePlane.box.bases.length-1] ],
             planeColor: planeColor,
             planeTransparency: planeTransparency
         } );
@@ -210,9 +211,11 @@ function getBasePlaneItems( basePlane, toggles ) {
                         [ createSphereShape( null, 0.1, "yellow", 0 ) ]
                     ) );
 
+
+
     const centreLines = basePlane
         .centreLines
-        .map( centreLine => createLineSetFromPoints( centreLine.points, "gray", "3" ) );
+        .map( centreLine => createLineSetFromPoints( extendLine( centreLine.points[0], centreLine.points[1], maxBase / 2 ), "gray", "3" ) );
 
     const centreItems = reify(
         "group",
@@ -337,7 +340,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         } );
 
     const selectedPointsInfo = selectedPoints
-        .map( ( point, i ) => ( i + 1 ) + ":" + JSON.stringify( point.indexes[basePlane.id] ) )
+        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + JSON.stringify( point.indexes[basePlane.id] ) )
         .join( "\n" );
 
     document
@@ -486,31 +489,23 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                         const point = entry.indexes[ indexId ];
                                         const pointParity = point.jump < 0 ? -1 : 1;
                                         return reify(
-                                            "transform",
-                                            {
-                                                "translation": `${ point.id + point.jump / 2 } 0 0`,
-                                            },
+                                            "transform", { "translation": `${ point.id } 0 0` },
                                             [
-                                                createTorusShape( {
-                                                        outerRadius: ( point.jump / 2),
-                                                        size: 0.1,
-                                                        emissiveColor: color,
-                                                        transparency: 0,
-                                                        angle: PI,
-                                                        cssClass: "orbitation",
-                                                        toggles: toggles
-                                                     } ),
-
+                                                //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 1.17, "red", 0.5, JSON.stringify( entry.getJson() ) ),
+                                                createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) ),
                                                 reify(
-                                                    "transform",
-                                                    {
-                                                        "translation": `${ point.jump / 2 } 0 0`,
-                                                    },
+                                                    "transform", { "translation": `${ point.jump / 2 } 0 0` },
                                                     [
-                                                        //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 0.17, "red", 0.5, JSON.stringify( entry.getJson() ) )
-                                                        createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) )
-                                                    ]
-                                                )
+                                                        createTorusShape( {
+                                                                outerRadius: ( point.jump / 2),
+                                                                size: 0.1,
+                                                                emissiveColor: color,
+                                                                transparency: 0,
+                                                                angle: PI,
+                                                                cssClass: "orbitation",
+                                                                toggles: toggles
+                                                             } )
+                                                    ] )
                                             ]
                                         );
                                     }

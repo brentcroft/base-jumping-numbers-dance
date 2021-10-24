@@ -74,6 +74,23 @@ var determinant = ( m ) => m.length == 1
 
 var displacement      = ( p1, p2 ) => p2.map( (p,i) => p - p1[i] );
 var addition          = ( p1, p2 ) => p2.map( (p,i) => p + p1[i] );
+var modularize        = ( p, b ) => {
+    const m = [ ...p ];
+    for ( var i = m.length-1; i >= 0; i-- ) {
+        m[i] = p[i] % b[i];
+    }
+    return m;
+};
+var modularizeC        = ( p, b ) => {
+    const m = [ ...p ];
+    var carry = 0;
+    for ( var i = m.length-1; i >= 0; i-- ) {
+        const v = carry + p[i];
+        m[i] = v % b[i];
+        carry = ~~( v / b[i] );
+    }
+    return m;
+};
 var subtraction       = ( p1, p2 ) => p1.map( (p,i) => p - p2[i] );
 var scale             = ( p, s ) => p.map( x => x * s);
 
@@ -177,12 +194,14 @@ function rotateArray( array, times = 1 ) {
     for ( var i = 0; i < times; i++ ) {
         array.push( array.shift() );
     }
+    return array;
 }
 
 function rotateReverseArray( array, times = 1 ) {
     for ( var i = 0; i < times; i++ ) {
         array.unshift( array.pop() );
     }
+    return array;
 }
 
 /*

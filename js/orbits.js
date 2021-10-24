@@ -96,6 +96,15 @@ class Orbit {
         this.conjugate = this;
     }
 
+    commutes( point ) {
+        return this.coords.length < 2 || !this.coords.includes( point );
+    }
+
+    position( point ) {
+        return this.coords.findIndex( c => c == point );
+    }
+
+
     rotate( times ) {
         rotateArray( this.coords, times )
     }

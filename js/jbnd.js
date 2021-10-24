@@ -53,19 +53,17 @@ class RadiantIndex extends Index {
     constructor( box, id = 0 ) {
         super( box, id );
 
-        this.powersForward = placeValuesForwardArray( this.bases );
-        this.powersReverse = placeValuesReverseArray( this.bases );
+        this.powersForward = placeValuesForwardArray( this.box.bases );
+        this.powersReverse = [...this.powersForward];
 
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => ( this.box.volume - 1 ) - this.indexForward( coord );
-
-        // abstract fixed point when volume is even
-        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
-
-        // plane of identity
+        // establish identity plane
         this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+
+        // establish coord index functions
+        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
     }
 
     getPlaneEquationTx() {
@@ -74,32 +72,29 @@ class RadiantIndex extends Index {
 }
 
 class PointIndex extends Index {
-    constructor( box, id = 0 ) {
+    constructor( box, id = 0, param = { "polarity": "negative" } ) {
         super( box, id );
 
+        // rotate bases array to accumulate places
+        // then de-rotate to align with bases
+        const rotation = ( this.id - 1 ) % this.box.bases.length;
+        //const rotation = Math.max( 0, this.id - 1 );
+        const rotatedBases = rotateArray( [ ...this.box.bases ], rotation );
+        this.powersForward = rotateReverseArray( placeValuesForwardArray( rotatedBases ), rotation );
+        this.powersReverse = rotateReverseArray( placeValuesReverseArray( rotatedBases ), rotation );
 
-        // unrotated
-        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
-
-        // rotate bases array and create indexers
-        rotateArray( this.bases, this.id );
-        this.powersForward = placeValuesForwardArray( this.bases );
-        this.powersReverse = placeValuesReverseArray( this.bases );
-
-        // coord index functions
-        const rotateId = (i) => ( i + this.id ) % this.bases.length;
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[rotateId(i)] ).reduce( (a,c) => a + c, 0 );
-
-        // calculate plane of identity under rotation
-        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
-
-        // reverse plane rotation
-        rotateReverseArray( this.identityPlane, this.id );
-
+        // establish identity plane
+        this.identityPlane = this.powersForward.map( ( x, i ) => this.powersReverse[i] - x );
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
+        // establish coord index functions
+        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        if ( "negative" == param.polarity ) {
+            this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
+        } else {
+            this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        }
     }
 
     getLocusPoints( locusLine ) {
@@ -143,17 +138,19 @@ class PointIndex extends Index {
 
 
 class IndexedBox {
-    constructor( bases = [] ) {
+    constructor( bases = [], param = {} ) {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
         this.box.points = [];
         this.indexPlanes = [ new RadiantIndex( this.box, 0 ) ];
 
+        const negpol = param.toggles && param.toggles.includes( "negpol" );
+
         if ( bases.length <= 2 ) {
             this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length ) );
         } else {
             for ( var i = 0; i < bases.length; i++ ) {
-                this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length ) );
+                this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length, param = { "polarity": negpol? "negative" : "positive" } ) );
             }
         }
 
@@ -166,9 +163,37 @@ class IndexedBox {
         this.indexPlanes.forEach( plane => plane.initialise() );
     }
 
+    boxFunction( a, b, inverse = false ) {
+        var locus = b;
+        const activePlanes = this.indexPlanes.slice( 1 );
+        [...activePlanes]
+            .reverse()
+            .forEach( index => {
+                const orbit = index.getOrbit( locus );
+                const commutes = orbit.commutes( a );
+                if ( commutes ) {
+                } else {
+                    const position = orbit.position( a );
+                    // todo:
+                    locus = inverse
+                        ? index.stepBackward( locus, position )
+                        : index.stepForward( locus, position );
+                }
+            } );
+        return locus;
+    };
+
+    boxFunctionInverse( a, b ) {
+        return this.boxFunction( a, b, false );
+    };
+
+
     buildIndexes( place = 0, locusStack = [] ) {
         if ( place == this.box.bases.length ) {
             const point = new Point( this.box.points.length, locusStack, this.box.centre );
+            if ( point.coord.filter( x => x == 0 ).length == place ) {
+                this.origin = point;
+            }
             this.box.points.push( point );
             this.indexPlanes.forEach( indexer => indexer.indexPoint( point ) );
         } else {
@@ -184,6 +209,7 @@ class IndexedBox {
         const sep = ", ";
         const planeDataFn = ( data ) => ""
                            + "id: " + JSON.stringify( data.id ) + sep
+                           + "powers: " + JSON.stringify( data.powers ) + sep
                            + "cycles: " + JSON.stringify( data.cycles ) + sep
                            + "plane: " + JSON.stringify( data.equation ) + sep
                            + "euclidean: " + JSON.stringify( data.euclidean ) +sep

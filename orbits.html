@@ -27,7 +27,6 @@
         .summaryLeft {
             font-size: 70%;
             text-align: left;
-            color: red;
             font-style: bold;
         }
 
@@ -177,9 +176,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="7"/>
-                <input type="number" min="1" id="b1" value="2"/>
-                <input type="number" min="1" id="b2" value="3"/>
+                <input type="number" min="1" id="b0" value="1"/>x
+                <input type="number" min="1" id="b1" value="4"/>x
+                <input type="number" min="1" id="b2" value="10"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -252,6 +251,26 @@
                             }
                         }
 
+
+                        function convolvePoints() {
+                            const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
+                            const pointIds = selectedPointIds.split( "," ).map( x => Number( x ) )
+                            if ( pointIds.length > 1 ) {
+                                document.getElementById( 'pointOperationErrorMessage' ).innerHTML = "";
+                                try {
+                                    const a = basePlane.idx[ pointIds[0] ];
+                                    const b = basePlane.idx[ pointIds[1] ];
+
+                                    const result = indexedBox.boxFunction( a, b );
+                                    document.getElementById( 'pointOperationErrorMessage' ).innerHTML = `${ a } o ${ b } = ` + result;
+
+                                } catch ( e ) {
+                                    document.getElementById( 'pointOperationErrorMessage' ).innerHTML = e;
+                                }
+                            }
+                        }
+
+
                         function rotateSelectedOrbits() {
                             const orbitIds = getSelectedOrbitIds( 'sample_cs_b_10_m_2_table', basePlane );
                             if ( orbitIds.length > 0 ) {
@@ -292,12 +311,15 @@
                 <label><input type="button" onclick="joinPoints( 1 )" value="join" title="p1&#8594;q1 &amp; q0&#8594;p2"/></label> |
                 <label><input type="button" onclick="joinPoints( 2 )" value="splice" title="p1&#8594;q1 &amp; q1&#8594;p2 &amp; q0&#8594;q2"/></label> |
                 <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
-                <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
+                <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label> |
+                <label><input type="button" onclick="convolvePoints()" value="convolve"/></label>
             </div>
 
             <div id="more-options" style="display: none">
                 <hr/>
+                <label title="show convolution tables">conv. table<input type="checkbox" id="convTableToggle" onchange="updatePage()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
+                <label title="negative polarity indexors">neg.pol.<input type="checkbox" id="negpolToggle" onchange="updatePage()"/></label> |
 
                 <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
 
@@ -344,6 +366,9 @@
                 <td class="summaryRight"><span id="summary" style="display: none"></span></td>
             </tr>
         </table>
+    </div>
+    <div id="convolutionTable">
+
     </div>
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>

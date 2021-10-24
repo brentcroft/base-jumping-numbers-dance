@@ -55,9 +55,30 @@ class Index {
     }
 
     getOrbit( point ) {
-        return [ ...this.identities, ...this.orbits ]
-            .find( orbit => orbit.coords.includes( point ) );
+        const orbit = this.orbits.find( orbit => orbit.coords.includes( point ) );
+        return orbit ? orbit : this.identities.find( identity => identity.coords.includes( point ) );
     }
+
+    pointsOperation( a, b, inverse ) {
+        const orbit = this.getOrbit( b );
+        if ( !orbit.isIdentity() && orbit.engages( a ) ) {
+            const position = orbit.position( a );
+            return inverse
+                ? this.stepBackward( b, position )
+                : this.stepForward( b, position );
+        } else {
+            return null;
+        }
+    }
+
+    convolve( a, b ) {
+        return this.pointsOperation( a, b );
+    }
+
+    convolveInverse( a, b ) {
+        return this.pointsOperation( a, b, true );
+    }
+
 
     indexPoint( point ) {
         const boxVolume = this.box.volume;

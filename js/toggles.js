@@ -16,7 +16,7 @@ toggleKeys = {
     scale3d: 0,
     summary: 0,
     table: 0,
-    convTable: 1,
+    products: 1,
     multi: 1,
     editor: 1,
     negpol: 0

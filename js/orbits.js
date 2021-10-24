@@ -96,8 +96,12 @@ class Orbit {
         this.conjugate = this;
     }
 
-    commutes( point ) {
-        return this.coords.length < 2 || !this.coords.includes( point );
+    isIdentity() {
+        return this.coords.length < 2;
+    }
+
+    engages( point ) {
+        return this.coords.includes( point );
     }
 
     position( point ) {

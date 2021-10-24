@@ -163,30 +163,13 @@ class IndexedBox {
         this.indexPlanes.forEach( plane => plane.initialise() );
     }
 
-    boxFunction( a, b, inverse = false ) {
+    boxFunction( indexes = [ 1 ], a, b ) {
         var locus = b;
-        const activePlanes = this.indexPlanes.slice( 1 );
-        [...activePlanes]
-            .reverse()
-            .forEach( index => {
-                const orbit = index.getOrbit( locus );
-                const commutes = orbit.commutes( a );
-                if ( commutes ) {
-                } else {
-                    const position = orbit.position( a );
-                    // todo:
-                    locus = inverse
-                        ? index.stepBackward( locus, position )
-                        : index.stepForward( locus, position );
-                }
-            } );
+        indexes
+            .map( i => this.indexPlanes[i] )
+            .forEach( index => locus = index.convolve( a, locus ) || this.origin );
         return locus;
     };
-
-    boxFunctionInverse( a, b ) {
-        return this.boxFunction( a, b, false );
-    };
-
 
     buildIndexes( place = 0, locusStack = [] ) {
         if ( place == this.box.bases.length ) {

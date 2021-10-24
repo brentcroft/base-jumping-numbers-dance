@@ -174,6 +174,9 @@ function clearSelected() {
 
 function initialiseCheckBox( controlId, checked ) {
     const control = document.getElementById( controlId );
+    if (!control) {
+        throw `No such checkbox: ${ controlId }`;
+    }
     control.checked = checked;
 }
 
@@ -336,24 +339,22 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
-function convolutionTable( show = true, inverse = false ) {
-    document.getElementById( 'convolutionTable' ).innerHTML = "";
+function drawProductTable( indexes = [], show = true ) {
+
+    document.getElementById( 'products' ).innerHTML = "";
+
     if ( !show ) {
         return;
     }
 
+    const blanks = 1;
     const tab = " ";
+
     try {
-        const header = "  " + tab + indexedBox
+        const header = " *" + tab + indexedBox
             .box
             .points
             .map( a => String( a.id ).padStart( 2 ) )
-            .join( tab );
-
-        const spacer = "  " + tab + indexedBox
-            .box
-            .points
-            .map( a => "--" )
             .join( tab );
 
         const columns = indexedBox
@@ -363,39 +364,16 @@ function convolutionTable( show = true, inverse = false ) {
                 .box
                 .points
                 .map( b => {
-                    const x = 1;
-                    const id = indexedBox.boxFunction( a, b ).id;
-                    return x && (id == b.id) ? "  " : String( id ).padStart( 2 );
+                    const c = indexedBox.boxFunction( indexes, a, b );
+                    return blanks && (c.id == 0 || c.conjugate.id == 0) ? "  " : String( c.id ).padStart( 2 );
                 } )
                 .join( tab )
             );
 
-        const inverseColumns = indexedBox
-            .box
-            .points
-            .map( a => String( a.id ).padStart( 2 ) + tab + indexedBox
-                .box
-                .points
-                .map( b => {
-                    const x = 1;
-                    const id = indexedBox.boxFunctionInverse( a, b ).id;
-                    return x && (id == b.id) ? "  " : String( id ).padStart( 2 );
-                } )
-                .join( tab )
-            );
-
-        var tablesHtml = "<table width='100%'><tr><td class='summaryLeft'>";
-        tablesHtml += `<pre>${ header }${ '\n' }${ '\n' }${ columns.join('\n') }</pre>`;
-        if ( inverse ) {
-            tablesHtml += "</td><td class='summaryRight'>";
-            tablesHtml += `<pre>${ header }${ '\n' }${ '\n' }${ inverseColumns.join('\n') }</pre>`;
-        }
-        tablesHtml += "</td></tr></table>";
-
-        document.getElementById( 'convolutionTable' ).innerHTML = tablesHtml;
+        document.getElementById( 'products' ).innerHTML = `<hr><pre>${ header }${ '\n' }${ columns.join('\n') }</pre>`;
 
     } catch ( e ) {
-        document.getElementById( 'convolutionTable' ).innerHTML = e;
+        document.getElementById( 'products' ).innerHTML = e;
     }
 }
 
@@ -461,6 +439,8 @@ function updatePlane() {
             .innerHTML = basePlane.getCaptionHtml();
 
     updateJson();
+
+    drawProductTable( [ planeIndex ], isToggle( 'products') );
 }
 
 function updatePage() {
@@ -483,8 +463,6 @@ function updatePage() {
             .max = indexedBox.indexPlanes.length - 1;
 
     updatePlane();
-
-    convolutionTable( isToggle( 'convTable') );
 }
 
 function initPage( urlParam = true ) {
@@ -531,6 +509,10 @@ function initPage( urlParam = true ) {
     }
     if ( param.toggles.midi ) {
         showHideCSS( '.midi' );
+    }
+
+    if ( param.toggles.products ) {
+        showHideAll( ['productsTable'] );
     }
 
     selectedPoints = [];

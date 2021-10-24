@@ -136,7 +136,10 @@
         input[type=range] {
             width: 100%;
         }
-
+        textarea.index-products {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 
     <script type="text/javascript" src="js/x3dom-full.js"></script>
@@ -177,8 +180,8 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="1"/>x
-                <input type="number" min="1" id="b1" value="4"/>x
-                <input type="number" min="1" id="b2" value="10"/>
+                <input type="number" min="1" id="b1" value="3"/>x
+                <input type="number" min="1" id="b2" value="4"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -194,6 +197,7 @@
             <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
             <label title="display a chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
             <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
+            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsTable'], this )"/></label> |
             <label title="orbit surgery">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
             <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
 
@@ -261,8 +265,13 @@
                                     const a = basePlane.idx[ pointIds[0] ];
                                     const b = basePlane.idx[ pointIds[1] ];
 
-                                    const result = indexedBox.boxFunction( a, b );
-                                    document.getElementById( 'pointOperationErrorMessage' ).innerHTML = `${ a } o ${ b } = ` + result;
+                                    const result = indexedBox.boxFunction( [ basePlane.id ], a, b );
+
+                                    var eqnHtml = `${ a } o ${ b } = ` + result;
+                                    eqnHtml += "<br/>";
+                                    eqnHtml += `${ a.id } * ${ b.id } = ` + result.id;
+
+                                    document.getElementById( 'pointOperationErrorMessage' ).innerHTML = eqnHtml;
 
                                 } catch ( e ) {
                                     document.getElementById( 'pointOperationErrorMessage' ).innerHTML = e;
@@ -306,18 +315,17 @@
                     </script>
                 selected points:
                 <label>ids: <input type="text" id="selectedPointIds" class="colourField"/></label>
+                <label><input type="button" onclick="convolvePoints()" value="convolve"/></label> |
 
                 <label><input type="button" onclick="joinPoints( 0 )" value="twist" title="p1&#8594;q2 &amp; q1&#8594;p2"/></label> |
                 <label><input type="button" onclick="joinPoints( 1 )" value="join" title="p1&#8594;q1 &amp; q0&#8594;p2"/></label> |
                 <label><input type="button" onclick="joinPoints( 2 )" value="splice" title="p1&#8594;q1 &amp; q1&#8594;p2 &amp; q0&#8594;q2"/></label> |
                 <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
-                <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label> |
-                <label><input type="button" onclick="convolvePoints()" value="convolve"/></label>
+                <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
             </div>
 
             <div id="more-options" style="display: none">
                 <hr/>
-                <label title="show convolution tables">conv. table<input type="checkbox" id="convTableToggle" onchange="updatePage()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="negative polarity indexors">neg.pol.<input type="checkbox" id="negpolToggle" onchange="updatePage()"/></label> |
 
@@ -367,12 +375,11 @@
             </tr>
         </table>
     </div>
-    <div id="convolutionTable">
-
-    </div>
 
     <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
-
+    <div id="productsTable" style="display: none">
+        <div id="products"></div>
+    </div>
     <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>
 
     <div id="sample_cs_b_10_m_2_plot_legend" style="display: none" class='legend'>

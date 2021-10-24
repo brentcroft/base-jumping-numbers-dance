@@ -16,7 +16,7 @@ function getParam( defaultValues ) {
     }
 
     const indexParam = urlParams.get('planeIndex');
-    const planeIndex = ( indexParam ) ? Number( indexParam ): 1;
+    const planeIndex = ( indexParam ) ? Number( indexParam ): defaultValues.planeIndex;
 
     const toggleParam = urlParams.get('toggles');
     if ( toggleParam ) {
@@ -339,7 +339,7 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
-function drawProductTable( show = true, byOrbits = true ) {
+function drawProductTable( index, show = true, byOrbits = true ) {
 
     document.getElementById( 'products' ).innerHTML = "";
 
@@ -350,35 +350,39 @@ function drawProductTable( show = true, byOrbits = true ) {
     const blanks = 1;
     const tab = " ";
 
-    const originPoint = basePlane.identities[0].coords[0];
+    const identityIds = index
+        .identities
+        .flatMap( i => i.coords )
+        .map( e => index.pointAt(e).id );
 
     const points = [
-        originPoint,
-        ...basePlane
+        index.getIdentityPoint(),
+        ...index
             .orbits
-            .flatMap( orbit => [...orbit.coords] )
+            .flatMap( orbit => orbit.coords )
     ];
 
-    const facetOf = (a) => a.indexes[basePlane.id];
 
     if (!byOrbits) {
-        points.sort( (a,b) => facetOf(a).id - facetOf(b).id );
+        points.sort( (a,b) => index.pointAt(a).id - index.pointAt(b).id );
     }
 
     const header = " *" + tab + points
-        .map( a => String( facetOf(a).id ).padStart( 2 ) )
+        .map( a => String( index.pointAt(a).id ).padStart( 2 ) )
         .join( tab );
 
     const columns = points
-        .map( a => String( facetOf(a).id ).padStart( 2 ) + tab + points
+        .map( a => String( index.pointAt(a).id ).padStart( 2 ) + tab + points
             .map( b => {
-                var c = basePlane.convolve( a, b ) || originPoint;
-                return blanks && (c.id == 0 || c.conjugate.id == 0) ? "  " : String( facetOf(c).id ).padStart( 2 );
+                var c = index.convolve( a, b ) || index.getIdentityPoint();
+                return ( blanks && c.id == 0 )
+                    ? "  "
+                    : String( index.pointAt(c).id ).padStart( 2 );
             } )
             .join( tab )
         );
 
-    document.getElementById( 'products' ).innerHTML = `Index Products: <br/><pre>${ header }${ '\n' }${ columns.join('\n') }</pre>`;
+    document.getElementById( 'products' ).innerHTML = `Products: <span class='toolbar'>0 = [${ identityIds }]</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
 }
 
 
@@ -442,9 +446,9 @@ function updatePlane() {
             .getElementById("captionTex")
             .innerHTML = basePlane.getCaptionHtml();
 
-    updateJson();
+    drawProductTable( basePlane, isToggle( 'products'), isToggle( 'productByOrbits') );
 
-    drawProductTable( isToggle( 'products'), isToggle( 'productByOrbits') );
+    updateJson();
 }
 
 function updatePage() {

@@ -133,6 +133,12 @@ class PointIndex extends Index {
     }
 }
 
+class CompositionIndex extends Index {
+    constructor( box, id = 0, indexes ) {
+        super( box, id );
+        this.indexes = indexes;
+    }
+}
 
 
 
@@ -160,19 +166,31 @@ class IndexedBox {
         const numPoints = this.box.points.length;
         this.box.points.forEach( point => {
             point.conjugate = this.box.points[ numPoints - point.id - 1];
-            if ( point.coord.filter( x => x == 0 ).length == this.box.rank ) {
-                this.originPoint = point;
-                this.terminalPoint = point.conjugate;
-            }
         } );
+
         this.indexPlanes.forEach( plane => plane.initialise() );
+
+        var nextIndexId = this.indexPlanes.length;
+        const compositePlanes = [
+            new CompositionIndex(
+                this.box,
+                nextIndexId++,
+                [
+                    this.indexPlanes[1],
+                    this.indexPlanes[2]
+                ]
+            )
+        ];
+
+        //this.indexPlanes.append( compositePlanes );
     }
 
-    boxFunction( indexes = [ 1 ], a, b ) {
+    convolve( a, b, indexes ) {
+        indexes = indexes || this.indexPlanes;
         var locus = b;
         indexes
             .map( i => this.indexPlanes[i] )
-            .forEach( index => locus = index.convolve( a, locus ) || this.originPoint );
+            .forEach( index => locus = index.convolve( a, locus ) || locus );
         return locus;
     };
 

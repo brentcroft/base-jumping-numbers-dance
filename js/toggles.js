@@ -15,10 +15,10 @@ toggleKeys = {
     more: 0,
     scale3d: 0,
     summary: 0,
-    table: 0,
+    table: 1,
     products: 1,
-    productByOrbits: 0,
+    productByOrbits: 1,
     multi: 1,
-    editor: 1,
+    editor: 0,
     negpol: 0
 }

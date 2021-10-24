@@ -28,6 +28,10 @@ class Index {
             && gcd( id, maxIndex) == 1;
     }
 
+    getIdentityPoint() {
+        return this.identities[0].coords[0];
+    }
+
     getJump( id, di ) {
         if (this.isNonTrivialIndexIdentity( id, di ) ) {
             return nonTrivialIndexJump;
@@ -79,6 +83,13 @@ class Index {
         return this.pointsOperation( a, b, true );
     }
 
+    pointAt( point ) {
+        try {
+            return point.indexes[ this.id ];
+        } catch ( e ) {
+            throw e;
+        }
+    }
 
     indexPoint( point ) {
         const boxVolume = this.box.volume;
@@ -97,7 +108,7 @@ class Index {
         const maxIndex = boxVolume - 1;
         const halfMaxIndex = maxIndex / 2;
 
-        // point references data by index
+        // point references this index by
         point.indexes[this.id] = {
             id: id,
             di: di,
@@ -250,8 +261,10 @@ class Index {
         const tally = [ ...this.dix ];
         const indexId = this.id;
 
-        function extractOrbitCoordsAndTally( startIndex, idx, tally ) {
+        function extractOrbitCoordsAndTally( orbitId, startIndex, idx, tally ) {
             var point = idx[ startIndex ];
+            point.indexes[indexId].orbitId = orbitId;
+
             tally[ startIndex ] = -1;
             const coords = [ point ];
 
@@ -260,8 +273,8 @@ class Index {
             while ( di != startIndex ) {
                 tally[ di ] = -1;
                 point = idx[ di ];
+                point.indexes[indexId].orbitId = orbitId;
                 coords.push( point );
-
                 di = point.indexes[indexId].di;
             }
             return coords;
@@ -269,8 +282,8 @@ class Index {
 
         for ( var i = 0; i < this.idx.length; i++) {
             if ( tally[ i ]!= -1 ) {
-
-                var orbit = new Orbit( this, this.orbits.length + 1, extractOrbitCoordsAndTally( i, this.idx, tally ) );
+                const orbitId = this.orbits.length + 1;
+                var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
 
                 // only for radiants
                 if ( i == 0 && orbit.order == 2 ) {
@@ -314,7 +327,12 @@ class Index {
                     orbit.conjugate = orbit;
 
                 } else {
-                    const conjugateOrbit = new Orbit( this, this.orbits.length + 1, extractOrbitCoordsAndTally( antipodesCoord.indexes[indexId].id, this.idx, tally ) );
+                    const orbitId = this.orbits.length + 1;
+
+                    const conjugateOrbit = new Orbit(
+                        this,
+                        orbitId,
+                        extractOrbitCoordsAndTally( orbitId, antipodesCoord.indexes[indexId].id, this.idx, tally ) );
 
                     conjugateOrbit.conjugate = orbit;
                     orbit.conjugate = conjugateOrbit;
@@ -327,7 +345,7 @@ class Index {
                 }
             }
         }
-        this.identities.sort( (a,b) => a.coords[0].indexes[indexId].id - b.coords[0].indexes[indexId].id );
+        this.identities.sort( (a,b) => this.pointAt(a.coords[0]).id - this.pointAt(b.coords[0]).id );
     }
 
     analyzeOrbits() {

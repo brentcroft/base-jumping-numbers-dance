@@ -179,14 +179,14 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="1"/>x
-                <input type="number" min="1" id="b1" value="4"/>x
-                <input type="number" min="1" id="b2" value="10"/>
+                <input type="number" min="1" id="b0" value="2"/>x
+                <input type="number" min="1" id="b1" value="3"/>x
+                <input type="number" min="1" id="b2" value="7"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="0" onchange="updatePlane()"/></label> |
+            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="1" onchange="updatePlane()"/></label> |
 
             <span id="captionTex"></span>
             <br/>
@@ -197,7 +197,6 @@
             <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
             <label title="display a chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
             <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
-            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsTable'], this )"/></label> |
             <label title="orbit surgery">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
             <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
 
@@ -217,6 +216,7 @@
 
             <div id="tableControls" style="display: none">
                 <hr/>
+                <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsTable'], this ); updatePlane();"/></label> |
                 <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
                 <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
                 <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
@@ -265,7 +265,7 @@
                                     const a = basePlane.idx[ pointIds[0] ];
                                     const b = basePlane.idx[ pointIds[1] ];
 
-                                    const result = indexedBox.boxFunction( [ basePlane.id ], a, b );
+                                    const result = basePlane.convolve( a, b );
 
                                     var eqnHtml = `${ a } o ${ b } = ` + result;
                                     eqnHtml += "<br/>";

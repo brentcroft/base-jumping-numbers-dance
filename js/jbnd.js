@@ -179,44 +179,16 @@ class IndexedBox {
 
         if ( composites ) {
             var nextIndexId = this.indexPlanes.length;
-            const compositeIndexes = [
-//               new CompositeIndex(
-//                    this.box,
-//                    nextIndexId++,
-//                    this.indexPlanes[0],
-//                    this.indexPlanes[1]
-//                ),
-//               new CompositeIndex(
-//                    this.box,
-//                    nextIndexId++,
-//                    this.indexPlanes[0],
-//                    this.indexPlanes[2]
-//                ),
-//               new CompositeIndex(
-//                    this.box,
-//                    nextIndexId++,
-//                    this.indexPlanes[0],
-//                    this.indexPlanes[3]
-//                ),
-                new CompositeIndex(
-                    this.box,
-                    nextIndexId++,
-                    this.indexPlanes[1],
-                    this.indexPlanes[2]
-                ),
-                new CompositeIndex(
-                    this.box,
-                    nextIndexId++,
-                    this.indexPlanes[2],
-                    this.indexPlanes[3]
-                ),
-                new CompositeIndex(
-                    this.box,
-                    nextIndexId++,
-                    this.indexPlanes[3],
-                    this.indexPlanes[1]
-                )
-            ];
+            const compositeIndexes = this.box
+                .bases
+                .map( (x,i) => {
+                    return new CompositeIndex(
+                        this.box,
+                        nextIndexId++,
+                        this.indexPlanes[ 1 + i ],
+                        this.indexPlanes[ 1 + ( 1 + i) % this.box.rank ]
+                    )
+                } );
 
             compositeIndexes
                 .forEach( index => {

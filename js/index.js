@@ -65,7 +65,7 @@ class Index {
 
     pointsOperation( a, b, inverse = false ) {
         const orbit = this.getOrbit( b );
-        if ( !orbit.isIdentity() && orbit.engages( a ) ) {
+        if ( orbit.engages( a ) ) {
             const position = orbit.position( a );
             return inverse
                 ? this.stepBackward( b, position )
@@ -84,11 +84,7 @@ class Index {
     }
 
     pointAt( point ) {
-        try {
-            return point.indexes[ this.id ];
-        } catch ( e ) {
-            throw e;
-        }
+        return point.indexes[ this.id ];
     }
 
     indexPoint( point ) {
@@ -522,7 +518,7 @@ class Index {
             .identityPlane
             .map( x => x );
 
-        const pad = s => `${ s }`.padStart( 2, " " );
+        const pad = s => `${ s }`.padStart( 1, " " );
 
         var planeMid = plane
             .map( ( x, i ) => `${ x < 0 ? " + " : " - " }${ pad( Math.abs( x ) ) }${ varIds( i ) }` )

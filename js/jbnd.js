@@ -67,12 +67,12 @@ class RadiantIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return "(radiance)";
+        return "(radiant)";
     }
 }
 
 class PointIndex extends Index {
-    constructor( box, id = 0, param = { "polarity": "negative" } ) {
+    constructor( box, id = 0, param = { "polarity": "positive" } ) {
         super( box, id );
 
         // rotate bases array to accumulate places
@@ -96,47 +96,54 @@ class PointIndex extends Index {
             this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
         }
     }
-
-    getLocusPoints( locusLine ) {
-        return locusLine
-            .map( (index,i) => {
-                const coords = this.orbits[i].coords;
-                return coords[ index % coords.length ];
-            } );
-    }
-
-    getLocusStep( locusLine, step ) {
-        const maxLocusIndex = this.orbits.length - 1;
-
-        const rl = [].concat( locusLine ).reverse();
-        var rlStep = step;
-        if ( !(step && this.orbits.length == step.length ) ) {
-            rlStep = rl.map( (x,i) => i == 0 ? 1 : 0);
-        }
-
-        var newLocus = [];
-        var carry = 0;
-        rl.forEach( (x,i) => {
-            const orbit = this.orbits[ maxLocusIndex - i ];
-            const orbitStep = rlStep[ i ];
-            const maxOrbitOrder = orbit.order;
-
-            const d = ( x + orbitStep + carry );
-            const f = d % maxOrbitOrder;
-            newLocus.push( f );
-            carry = Math.floor( d / maxOrbitOrder );
-        } );
-
-        newLocus.reverse();
-
-        return newLocus;
-    }
 }
 
-class CompositionIndex extends Index {
-    constructor( box, id = 0, indexes ) {
+class CompositeIndex extends Index {
+
+    constructor( box, id = 0, primaryIndex, secondaryIndex ) {
         super( box, id );
-        this.indexes = indexes;
+
+        this.primaryIndex = primaryIndex;
+        this.secondaryIndex = secondaryIndex;
+
+
+        // establish identity plane
+        this.identityPlane = [ -1, -1, 1 ];
+        this.identityPlaneGcd = 1;
+        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+
+        // copy primary idx
+        primaryIndex.idx.forEach( ( point, primaryId ) => {
+
+            const boxVolume = this.box.volume;
+
+            const wayPoint = primaryIndex.idx[ point.indexes[ primaryIndex.id ].di ];
+            const di = wayPoint.indexes[ secondaryIndex.id ].di;
+            const id = primaryId;
+
+            const conjugateId = ( boxVolume - id - 1 );
+
+            if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
+                throw `id out of range: id=${ id }, di=${ di }, volume=${ boxVolume }`;
+            }
+
+            // index references point
+            this.idx[ id ] = point;
+            this.dix[ di ] = point;
+
+            point.indexes[this.id] = {
+                id: id,
+                di: di,
+                conjugateId: conjugateId,
+                jump: this.getJump( id, di ),
+                radiant: ( conjugateId - id )
+            };
+        } );
+    }
+
+
+    getPlaneEquationTx() {
+        return `( ${ this.primaryIndex.id } o ${ this.secondaryIndex.id } )`;
     }
 }
 
@@ -144,7 +151,7 @@ class CompositionIndex extends Index {
 
 
 class IndexedBox {
-    constructor( bases = [], param = {} ) {
+    constructor( bases = [], param = {}, composites = false ) {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
         this.box.points = [];
@@ -170,19 +177,53 @@ class IndexedBox {
 
         this.indexPlanes.forEach( plane => plane.initialise() );
 
-        var nextIndexId = this.indexPlanes.length;
-        const compositePlanes = [
-            new CompositionIndex(
-                this.box,
-                nextIndexId++,
-                [
+        if ( composites ) {
+            var nextIndexId = this.indexPlanes.length;
+            const compositeIndexes = [
+//               new CompositeIndex(
+//                    this.box,
+//                    nextIndexId++,
+//                    this.indexPlanes[0],
+//                    this.indexPlanes[1]
+//                ),
+//               new CompositeIndex(
+//                    this.box,
+//                    nextIndexId++,
+//                    this.indexPlanes[0],
+//                    this.indexPlanes[2]
+//                ),
+//               new CompositeIndex(
+//                    this.box,
+//                    nextIndexId++,
+//                    this.indexPlanes[0],
+//                    this.indexPlanes[3]
+//                ),
+                new CompositeIndex(
+                    this.box,
+                    nextIndexId++,
                     this.indexPlanes[1],
                     this.indexPlanes[2]
-                ]
-            )
-        ];
+                ),
+                new CompositeIndex(
+                    this.box,
+                    nextIndexId++,
+                    this.indexPlanes[2],
+                    this.indexPlanes[3]
+                ),
+                new CompositeIndex(
+                    this.box,
+                    nextIndexId++,
+                    this.indexPlanes[3],
+                    this.indexPlanes[1]
+                )
+            ];
 
-        //this.indexPlanes.append( compositePlanes );
+            compositeIndexes
+                .forEach( index => {
+                    index.initialise();
+                    this.indexPlanes.push( index );
+                } );
+        }
     }
 
     convolve( a, b, indexes ) {
@@ -212,9 +253,8 @@ class IndexedBox {
         const sep = ", ";
         const planeDataFn = ( data ) => ""
                            + "id: " + JSON.stringify( data.id ) + sep
-                           + "powers: " + JSON.stringify( data.powers ) + sep
                            + "cycles: " + JSON.stringify( data.cycles ) + sep
-                           + "plane: " + JSON.stringify( data.equation ) + sep
+                           + "plane: " + JSON.stringify( data.equation.padStart( 15, " " ) ) + sep
                            + "euclidean: " + JSON.stringify( data.euclidean ) +sep
                            + "index: " + JSON.stringify( data.index );
 
@@ -222,7 +262,7 @@ class IndexedBox {
         dataHtml += "\n";
         dataHtml += this
             .indexPlanes
-            .map( plane => planeDataFn( plane.getJson() ) )
+            .map( index => getCycleIndexMonomialHtml( index ) + ": " + planeDataFn( index.getJson() ) )
             .join( "\n" );
 
         return dataHtml;

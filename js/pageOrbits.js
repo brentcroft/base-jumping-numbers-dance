@@ -339,15 +339,16 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
-function drawProductTable( index, show = true, byOrbits = true ) {
+function drawProductTable( index, toggles ) {
 
     document.getElementById( 'products' ).innerHTML = "";
 
-    if ( !show ) {
+    if ( !toggles.includes( 'products' ) ) {
         return;
     }
 
-    const blanks = 1;
+    const blanks = toggles.includes( 'productBlankIdentity' );
+    const commuteIdentity = toggles.includes( 'productCommuteIdentity' );
     const tab = " ";
 
     const identityIds = index
@@ -362,8 +363,7 @@ function drawProductTable( index, show = true, byOrbits = true ) {
             .flatMap( orbit => orbit.coords )
     ];
 
-
-    if (!byOrbits) {
+    if ( !toggles.includes( 'productByOrbits' ) ) {
         points.sort( (a,b) => index.pointAt(a).id - index.pointAt(b).id );
     }
 
@@ -374,10 +374,11 @@ function drawProductTable( index, show = true, byOrbits = true ) {
     const columns = points
         .map( a => String( index.pointAt(a).id ).padStart( 2 ) + tab + points
             .map( b => {
-                var c = index.convolve( a, b ) || index.getIdentityPoint();
-                return ( blanks && c.id == 0 )
+                const c = index.convolve( a, b ) || ( commuteIdentity ? index.getIdentityPoint() : a );
+                const cid = index.pointAt(c).id;
+                return ( blanks && cid == 0 )
                     ? "  "
-                    : String( index.pointAt(c).id ).padStart( 2 );
+                    : String( cid ).padStart( 2 );
             } )
             .join( tab )
         );
@@ -391,7 +392,7 @@ function drawProductTable( index, show = true, byOrbits = true ) {
 function isToggle( toggle ) {
     const toggleControl = document.getElementById( toggle + "Toggle" );
     if ( !toggleControl ) {
-        console.log( `No such toggle control: ${ toggle }Toggle` );
+        throw `No such toggle control: ${ toggle }Toggle`;
     }
     return toggleControl.checked;
 }
@@ -440,13 +441,13 @@ function updatePlane() {
     basePlane = indexedBox.indexPlanes[ planeIndex ];
     putBasePlane( basePlane.key, basePlane );
 
-    initialiseExpressor( basePlane, isToggle( 'locus' ) );
+    //initialiseExpressor( basePlane, isToggle( 'locus' ) );
 
     document
             .getElementById("captionTex")
             .innerHTML = basePlane.getCaptionHtml();
 
-    drawProductTable( basePlane, isToggle( 'products'), isToggle( 'productByOrbits') );
+    drawProductTable( basePlane, param.toggles );
 
     updateJson();
 }
@@ -456,7 +457,7 @@ function updatePage() {
     const param = getControlValues();
 
     // TODO: global access
-    indexedBox = new IndexedBox( param.bases, param );
+    indexedBox = new IndexedBox( param.bases, param, true );
 
     document
             .getElementById( "summary" )

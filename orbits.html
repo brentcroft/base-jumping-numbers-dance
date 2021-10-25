@@ -194,10 +194,11 @@
 
 
         <div id="toolbar" class="toolbar">
-            <label title="display a summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
-            <label title="display a chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
-            <label title="display a table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
-            <label title="orbit surgery">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
+            <label title="show summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
+            <label title="show chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
+            <label title="show table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
+            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsTable'], this ); updatePlane();"/></label> |
+            <label title="show orbit editor">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
             <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
 
             <div id="chartControls" style="display: none">
@@ -208,7 +209,6 @@
                 <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |
                 <label title="show the identity plane">plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/></label> |
                 <label title="show orbit lines">lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/></label> |
-                <label title="show the phase controls and the corresponding locus">locus<input type="checkbox" id="locusToggle" onchange="updateJson()"/></label>
                 <div>
                     <div id="expressor"></div>
                 </div>
@@ -216,7 +216,6 @@
 
             <div id="tableControls" style="display: none">
                 <hr/>
-                <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsTable'], this ); updatePlane();"/></label> |
                 <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
                 <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
                 <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
@@ -381,7 +380,9 @@
         <hr>
         <div id="products" class="caption"></div>
         <div  class="toolbar">
-            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="updatePlane()"/></label>
+            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="updatePlane()"/></label> |
+            <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="updatePlane()"/></label> |
+            <label title="blank identity results">blank identity<input type="checkbox" id="productBlankIdentityToggle" onchange="updatePlane()"/></label>
         </div>
     </div>
     <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>

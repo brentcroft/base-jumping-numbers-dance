@@ -221,22 +221,40 @@ class IndexedBox {
         }
     }
 
-    getDataHtml() {
+    getDataHtml( selectedIndex = -1 ) {
         const sep = ", ";
-        const planeDataFn = ( data ) => ""
-                           + "id: " + JSON.stringify( data.id ) + sep
-                           + "cycles: " + JSON.stringify( data.cycles ) + sep
-                           + "plane: " + JSON.stringify( data.equation.padStart( 15, " " ) ) + sep
-                           + "euclidean: " + JSON.stringify( data.euclidean ) +sep
-                           + "index: " + JSON.stringify( data.index );
+        const planeDataFn = ( data ) => JSON.stringify( data.cycles );
+        const tableId = 'indexSummary';
+        var columnId = 0;
 
-        var dataHtml = "" + JSON.stringify( this.box.getJson() );
-        dataHtml += "\n";
+        var dataHtml = "Summary: " + JSON.stringify( this.box.getJson() );
+        dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Structure</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Rad</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Rad</th>`;
+        dataHtml += "</tr><tr>";
         dataHtml += this
             .indexPlanes
-            .map( index => getCycleIndexMonomialHtml( index ) + ": " + planeDataFn( index.getJson() ) )
-            .join( "\n" );
-
+            .map( index => {
+                const clickAction = `document.getElementById( 'planeIndex' ).value = ${ index.id }; updatePlane()`;
+                const selectedClass = selectedIndex == index.id ? "class='selected'" : "";
+                var x = `<td>${ index.id }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.getPlaneEquationTx() }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ getCycleIndexMonomialHtml( index ) }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.identities.length }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.orbits.length }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.fundamental }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.grossEuclideanPerimeter() }</td>`;
+                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.grossIndexPerimeter() }</td>`;
+                return x;
+            } )
+            .join( "</tr><tr>" );
+        dataHtml += "</tr></table>";
         return dataHtml;
     }
 }

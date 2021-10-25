@@ -438,6 +438,11 @@ function updatePlane() {
 
     const planeIndex = param.planeIndex % indexedBox.indexPlanes.length;
 
+    document
+            .getElementById( "summary" )
+            .innerHTML = indexedBox.getDataHtml( planeIndex );
+
+
     basePlane = indexedBox.indexPlanes[ planeIndex ];
     putBasePlane( basePlane.key, basePlane );
 
@@ -458,10 +463,6 @@ function updatePage() {
 
     // TODO: global access
     indexedBox = new IndexedBox( param.bases, param, true );
-
-    document
-            .getElementById( "summary" )
-            .innerHTML = `<pre>${ indexedBox.getDataHtml() }</pre>`;
 
     document
             .getElementById( "basesVolume" )

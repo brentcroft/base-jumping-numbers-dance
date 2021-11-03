@@ -264,11 +264,16 @@
                                     const a = basePlane.idx[ pointIds[0] ];
                                     const b = basePlane.idx[ pointIds[1] ];
 
-                                    const result = basePlane.convolve( a, b );
+                                    const c = basePlane.convolve( a, b ) || basePlane.getIdentityPoint();
 
-                                    var eqnHtml = `${ a } o ${ b } = ` + result;
+                                    var eqnHtml = `${ a } o ${ b } = ` + c;
                                     eqnHtml += "<br/>";
-                                    eqnHtml += `${ a.id } * ${ b.id } = ` + result.id;
+                                    eqnHtml += `${ basePlane.pointAt( a ).id } * ${ basePlane.pointAt( b ).id } = ` + basePlane.pointAt( c ).id;
+                                    eqnHtml += "<br/>";
+                                    eqnHtml += `<pre>${ c }.indexes\n` + c.indexes
+                                        .map( (p,i) => i + ": " + JSON.stringify( p ) )
+                                        .join( "\n" )
+                                        + "</pre>";
 
                                     document.getElementById( 'pointOperationErrorMessage' ).innerHTML = eqnHtml;
 
@@ -325,6 +330,9 @@
 
             <div id="more-options" style="display: none">
                 <hr/>
+                <label title="generate composite indexes">composites <input type="checkbox" id="compositesToggle" onchange="updatePage()"/></label> |
+                <label title="generate inverse composite indexes">inverse composites <input type="checkbox" id="inverseCompositesToggle" onchange="updatePage()"/></label> |
+
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="negative polarity indexors">neg.pol.<input type="checkbox" id="negpolToggle" onchange="updatePage()"/></label> |
 

@@ -54,6 +54,9 @@ class RadiantIndex extends Index {
         super( box, id );
 
         this.powersForward = placeValuesForwardArray( this.box.bases );
+        // TODO:
+        // 1. is there a powersReverse
+        // 2. is there an identity plane
         this.powersReverse = [...this.powersForward];
 
         // establish identity plane
@@ -67,7 +70,7 @@ class RadiantIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return "(radiant)";
+        return "(radiance)" ;
     }
 }
 
@@ -75,13 +78,10 @@ class PointIndex extends Index {
     constructor( box, id = 0, param = { "polarity": "positive" } ) {
         super( box, id );
 
-        // rotate bases array to accumulate places
-        // then de-rotate to align with bases
         const rotation = ( this.id - 1 ) % this.box.bases.length;
-        //const rotation = Math.max( 0, this.id - 1 );
-        const rotatedBases = rotateArray( [ ...this.box.bases ], rotation );
-        this.powersForward = rotateReverseArray( placeValuesForwardArray( rotatedBases ), rotation );
-        this.powersReverse = rotateReverseArray( placeValuesReverseArray( rotatedBases ), rotation );
+
+        this.powersForward = placeValuesForwardArray( this.box.bases, rotation );
+        this.powersReverse = placeValuesReverseArray( this.box.bases, rotation );
 
         // establish identity plane
         this.identityPlane = this.powersForward.map( ( x, i ) => this.powersReverse[i] - x );
@@ -103,47 +103,25 @@ class CompositeIndex extends Index {
     constructor( box, id = 0, primaryIndex, secondaryIndex ) {
         super( box, id );
 
+
         this.primaryIndex = primaryIndex;
         this.secondaryIndex = secondaryIndex;
-
 
         // establish identity plane
         this.identityPlane = [ -1, -1, 1 ];
         this.identityPlaneGcd = 1;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
-        // copy primary idx
-        primaryIndex.idx.forEach( ( point, primaryId ) => {
+        // establish coord index functions
+        this.indexForward = ( coord ) => this.secondaryIndex.indexForward( primaryIndex.getPoint( coord ).coord );
+        this.indexReverse = ( coord ) => this.primaryIndex.indexReverse( secondaryIndex.getPoint( coord ).coord );
 
-            const boxVolume = this.box.volume;
-
-            const wayPoint = primaryIndex.idx[ point.indexes[ primaryIndex.id ].di ];
-            const di = wayPoint.indexes[ secondaryIndex.id ].di;
-            const id = primaryId;
-
-            const conjugateId = ( boxVolume - id - 1 );
-
-            if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
-                throw `id out of range: id=${ id }, di=${ di }, volume=${ boxVolume }`;
-            }
-
-            // index references point
-            this.idx[ id ] = point;
-            this.dix[ di ] = point;
-
-            point.indexes[this.id] = {
-                id: id,
-                di: di,
-                conjugateId: conjugateId,
-                jump: this.getJump( id, di ),
-                radiant: ( conjugateId - id )
-            };
-        } );
+        this.box.points.forEach( point => this.indexPoint( point ) );
     }
 
 
     getPlaneEquationTx() {
-        return `( ${ this.primaryIndex.id } o ${ this.secondaryIndex.id } )`;
+        return `( ${ this.primaryIndex.powersReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() } o ${ this.secondaryIndex.id } )`;
     }
 }
 
@@ -151,19 +129,20 @@ class CompositeIndex extends Index {
 
 
 class IndexedBox {
-    constructor( bases = [], param = {}, composites = false ) {
+    constructor( bases = [], param = {} ) {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
         this.box.points = [];
         this.indexPlanes = [ new RadiantIndex( this.box, 0 ) ];
 
-        const negpol = param.toggles && param.toggles.includes( "negpol" );
+        const toggles = param.toggles || [];
+        const negpol = toggles.includes( "negpol" );
 
-        if ( bases.length <= 2 ) {
+        if ( bases.length < 2 ) {
             this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length ) );
         } else {
             for ( var i = 0; i < bases.length; i++ ) {
-                this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length, param = { "polarity": negpol? "negative" : "positive" } ) );
+                this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length, { "polarity": negpol? "negative" : "positive" } ) );
             }
         }
 
@@ -177,24 +156,62 @@ class IndexedBox {
 
         this.indexPlanes.forEach( plane => plane.initialise() );
 
+        const composites = toggles.includes( "composites" );
+
         if ( composites ) {
+            const inverseComposites = toggles.includes( "inverseComposites" );
             var nextIndexId = this.indexPlanes.length;
-            const compositeIndexes = this.box
+
+            const numCompositePlanes = this.indexPlanes.length;
+
+            this.box
                 .bases
-                .map( (x,i) => {
-                    return new CompositeIndex(
+                .flatMap( (x,i) => [
+                    new CompositeIndex(
                         this.box,
                         nextIndexId++,
                         this.indexPlanes[ 1 + i ],
-                        this.indexPlanes[ 1 + ( 1 + i) % this.box.rank ]
+                        this.indexPlanes[ 1 + ( ( 1 + i) % this.box.rank ) ]
                     )
-                } );
-
-            compositeIndexes
+                ] )
                 .forEach( index => {
                     index.initialise();
                     this.indexPlanes.push( index );
                 } );
+
+
+            if ( inverseComposites ) {
+                var nextIndexId = this.indexPlanes.length;
+                this.box
+                    .bases
+                    .flatMap( (x,i) => [
+                        new CompositeIndex(
+                            this.box,
+                            nextIndexId++,
+                            this.indexPlanes[ 1 + ( ( 1 + i) % this.box.rank ) ],
+                            this.indexPlanes[ 1 + i ]
+                        )
+                    ] )
+                    .forEach( index => {
+                        index.initialise();
+                        this.indexPlanes.push( index );
+                    } );
+            }
+
+
+            var superComposite = this.indexPlanes[1];
+            var compositeIndexId = this.indexPlanes.length;
+
+            for ( var i = 2; i < numCompositePlanes; i++ ) {
+                superComposite = new CompositeIndex(
+                     this.box,
+                     compositeIndexId,
+                     superComposite,
+                     this.indexPlanes[ i ]
+                );
+            }
+            superComposite.initialise();
+            this.indexPlanes.push( superComposite );
         }
     }
 

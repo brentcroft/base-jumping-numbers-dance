@@ -269,30 +269,45 @@ function getEuclideanRadiance( bases ) {
 
 
 /*
-    calculate array of base values
-    accumulating forwards.
+    calculate array of place values
+    forwards, where p[offset] == 1.
 */
-function placeValuesForwardArray( bases ) {
-        var acc = 1;
-        const p = [];
-        for ( var i = 0; i < bases.length; i++ ) {
-            p.push( acc );
+function placeValuesForwardArray( bases, offset = 0 ) {
+    offset = offset % bases.length;
+    var acc = 1;
+    const p = new Array( bases.length ).fill( 0 );
+    for ( var i = offset; i < bases.length; i++ ) {
+        p[i] = acc;
+        acc = acc * bases[i];
+    }
+    if ( offset > 0 ) {
+        for ( var i = 0; i < offset; i++ ) {
+            p[i] = acc;
             acc = acc * bases[i];
         }
-        return p;
-    };
+    }
+    return p;
+};
 /*
-    calculate array of base values
-    accumulating in reverse.
+    calculate array of place values
+    in reverse, where p[bases.length-offset-1] == 0.
 */
-function placeValuesReverseArray( bases ) {
-        var acc = 1;
-        const p = [];
-        for ( var i = bases.length - 1; i >= 0; i-- ) {
-            p.push( acc );
+function placeValuesReverseArray( bases, offset = 0 ) {
+    offset = offset % bases.length;
+    var acc = 1;
+    const p = new Array( bases.length ).fill( 0 );
+
+    if ( offset > 0 ) {
+        for ( var i = offset - 1; i >= 0; i-- ) {
+            p[ i ] = acc;
             acc = acc * bases[i];
         }
-        return [].concat( p ).reverse();
-    };
+    }
+    for ( var i = bases.length - 1; i >= offset; i-- ) {
+        p[ i ] = acc;
+        acc = acc * bases[i];
+    }
+    return p;
+};
 
 

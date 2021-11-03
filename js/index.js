@@ -25,6 +25,7 @@ class Index {
         const maxIndex = boxVolume - 1;
         return (di == id)
             && (id != 0)
+            && (id != maxIndex)
             && gcd( id, maxIndex) == 1;
     }
 
@@ -267,11 +268,17 @@ class Index {
             var di = point.indexes[indexId].di;
 
             while ( di != startIndex ) {
-                tally[ di ] = -1;
-                point = idx[ di ];
-                point.indexes[indexId].orbitId = orbitId;
-                coords.push( point );
-                di = point.indexes[indexId].di;
+                try {
+                    tally[ di ] = -1;
+                    point = idx[ di ];
+                    point.indexes[indexId].orbitId = orbitId;
+                    coords.push( point );
+                    di = point.indexes[indexId].di;
+
+                } catch ( e ) {
+                    console.log( `Bad orbit: ${ orbitId }`);
+                    break;
+                }
             }
             return coords;
         }
@@ -317,6 +324,11 @@ class Index {
 
                 const point = this.idx[ i ];
                 var antipodesCoord = this.idx[ point.indexes[indexId].conjugateId ];
+
+                if ( !antipodesCoord ) {
+                    console.log( `Bad point no conjugate: ${ point }`);
+                    break;
+                }
 
                 if (tally[ antipodesCoord.indexes[indexId].di ] == -1) {
                     // orbit is conjugate to self

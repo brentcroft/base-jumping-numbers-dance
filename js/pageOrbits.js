@@ -45,6 +45,7 @@ function getControlValues() {
         try {
             return Number( document.getElementById( `b${i}` ).value );
         } catch ( e ) {
+            console.log( `Bad base control [b${i}] value: ${ e }, returning 1.` );
             return 1;
         }
     } );
@@ -175,7 +176,7 @@ function clearSelected() {
 function initialiseCheckBox( controlId, checked ) {
     const control = document.getElementById( controlId );
     if (!control) {
-        throw `No such checkbox: ${ controlId }`;
+        console.log( `No such checkbox: ${ controlId }` );
     }
     control.checked = checked;
 }
@@ -462,7 +463,7 @@ function updatePage() {
     const param = getControlValues();
 
     // TODO: global access
-    indexedBox = new IndexedBox( param.bases, param, true );
+    indexedBox = new IndexedBox( param.bases, param );
 
     document
             .getElementById( "basesVolume" )
@@ -480,7 +481,13 @@ function initPage( urlParam = true ) {
     const cv = getControlValues();
 
     if ( urlParam ) {
-        cv.toggles = {...toggleKeys};
+        cv.toggles = { ...toggleKeys };
+    } else {
+        const toggles = cv.toggles;
+        cv.toggles = {};
+        Object
+            .keys( toggleKeys )
+            .forEach( k => cv.toggles[k] = toggles.includes( k ) ? 1 : 0 );
     }
 
     const param = urlParam

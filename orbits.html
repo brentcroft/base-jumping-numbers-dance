@@ -179,9 +179,9 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="2"/>x
+                <input type="number" min="1" id="b0" value="7"/>x
                 <input type="number" min="1" id="b1" value="3"/>x
-                <input type="number" min="1" id="b2" value="7"/>
+                <input type="number" min="1" id="b2" value="2"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -194,34 +194,12 @@
 
 
         <div id="toolbar" class="toolbar">
-            <label title="show summary of box properties">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
-            <label title="show chart of identities and orbits">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
-            <label title="show table of identities and orbits">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
-            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsTable'], this ); updatePlane();"/></label> |
+            <label title="show indexes table">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
+            <label title="show orbits table">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
+            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); updatePlane();"/></label> |
+            <label title="show orbits chart">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
             <label title="show orbit editor">editor<input type="checkbox" id="editorToggle" onchange="showHideAll( ['editor'], this )"/></label> |
             <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
-
-            <div id="chartControls" style="display: none">
-                <hr/>
-                <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="grid3dToggle" onchange="updateJson()"/></label> |
-                <label title="scale 3d to a square">square<input type="checkbox" id="scale3dToggle" onchange="updateJson()"/></label> |
-                <label title="show the box grid structure">grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/></label> |
-                <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |
-                <label title="show the identity plane">plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/></label> |
-                <label title="show orbit lines">lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/></label> |
-                <div>
-                    <div id="expressor"></div>
-                </div>
-            </div>
-
-            <div id="tableControls" style="display: none">
-                <hr/>
-                <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
-                <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
-                <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
-                <label title="midi">midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/></label> |
-                <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
-            </div>
 
             <div id="editor" style="display: none">
                 <hr/>
@@ -383,31 +361,61 @@
         </table>
     </div>
 
-    <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
-    <div id="productsTable" style="display: none">
-        <hr>
-        <div id="products" class="caption"></div>
-        <div  class="toolbar">
+    <div>
+        <div id="tableControls" class="toolbar" style="display: none">
+            <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
+            <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
+            <label title="show the jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
+            <label title="midi">midi<input type="checkbox" id="midiToggle" onchange="showHideCSS( '.midi' )"/></label> |
+            <a href="javascript:playMidi( JSON.parse( basePlane.getJson() ) )" title="play midi">play</a>
+        </div>
+
+        <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
+    </div>
+
+    <div>
+        <div id="productsControls" class="toolbar" style="display: none">
             <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="updatePlane()"/></label> |
             <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="updatePlane()"/></label> |
             <label title="blank identity results">blank identity<input type="checkbox" id="productBlankIdentityToggle" onchange="updatePlane()"/></label>
         </div>
-    </div>
-    <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>
 
-    <div id="sample_cs_b_10_m_2_plot_legend" style="display: none" class='legend'>
-        [ a, r, u | e, f, l, w, &lt;space&gt; ]
-        see: <a href="https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html" target="_new">x3dom navigation tutorial</a>
+        <div id="productsTable" style="display: none">
+            <br/>
+            <hr/>
+            Products:
+            <div id="products"></div>
+        </div>
     </div>
+    <div>
+        <div id="chartControls" class="toolbar" style="display: none">
+            <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="grid3dToggle" onchange="updateJson()"/></label> |
+            <label title="scale 3d to a square">square<input type="checkbox" id="scale3dToggle" onchange="updateJson()"/></label> |
+            <label title="show the box grid structure">grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/></label> |
+            <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |
+            <label title="show the identity plane">plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/></label> |
+            <label title="show orbit lines">lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/></label>
+            <div>
+                <div id="expressor"></div>
+            </div>
+        </div>
 
-    <div style="width: 100%">
-        <input
-                type="range"
-                min="0"
-                max="1"
-                id="sample_cs_b_10_m_2_riffler"
-                oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"
-                style="display: none" />
+        <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>
+
+        <div id="sample_cs_b_10_m_2_plot_legend" style="display: none" class='legend'>
+            [ a, r, u | e, f, l, w, &lt;space&gt; ]
+            see: <a href="https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html" target="_new">x3dom navigation tutorial</a>
+        </div>
+
+        <div style="width: 100%">
+            <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    id="sample_cs_b_10_m_2_riffler"
+                    oninput="distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': ( this.id + '.' + this.value ) } ] )"
+                    style="display: none" />
+        </div>
     </div>
 
 </body>

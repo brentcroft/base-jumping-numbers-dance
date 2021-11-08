@@ -74,6 +74,8 @@ var determinant = ( m ) => m.length == 1
 
 var displacement      = ( p1, p2 ) => p2.map( (p,i) => p - p1[i] );
 var addition          = ( p1, p2 ) => p2.map( (p,i) => p + p1[i] );
+var subtraction       = ( p1, p2 ) => p1.map( (p,i) => p - p2[i] );
+var scale             = ( p, s ) => p.map( x => x * s );
 var modularize        = ( p, b ) => {
     const m = [ ...p ];
     for ( var i = m.length-1; i >= 0; i-- ) {
@@ -91,8 +93,6 @@ var modularizeC        = ( p, b ) => {
     }
     return m;
 };
-var subtraction       = ( p1, p2 ) => p1.map( (p,i) => p - p2[i] );
-var scale             = ( p, s ) => p.map( x => x * s);
 
 var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
 var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v => a.includes( v ) );

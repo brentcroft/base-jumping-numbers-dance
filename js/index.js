@@ -30,7 +30,7 @@ class Index {
     }
 
     getIdentityPoint() {
-        return this.identities[0].coords[0];
+        return this.identities[0].points[0];
     }
 
     getJump( id, di ) {
@@ -41,28 +41,42 @@ class Index {
         }
     }
 
+    getPointFromIdx( id ) {
+        return this.idx[ id ];
+    }
+
+    getPointFromDix( id ) {
+        return this.dix[ id ];
+    }
+
+
+    getOrbit( point ) {
+        const orbit = this.orbits.find( orbit => orbit.points.includes( point ) );
+        return orbit ? orbit : this.identities.find( identity => identity.points.includes( point ) );
+    }
+
+    apply( point ) {
+        return this.getPointFromIdx( this.pointAt( point ).di );
+    }
+
+    applyInverse( point ) {
+        return this.getPointFromDix( this.pointAt( point ).id );
+    }
+
     stepForward( point, p = 1 ) {
         for ( var i = 0; i < p; i++ ) {
-            point = this.idx[ point.indexes[this.id].di ];
+            point = this.apply( point );
         }
         return point;
     }
 
     stepBackward( point, p = 1 ) {
         for ( var i = 0; i < p; i++ ) {
-            point = this.dix[ point.indexes[this.id].id ];
+            point = this.applyInverse( point );
         }
         return point;
     }
 
-    getPoint( coord ) {
-        return this.idx[ this.indexReverse( coord ) ];
-    }
-
-    getOrbit( point ) {
-        const orbit = this.orbits.find( orbit => orbit.coords.includes( point ) );
-        return orbit ? orbit : this.identities.find( identity => identity.coords.includes( point ) );
-    }
 
     pointsOperation( a, b, inverse = false ) {
         const orbit = this.getOrbit( b );
@@ -92,18 +106,10 @@ class Index {
         const boxVolume = this.box.volume;
         const di = this.indexForward( point.coord );
         const id = this.indexReverse( point.coord );
+
+        this.box.validateIds( [ id, di ] );
+
         const conjugateId = ( boxVolume - id - 1 );
-
-        if ( id < 0 || di < 0 || id >= boxVolume || di >= boxVolume ) {
-            throw `id out of range: id=${ id }, di=${ di }, volume=${ boxVolume }`;
-        }
-
-        // index references point
-        this.idx[ id ] = point;
-        this.dix[ di ] = point;
-
-        const maxIndex = boxVolume - 1;
-        const halfMaxIndex = maxIndex / 2;
 
         // point references this index by
         point.indexes[this.id] = {
@@ -113,6 +119,9 @@ class Index {
             jump: this.getJump( id, di ),
             radiant: ( conjugateId - id )
         };
+
+        this.idx[ id ] = point;
+        this.dix[ di ] = point;
     }
 
     joinPoints( pointIds, joinType = 0 ) {
@@ -263,7 +272,7 @@ class Index {
             point.indexes[indexId].orbitId = orbitId;
 
             tally[ startIndex ] = -1;
-            const coords = [ point ];
+            const points = [ point ];
 
             var di = point.indexes[indexId].di;
 
@@ -272,7 +281,7 @@ class Index {
                     tally[ di ] = -1;
                     point = idx[ di ];
                     point.indexes[indexId].orbitId = orbitId;
-                    coords.push( point );
+                    points.push( point );
                     di = point.indexes[indexId].di;
 
                 } catch ( e ) {
@@ -280,7 +289,7 @@ class Index {
                     break;
                 }
             }
-            return coords;
+            return points;
         }
 
         for ( var i = 0; i < this.idx.length; i++) {
@@ -353,7 +362,7 @@ class Index {
                 }
             }
         }
-        this.identities.sort( (a,b) => this.pointAt(a.coords[0]).id - this.pointAt(b.coords[0]).id );
+        this.identities.sort( (a,b) => this.pointAt(a.points[0]).id - this.pointAt(b.points[0]).id );
     }
 
     analyzeOrbits() {
@@ -396,7 +405,7 @@ class Index {
             orbit.bias = [ orbit.weight, this.maxWeight, reduce( orbit.weight, this.maxWeight ) ];
             orbit.biasFactor = ( orbit.bias[0] / orbit.bias[1] );
 
-            const coords = orbit.coords;
+            const points = orbit.points;
 
             [
                 orbit.midi.instrument,
@@ -592,10 +601,10 @@ class Index {
             const coordsB = interleave( o1b, o2b );
 
             if ( orbit.isSelfConjugate() ) {
-                const coords = [ ...coordsA, ...coordsB ];
+                const points = [ ...coordsA, ...coordsB ];
 
                 // switch master
-                orbit = new Orbit( this, orbit.index, coords );
+                orbit = new Orbit( this, orbit.index, points );
                 orbit.conjugate = orbit;
                 orbit.centreRef = 0;
 
@@ -738,7 +747,7 @@ class Index {
     identityEuclideanPerimeter() {
         return this
             .identities
-            .map( orbit => orbit.coords[0] )
+            .map( orbit => orbit.points[0] )
             .map( p => p.indexes[this.id] )
             .map( p => this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialPerimeterJump : 0 )
             .reduce( (a,r) => a + r, 0);
@@ -772,7 +781,7 @@ class Index {
         return this
             .identities
             .map( x => x
-                .coords
+                .points
                 .map( p => Math.abs( p.indexes[this.id].radiant ) )
                 .reduce( (a,c) => a + c, 0 ) )
             .reduce( (a, c) => a + c, 0 ) / 2;
@@ -782,7 +791,7 @@ class Index {
         return this
             .orbits
             .map( x => x
-                .coords
+                .points
                 .map( p => Math.abs( p.indexes[this.id].radiant ) )
                 .reduce( (a,c) => a + c, 0 ) )
             .reduce( (a, c) => a + c, 0 ) / 2;
@@ -796,7 +805,7 @@ class Index {
     // INDEX PERIMETER
     identityIndexPerimeter() {
         return this.identities
-            .map( identityOrbit => identityOrbit.coords[0] )
+            .map( identityOrbit => identityOrbit.points[0] )
             .map( indexedIdentity => indexedIdentity.indexes[ this.id ] )
             .map( identity => identity.jump )
             .reduce( (a,c) => a + c, 0 );

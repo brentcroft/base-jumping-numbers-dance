@@ -8,7 +8,7 @@ toggleKeys = {
     colours: 0,
     coords: 0,
     grid: 1,
-    grid3d: 0,
+    grid3d: 1,
     jumps: 0,
     midi: 0,
     more: 0,
@@ -21,7 +21,7 @@ toggleKeys = {
     productByOrbits: 1,
     productBlankIdentity: 1,
     productCommuteIdentity: 1,
-    multi: 1,
+    multi: 0,
     editor: 0,
     negpol: 0
 }

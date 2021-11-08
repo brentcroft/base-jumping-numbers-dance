@@ -55,7 +55,7 @@ class Point {
 
 class Orbit {
 
-    constructor( parent, index, coords ) {
+    constructor( parent, index, points ) {
         this.parent = parent;
         this.index = index;
         this.midi = {
@@ -64,21 +64,21 @@ class Orbit {
             "percussion": 0,
             "repeats": 0
         };
-        this.coords = coords;
+        this.points = points;
 
-        if ( coords.length < 1 ) {
-            throw `Orbit coords is zero length: ${ index }`;
+        if ( points.length < 1 ) {
+            throw `Orbit points is zero length: ${ index }`;
         }
 
-        this.linkCoords();
+        //this.linkCoords();
 
 
-        this.rank = this.coords[0].coord.length;
-        this.order = this.coords.length;
+        this.rank = this.points[0].coord.length;
+        this.order = this.points.length;
         this.centre = new Array( this.rank ).fill( 0 );
 
         this.sum = new Array( this.rank ).fill( 0 );
-        this.coords.forEach( ( item, index ) => {
+        this.points.forEach( ( item, index ) => {
             for ( var i = 0; i < this.rank; i++ ) {
                 this.sum[i] += item.coord[i];
             }
@@ -97,26 +97,26 @@ class Orbit {
     }
 
     isIdentity() {
-        return this.coords.length < 2;
+        return this.points.length < 2;
     }
 
     engages( point ) {
-        return this.coords.includes( point );
+        return this.points.includes( point );
     }
 
     position( point ) {
-        return this.coords.findIndex( c => c == point );
+        return this.points.findIndex( c => c == point );
     }
 
 
     rotate( times ) {
-        rotateArray( this.coords, times )
+        rotateArray( this.points, times )
     }
 
     conjugateCoords() {
         return this.isSelfConjugate()
-            ? [ this.coords.slice( 0, this.order / 2 ), this.coords.slice( this.order / 2 )  ]
-            : [ this.coords, this.conjugate.coords ];
+            ? [ this.points.slice( 0, this.order / 2 ), this.points.slice( this.order / 2 )  ]
+            : [ this.points, this.conjugate.points ];
     }
 
     toString() {
@@ -124,9 +124,9 @@ class Orbit {
     }
 
     linkCoords() {
-        for ( var i = 0; i < this.coords.length; i++ ) {
-            const point = this.coords[i].indexes[ this.parent.id ];
-            const nextPoint = this.coords[ (i + 1) % this.coords.length ].indexes[ this.parent.id ];
+        for ( var i = 0; i < this.points.length; i++ ) {
+            const point = this.points[i].indexes[ this.parent.id ];
+            const nextPoint = this.points[ (i + 1) % this.points.length ].indexes[ this.parent.id ];
 
             point.di = nextPoint.id;
             point.jump = this.parent.getJump( point.id, point.di );
@@ -137,14 +137,14 @@ class Orbit {
     // INDEX
     indexRadiance() {
         return this
-            .coords
+            .points
             .map( (x,i) => x.indexes[this.parent.id].radiant )
             .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
     }
 
     getJumps() {
         return this
-            .coords
+            .points
             .map( (x,i) => x.indexes[this.parent.id].jump );
     }
 
@@ -156,15 +156,16 @@ class Orbit {
 
     euclideanRadiance() {
         return this
-            .coords
+            .points
             .map( x => x.euclideanRadiance )
             .reduce( (a,c) => a + c, 0 );
     }
 
     euclideanPerimeter() {
+        //const f = this.parent.box.eFactor;
         return this
-            .coords
-            .map( (x,i) => distance2( x.coord, this.coords[ ( i + 1 ) % this.order ].coord ) )
+            .points
+            .map( (x,i) => distance2( x.coord, this.points[ ( i + 1 ) % this.order ].coord ) )
             .reduce( (a,c) => a + c, 0 ) / 2;
     }
 
@@ -186,7 +187,7 @@ class Orbit {
 
     getCoordArray() {
         return this
-            .coords
+            .points
             .map( c => c.coord );
     }
 
@@ -195,14 +196,14 @@ class Orbit {
     }
 
     getMembers() {
-        return this.coords.join( C_SEP )
+        return this.points.join( C_SEP )
     }
 
     getIdSum() {
-        return this.coords.reduce( (a, coord ) => a + coord.indexes[this.parent.id].id, 0 );
+        return this.points.reduce( (a, coord ) => a + coord.indexes[this.parent.id].id, 0 );
     }
 
     getDiSum() {
-        return this.coords.reduce( (a, coord ) => a + coord.di.indexes[this.parent.id], 0 );
+        return this.points.reduce( (a, coord ) => a + coord.di.indexes[this.parent.id], 0 );
     }
 }

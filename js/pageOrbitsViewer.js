@@ -231,7 +231,7 @@ function getBasePlaneItems( basePlane, toggles ) {
         .identities
         .forEach(
             orbit => orbit
-                .coords
+                .points
                 .map( point => {
                     return {
                             "pointId": "point-" + point.coord.join( '.' ),
@@ -263,7 +263,13 @@ function getBasePlaneItems( basePlane, toggles ) {
                     "group",
                     { "class": "orbit-line", "id": ("orbit." + orbit.index ) },
                     [
-                        createLineSet( orbit.coords, orbitColor ),
+                        createCylinderSet(
+                            orbit.points,
+                            orbitColor,
+                            {
+                                "scaleUnit": scaleUnit
+                            }
+                        ),
                         reify(
                             "transform",
                             {
@@ -272,7 +278,7 @@ function getBasePlaneItems( basePlane, toggles ) {
                             },
                             [ createSphereShape( "orbit." + orbit.index + ".0" , 0.09, "gray" ) ]
                         ),
-                        ...orbit.coords.map( (x,i) => reify(
+                        ...orbit.points.map( (x,i) => reify(
                             "transform",
                             {
                                 "translation": x.coord.join( ' ' ),
@@ -380,10 +386,10 @@ function getBasePlaneCycles( basePlane, toggles ) {
                         .map( identity => reify(
                                 "transform",
                                 {
-                                    "translation": `${ identity.coords[0].indexes[indexId].id } 0 ${ zOff * -1 }`
+                                    "translation": `${ identity.points[0].indexes[indexId].id } 0 ${ zOff * -1 }`
                                 },
                                 [
-                                    //createSphereShape( `grid-point-${ identity.coords[0].coord.join( '-' ) }`, 0.2, "red", 0.3, JSON.stringify( identity.coords[0].getJson() ) ),
+                                    //createSphereShape( `grid-point-${ identity.points[0].coord.join( '-' ) }`, 0.2, "red", 0.3, JSON.stringify( identity.points[0].getJson() ) ),
                                     createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "black", attr )
                                 ]
                             )
@@ -431,13 +437,14 @@ function getBasePlaneCycles( basePlane, toggles ) {
     // ORBITS
     basePlane
         .identities
-        .map( identityOrbit => identityOrbit.coords[0] )
+        .map( identityOrbit => identityOrbit.points[0] )
         .map( identityPoint => {
             return {
-                ...identityPoint.indexes[ indexId ],
+                //...identityPoint.indexes[ indexId ],
+                "id": identityPoint.id,
                 "report": identityPoint.report(),
                 "json": identityPoint.getJson(),
-                coord: identityPoint.coord
+                "coord": identityPoint.coord
             };
         })
         .map( identity => reify(
@@ -472,7 +479,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
     for ( var i = 0; i < orbits.length; i++ ) {
         const orbit = orbits[i];
         const color = colorBasePlane.colorForIndex( orbit.index );
-        if (orbit.coords.length > 1 ) {
+        if (orbit.points.length > 1 ) {
             root
                 .appendChild(
                     reify(
@@ -484,7 +491,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                         },
                         [
                             ...orbit
-                                .coords
+                                .points
                                 .map( ( entry, i ) => {
                                         const point = entry.indexes[ indexId ];
                                         const pointParity = point.jump < 0 ? -1 : 1;

@@ -26,6 +26,19 @@ class Box {
 
         //
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+
+        //
+        this.eFactor = this.bases
+            .map( (x,i) => gcd( x, this.bases[ ( i + 1 ) % this.rank ] ) )
+            .filter( x => x > 1 )
+            .reduce( (a,c) => a * c, 1);
+    }
+
+    validateIds( ids ) {
+        const invalidIds = ids.filter( id => id < 0 || id >= this.volume )
+        if ( invalidIds.length > 0 ) {
+            throw `id out of range: ${ invalidIds }; box.volume=${ this.volume }`;
+        }
     }
 
     getJson() {
@@ -70,7 +83,7 @@ class RadiantIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return "(radiance)" ;
+        return "(total radiance)" ;
     }
 }
 
@@ -103,7 +116,6 @@ class CompositeIndex extends Index {
     constructor( box, id = 0, primaryIndex, secondaryIndex ) {
         super( box, id );
 
-
         this.primaryIndex = primaryIndex;
         this.secondaryIndex = secondaryIndex;
 
@@ -112,13 +124,32 @@ class CompositeIndex extends Index {
         this.identityPlaneGcd = 1;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
-        // establish coord index functions
-        this.indexForward = ( coord ) => this.secondaryIndex.indexForward( primaryIndex.getPoint( coord ).coord );
-        this.indexReverse = ( coord ) => this.primaryIndex.indexReverse( secondaryIndex.getPoint( coord ).coord );
-
         this.box.points.forEach( point => this.indexPoint( point ) );
     }
 
+    indexPoint( point ) {
+
+        const endPoint = this.secondaryIndex.apply( this.primaryIndex.apply( point ) );
+
+        // global ids
+        const id = point.id;
+        const di = endPoint.id;
+
+        this.box.validateIds( [ id, di ] );
+
+        const conjugateId = ( this.box.volume - id - 1 );
+
+        point.indexes[this.id] = {
+            id: id,
+            di: di,
+            conjugateId: conjugateId,
+            jump: this.getJump( id, di ),
+            radiant: ( conjugateId - id )
+        };
+
+        this.idx[ id ] = point;
+        this.dix[ di ] = point;
+    }
 
     getPlaneEquationTx() {
         return `( ${ this.primaryIndex.powersReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() } o ${ this.secondaryIndex.id } )`;
@@ -212,6 +243,22 @@ class IndexedBox {
             }
             superComposite.initialise();
             this.indexPlanes.push( superComposite );
+
+            if ( inverseComposites ) {
+                var inverseSuperComposite = this.indexPlanes[numCompositePlanes - 1];
+                var inverseSuperCompositeIndexId = this.indexPlanes.length;
+
+                for ( var i = numCompositePlanes - 2; i >= 1; i-- ) {
+                    inverseSuperComposite = new CompositeIndex(
+                         this.box,
+                         inverseSuperCompositeIndexId,
+                         inverseSuperComposite,
+                         this.indexPlanes[ i ]
+                    );
+                }
+                inverseSuperComposite.initialise();
+                this.indexPlanes.push( inverseSuperComposite );
+            }
         }
     }
 
@@ -238,10 +285,10 @@ class IndexedBox {
         }
     }
 
-    getDataHtml( selectedIndex = -1 ) {
+    getDataHtml( containerId, selectedIndex = -1 ) {
         const sep = ", ";
         const planeDataFn = ( data ) => JSON.stringify( data.cycles );
-        const tableId = 'indexSummary';
+        const tableId = 'indexSummary_table';
         var columnId = 0;
 
         var dataHtml = "Summary: " + JSON.stringify( this.box.getJson() );
@@ -258,17 +305,18 @@ class IndexedBox {
         dataHtml += this
             .indexPlanes
             .map( index => {
-                const clickAction = `document.getElementById( 'planeIndex' ).value = ${ index.id }; updatePlane()`;
+                const clickAction = `distributeMessages( '${ containerId }', [ { 'indexKey': '${ index.id }', 'sender': this.id } ] )`;
                 const selectedClass = selectedIndex == index.id ? "class='selected'" : "";
-                var x = `<td>${ index.id }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.getPlaneEquationTx() }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ getCycleIndexMonomialHtml( index ) }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.identities.length }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.orbits.length }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.fundamental }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.grossEuclideanPerimeter() }</td>`;
-                x += `<td onclick="${ clickAction }" ${selectedClass}>${ index.grossIndexPerimeter() }</td>`;
-                return x;
+                const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
+                var rowHtml = `<td>${ index.id }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
+                rowHtml += `<td align='center'>${ getCycleIndexMonomialHtml( index ) }</td>`;
+                rowHtml += `<td align='center'>${ index.identities.length }</td>`;
+                rowHtml += `<td align='center'>${ index.orbits.length }</td>`;
+                rowHtml += `<td align='center'>${ index.fundamental }</td>`;
+                rowHtml += `<td align='center'>${ index.grossEuclideanPerimeter() }</td>`;
+                rowHtml += `<td align='center'>${ index.grossIndexPerimeter() }</td>`;
+                return rowHtml;
             } )
             .join( "</tr><tr>" );
         dataHtml += "</tr></table>";

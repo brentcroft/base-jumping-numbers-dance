@@ -212,10 +212,10 @@ function drawBasePlaneTable( tableArgs ) {
     }
 
     if ( perms ) {
-        const identities = basePlane.identities.map( p => "( " + p.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) + " )" ).join(" ");
+        const identities = basePlane.identities.map( p => "( " + p.points.map( c => c.id ).join( ' ' ) + " )" ).join(" ");
         chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     } else {
-        const identities = basePlane.identities.map( p => "{ " + canonicalize( p.coords[0].coord ) + " }" ).join(", ");
+        const identities = basePlane.identities.map( p => "{ " + canonicalize( p.points[0].coord ) + " }" ).join(", ");
         chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     }
 
@@ -223,8 +223,8 @@ function drawBasePlaneTable( tableArgs ) {
     const maxIndex = volume - 1;
 
     const initialPointsSum = new Array( basePlane.box.rank ).fill( 0 );
-    const identityPointsSum = basePlane.identities.reduce( (a, p) => addition( a, p.coords[0].coord ), initialPointsSum );
-    const identityIdSum = basePlane.identities.reduce( (a, p) => a + p.coords[0].indexes[basePlane.id].id, 0 );
+    const identityPointsSum = basePlane.identities.reduce( (a, p) => addition( a, p.points[0].coord ), initialPointsSum );
+    const identityIdSum = basePlane.identities.reduce( (a, p) => a + p.points[0].id, 0 );
     const identityIdSumGcd = gcd( maxIndex, identityIdSum );
 
     chainsText += `<th id="${ tableId }.f" align='center' onclick="${ clearClick }"><code>(${ identityPointsSum })</code></th>`;
@@ -283,13 +283,13 @@ function drawBasePlaneTable( tableArgs ) {
 
                 const scValenceFirst = orbitJumps.slice( 0, Math.ceil( orbitJumps.length / 2 ) );
                 const scValenceRest = orbitJumps.slice( Math.ceil( orbitJumps.length / 2 ), orbitJumps.length );
-                const scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
-                const scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
+                const scMembersFirst = orbit.points.slice( 0, Math.ceil( orbit.points.length / 2 ) );
+                const scMembersRest = orbit.points.slice( Math.ceil( orbit.points.length / 2 ), orbit.points.length );
 
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ scValenceFirst.join( C_SEP ) } &#8600;<br/>${ scValenceRest.join( C_SEP ) } &#8598;]</td>`;
                 }
-                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ scMembersFirst.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } &#8600;<br/>${ scMembersRest.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } &#8598;)</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ scMembersFirst.map( c => c.id ).join( ' ' ) } &#8600;<br/>${ scMembersRest.map( c => c.id ).join( ' ' ) } &#8598;)</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
             } else if ( orbit.isFirstConjugate() && conj ) {
@@ -305,14 +305,14 @@ function drawBasePlaneTable( tableArgs ) {
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]<br/>[ ${ conjOrbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
-                chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } )<br/>( ${ conjOrbit.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } )</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( c => c.id ).join( ' ' ) } )<br/>( ${ conjOrbit.points.map( c => c.id ).join( ' ' ) } )</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })<br/>(${ conjOrbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }<br/>${ conjOrbitIdSum / conjOrbitSpaceGcd } * ${ conjOrbitSpaceGcd }</td>`;
             } else {
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
-                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.coords.map( c => c.indexes[basePlane.id].id ).join( ' ' ) } )</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( c => c.id ).join( ' ' ) } )</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
             }
@@ -322,8 +322,8 @@ function drawBasePlaneTable( tableArgs ) {
                 const orbitJumps = orbit.getJumps();;
                 var scValenceFirst = orbitJumps.slice( 0, Math.ceil( orbitJumps.length / 2 ) );
                 var scValenceRest = orbitJumps.slice( Math.ceil( orbitJumps.length / 2 ), orbitJumps.length );
-                var scMembersFirst = orbit.coords.slice( 0, Math.ceil( orbit.coords.length / 2 ) );
-                var scMembersRest = orbit.coords.slice( Math.ceil( orbit.coords.length / 2 ), orbit.coords.length );
+                var scMembersFirst = orbit.points.slice( 0, Math.ceil( orbit.points.length / 2 ) );
+                var scMembersRest = orbit.points.slice( Math.ceil( orbit.points.length / 2 ), orbit.points.length );
 
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ scValenceFirst.join( C_SEP ) } &#8600;<br/>${ scValenceRest.join( C_SEP ) } &#8598;]</td>`;
@@ -494,3 +494,52 @@ function drawBasePlaneTable( tableArgs ) {
         console.log(e);
     }
 }
+
+
+
+function drawProductTable( index, toggles ) {
+
+    document.getElementById( 'products' ).innerHTML = "";
+
+    if ( !toggles.includes( 'products' ) ) {
+        return;
+    }
+
+    const blanks = toggles.includes( 'productBlankIdentity' );
+    const commuteIdentity = toggles.includes( 'productCommuteIdentity' );
+    const tab = " ";
+
+    const points = [
+        index.getIdentityPoint(),
+        ...index
+            .orbits
+            .flatMap( orbit => orbit.points )
+    ];
+
+    if ( !toggles.includes( 'productByOrbits' ) ) {
+        points.sort( (a,b) => a.id - b.id );
+    }
+
+    const header = " *" + tab + points
+        .map( a => String( a.id ).padStart( 2 ) )
+        .join( tab );
+
+    const columns = points
+        .map( a => String( index.pointAt(a).id ).padStart( 2 ) + tab + points
+            .map( b => {
+                const c = index.convolve( a, b ) || ( commuteIdentity ? index.getIdentityPoint() : a );
+                return ( blanks && c.id == 0 )
+                    ? "  "
+                    : String( c.id ).padStart( 2 );
+            } )
+            .join( tab )
+        );
+
+    const identityIds = index
+        .identities
+        .flatMap( i => i.points )
+        .map( e => e.id );
+
+    document.getElementById( 'products' ).innerHTML = `<span class='summaryRight'>e = { ${ identityIds } }</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
+}
+

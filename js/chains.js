@@ -93,19 +93,19 @@ function digitalDistance( base, mult, entry, entryRight ) {
     return zd2;
 }
 
-function chainRotationAndPerimeter( base, mult, coords ) {
+function chainRotationAndPerimeter( base, mult, points ) {
     var rotation = 0;
     var perimeter = 0;
     var digitalPerimeter = 0;
 
-    for ( var i = 0, d = coords.length; i < d; i++ ) {
+    for ( var i = 0, d = points.length; i < d; i++ ) {
         rotation += entryRotation(
-            coords[ ( d + i - 1 ) % d ],
-            coords[ i ],
-            coords[ ( i + 1 ) % d ]
+            points[ ( d + i - 1 ) % d ],
+            points[ i ],
+            points[ ( i + 1 ) % d ]
         );
-        perimeter += entryLengthSquared( coords[ i ], coords[ ( i + 1 ) % d ] );
-        digitalPerimeter += digitalDistance( base, mult, coords[ i ], coords[ ( i + 1 ) % d ] );
+        perimeter += entryLengthSquared( points[ i ], points[ ( i + 1 ) % d ] );
+        digitalPerimeter += digitalDistance( base, mult, points[ i ], points[ ( i + 1 ) % d ] );
     }
     // number of whole clockwise turns
     return [ -1 * Math.round( rotation / TWO_PI ), perimeter, digitalPerimeter ];
@@ -124,7 +124,7 @@ function getFundamental( chains ) {
     var fundamental = 1;
     for ( var i = 0; i < chains.length; i++ ) {
         var chain = chains[i];
-        var hI = chain.coords.length;
+        var hI = chain.points.length;
         if ( hI > fundamental ) {
             fundamental = hI;
         }
@@ -213,7 +213,7 @@ function buildChainSystem( base, mult, chains ) {
             "length": this.length,
             "weight": this.weight,
             "bias": formattedWeight( this.bias ),
-            "members": this.coords.join(C_SEP),
+            "members": this.points.join(C_SEP),
             "rotation": this.rotation,
             "perimeter": this.perimeter,
             "digitalPerimeter": this.digitalPerimeter
@@ -242,13 +242,13 @@ function buildChainSystem( base, mult, chains ) {
     var harmonics = {};
     for ( var i = 0; i < chains.length; i++ ) {
         var chain = chains[i];
-        var hI = chain.coords.length;
+        var hI = chain.points.length;
         harmonics[ hI ] = ( hI in harmonics ) ? ( harmonics[ hI ] + 1 ) : 1;
 
         var harmonic = fundamental / hI;
 
         const [ sumX, sumY, gcd ] = chainMedian( chain );
-        const [ rotation, perimeter, digitalPerimeter ] = chainRotationAndPerimeter( base, mult, chain.coords );
+        const [ rotation, perimeter, digitalPerimeter ] = chainRotationAndPerimeter( base, mult, chain.points );
 
         cycleIndexMonomial[hI] = ( hI in cycleIndexMonomial ) ? cycleIndexMonomial[hI] + 1 : 1
 
@@ -324,8 +324,8 @@ function buildChains( base, mult, idx, dix ) {
 
     function coords_array() {
         var coordsArray = [];
-        for ( var i = 0; i < this.coords.length; i++) {
-            coordsArray.push( this.coords[ i ].coord );
+        for ( var i = 0; i < this.points.length; i++) {
+            coordsArray.push( this.points[ i ].coord );
         }
 
         return coordsArray;
@@ -346,16 +346,16 @@ function buildChains( base, mult, idx, dix ) {
 
         const chain = {
             index: i,
-            coords: [ gridPoint ],
+            points: [ gridPoint ],
             coordsArray: coords_array
         };
 
-        const coords = chain.coords;
+        const points = chain.points;
 
         while ( gridPoint.di != i ) {
             dix[ gridPoint.di ] = -1;
             gridPoint = idx[ gridPoint.di ];
-            coords[ coords.length ] = gridPoint;
+            points[ points.length ] = gridPoint;
         }
 
         chains.push( chain );
@@ -462,7 +462,7 @@ function reduce( n, d ){
 
 function chainMedian( chain ) {
     var median = [ 0, 0 ];
-    chain.coords.forEach( ( item, index ) => {
+    chain.points.forEach( ( item, index ) => {
         median[0] += item.coord[0];
         median[1] += item.coord[1];
         } );
@@ -477,11 +477,11 @@ function chainMedian( chain ) {
 */
 function chainDown( chain, mult) {
     var bm = 0;
-    for ( var i = 0; i < ( chain.coords.length - 1 ); i++) {
+    for ( var i = 0; i < ( chain.points.length - 1 ); i++) {
         // just the base values * mult
-        bm = (bm + chain.coords[i].coord[0] ) * mult;
+        bm = (bm + chain.points[i].coord[0] ) * mult;
     }
-    bm += chain.coords[ chain.coords.length - 1 ].coord[0];
+    bm += chain.points[ chain.points.length - 1 ].coord[0];
     return bm;
 }
 
@@ -492,11 +492,11 @@ function chainDown( chain, mult) {
 */
 function chainUp( chain, base ) {
     var mb = 0;
-    for ( var i = ( chain.coords.length - 1 ); i > 0; i--) {
+    for ( var i = ( chain.points.length - 1 ); i > 0; i--) {
         // just the mult values * base
-        mb = (mb + chain.coords[i].coord[1] ) * base;
+        mb = (mb + chain.points[i].coord[1] ) * base;
     }
-    mb += chain.coords[ 0 ].coord[1];
+    mb += chain.points[ 0 ].coord[1];
     return mb;
 }
 

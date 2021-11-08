@@ -240,22 +240,22 @@ function createLineSetFromPoints( points, emissiveColor, lineType ) {
     return shape;
 }
 
-function createLineSet( coords, emissiveColor, attr = {} ){
+function createLineSet( points, emissiveColor, attr = {} ){
     var shape = createShape( emissiveColor, attr.linetype ? attr.linetype : "1", attr );
     var lineSet = document.createElement( "LineSet" );
     shape.appendChild( lineSet );
 
-    lineSet.setAttribute( 'vertexCount', `${ coords.length + 1 }` );
+    lineSet.setAttribute( 'vertexCount', `${ points.length + 1 }` );
 
     // guarantee 3 values per coord
-    var point = coords
+    var point = points
         .map( (x,i) => {
             var [ x = 0, y = 0, z = 0 ] = x.coord;
             return `${ x } ${ y } ${ z }`;
         } )
         .join( ' ' );
 
-    var [ x = 0, y = 0, z = 0 ] = coords[0].coord;
+    var [ x = 0, y = 0, z = 0 ] = points[0].coord;
     point += ` ${ x } ${ y } ${ z } -1`;
 
     var coordinate = document.createElement( 'coordinate' );
@@ -266,13 +266,58 @@ function createLineSet( coords, emissiveColor, attr = {} ){
 }
 
 
-function createDialLineSet( coords, emissiveColor, attr = {} ){
+function createCylinderSet( points, emissiveColor, attr = {} ){
+
+    const {
+        origin = [0,0,0],
+        currentDirection = [0,1,0],
+        scaleUnit = [1,1,1]
+    } = attr;
+
+    var cylinderSet = document.createElement( "group" );
+    points
+        .map( (a,i) => {
+            const b = points[ (i + 1) % points.length ];
+
+            // orient from a to b
+            // move to midpoint a to b
+            // insert cylinder shape
+
+            const height = Math.sqrt( distance2( b.coord, a.coord ) );
+            const diff = subtraction( b.coord, a.coord );
+            const centre = addition( a.coord, scale( diff, 0.5 ) );
+
+            const unitNormal = normalize( diff );
+            var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
+            var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
+
+            const shape = createShape( emissiveColor, attr.linetype ? attr.linetype : "1", attr );
+            shape.appendChild( reify( "cylinder", { "height": height, "radius": 0.01, "lit": false }, [] ) );
+
+            return reify(
+               "transform",
+               { "translation": centre.join( ' ' ) },
+               [
+                   reify(
+                       "transform",
+                       { "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle },
+                       [ shape ]
+               ) ]
+           );
+        } )
+        .forEach( shape => cylinderSet.appendChild( shape ) );
+    return cylinderSet;
+}
+
+
+
+function createDialLineSet( points, emissiveColor, attr = {} ){
 
     var shape = createShape( emissiveColor, "1", attr );
     var lineSet = document.createElement( "lineset" );
     shape.appendChild( lineSet );
 
-    const theta = 2 * Math.PI / coords.length;
+    const theta = 2 * Math.PI / points.length;
     const cosTheta = Math.cos(theta);
     const sinTheta = Math.sin(theta);
 
@@ -292,13 +337,13 @@ function createDialLineSet( coords, emissiveColor, attr = {} ){
 
     var currentPoint = [ 0, 2, 2 ];
     var point = "";
-    for ( var j = 0; j < coords.length; j++ ) {
+    for ( var j = 0; j < points.length; j++ ) {
         point += `${ currentPoint.join( ' ' ) } `;
         currentPoint = rotate( rotator, currentPoint );
     }
     point += `${ currentPoint.join( ' ' ) } -1`;
 
-    lineSet.setAttribute( 'vertexCount', `${ coords.length + 1 }` );
+    lineSet.setAttribute( 'vertexCount', `${ points.length + 1 }` );
 
     var coordinate = document.createElement( 'coordinate' );
     coordinate.setAttribute( 'point', `${ point }` );

@@ -101,9 +101,12 @@ function reopenWithReversedArgs() {
 
 
 function distributeMessage( containerId, message = {} ) {
+    const canonicalMessage = JSON.parse( JSON.stringify( message ) );
     const plotFrame = document.getElementById( containerId + "_plot_frame" );
-    plotFrame.contentWindow.postMessage( message, "*" );
-    window.postMessage( message, "*" );
+    if (plotFrame ) {
+        plotFrame.contentWindow.postMessage( canonicalMessage, "*" );
+    }
+    window.postMessage( canonicalMessage, "*" );
 }
 
 function distributeMessages( containerId, messages = [] ) {
@@ -156,6 +159,25 @@ function showOrbit( containerId, basePlane, senderId, multi  ) {
 
 function showAllOrbits( containerId, basePlane ) {
     showOrbit( containerId, basePlane, "." );
+}
+
+function showIndex( containerId, senderId  ) {
+    const tableCells = document
+        .getElementById( containerId + "_table" )
+        .querySelectorAll( "td.box_index" );
+
+    const [ sourceId, ...oids ] = senderId.split( "." );
+
+    tableCells.forEach( tableCell => {
+        const [ cId, ...oId ] = tableCell.id.split( "." );
+        if ( !arrayContains( oId, oids ) ) {
+            tableCell.classList.remove("selected");
+        } else if ( tableCell.classList.contains( "selected" ) ) {
+            tableCell.classList.remove("selected");
+        } else {
+            tableCell.classList.add("selected");
+        }
+    } );
 }
 
 function toggleSelected( item ) {
@@ -340,54 +362,6 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
-function drawProductTable( index, toggles ) {
-
-    document.getElementById( 'products' ).innerHTML = "";
-
-    if ( !toggles.includes( 'products' ) ) {
-        return;
-    }
-
-    const blanks = toggles.includes( 'productBlankIdentity' );
-    const commuteIdentity = toggles.includes( 'productCommuteIdentity' );
-    const tab = " ";
-
-    const identityIds = index
-        .identities
-        .flatMap( i => i.coords )
-        .map( e => index.pointAt(e).id );
-
-    const points = [
-        index.getIdentityPoint(),
-        ...index
-            .orbits
-            .flatMap( orbit => orbit.coords )
-    ];
-
-    if ( !toggles.includes( 'productByOrbits' ) ) {
-        points.sort( (a,b) => index.pointAt(a).id - index.pointAt(b).id );
-    }
-
-    const header = " *" + tab + points
-        .map( a => String( index.pointAt(a).id ).padStart( 2 ) )
-        .join( tab );
-
-    const columns = points
-        .map( a => String( index.pointAt(a).id ).padStart( 2 ) + tab + points
-            .map( b => {
-                const c = index.convolve( a, b ) || ( commuteIdentity ? index.getIdentityPoint() : a );
-                const cid = index.pointAt(c).id;
-                return ( blanks && cid == 0 )
-                    ? "  "
-                    : String( cid ).padStart( 2 );
-            } )
-            .join( tab )
-        );
-
-    document.getElementById( 'products' ).innerHTML = `Products: <span class='toolbar'>0 = [${ identityIds }]</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
-}
-
-
 
 
 function isToggle( toggle ) {
@@ -439,11 +413,6 @@ function updatePlane() {
 
     const planeIndex = param.planeIndex % indexedBox.indexPlanes.length;
 
-    document
-            .getElementById( "summary" )
-            .innerHTML = indexedBox.getDataHtml( planeIndex );
-
-
     basePlane = indexedBox.indexPlanes[ planeIndex ];
     putBasePlane( basePlane.key, basePlane );
 
@@ -464,6 +433,10 @@ function updatePage() {
 
     // TODO: global access
     indexedBox = new IndexedBox( param.bases, param );
+
+    document
+            .getElementById( "summary" )
+            .innerHTML = indexedBox.getDataHtml( "sample_cs_b_10_m_2", 1 );
 
     document
             .getElementById( "basesVolume" )
@@ -560,10 +533,15 @@ function initPage( urlParam = true ) {
                             { 'basis': 'selected-points', 'points': selectedPoints }
                         ] );
                 }
+            } else if ( data.indexKey ) {
+
+                document.getElementById( 'planeIndex' ).value = data.indexKey;
+                updatePlane();
+                showIndex( "indexSummary", data.sender );
 
             } else if ( data.basePlaneKey ) {
                 const basePlane = getBasePlane( data.basePlaneKey );
-                if ( event.data.sender ) {
+                if ( data.sender ) {
                     showOrbit( "sample_cs_b_10_m_2", basePlane, data.sender, data.multi );
                 } else {
                     showAllOrbits( "sample_cs_b_10_m_2", basePlane );
@@ -581,6 +559,8 @@ function initPage( urlParam = true ) {
             }
         }
     });
+
+    distributeMessages( 'sample_cs_b_10_m_2', [ { 'indexKey': 1, 'sender': 'dummy.1' } ] );
 
     if ( param.id ) {
         distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] );

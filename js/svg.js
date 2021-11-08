@@ -50,11 +50,11 @@ function clearChainDrawings()
 //
 function getChainItem( index, chain, scales, color, strokeWidth = 1, fillRule ) {
 
-    var coords = chain.coords;
-    var coord = coords[0].coord;
+    var points = chain.points;
+    var coord = points[0].coord;
     var item;
 
-    if (coords.length == 1) {
+    if (points.length == 1) {
         item = buildSVGItem(
                 'circle',
                 {
@@ -68,12 +68,12 @@ function getChainItem( index, chain, scales, color, strokeWidth = 1, fillRule ) 
                 } );
     } else {
         var points = "";
-        for ( var j = 0; j < coords.length; j++ ) {
-            coord = coords[j].coord;
+        for ( var j = 0; j < points.length; j++ ) {
+            coord = points[j].coord;
             points += ( coord[1] * scales[1] ) + "," + ( coord[0] * scales[0] ) + " ";
         }
 
-        coord = coords[0].coord;
+        coord = points[0].coord;
         points += (coord[1] * scales[1]) + "," + (coord[0] * scales[0]) + " ";
 
         item = buildSVGItem(

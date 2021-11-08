@@ -65,7 +65,7 @@ function updateControls( chainSystem ) {
     document.getElementById( "n" ).value = chainSystem.chains.length;
     document.getElementById( "riffler" ).max = chainSystem.chains.length - 1;
 
-    var p = chain.coords.length;
+    var p = chain.points.length;
 
     document.getElementById( "p" ).value = p;
 
@@ -124,7 +124,7 @@ function filterHarmonic( h ) {
 
     if ( h ) {
         for ( var i = 0; i < chains.length; i++ ) {
-            if ( chains[i].coords.length == h ) {
+            if ( chains[i].points.length == h ) {
                 harmonics.push( chains[i] );
             }
         }
@@ -156,7 +156,7 @@ function getCurrentHarmonic( chainSystem ) {
             if ( !isNaN( h ) ) {
                 var harmonics = [];
                 for ( var i = 0; i < chains.length; i++ ) {
-                    if ( chains[i].coords.length == h ) {
+                    if ( chains[i].points.length == h ) {
                         harmonics.push( chains[i] );
                     }
                 }

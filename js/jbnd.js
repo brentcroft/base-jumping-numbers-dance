@@ -294,7 +294,7 @@ class IndexedBox {
         var dataHtml = "Summary: " + JSON.stringify( this.box.getJson() );
         dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Structure</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;

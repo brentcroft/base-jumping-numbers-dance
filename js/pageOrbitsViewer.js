@@ -346,7 +346,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         } );
 
     const selectedPointsInfo = selectedPoints
-        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + JSON.stringify( point.indexes[basePlane.id] ) )
+        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + JSON.stringify( point.at(basePlane.id) ) )
         .join( "\n" );
 
     document
@@ -386,7 +386,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                         .map( identity => reify(
                                 "transform",
                                 {
-                                    "translation": `${ identity.points[0].indexes[indexId].id } 0 ${ zOff * -1 }`
+                                    "translation": `${ identity.points[0].at(indexId).id } 0 ${ zOff * -1 }`
                                 },
                                 [
                                     //createSphereShape( `grid-point-${ identity.points[0].coord.join( '-' ) }`, 0.2, "red", 0.3, JSON.stringify( identity.points[0].getJson() ) ),
@@ -440,7 +440,6 @@ function getBasePlaneCycles( basePlane, toggles ) {
         .map( identityOrbit => identityOrbit.points[0] )
         .map( identityPoint => {
             return {
-                //...identityPoint.indexes[ indexId ],
                 "id": identityPoint.id,
                 "report": identityPoint.report(),
                 "json": identityPoint.getJson(),
@@ -493,7 +492,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                             ...orbit
                                 .points
                                 .map( ( entry, i ) => {
-                                        const point = entry.indexes[ indexId ];
+                                        const point = entry.at(indexId);
                                         const pointParity = point.jump < 0 ? -1 : 1;
                                         return reify(
                                             "transform", { "translation": `${ point.id } 0 0` },
@@ -591,7 +590,7 @@ function initPage() {
                     const tooltipData = s.getAttribute( "tooltip" );
                     const point = JSON.parse( tooltipData );
 
-                    console.log( `selected point: [${ point.coord.join(", ") }], raw: ${ point.id }, ${basePlane.id}=${ JSON.stringify( point.indexes[ basePlane.id ] ) }` );
+                    console.log( `selected point: [${ point.coord.join(", ") }], raw: ${ point.id }, ${basePlane.id}=${ JSON.stringify( point.at(basePlane.id) ) }` );
 
                     distributeMessage( {
                         basis: "point",

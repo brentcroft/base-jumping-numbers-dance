@@ -526,7 +526,7 @@ function initPage( urlParam = true ) {
                     }
 
                     const selectedPointIds = document.getElementById( "selectedPointIds" );
-                    selectedPointIds.value = selectedPoints.map( p => p.indexes[basePlane.id].id ).join( ", ");
+                    selectedPointIds.value = selectedPoints.map( p => p.at(basePlane.id).id ).join( ", ");
 
                     distributeMessages(
                         'sample_cs_b_10_m_2', [

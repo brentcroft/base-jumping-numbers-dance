@@ -42,9 +42,18 @@ class Point {
         };
     }
 
+    at( indexId ) {
+        return this.indexes[ indexId ];
+    }
+
     report() {
-        return `Point: ${ canonicalize( this.coord ) }, erad: ${ this.euclideanRadiance } \n`
+        return `Point[${ this.id }]: ${ canonicalize( this.coord ) }, erad: ${ this.euclideanRadiance } \n`
             + this.indexes.map( ( x, i ) => `${ i }: ${ JSON.stringify( x ) }` ).join( "\n" );
+    }
+
+    report( indexId ) {
+        const indexLine = `${ indexId }: ${ JSON.stringify( this.at( indexId ) ) }`;
+        return `Point[${ this.id }]: ${ canonicalize( this.coord ) }, erad: ${ this.euclideanRadiance } \n` + indexLine;
     }
 
     toString() {
@@ -125,8 +134,8 @@ class Orbit {
 
     linkCoords() {
         for ( var i = 0; i < this.points.length; i++ ) {
-            const point = this.points[i].indexes[ this.parent.id ];
-            const nextPoint = this.points[ (i + 1) % this.points.length ].indexes[ this.parent.id ];
+            const point = this.points[i].at(this.parent.id);
+            const nextPoint = this.points[ (i + 1) % this.points.length ].at(this.parent.id);
 
             point.di = nextPoint.id;
             point.jump = this.parent.getJump( point.id, point.di );
@@ -138,14 +147,14 @@ class Orbit {
     indexRadiance() {
         return this
             .points
-            .map( (x,i) => x.indexes[this.parent.id].radiant )
+            .map( (x,i) => x.at(this.parent.id).radiant )
             .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
     }
 
     getJumps() {
         return this
             .points
-            .map( (x,i) => x.indexes[this.parent.id].jump );
+            .map( (x,i) => x.at(this.parent.id).jump );
     }
 
     indexPerimeter() {
@@ -200,10 +209,10 @@ class Orbit {
     }
 
     getIdSum() {
-        return this.points.reduce( (a, coord ) => a + coord.indexes[this.parent.id].id, 0 );
+        return this.points.reduce( (a, coord ) => a + coord.at(this.parent.id).id, 0 );
     }
 
     getDiSum() {
-        return this.points.reduce( (a, coord ) => a + coord.di.indexes[this.parent.id], 0 );
+        return this.points.reduce( (a, coord ) => a + coord.di.at(this.parent.id), 0 );
     }
 }

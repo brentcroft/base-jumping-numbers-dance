@@ -99,7 +99,7 @@ class Index {
     }
 
     pointAt( point ) {
-        return point.indexes[ this.id ];
+        return point.at(this.id);
     }
 
     indexPoint( point ) {
@@ -269,20 +269,20 @@ class Index {
 
         function extractOrbitCoordsAndTally( orbitId, startIndex, idx, tally ) {
             var point = idx[ startIndex ];
-            point.indexes[indexId].orbitId = orbitId;
+            point.at(indexId).orbitId = orbitId;
 
             tally[ startIndex ] = -1;
             const points = [ point ];
 
-            var di = point.indexes[indexId].di;
+            var di = point.at(indexId).di;
 
             while ( di != startIndex ) {
                 try {
                     tally[ di ] = -1;
                     point = idx[ di ];
-                    point.indexes[indexId].orbitId = orbitId;
+                    point.at(indexId).orbitId = orbitId;
                     points.push( point );
-                    di = point.indexes[indexId].di;
+                    di = point.at(indexId).di;
 
                 } catch ( e ) {
                     console.log( `Bad orbit: ${ orbitId }`);
@@ -303,12 +303,12 @@ class Index {
                     const [ coordsA, coordsB ] = orbit.conjugateCoords();
 
                     coordsA
-                        .map( p => p.indexes[indexId] )
+                        .map( p => p.at(indexId) )
                         .forEach( p => {
                             p.jump = 0;
                         } );
                     coordsB
-                        .map( p => p.indexes[indexId] )
+                        .map( p => p.at(indexId) )
                         .forEach( p => {
                             p.jump = 0;
                         } );
@@ -332,14 +332,14 @@ class Index {
                 }
 
                 const point = this.idx[ i ];
-                var antipodesCoord = this.idx[ point.indexes[indexId].conjugateId ];
+                var antipodesCoord = this.idx[ point.at(indexId).conjugateId ];
 
                 if ( !antipodesCoord ) {
                     console.log( `Bad point no conjugate: ${ point }`);
                     break;
                 }
 
-                if (tally[ antipodesCoord.indexes[indexId].di ] == -1) {
+                if (tally[ antipodesCoord.at(indexId).di ] == -1) {
                     // orbit is conjugate to self
                     orbit.conjugate = orbit;
 
@@ -349,7 +349,7 @@ class Index {
                     const conjugateOrbit = new Orbit(
                         this,
                         orbitId,
-                        extractOrbitCoordsAndTally( orbitId, antipodesCoord.indexes[indexId].id, this.idx, tally ) );
+                        extractOrbitCoordsAndTally( orbitId, antipodesCoord.at(indexId).id, this.idx, tally ) );
 
                     conjugateOrbit.conjugate = orbit;
                     orbit.conjugate = conjugateOrbit;
@@ -748,7 +748,7 @@ class Index {
         return this
             .identities
             .map( orbit => orbit.points[0] )
-            .map( p => p.indexes[this.id] )
+            .map( p => p.at(this.id) )
             .map( p => this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialPerimeterJump : 0 )
             .reduce( (a,r) => a + r, 0);
     }
@@ -782,7 +782,7 @@ class Index {
             .identities
             .map( x => x
                 .points
-                .map( p => Math.abs( p.indexes[this.id].radiant ) )
+                .map( p => Math.abs( p.at(this.id).radiant ) )
                 .reduce( (a,c) => a + c, 0 ) )
             .reduce( (a, c) => a + c, 0 ) / 2;
     }
@@ -792,7 +792,7 @@ class Index {
             .orbits
             .map( x => x
                 .points
-                .map( p => Math.abs( p.indexes[this.id].radiant ) )
+                .map( p => Math.abs( p.at(this.id).radiant ) )
                 .reduce( (a,c) => a + c, 0 ) )
             .reduce( (a, c) => a + c, 0 ) / 2;
     }
@@ -806,7 +806,7 @@ class Index {
     identityIndexPerimeter() {
         return this.identities
             .map( identityOrbit => identityOrbit.points[0] )
-            .map( indexedIdentity => indexedIdentity.indexes[ this.id ] )
+            .map( indexedIdentity => indexedIdentity.at(this.id) )
             .map( identity => identity.jump )
             .reduce( (a,c) => a + c, 0 );
     }

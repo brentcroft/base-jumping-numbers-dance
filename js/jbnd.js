@@ -129,7 +129,8 @@ class CompositeIndex extends Index {
 
     indexPoint( point ) {
 
-        const endPoint = this.secondaryIndex.apply( this.primaryIndex.apply( point ) );
+        var wayPoint = this.primaryIndex.apply( point );
+        var endPoint = this.secondaryIndex.apply( wayPoint );
 
         // global ids
         const id = point.id;
@@ -149,6 +150,13 @@ class CompositeIndex extends Index {
 
         this.idx[ id ] = point;
         this.dix[ di ] = point;
+
+//        if ( this.id == 9 && id == 2 ) {
+//            console.log( `point: ${ point.report( this.primaryIndex.id ) }` );
+//            console.log( `wayPoint.p: ${ wayPoint.report( this.primaryIndex.id ) }` );
+//            console.log( `wayPoint.s: ${ wayPoint.report( this.secondaryIndex.id ) }` );
+//            console.log( `endPoint: ${ endPoint.report( this.secondaryIndex.id ) }` );
+//        }
     }
 
     getPlaneEquationTx() {

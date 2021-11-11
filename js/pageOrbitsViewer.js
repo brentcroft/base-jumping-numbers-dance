@@ -293,23 +293,23 @@ function getBasePlaneItems( basePlane, toggles ) {
             );
     }
 
-    try {
-        root
-            .appendChild(
-                reify(
-                    "Group",
-                    {
-                        "class": "orbit-system-locus",
-                        "render": toggles.locus == 1
-                    },
-                    [
-                        createLineSet( basePlane.getLocusPoints( basePlane.locusPoints ) )
-                    ]
-                )
-            );
-    } catch ( e ) {
-        console.log( "Bad locus points: " + e );
-    }
+//    try {
+//        root
+//            .appendChild(
+//                reify(
+//                    "Group",
+//                    {
+//                        "class": "orbit-system-locus",
+//                        "render": toggles.locus == 1
+//                    },
+//                    [
+//                        createLineSet( basePlane.getLocusPoints( basePlane.locusPoints ) )
+//                    ]
+//                )
+//            );
+//    } catch ( e ) {
+//        console.log( "Bad locus points: " + e );
+//    }
 
     return reify( "collision", { "enabled": false }, [ root ] );
 }
@@ -317,9 +317,9 @@ function getBasePlaneItems( basePlane, toggles ) {
 
 
 function setSelectedPoints( containerId, selectedPoints, basePlane ) {
-    const existingSelectedPoints = document
+    const existingSelectedPoints = [ ...document
         .getElementById( containerId )
-        .querySelectorAll( "sphere.selected" );
+        .querySelectorAll( "sphere.selected" ) ];
 
     const standardRadius = 0.3;
     const selectedRadius = 0.5;
@@ -328,7 +328,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         .forEach( sphereElement => {
             sphereElement.setAttribute( "radius", standardRadius );
             sphereElement.classList.remove("selected");
-            console.log( `de-selected point: ${ sphereElement.id }` );
+            //console.log( `de-selected point: ${ sphereElement.id }` );
         });
 
     selectedPoints
@@ -346,7 +346,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         } );
 
     const selectedPointsInfo = selectedPoints
-        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + JSON.stringify( point.at(basePlane.id) ) )
+        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + JSON.stringify( point.indexes[basePlane.id] ) )
         .join( "\n" );
 
     document
@@ -416,19 +416,17 @@ function getBasePlaneCycles( basePlane, toggles ) {
     // PLANE
     var currentDirection = [0,1,0];
     var planeColor = "black";
-    var planeTransparency = 0.5;
+    var planeTransparency = 0.6;
 
     var planeItem = createPlaneItem(
             [ indexCentre, 0, zOff * (orbits.length - 2) / 2 ],
             [ 1, 0, 0 ],
-            scale( [ 0.001, -1 * zOff, 1 + orbits.length ], 1 ),
-            currentDirection,
-            [ 0, 0, 0 ],
+            //scale( [ 0.001, -1 * zOff, 1 + orbits.length ], 1 ),
+            [ 0, 1, 0 ],
+            0,
             [ 1, 1, 1 ],
             planeColor,
             planeTransparency);
-
-    planeItem.setAttribute( "render", toggles.plane == 1 );
 
     root
         .appendChild( planeItem );
@@ -443,8 +441,9 @@ function getBasePlaneCycles( basePlane, toggles ) {
                 "id": identityPoint.id,
                 "report": identityPoint.report(),
                 "json": identityPoint.getJson(),
-                "coord": identityPoint.coord
-            };
+                "coord": identityPoint.coord,
+                "jump": identityPoint.at(indexId).jump
+             };
         })
         .map( identity => reify(
                 "transform",
@@ -577,6 +576,7 @@ function initPage() {
 
     plotBasePlane( basePlane, param );
 
+    // set events
     const spheres = [ ...document
         .querySelectorAll( "sphere" ) ];
     const shapes = spheres
@@ -590,7 +590,7 @@ function initPage() {
                     const tooltipData = s.getAttribute( "tooltip" );
                     const point = JSON.parse( tooltipData );
 
-                    console.log( `selected point: [${ point.coord.join(", ") }], raw: ${ point.id }, ${basePlane.id}=${ JSON.stringify( point.at(basePlane.id) ) }` );
+                    console.log( `selected point: [${ point.coord.join(", ") }], raw: ${ point.id }, ${basePlane.id}=${ JSON.stringify( point.indexes[basePlane.id] ) }` );
 
                     distributeMessage( {
                         basis: "point",

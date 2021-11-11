@@ -79,9 +79,6 @@ class Orbit {
             throw `Orbit points is zero length: ${ index }`;
         }
 
-        //this.linkCoords();
-
-
         this.rank = this.points[0].coord.length;
         this.order = this.points.length;
         this.centre = new Array( this.rank ).fill( 0 );

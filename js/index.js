@@ -49,7 +49,6 @@ class Index {
         return this.dix[ id ];
     }
 
-
     getOrbit( point ) {
         const orbit = this.orbits.find( orbit => orbit.points.includes( point ) );
         return orbit ? orbit : this.identities.find( identity => identity.points.includes( point ) );
@@ -276,6 +275,8 @@ class Index {
 
             var di = point.at(indexId).di;
 
+            const alreadySeen = [];
+
             while ( di != startIndex ) {
                 try {
                     tally[ di ] = -1;
@@ -284,8 +285,14 @@ class Index {
                     points.push( point );
                     di = point.at(indexId).di;
 
+                    if ( alreadySeen.includes( di ) ) {
+                        throw `Already seen: di=${ di }`;
+                    } else {
+                        alreadySeen.push( di );
+                    }
                 } catch ( e ) {
-                    console.log( `Bad orbit: ${ orbitId }`);
+                    console.log( `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`);
+                    badOrbits = true;
                     break;
                 }
             }
@@ -295,7 +302,12 @@ class Index {
         for ( var i = 0; i < this.idx.length; i++) {
             if ( tally[ i ]!= -1 ) {
                 const orbitId = this.orbits.length + 1;
+
+                var badOrbits = false;
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
+                if ( badOrbits ) {
+                    //orbit.linkCoords();
+                }
 
                 // only for radiants
                 if ( i == 0 && orbit.order == 2 ) {

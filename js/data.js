@@ -287,7 +287,7 @@ function placeValuesForwardArray( bases, offset = 0 ) {
         }
     }
     return p;
-};
+}
 /*
     calculate array of place values
     in reverse, where p[bases.length-offset-1] == 0.
@@ -308,6 +308,34 @@ function placeValuesReverseArray( bases, offset = 0 ) {
         acc = acc * bases[i];
     }
     return p;
-};
+}
 
+function pairs(list) {
+    if (list.length < 2) {
+        return [];
+    }
+    var first = list[0],
+        rest  = list.slice(1),
+        p = rest.map(function (x) { return [first, x]; });
+    return p.concat( pairs( rest ) );
+}
 
+// https://stackoverflow.com/questions/9960908/permutations-in-javascript
+function permutator(inputArr) {
+    let result = [];
+
+    const permute = (arr, m = []) => {
+        if (arr.length === 0) {
+            result.push(m)
+        } else {
+            for (let i = 0; i < arr.length; i++) {
+                let curr = arr.slice();
+                let next = curr.splice(i, 1);
+                permute(curr.slice(), m.concat(next))
+            }
+        }
+    }
+    permute(inputArr)
+
+    return result;
+}

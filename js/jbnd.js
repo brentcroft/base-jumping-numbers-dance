@@ -129,6 +129,11 @@ class CompositeIndex extends Index {
 
     indexPoint( point ) {
 
+        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.powersReverse ) {
+            console.log( `point: ${ point.report( this.primaryIndex.id ) }` );
+        }
+
+
         var wayPoint = this.primaryIndex.apply( point );
         var endPoint = this.secondaryIndex.apply( wayPoint );
 
@@ -140,27 +145,35 @@ class CompositeIndex extends Index {
 
         const conjugateId = ( this.box.volume - id - 1 );
 
-        point.indexes[this.id] = {
-            id: id,
-            di: di,
-            conjugateId: conjugateId,
-            jump: this.getJump( id, di ),
-            radiant: ( conjugateId - id )
+        const pointIndexData = {
+           id: id,
+           di: di,
+           conjugateId: conjugateId,
+           jump: this.getJump( id, di ),
+           radiant: ( conjugateId - id )
         };
+
+        const existingPointIndexData = point.indexes[ this.id ];
+
+        if ( existingPointIndexData ) {
+            console.log( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
+        }
+
+        point.indexes[this.id] = pointIndexData;
 
         this.idx[ id ] = point;
         this.dix[ di ] = point;
-
-//        if ( this.id == 9 && id == 2 ) {
-//            console.log( `point: ${ point.report( this.primaryIndex.id ) }` );
-//            console.log( `wayPoint.p: ${ wayPoint.report( this.primaryIndex.id ) }` );
-//            console.log( `wayPoint.s: ${ wayPoint.report( this.secondaryIndex.id ) }` );
-//            console.log( `endPoint: ${ endPoint.report( this.secondaryIndex.id ) }` );
-//        }
+        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.powersReverse ) {
+            console.log( `wayPoint.p: ${ wayPoint.report( this.primaryIndex.id ) }` );
+            console.log( `wayPoint.s: ${ wayPoint.report( this.secondaryIndex.id ) }` );
+            console.log( `endPoint: ${ endPoint.report( this.secondaryIndex.id ) }` );
+        }
     }
 
     getPlaneEquationTx() {
-        return `( ${ this.primaryIndex.powersReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() } o ${ this.secondaryIndex.id } )`;
+        return `( ${ this.primaryIndex.powersReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() }`
+                + " o "
+                + `${ this.secondaryIndex.powersReverse ? this.secondaryIndex.id : this.secondaryIndex.getPlaneEquationTx() } )`;
     }
 }
 
@@ -198,75 +211,50 @@ class IndexedBox {
         const composites = toggles.includes( "composites" );
 
         if ( composites ) {
-            const inverseComposites = toggles.includes( "inverseComposites" );
-            var nextIndexId = this.indexPlanes.length;
 
             const numCompositePlanes = this.indexPlanes.length;
 
-            this.box
-                .bases
-                .flatMap( (x,i) => [
-                    new CompositeIndex(
+            permutator( this.indexPlanes.slice( 1 ) )
+                .forEach( p => {
+
+                    const ci = new CompositeIndex(
                         this.box,
-                        nextIndexId++,
-                        this.indexPlanes[ 1 + i ],
-                        this.indexPlanes[ 1 + ( ( 1 + i) % this.box.rank ) ]
-                    )
-                ] )
-                .forEach( index => {
-                    index.initialise();
-                    this.indexPlanes.push( index );
-                } );
-
-
-            if ( inverseComposites ) {
-                var nextIndexId = this.indexPlanes.length;
-                this.box
-                    .bases
-                    .flatMap( (x,i) => [
-                        new CompositeIndex(
-                            this.box,
-                            nextIndexId++,
-                            this.indexPlanes[ 1 + ( ( 1 + i) % this.box.rank ) ],
-                            this.indexPlanes[ 1 + i ]
-                        )
-                    ] )
-                    .forEach( index => {
-                        index.initialise();
-                        this.indexPlanes.push( index );
-                    } );
-            }
-
-
-            var superComposite = this.indexPlanes[1];
-            var compositeIndexId = this.indexPlanes.length;
-
-            for ( var i = 2; i < numCompositePlanes; i++ ) {
-                superComposite = new CompositeIndex(
-                     this.box,
-                     compositeIndexId,
-                     superComposite,
-                     this.indexPlanes[ i ]
-                );
-            }
-            superComposite.initialise();
-            this.indexPlanes.push( superComposite );
-
-            if ( inverseComposites ) {
-                var inverseSuperComposite = this.indexPlanes[numCompositePlanes - 1];
-                var inverseSuperCompositeIndexId = this.indexPlanes.length;
-
-                for ( var i = numCompositePlanes - 2; i >= 1; i-- ) {
-                    inverseSuperComposite = new CompositeIndex(
-                         this.box,
-                         inverseSuperCompositeIndexId,
-                         inverseSuperComposite,
-                         this.indexPlanes[ i ]
+                        this.indexPlanes.length,
+                        p[ 0 ],
+                        p[ 1 ]
                     );
-                }
-                inverseSuperComposite.initialise();
-                this.indexPlanes.push( inverseSuperComposite );
-            }
+                    ci.initialise();
+                    this.indexPlanes.push( ci );
+
+                    const tci = new CompositeIndex(
+                         this.box,
+                         this.indexPlanes.length,
+                         ci,
+                         p[2]
+                    );
+                    tci.initialise();
+                    this.indexPlanes.push( tci );
+
+//
+//                    const ic = new CompositeIndex(
+//                        this.box,
+//                        this.indexPlanes.length,
+//                        p[ 1 ],
+//                        p[ 2 ]
+//                    );
+//                    ic.initialise();
+//                    this.indexPlanes.push( ic );
+//
+//                    const tic = new CompositeIndex(
+//                         this.box,
+//                         this.indexPlanes.length,
+//                         p[0],
+//                         ic
+//                    );
+//                    tic.initialise();
+//                    this.indexPlanes.push( tic );
+
+                } );
         }
     }
 

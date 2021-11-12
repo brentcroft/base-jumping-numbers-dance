@@ -281,8 +281,8 @@ class IndexedBox {
         const tableId = 'indexSummary_table';
         var columnId = 0;
 
-        var dataHtml = "Summary: " + JSON.stringify( this.box.getJson() );
-        dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
+        var dataHtml = "";
+        dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>${ JSON.stringify( this.box.getJson() ) }</caption><tr>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;

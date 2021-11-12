@@ -9,6 +9,10 @@
             padding-right: 20pt;
         }
 
+        .full-width {
+            clear: both;
+        }
+
         .caption {
             float: left;
             overflow: hidden;
@@ -193,7 +197,7 @@
         </div>
 
         <div id="toolbar" class="toolbar">
-            <label title="show indexes table">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
+            <label title="show indexes table">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summaryControls','summary'], this )"/></label> |
             <label title="show orbits table">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
             <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); updatePlane();"/></label> |
             <label title="show orbits chart">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
@@ -303,13 +307,12 @@
                 <label><input type="button" onclick="joinPoints( 2 )" value="splice" title="p1&#8594;q1 &amp; q1&#8594;p2 &amp; q0&#8594;q2"/></label> |
                 <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
                 <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
+
+                <div id="pointOperationErrorMessage"></div>
             </div>
 
             <div id="more-options" style="display: none">
                 <hr/>
-                <label title="generate composite indexes">composites <input type="checkbox" id="compositesToggle" onchange="updatePage()"/></label> |
-                <label title="generate associate composite indexes">associates <input type="checkbox" id="associatesToggle" onchange="updatePage()"/></label> |
-
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="negative polarity indexors">neg.pol.<input type="checkbox" id="negpolToggle" onchange="updatePage()"/></label> |
 
@@ -351,16 +354,15 @@
         </div>
     </div>
 
-    <div>
-        <table width="100%">
-            <tr>
-                <td class="summaryLeft"><span id="pointOperationErrorMessage"></span></td>
-                <td class="summaryLeft"><span id="summary" style="display: none"></span></td>
-            </tr>
-        </table>
+    <div class="full-width">
+        <div id="summaryControls" class="toolbar" style="display: none">
+            <label title="generate composite indexes">composites <input type="checkbox" id="compositesToggle" onchange="updatePage()"/></label> |
+            <label title="generate associate composite indexes">associates <input type="checkbox" id="associatesToggle" onchange="updatePage()"/></label>
+        </div>
+        <div id="summary" style="display: none"></div>
     </div>
 
-    <div>
+    <div class="full-width">
         <div id="tableControls" class="toolbar" style="display: none">
             <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
             <label title="show coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
@@ -372,7 +374,7 @@
         <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
     </div>
 
-    <div>
+    <div class="full-width">
         <div id="productsControls" class="toolbar" style="display: none">
             <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="updatePlane()"/></label> |
             <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="updatePlane()"/></label> |
@@ -380,13 +382,12 @@
         </div>
 
         <div id="productsTable" style="display: none">
-            <br/>
-            <hr/>
             Products:
             <div id="products"></div>
         </div>
     </div>
-    <div>
+
+    <div class="full-width">
         <div id="chartControls" class="toolbar" style="display: none">
             <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="chart3dToggle" onchange="updateJson()"/></label> |
             <label title="scale 3d to a square">square<input type="checkbox" id="scale3dToggle" onchange="updateJson()"/></label> |

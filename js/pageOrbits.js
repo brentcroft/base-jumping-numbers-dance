@@ -480,7 +480,7 @@ function initPage( urlParam = true ) {
     }
 
     if ( param.toggles.summary ) {
-        showHideAll( [ 'selectedPoint', 'summary' ] );
+        showHideAll( [ 'selectedPoint', 'summary', 'summaryControls' ] );
     }
     if ( param.toggles.table ) {
         showHideAll(['tableControls','sample_cs_b_10_m_2_table']);

@@ -120,7 +120,7 @@ function getBasePlaneItems( basePlane, toggles ) {
     const fixedPointTransparency = 0.2;
     const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
 
-    const [ p1, p2 ] = basePlane.box.diagonal;
+    const [ p1, p2 ] = basePlane.box.diagonal.map( p => to3D(p) );
     const maxBase = basePlane.box.bases.reduce( (a,c) => c > a ? c : a, 0 );
 
     const scaleUnit = toggles.scale3d ? scale( unitDisplacement( p1, p2 ), 2 ) : [ .8, .8, .8 ];
@@ -128,10 +128,9 @@ function getBasePlaneItems( basePlane, toggles ) {
     // move origin to system centre and scale by scaleUnit
     const root = reify(
         "transform", {
-            "translation": scale( basePlane.box.centre, -1 ).join( ' ' ),
+            "translation": scale( to3D( basePlane.box.centre ), -1 ).join( ' ' ),
             "scale": scaleUnit.map( x => x==0 ? 1 : 1/x ).join( ' ' )
         } );
-
 
     function appendGridChildren( grid ) {
         const [ b0, b1, b2 ] = basePlane.box.bases;
@@ -176,8 +175,6 @@ function getBasePlaneItems( basePlane, toggles ) {
         );
 
 
-
-
     // PLANE
     var currentDirection = [0,1,0];
     currentDirection[ 1 ] = 1;
@@ -185,8 +182,8 @@ function getBasePlaneItems( basePlane, toggles ) {
     var planeTransparency = 0.95;
 
     var planeItem = createPlaneItemWithNormal( {
-            centre: basePlane.box.centre,
-            planeNormal: basePlane.identityPlaneNormal,
+            centre: to3D( basePlane.box.centre ),
+            planeNormal: to3D( basePlane.identityPlaneNormal ),
             scaleUnit: [1,1,1],
             currentDirection: [0,1,0],
             origin: [0,0,0],
@@ -205,17 +202,15 @@ function getBasePlaneItems( basePlane, toggles ) {
         .map( x => reify(
                         "transform",
                         {
-                            "translation": x.point.join( ' ' ),
+                            "translation": to3D( x.point ).join( ' ' ),
                             "scale": scaleUnit.join( ' ' )
                         },
                         [ createSphereShape( null, 0.1, "yellow", 0 ) ]
                     ) );
 
-
-
     const centreLines = basePlane
         .centreLines
-        .map( centreLine => createLineSetFromPoints( extendLine( centreLine.points[0], centreLine.points[1], maxBase / 2 ), "gray", "3" ) );
+        .map( centreLine => createLineSetFromPoints( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), maxBase / 2 ), "gray", "3" ) );
 
     const centreItems = reify(
         "group",
@@ -234,23 +229,23 @@ function getBasePlaneItems( basePlane, toggles ) {
                 .points
                 .map( point => {
                     return {
-                            "pointId": "point-" + point.coord.join( '.' ),
-                            "translation": point.coord.join( ' ' ),
+                            "id": "point-" + to3D( point.coord ).join( '.' ),
+                            "translation": to3D( point.coord ).join( ' ' ),
                             "scale": scaleUnit.join( ' ' ),
                             "report": point.report(),
                             "json": point.getJson()
                         };
                     }
                 )
-        .forEach( identityPoint => root
-            .appendChild(
-                reify(
-                    "Transform",
-                    identityPoint,
-                    [ createSphereShape( identityPoint.pointId, 0.1, "red", fixedPointTransparency, JSON.stringify( identityPoint.json ) ) ] )
-                )
-            )
-        );
+                .forEach( identityPoint => root
+                    .appendChild(
+                        reify(
+                            "transform",
+                            identityPoint,
+                            [ createSphereShape( identityPoint.pointId, 0.1, "red", fixedPointTransparency, JSON.stringify( identityPoint.json ) ) ] )
+                        )
+                    )
+                );
 
 
     // ORBITS
@@ -273,7 +268,7 @@ function getBasePlaneItems( basePlane, toggles ) {
                         reify(
                             "transform",
                             {
-                                "translation": orbit.centre.join( ' ' ),
+                                "translation": to3D( orbit.centre ).join( ' ' ),
                                 "scale": scaleUnit.join( ' ' )
                             },
                             [ createSphereShape( "orbit." + orbit.index + ".0" , 0.09, "gray" ) ]
@@ -281,7 +276,7 @@ function getBasePlaneItems( basePlane, toggles ) {
                         ...orbit.points.map( (x,i) => reify(
                             "transform",
                             {
-                                "translation": x.coord.join( ' ' ),
+                                "translation": to3D( x.coord ).join( ' ' ),
                                 "scale": scaleUnit.join( ' ' ),
                                 "class": "orbitCoord",
                                 "id": `orbitCoord.${ x.index }.${ i }`
@@ -292,24 +287,6 @@ function getBasePlaneItems( basePlane, toggles ) {
                 )
             );
     }
-
-//    try {
-//        root
-//            .appendChild(
-//                reify(
-//                    "Group",
-//                    {
-//                        "class": "orbit-system-locus",
-//                        "render": toggles.locus == 1
-//                    },
-//                    [
-//                        createLineSet( basePlane.getLocusPoints( basePlane.locusPoints ) )
-//                    ]
-//                )
-//            );
-//    } catch ( e ) {
-//        console.log( "Bad locus points: " + e );
-//    }
 
     return reify( "collision", { "enabled": false }, [ root ] );
 }
@@ -542,7 +519,7 @@ function plotBasePlane( basePlane, param ) {
     const sceneRootId = `${ x3domContainerId }_scene_root`;
     const sceneRoot = document.getElementById( sceneRootId );
 
-    var osi = (param.toggles.grid3d == 1 && basePlane.box.rank == 3 )
+    var osi = (param.toggles.grid3d == 1 )
         ? getBasePlaneItems( basePlane, param.toggles )
         : getBasePlaneCycles( basePlane, param.toggles );
 

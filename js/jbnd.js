@@ -208,13 +208,14 @@ class IndexedBox {
 
         this.indexPlanes.forEach( plane => plane.initialise() );
 
+        const unitPlanes = this.indexPlanes.slice( 1 );
+
         const composites = toggles.includes( "composites" );
+        const associates = toggles.includes( "associates" );
 
-        if ( composites ) {
+        if ( composites && ( unitPlanes.length > 1 ) ) {
 
-            const numCompositePlanes = this.indexPlanes.length;
-
-            permutator( this.indexPlanes.slice( 1 ) )
+            permutator( unitPlanes )
                 .forEach( p => {
 
                     const ci = new CompositeIndex(
@@ -226,34 +227,27 @@ class IndexedBox {
                     ci.initialise();
                     this.indexPlanes.push( ci );
 
-                    const tci = new CompositeIndex(
-                         this.box,
-                         this.indexPlanes.length,
-                         ci,
-                         p[2]
-                    );
-                    tci.initialise();
-                    this.indexPlanes.push( tci );
+                    if ( unitPlanes.length > 2 ) {
+                        const tci = new CompositeIndex(
+                             this.box,
+                             this.indexPlanes.length,
+                             ci,
+                             p[2]
+                        );
+                        tci.initialise();
+                        this.indexPlanes.push( tci );
 
-//
-//                    const ic = new CompositeIndex(
-//                        this.box,
-//                        this.indexPlanes.length,
-//                        p[ 1 ],
-//                        p[ 2 ]
-//                    );
-//                    ic.initialise();
-//                    this.indexPlanes.push( ic );
-//
-//                    const tic = new CompositeIndex(
-//                         this.box,
-//                         this.indexPlanes.length,
-//                         p[0],
-//                         ic
-//                    );
-//                    tic.initialise();
-//                    this.indexPlanes.push( tic );
-
+                        if ( associates ) {
+                            const tic = new CompositeIndex(
+                                 this.box,
+                                 this.indexPlanes.length,
+                                 p[2],
+                                 ci
+                            );
+                            tic.initialise();
+                            this.indexPlanes.push( tic );
+                        }
+                    }
                 } );
         }
     }

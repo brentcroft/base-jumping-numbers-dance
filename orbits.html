@@ -172,7 +172,7 @@
         <div id="caption" class="caption">
             <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="2" onchange="initPage( false )"/></label>
 
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
@@ -181,7 +181,7 @@
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="5"/>x
                 <input type="number" min="1" id="b1" value="3"/>x
-                <input type="number" min="1" id="b2" value="2"/>
+                <input type="number" min="1" id="b2" value="1"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -191,7 +191,6 @@
             <span id="captionTex"></span>
             <br/>
         </div>
-
 
         <div id="toolbar" class="toolbar">
             <label title="show indexes table">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summary'], this )"/></label> |
@@ -309,7 +308,7 @@
             <div id="more-options" style="display: none">
                 <hr/>
                 <label title="generate composite indexes">composites <input type="checkbox" id="compositesToggle" onchange="updatePage()"/></label> |
-                <label title="generate inverse composite indexes">inverse composites <input type="checkbox" id="inverseCompositesToggle" onchange="updatePage()"/></label> |
+                <label title="generate associate composite indexes">associates <input type="checkbox" id="associatesToggle" onchange="updatePage()"/></label> |
 
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="negative polarity indexors">neg.pol.<input type="checkbox" id="negpolToggle" onchange="updatePage()"/></label> |

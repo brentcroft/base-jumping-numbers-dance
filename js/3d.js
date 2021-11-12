@@ -1,3 +1,13 @@
+//
+function to3D(a) {
+    return a.length == 3
+         ? a
+         : a.length == 2
+            ? [ ...a, 0 ]
+               : a.length == 1
+                ? [ ...a, 0, 0 ]
+                : a.slice( 0, 3 );
+}
 
 function newMaterial( data = {} ) {
     return reifyData( "material", data );
@@ -280,9 +290,9 @@ function createCylinderSet( points, emissiveColor, attr = {} ){
             // move to midpoint a to b
             // insert cylinder shape
 
-            const height = Math.sqrt( distance2( b.coord, a.coord ) );
-            const diff = subtraction( b.coord, a.coord );
-            const centre = addition( a.coord, scale( diff, 0.5 ) );
+            const height = Math.sqrt( distance2( to3D( b.coord ), to3D( a.coord ) ) );
+            const diff = subtraction( to3D( b.coord ), to3D( a.coord ) );
+            const centre = addition( to3D( a.coord ), scale( diff, 0.5 ) );
 
             const unitNormal = normalize( diff );
             var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );

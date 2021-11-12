@@ -100,6 +100,8 @@ class Orbit {
 
         // starts out as self-conjugate
         this.conjugate = this;
+
+        this.makeGlobalJumps();
     }
 
     isIdentity() {
@@ -129,16 +131,15 @@ class Orbit {
         return `orbit: ${ this.index }`;
     }
 
-    linkCoords() {
+    makeGlobalJumps() {
+        const indexId = this.parent.id;
         for ( var i = 0; i < this.points.length; i++ ) {
-            const point = this.points[i].at(this.parent.id);
-            const nextPoint = this.points[ (i + 1) % this.points.length ].at(this.parent.id);
+            const point = this.points[i];
+            const nextPoint = this.points[ (i + 1) % this.points.length ];
 
-            point.di = nextPoint.id;
-            point.jump = this.parent.getJump( point.id, point.di );
+            point.at( indexId ).globalJump = nextPoint.id - point.id;
         }
     }
-
 
     // INDEX
     indexRadiance() {

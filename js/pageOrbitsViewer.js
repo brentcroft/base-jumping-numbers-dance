@@ -31,6 +31,7 @@ function clearSelected() {
         .querySelectorAll( ".selected" )
         .forEach( item => item.classList.remove('selected') );
 }
+
 function toggleLines( containerId ) {
     toggleBySelector( containerId, ".orbit-line"  );
 }
@@ -323,7 +324,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         } );
 
     const selectedPointsInfo = selectedPoints
-        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + JSON.stringify( point.indexes[basePlane.id] ) )
+        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + point.id + " " + JSON.stringify( point.indexes[basePlane.id] ) )
         .join( "\n" );
 
     document
@@ -451,6 +452,10 @@ function getBasePlaneCycles( basePlane, toggles ) {
         )
         .forEach( x => root.appendChild(x) );
 
+    const gj = toggles.globalIds == 1;
+
+    console.log( `using globalIds: ${ gj } `)
+
     for ( var i = 0; i < orbits.length; i++ ) {
         const orbit = orbits[i];
         const color = colorBasePlane.colorForIndex( orbit.index );
@@ -469,17 +474,18 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                 .points
                                 .map( ( entry, i ) => {
                                         const point = entry.at(indexId);
-                                        const pointParity = point.jump < 0 ? -1 : 1;
+                                        //const pointParity = point.jump < 0 ? -1 : 1;
+                                        const halfJump = ( gj ? point.globalJump : point.jump ) / 2;
                                         return reify(
-                                            "transform", { "translation": `${ point.id } 0 0` },
+                                            "transform", { "translation": `${ gj ? entry.id : point.id } 0 0` },
                                             [
                                                 //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 1.17, "red", 0.5, JSON.stringify( entry.getJson() ) ),
                                                 createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) ),
                                                 reify(
-                                                    "transform", { "translation": `${ point.jump / 2 } 0 0` },
+                                                    "transform", { "translation": `${ halfJump } 0 0` },
                                                     [
                                                         createTorusShape( {
-                                                                outerRadius: ( point.jump / 2),
+                                                                outerRadius: halfJump,
                                                                 size: 0.1,
                                                                 emissiveColor: color,
                                                                 transparency: 0,
@@ -567,7 +573,7 @@ function initPage() {
                     const tooltipData = s.getAttribute( "tooltip" );
                     const point = JSON.parse( tooltipData );
 
-                    console.log( `selected point: [${ point.coord.join(", ") }], raw: ${ point.id }, ${basePlane.id}=${ JSON.stringify( point.indexes[basePlane.id] ) }` );
+                    console.log( `selected point: [${ point.coord }] ${ point.id }; index-${basePlane.id}: ${ JSON.stringify( point.indexes[basePlane.id] ) }` );
 
                     distributeMessage( {
                         basis: "point",

@@ -291,9 +291,11 @@ class Index {
                         alreadySeen.push( di );
                     }
                 } catch ( e ) {
-                    console.log( `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`);
+                    const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
+                    console.log( msg );
                     badOrbits = true;
-                    break;
+                    //break;
+                    throw msg;
                 }
             }
             return points;
@@ -303,11 +305,7 @@ class Index {
             if ( tally[ i ]!= -1 ) {
                 const orbitId = this.orbits.length + 1;
 
-                var badOrbits = false;
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
-                if ( badOrbits ) {
-                    //orbit.linkCoords();
-                }
 
                 // only for radiants
                 if ( i == 0 && orbit.order == 2 ) {
@@ -347,8 +345,10 @@ class Index {
                 var antipodesCoord = this.idx[ point.at(indexId).conjugateId ];
 
                 if ( !antipodesCoord ) {
-                    console.log( `Bad point no conjugate: ${ point }`);
-                    break;
+                    const msg = `Bad point no conjugate: ${ point }`;
+                    console.log( msg );
+                    //break;
+                    throw msg;
                 }
 
                 if (tally[ antipodesCoord.at(indexId).di ] == -1) {

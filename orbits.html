@@ -172,16 +172,16 @@
         <div id="caption" class="caption">
             <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <label title="change the order of the box"><input type="number" min="1" id="bases" value="2" onchange="initPage( false )"/></label>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
 
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="5"/>x
+                <input type="number" min="1" id="b0" value="7"/>x
                 <input type="number" min="1" id="b1" value="3"/>x
-                <input type="number" min="1" id="b2" value="1"/>
+                <input type="number" min="1" id="b2" value="2"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -388,7 +388,7 @@
     </div>
     <div>
         <div id="chartControls" class="toolbar" style="display: none">
-            <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="grid3dToggle" onchange="updateJson()"/></label> |
+            <label title="only if there are three bases, display a 3d projection">3d<input type="checkbox" id="chart3dToggle" onchange="updateJson()"/></label> |
             <label title="scale 3d to a square">square<input type="checkbox" id="scale3dToggle" onchange="updateJson()"/></label> |
             <label title="show the box grid structure">grid<input type="checkbox" id="gridToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleGrid: 1 } )"/></label> |
             <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |

@@ -8,7 +8,7 @@ toggleKeys = {
     colours: 0,
     coords: 0,
     grid: 1,
-    grid3d: 1,
+    chart3d: 0,
     jumps: 0,
     midi: 0,
     more: 0,

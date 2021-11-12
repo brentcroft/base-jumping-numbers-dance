@@ -519,7 +519,7 @@ function plotBasePlane( basePlane, param ) {
     const sceneRootId = `${ x3domContainerId }_scene_root`;
     const sceneRoot = document.getElementById( sceneRootId );
 
-    var osi = (param.toggles.grid3d == 1 )
+    var osi = (param.toggles.chart3d == 1 )
         ? getBasePlaneItems( basePlane, param.toggles )
         : getBasePlaneCycles( basePlane, param.toggles );
 

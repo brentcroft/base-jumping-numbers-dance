@@ -308,15 +308,15 @@ function initialiseControls( param ) {
 
     setNumberField( "planeIndex", param.planeIndex );
 
-    const colourFields = [ "colour-red", "colour-green", "colour-blue", "colour-orbitIndex", "colour-minPixel" ];
+    const colourFields = [ "colour-red", "colour-green", "colour-blue", "colour-planeIndex", "colour-orbitIndex", "colour-minPixel" ];
 
     setNumberField( "colour-red", colourPointIndexDefault.bases[0] );
     setNumberField( "colour-green", colourPointIndexDefault.bases[1] );
     setNumberField( "colour-blue", colourPointIndexDefault.bases[2] );
+    setNumberField( "colour-planeIndex", colourPointIndexDefault.planeIndex );
     setNumberField( "colour-orbitIndex", colourPointIndexDefault.orbitIndex );
     setNumberField( "colour-minPixel", colourPointIndexDefault.minPixel );
     setNumberField( "colour-maxPixel", colourPointIndexDefault.maxPixel );
-
 }
 
 function openPlot() {

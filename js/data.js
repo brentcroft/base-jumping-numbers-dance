@@ -60,6 +60,7 @@ function canonicalize( m, sep = C_SEP, bra = BRA ) {
 
 var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys;
 
+var arrayIndexes = ( b ) => b.map( (x,i) => i );
 
 // @see: https://stackoverflow.com/questions/44474864/compute-determinant-of-a-matrix
 var determinant = ( m ) => m.length == 1
@@ -310,6 +311,7 @@ function placeValuesReverseArray( bases, offset = 0 ) {
     return p;
 }
 
+
 function pairs(list) {
     if (list.length < 2) {
         return [];
@@ -321,7 +323,7 @@ function pairs(list) {
 }
 
 // https://stackoverflow.com/questions/9960908/permutations-in-javascript
-function permutator(inputArr) {
+function permutations(inputArr) {
     let result = [];
 
     const permute = (arr, m = []) => {
@@ -338,4 +340,14 @@ function permutator(inputArr) {
     permute(inputArr)
 
     return result;
+}
+
+function placeValuesPermutation( bases, perm = [ 0, 1, 2 ] ) {
+    var acc = 1;
+    const p = new Array( bases.length ).fill( 0 );
+    for ( var i = 0; i < bases.length; i++ ) {
+        p[perm[i]] = acc;
+        acc = acc * bases[perm[i]];
+    }
+    return p;
 }

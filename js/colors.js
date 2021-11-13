@@ -1,19 +1,21 @@
 
 colourPointIndexDefault = {
-    bases: [ 8, 3, 6 ],
-    orbitIndex: 2,
+    bases: [ 11, 5, 7 ],
+    planeIndex: 12,
+    orbitIndex: 1,
     minPixel: 25,
     maxPixel: 200,
 };
 
 class ColorBasePlane extends IndexedBox {
 
-    constructor( bases, colorOrbitIndex = 0, minPixel = 0, maxPixel = 255 ) {
+    constructor( bases, colorPlaneIndex = 1, colorOrbitIndex = 0, minPixel = 0, maxPixel = 255 ) {
         super( bases );
+        this.colorPlaneIndex = colorPlaneIndex;
         this.colorOrbitIndex = colorOrbitIndex;
         this.minPixel = minPixel;
         this.maxPixel = maxPixel;
-        const orbits = this.indexPlanes[1].orbits;
+        const orbits = this.indexPlanes[ this.colorPlaneIndex % this.indexPlanes.length ].orbits;
         const orbit = orbits[ this.colorOrbitIndex % orbits.length ];
         this.colorPoints = orbit.getCoordArray();
     }

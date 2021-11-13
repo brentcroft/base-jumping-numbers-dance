@@ -1,5 +1,5 @@
 
-var nonTrivialIndexJump = 0.5;
+var nonTrivialIndexJump = 0;
 var nonTrivialPerimeterJump = 0.0;
 
 class Index {

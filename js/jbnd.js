@@ -87,14 +87,14 @@ class RadiantIndex extends Index {
     }
 }
 
-class PointIndex extends Index {
-    constructor( box, id = 0, param = { "polarity": "positive" } ) {
+class PlacesIndex extends Index {
+    constructor( box, id = 0, placeIndexorPair ) {
         super( box, id );
 
-        const rotation = ( this.id - 1 ) % this.box.bases.length;
+        //const rotation = ( this.id - 1 ) % this.box.bases.length;
 
-        this.powersForward = placeValuesForwardArray( this.box.bases, rotation );
-        this.powersReverse = placeValuesReverseArray( this.box.bases, rotation );
+        this.powersForward = placeIndexorPair[0];// || placeValuesForwardArray( this.box.bases, rotation );
+        this.powersReverse = placeIndexorPair[1];// || placeValuesReverseArray( this.box.bases, rotation );
 
         // establish identity plane
         this.identityPlane = this.powersForward.map( ( x, i ) => this.powersReverse[i] - x );
@@ -103,11 +103,10 @@ class PointIndex extends Index {
 
         // establish coord index functions
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        if ( "negative" == param.polarity ) {
-            this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
-        } else {
-            this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        }
+        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+//        if ( "negative" == param.polarity ) {
+//            this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
+//        }
     }
 }
 
@@ -188,14 +187,18 @@ class IndexedBox {
         this.indexPlanes = [ new RadiantIndex( this.box, 0 ) ];
 
         const toggles = param.toggles || [];
-        const negpol = toggles.includes( "negpol" );
 
         if ( bases.length < 2 ) {
-            this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length ) );
+            this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length ) );
         } else {
-            for ( var i = 0; i < bases.length; i++ ) {
-                this.indexPlanes.push( new PointIndex( this.box, this.indexPlanes.length, { "polarity": negpol? "negative" : "positive" } ) );
-            }
+            // generate placeValues according to the permutations of the basis of the bases
+            const placeIndexors = permutations( arrayIndexes( bases ) )
+                .map( perm => placeValuesPermutation( bases, perm ) );
+
+            pairs( placeIndexors )
+                .forEach( placeIndexorPair => {
+                    this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, placeIndexorPair ) );
+                } );
         }
 
         this.buildIndexes();
@@ -210,12 +213,12 @@ class IndexedBox {
 
         const unitPlanes = this.indexPlanes.slice( 1 );
 
-        const composites = toggles.includes( "composites" );
+        const composites = false;
         const associates = toggles.includes( "associates" );
 
         if ( composites && ( unitPlanes.length > 1 ) ) {
 
-            permutator( unitPlanes )
+            permutations( unitPlanes )
                 .forEach( p => {
 
                     const ci = new CompositeIndex(

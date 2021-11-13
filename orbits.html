@@ -323,7 +323,12 @@
                     <script>
                         const vId = id => Number( document.getElementById(id).value );
                         function getColorConfiguration() {
-                            return [ [ vId("colour-red"), vId("colour-green"), vId("colour-blue") ], vId("colour-orbitIndex"), vId("colour-minPixel"), vId("colour-maxPixel") ];
+                            return [
+                                [ vId("colour-red"), vId("colour-green"), vId("colour-blue") ],
+                                vId("colour-planeIndex"),
+                                vId("colour-orbitIndex"),
+                                vId("colour-minPixel"),
+                                vId("colour-maxPixel") ];
                         }
                         function applyColorBasePlane() {
                             const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
@@ -340,7 +345,8 @@
                     <input type="number" min="1" id="colour-red" value="4" class="colourField"/>
                     <input type="number" min="1" id="colour-green" value="4" class="colourField"/>
                     <input type="number" min="1" id="colour-blue" value="6" class="colourField"/> |
-                    index <input type="number" min="1" id="colour-orbitIndex" value="1" class="colourField"/> |
+                    plane <input type="number" min="1" id="colour-planeIndex" value="1" class="colourField"/> |
+                    orbit <input type="number" min="1" id="colour-orbitIndex" value="1" class="colourField"/> |
                     <a href="javascript:masterColorBasePlane()">master</a> |
                     min-pixel <input type="number" min="0" max="255" id="colour-minPixel" value="50" class="colourField"/> |
                     max-pixel <input type="number" min="0" max="255" id="colour-maxPixel" value="200" class="colourField"/> |

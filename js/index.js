@@ -293,7 +293,6 @@ class Index {
                 } catch ( e ) {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
                     console.log( msg );
-                    badOrbits = true;
                     //break;
                     throw msg;
                 }
@@ -374,7 +373,7 @@ class Index {
                 }
             }
         }
-        this.identities.sort( (a,b) => this.pointAt(a.points[0]).id - this.pointAt(b.points[0]).id );
+        this.identities.sort( (a,b) => a.points[0].id - b.points[0].id );
     }
 
     analyzeOrbits() {
@@ -562,6 +561,9 @@ class Index {
         eqn += `${ planeMid }`;
         eqn += " = ";
         eqn += `${ pad( plane[ basis - 1 ] ) }${ varIds( basis - 1) }`;
+
+        eqn += `&nbsp;&nbsp;&nbsp;&nbsp;  [${ this.perm1 }] - [${ this.perm2 }]`;
+
         return eqn;
     }
 

@@ -1,8 +1,8 @@
 
 colourPointIndexDefault = {
     bases: [ 11, 5, 7 ],
-    planeIndex: 12,
-    orbitIndex: 1,
+    planeIndex: 1,
+    orbitIndex: 5,
     minPixel: 25,
     maxPixel: 200,
 };

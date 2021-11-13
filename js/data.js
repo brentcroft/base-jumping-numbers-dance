@@ -62,6 +62,23 @@ var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys
 
 var arrayIndexes = ( b ) => b.map( (x,i) => i );
 
+function isPalindrome( arrayPair ) {
+    const [ a, b ] = arrayPair;
+    const d = b.length;
+    return a.filter( (x,i) => x == b[ d - i - 1 ]).length == d;
+}
+
+function isDegenerate( arrayPair ) {
+    const [ a, b ] = arrayPair;
+    const d = b.length;
+    return a.filter( (x,i) => x == b[i]).length > 0;
+}
+
+function middleSum( a ) {
+    return a.slice( 1, a.length - 1 ).reduce( (a,c) => a + c, 0 );
+}
+
+
 // @see: https://stackoverflow.com/questions/44474864/compute-determinant-of-a-matrix
 var determinant = ( m ) => m.length == 1
     ? m[0][0]
@@ -342,7 +359,7 @@ function permutations(inputArr) {
     return result;
 }
 
-function placeValuesPermutation( bases, perm = [ 0, 1, 2 ] ) {
+function placeValuesPermutation( bases, perm = [] ) {
     var acc = 1;
     const p = new Array( bases.length ).fill( 0 );
     for ( var i = 0; i < bases.length; i++ ) {

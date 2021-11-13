@@ -3,6 +3,11 @@
 class Box {
     constructor( bases ) {
         this.bases = [...bases];
+
+        // generate placeValues according to the permutations of the basis of the bases
+        this.placeIndexors = permutations( arrayIndexes( bases ) )
+            .map( perm => placeValuesPermutation( bases, perm ) );
+
         this.rank = this.bases.length;
 
         this.volume = getVolume( this.bases );
@@ -90,11 +95,10 @@ class RadiantIndex extends Index {
 class PlacesIndex extends Index {
     constructor( box, id = 0, placeIndexorPair ) {
         super( box, id );
-
-        //const rotation = ( this.id - 1 ) % this.box.bases.length;
-
-        this.powersForward = placeIndexorPair[0];// || placeValuesForwardArray( this.box.bases, rotation );
-        this.powersReverse = placeIndexorPair[1];// || placeValuesReverseArray( this.box.bases, rotation );
+        [
+            [ this.perm1, this.powersForward ],
+            [ this.perm2, this.powersReverse ]
+        ] = placeIndexorPair;
 
         // establish identity plane
         this.identityPlane = this.powersForward.map( ( x, i ) => this.powersReverse[i] - x );
@@ -104,9 +108,6 @@ class PlacesIndex extends Index {
         // establish coord index functions
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
         this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-//        if ( "negative" == param.polarity ) {
-//            this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
-//        }
     }
 }
 
@@ -193,12 +194,45 @@ class IndexedBox {
         } else {
             // generate placeValues according to the permutations of the basis of the bases
             const placeIndexors = permutations( arrayIndexes( bases ) )
-                .map( perm => placeValuesPermutation( bases, perm ) );
+                .map( perm => [ perm, placeValuesPermutation( bases, perm ) ] );
 
-            pairs( placeIndexors )
-                .forEach( placeIndexorPair => {
-                    this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, placeIndexorPair ) );
+            const indexors = pairs( placeIndexors );
+
+            const sorter = (a,b) => {
+                const [ [ a1, aPF ], [ a2, aPR ] ] = a;
+                const [ [ b1, bPF ], [ b2, bPR ] ] = b;
+                const l1 = middleSum( a1 ) + middleSum( a2 );
+                const l2 = middleSum( b1 ) + middleSum( b2 );
+                return l1 - l2;
+            };
+
+            const palindromes = indexors
+                .filter( pi => {
+                    const [ [ f, pF ], [ r, pR ] ] = pi;
+                    return isPalindrome( [ f, r ] );
                 } );
+
+            const secondaries = indexors
+                .filter( pi => {
+                    const [ [ f, pF ], [ r, pR ] ] = pi;
+                    return !isPalindrome( [ f, r ] ) && !isDegenerate( [ f, r ] );
+                } );
+
+            const degenerates = indexors
+                .filter( pi => {
+                    const [ [ f, pF ], [ r, pR ] ] = pi;
+                    return !isPalindrome( [ f, r ] ) && isDegenerate( [ f, r ] );
+                } );
+
+            palindromes.sort( sorter );
+            secondaries.sort( sorter );
+            degenerates.sort( sorter );
+
+            [
+                ...palindromes,
+                ...secondaries,
+                ...degenerates
+            ].forEach( pi => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi ) ) );
         }
 
         this.buildIndexes();

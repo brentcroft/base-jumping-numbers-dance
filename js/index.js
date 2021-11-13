@@ -20,6 +20,14 @@ class Index {
         this.analyzeOrbits();
     }
 
+    isPalindrome() {
+        return false;
+    }
+
+    isDegenerate() {
+        return false;
+    }
+
     isNonTrivialIndexIdentity( id, di ) {
         const boxVolume = this.box.volume;
         const maxIndex = boxVolume - 1;
@@ -561,8 +569,6 @@ class Index {
         eqn += `${ planeMid }`;
         eqn += " = ";
         eqn += `${ pad( plane[ basis - 1 ] ) }${ varIds( basis - 1) }`;
-
-        eqn += `&nbsp;&nbsp;&nbsp;&nbsp;  [${ this.perm1 }] - [${ this.perm2 }]`;
 
         return eqn;
     }

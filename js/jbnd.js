@@ -96,9 +96,10 @@ class PlacesIndex extends Index {
     constructor( box, id = 0, placeIndexorPair ) {
         super( box, id );
         [
-            [ this.perm1, this.powersForward ],
-            [ this.perm2, this.powersReverse ]
+            [ this.permForward, this.powersForward ],
+            [ this.permReverse, this.powersReverse ]
         ] = placeIndexorPair;
+
 
         // establish identity plane
         this.identityPlane = this.powersForward.map( ( x, i ) => this.powersReverse[i] - x );
@@ -108,6 +109,14 @@ class PlacesIndex extends Index {
         // establish coord index functions
         this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
         this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+    }
+
+    isPalindrome() {
+        return isPalindrome( [ this.permForward, this.permReverse ] );
+    }
+
+    isDegenerate() {
+        return isDegenerate( [ this.permForward, this.permReverse ] );
     }
 }
 
@@ -203,7 +212,10 @@ class IndexedBox {
                 const [ [ b1, bPF ], [ b2, bPR ] ] = b;
                 const l1 = middleSum( a1 ) + middleSum( a2 );
                 const l2 = middleSum( b1 ) + middleSum( b2 );
-                return l1 - l2;
+
+                return l1 != l2
+                    ? l1 - l2
+                    : a1 - a2;
             };
 
             const palindromes = indexors
@@ -321,7 +333,8 @@ class IndexedBox {
         var dataHtml = "";
         dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>${ JSON.stringify( this.box.getJson() ) }</caption><tr>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Type</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Plane Equation</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
@@ -335,7 +348,9 @@ class IndexedBox {
                 const clickAction = `distributeMessages( '${ containerId }', [ { 'indexKey': '${ index.id }', 'sender': this.id } ] )`;
                 const selectedClass = selectedIndex == index.id ? "class='selected'" : "";
                 const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
+                const permHtml = `[${ index.permForward || '' }] - [${ index.permReverse || '' }]`;
                 var rowHtml = `<td>${ index.id }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ index.isPalindrome() ? 'palindrome' : index.isDegenerate() ? 'degenerate' : '' } ${ permHtml }</td>`;
                 rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
                 rowHtml += `<td align='center'>${ getCycleIndexMonomialHtml( index ) }</td>`;
                 rowHtml += `<td align='center'>${ index.identities.length }</td>`;

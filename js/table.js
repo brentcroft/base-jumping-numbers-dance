@@ -168,7 +168,11 @@ function getCycleIndexMonomialHtml( basePlane ) {
 
 function drawBasePlaneTable( tableArgs ) {
 
-    var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false } = tableArgs;
+    var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false, globalIds = false } = tableArgs;
+
+    const gid = globalIds
+        ? ( point ) => point.id
+        : ( point ) => point.at( basePlane.id ).id;
 
     const tableContainerId = containerId + "_table";
     const tableId = tableContainerId + "_data";
@@ -212,7 +216,7 @@ function drawBasePlaneTable( tableArgs ) {
     }
 
     if ( perms ) {
-        const identities = basePlane.identities.map( p => "( " + p.points.map( c => c.id ).join( ' ' ) + " )" ).join(" ");
+        const identities = basePlane.identities.map( p => "( " + p.points.map( gid ).join( ' ' ) + " )" ).join(" ");
         chainsText += `<th id="${ tableId }.e" align='center' onclick="${ clearClick }"><code>${ identities }</code></th>`;
     } else {
         const identities = basePlane.identities.map( p => "{ " + canonicalize( p.points[0].coord ) + " }" ).join(", ");
@@ -224,7 +228,7 @@ function drawBasePlaneTable( tableArgs ) {
 
     const initialPointsSum = new Array( basePlane.box.rank ).fill( 0 );
     const identityPointsSum = basePlane.identities.reduce( (a, p) => addition( a, p.points[0].coord ), initialPointsSum );
-    const identityIdSum = basePlane.identities.reduce( (a, p) => a + p.points[0].id, 0 );
+    const identityIdSum = basePlane.identities.reduce( (a, p) => a + gid( p.points[0] ), 0 );
     const identityIdSumGcd = gcd( maxIndex, identityIdSum );
 
     chainsText += `<th id="${ tableId }.f" align='center' onclick="${ clearClick }"><code>(${ identityPointsSum })</code></th>`;
@@ -289,7 +293,7 @@ function drawBasePlaneTable( tableArgs ) {
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ scValenceFirst.join( C_SEP ) } &#8600;<br/>${ scValenceRest.join( C_SEP ) } &#8598;]</td>`;
                 }
-                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ scMembersFirst.map( c => c.id ).join( ' ' ) } &#8600;<br/>${ scMembersRest.map( c => c.id ).join( ' ' ) } &#8598;)</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ scMembersFirst.map( gid ).join( ' ' ) } &#8600;<br/>${ scMembersRest.map( gid ).join( ' ' ) } &#8598;)</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
             } else if ( orbit.isFirstConjugate() && conj ) {
@@ -305,14 +309,14 @@ function drawBasePlaneTable( tableArgs ) {
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]<br/>[ ${ conjOrbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
-                chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( c => c.id ).join( ' ' ) } )<br/>( ${ conjOrbit.points.map( c => c.id ).join( ' ' ) } )</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( gid ).join( ' ' ) } )<br/>( ${ conjOrbit.points.map( gid ).join( ' ' ) } )</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })<br/>(${ conjOrbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }<br/>${ conjOrbitIdSum / conjOrbitSpaceGcd } * ${ conjOrbitSpaceGcd }</td>`;
             } else {
                 if ( jumps ) {
                     chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]</td>`;
                 }
-                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( c => c.id ).join( ' ' ) } )</td>`;
+                chainsText += `<td id="${ tableId }.${ orbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( gid ).join( ' ' ) } )</td>`;
                 chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                 chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
             }
@@ -505,6 +509,10 @@ function drawProductTable( index, toggles ) {
         return;
     }
 
+    const gid = toggles.includes( 'globalIds' )
+        ? ( point ) => point.id
+        : ( point ) => point.at( index.id ).id;
+
     const blanks = toggles.includes( 'productBlankIdentity' );
     const commuteIdentity = toggles.includes( 'productCommuteIdentity' );
     const tab = " ";
@@ -517,20 +525,20 @@ function drawProductTable( index, toggles ) {
     ];
 
     if ( !toggles.includes( 'productByOrbits' ) ) {
-        points.sort( (a,b) => a.id - b.id );
+        points.sort( (a,b) => gid(a) - gid(b) );
     }
 
     const header = " *" + tab + points
-        .map( a => String( a.id ).padStart( 2 ) )
+        .map( a => String( gid(a) ).padStart( 2 ) )
         .join( tab );
 
     const columns = points
-        .map( a => String( index.pointAt(a).id ).padStart( 2 ) + tab + points
+        .map( a => String( gid( a ) ).padStart( 2 ) + tab + points
             .map( b => {
                 const c = index.convolve( a, b ) || ( commuteIdentity ? index.getIdentityPoint() : a );
-                return ( blanks && c.id == 0 )
+                return ( blanks && gid( c ) == 0 )
                     ? "  "
-                    : String( c.id ).padStart( 2 );
+                    : String( gid( c ) ).padStart( 2 );
             } )
             .join( tab )
         );
@@ -538,7 +546,7 @@ function drawProductTable( index, toggles ) {
     const identityIds = index
         .identities
         .flatMap( i => i.points )
-        .map( e => e.id );
+        .map( e => gid( e ) );
 
     document.getElementById( 'products' ).innerHTML = `<span class='summaryRight'>e = { ${ identityIds } }</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
 }

@@ -452,10 +452,6 @@ function getBasePlaneCycles( basePlane, toggles ) {
         )
         .forEach( x => root.appendChild(x) );
 
-    const gj = toggles.globalIds == 1;
-
-    console.log( `using globalIds: ${ gj } `)
-
     for ( var i = 0; i < orbits.length; i++ ) {
         const orbit = orbits[i];
         const color = colorBasePlane.colorForIndex( orbit.index );
@@ -474,10 +470,9 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                 .points
                                 .map( ( entry, i ) => {
                                         const point = entry.at(indexId);
-                                        //const pointParity = point.jump < 0 ? -1 : 1;
-                                        const halfJump = ( gj ? point.globalJump : point.jump ) / 2;
+                                        const halfJump = point.jump / 2;
                                         return reify(
-                                            "transform", { "translation": `${ gj ? entry.id : point.id } 0 0` },
+                                            "transform", { "translation": `${ point.id } 0 0` },
                                             [
                                                 //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 1.17, "red", 0.5, JSON.stringify( entry.getJson() ) ),
                                                 createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) ),

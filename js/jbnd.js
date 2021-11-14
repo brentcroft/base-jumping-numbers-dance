@@ -71,20 +71,24 @@ class RadiantIndex extends Index {
     constructor( box, id = 0 ) {
         super( box, id );
 
-        this.powersForward = placeValuesForwardArray( this.box.bases );
+        this.placesForward = placeValuesForwardArray( this.box.bases );
         // TODO:
-        // 1. is there a powersReverse
+        // 1. is there a placesReverse
         // 2. is there an identity plane
-        this.powersReverse = [...this.powersForward];
+        this.placesReverse = [...this.placesForward];
 
         // establish identity plane
-        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+        this.identityPlane = this.placesForward.map( ( x, i ) => x - this.placesReverse[i] );
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         // establish coord index functions
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
+        this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a - c, ( this.box.volume - 1 ) );
+    }
+
+    getType() {
+        return 'rad';
     }
 
     getPlaneEquationTx() {
@@ -96,19 +100,19 @@ class PlacesIndex extends Index {
     constructor( box, id = 0, placeIndexorPair ) {
         super( box, id );
         [
-            [ this.permForward, this.powersForward ],
-            [ this.permReverse, this.powersReverse ]
+            [ this.permForward, this.placesForward ],
+            [ this.permReverse, this.placesReverse ]
         ] = placeIndexorPair;
 
 
         // establish identity plane
-        this.identityPlane = this.powersForward.map( ( x, i ) => this.powersReverse[i] - x );
+        this.identityPlane = this.placesForward.map( ( x, i ) => this.placesReverse[i] - x );
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         // establish coord index functions
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
     }
 
     isPalindrome() {
@@ -138,7 +142,7 @@ class CompositeIndex extends Index {
 
     indexPoint( point ) {
 
-        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.powersReverse ) {
+        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.placesReverse ) {
             console.log( `point: ${ point.report( this.primaryIndex.id ) }` );
         }
 
@@ -172,7 +176,7 @@ class CompositeIndex extends Index {
 
         this.idx[ id ] = point;
         this.dix[ di ] = point;
-        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.powersReverse ) {
+        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.placesReverse ) {
             console.log( `wayPoint.p: ${ wayPoint.report( this.primaryIndex.id ) }` );
             console.log( `wayPoint.s: ${ wayPoint.report( this.secondaryIndex.id ) }` );
             console.log( `endPoint: ${ endPoint.report( this.secondaryIndex.id ) }` );
@@ -180,9 +184,9 @@ class CompositeIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return `( ${ this.primaryIndex.powersReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() }`
+        return `( ${ this.primaryIndex.placesReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() }`
                 + " o "
-                + `${ this.secondaryIndex.powersReverse ? this.secondaryIndex.id : this.secondaryIndex.getPlaneEquationTx() } )`;
+                + `${ this.secondaryIndex.placesReverse ? this.secondaryIndex.id : this.secondaryIndex.getPlaneEquationTx() } )`;
     }
 }
 
@@ -326,15 +330,16 @@ class IndexedBox {
 
     getDataHtml( containerId, selectedIndex = -1 ) {
         const sep = ", ";
-        const planeDataFn = ( data ) => JSON.stringify( data.cycles );
         const tableId = 'indexSummary_table';
         var columnId = 0;
 
         var dataHtml = "";
-        dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>${ JSON.stringify( this.box.getJson() ) }</caption><tr>`;
+        dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Type</th>`;
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Plane Equation</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Perm Pair</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Places</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Equation</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
@@ -350,7 +355,9 @@ class IndexedBox {
                 const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
                 const permHtml = `[${ index.permForward || '' }] - [${ index.permReverse || '' }]`;
                 var rowHtml = `<td>${ index.id }</td>`;
-                rowHtml += `<td align='center' ${clickAttr}>${ index.isPalindrome() ? 'palindrome' : index.isDegenerate() ? 'degenerate' : '' } ${ permHtml }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ index.getType() }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>[${ index.permForward || '' }] - [${ index.permReverse || '' }]</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>[${ index.placesForward || '' }] - [${ index.placesReverse || '' }]</td>`;
                 rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
                 rowHtml += `<td align='center'>${ getCycleIndexMonomialHtml( index ) }</td>`;
                 rowHtml += `<td align='center'>${ index.identities.length }</td>`;

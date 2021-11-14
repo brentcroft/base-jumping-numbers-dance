@@ -28,6 +28,14 @@ class Index {
         return false;
     }
 
+    getType() {
+        return this.isPalindrome()
+            ? 'pal'
+            : this.isDegenerate()
+                ? 'deg'
+                : 'misc';
+    }
+
     isNonTrivialIndexIdentity( id, di ) {
         const boxVolume = this.box.volume;
         const maxIndex = boxVolume - 1;
@@ -313,34 +321,6 @@ class Index {
                 const orbitId = this.orbits.length + 1;
 
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
-
-                // only for radiants
-                if ( i == 0 && orbit.order == 2 ) {
-
-                    const [ coordsA, coordsB ] = orbit.conjugateCoords();
-
-                    coordsA
-                        .map( p => p.at(indexId) )
-                        .forEach( p => {
-                            p.jump = 0;
-                        } );
-                    coordsB
-                        .map( p => p.at(indexId) )
-                        .forEach( p => {
-                            p.jump = 0;
-                        } );
-
-                    orbit = new Orbit( this, this.identities.length + 1, coordsA );
-                    const conjugateOrbit = new Orbit( this, this.identities.length + 2, coordsB  );
-
-                    orbit.conjugate = conjugateOrbit;
-                    conjugateOrbit.conjugate = orbit;
-
-                    this.identities.push( orbit );
-                    this.identities.push( conjugateOrbit );
-
-                    continue;
-                }
 
                 if ( orbit.order == 1 ) {
                     this.identities.push( orbit );
@@ -697,8 +677,8 @@ class Index {
         return {
             id: this.id,
             powers: {
-                forward: this.powersForward,
-                reverse: this.powersReverse
+                forward: this.placesForward,
+                reverse: this.placesReverse
             },
             equation: this.getPlaneEquationTx(),
             box: this.box.getJson(),

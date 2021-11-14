@@ -100,8 +100,6 @@ class Orbit {
 
         // starts out as self-conjugate
         this.conjugate = this;
-
-        this.makeGlobalJumps();
     }
 
     isIdentity() {
@@ -129,16 +127,6 @@ class Orbit {
 
     toString() {
         return `orbit: ${ this.index }`;
-    }
-
-    makeGlobalJumps() {
-        const indexId = this.parent.id;
-        for ( var i = 0; i < this.points.length; i++ ) {
-            const point = this.points[i];
-            const nextPoint = this.points[ (i + 1) % this.points.length ];
-
-            point.at( indexId ).globalJump = nextPoint.id - point.id;
-        }
     }
 
     // INDEX

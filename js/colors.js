@@ -1,7 +1,9 @@
 
+//const orbits = [ 1, 2, 5, 6, 9, 10, 15, 16];
+
 colourPointIndexDefault = {
     bases: [ 11, 5, 7 ],
-    planeIndex: 1,
+    planeIndex: 8,
     orbitIndex: 5,
     minPixel: 25,
     maxPixel: 200,

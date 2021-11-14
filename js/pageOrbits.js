@@ -393,8 +393,9 @@ function updateJson() {
         cellClick: cellClick,
         clearClick: clearClick,
         totalClick: totalClick,
-        midi: isToggle('midi'),
+        //midi: isToggle('midi'),
         conj: isToggle('conj'),
+        globalIds: isToggle('globalIds'),
         jumps: isToggle('jumps'),
         perms: !isToggle('coords'),
     };
@@ -412,15 +413,12 @@ function updatePlane() {
     const param = getControlValues();
 
     const planeIndex = param.planeIndex % indexedBox.indexPlanes.length;
-
     basePlane = indexedBox.indexPlanes[ planeIndex ];
     putBasePlane( basePlane.key, basePlane );
 
-    //initialiseExpressor( basePlane, isToggle( 'locus' ) );
-
     document
             .getElementById("captionTex")
-            .innerHTML = basePlane.getCaptionHtml();
+            .innerHTML = JSON.stringify( indexedBox.box.getJson() );
 
     drawProductTable( basePlane, param.toggles );
 
@@ -560,7 +558,7 @@ function initPage( urlParam = true ) {
         }
     });
 
-    distributeMessages( 'sample_cs_b_10_m_2', [ { 'indexKey': 1, 'sender': 'dummy.1' } ] );
+    distributeMessages( 'sample_cs_b_10_m_2', [ { 'indexKey': cv.planeIndex, 'sender': 'dummy.1' } ] );
 
     if ( param.id ) {
         distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] );

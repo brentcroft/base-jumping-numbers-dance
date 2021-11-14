@@ -51,16 +51,16 @@ class BaseBox {
         this.diagonal = [ this.origin, this.terminal ];
 
         // indexing
-        this.powersForward = placeValuesForward( bases );
-        this.powersReverse = placeValuesReverse( bases );
+        this.placesForward = placeValuesForward( bases );
+        this.placesReverse = placeValuesReverse( bases );
 
         // coord index functions
-        this.indexForward = ( coord ) => this.powersForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
-        this.indexReverse = ( coord ) => this.powersReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
+        this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, 0 );
 
         // plane of iniquity
         this.centre = this.bases.map( x => ( x - 1 ) / 2 );
-        this.identityPlane = this.powersForward.map( ( x, i ) => x - this.powersReverse[i] );
+        this.identityPlane = this.placesForward.map( ( x, i ) => x - this.placesReverse[i] );
         this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
         this.identityPlaneNormal = unitDisplacement( this.origin, this.identityPlane );
     }
@@ -89,8 +89,8 @@ class BaseBox {
            volume: this.volume,
            sum: this.sum,
            idSum: this.indexSum,
-           id: this.powersForward,
-           di: this.powersReverse,
+           id: this.placesForward,
+           di: this.placesReverse,
            plane: this.identityPlane,
            gcd: this.identityPlaneGcd,
        };

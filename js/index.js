@@ -2,6 +2,8 @@
 var nonTrivialIndexJump = 0;
 var nonTrivialPerimeterJump = 0.0;
 
+var indexMap = {};
+
 class Index {
 
     constructor( box, id = 0 ) {
@@ -24,16 +26,16 @@ class Index {
         return false;
     }
 
-    isDegenerate() {
+    isOrthogonal() {
         return false;
     }
 
     getType() {
         return this.isPalindrome()
             ? 'pal'
-            : this.isDegenerate()
-                ? 'deg'
-                : 'misc';
+            : this.isOrthogonal()
+                ? 'orth'
+                : 'mix';
     }
 
     isNonTrivialIndexIdentity( id, di ) {

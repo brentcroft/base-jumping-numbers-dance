@@ -14,6 +14,7 @@ toggleKeys = {
     more: 0,
     scale3d: 0,
     summary: 1,
+    summaryEditor: 1,
     table: 1,
     globalIds: 0,
     composites: 0,
@@ -23,6 +24,6 @@ toggleKeys = {
     productBlankIdentity: 1,
     productCommuteIdentity: 1,
     multi: 0,
-    editor: 0,
+    orbitEditor: 0,
     negpol: 0
 }

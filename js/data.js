@@ -68,7 +68,7 @@ function isPalindrome( arrayPair ) {
     return a.filter( (x,i) => x == b[ d - i - 1 ]).length == d;
 }
 
-function isDegenerate( arrayPair ) {
+function isOrthogonal( arrayPair ) {
     const [ a, b ] = arrayPair;
     const d = b.length;
     return a.filter( (x,i) => x == b[i]).length > 0;

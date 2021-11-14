@@ -420,6 +420,10 @@ function updatePlane() {
             .getElementById("captionTex")
             .innerHTML = JSON.stringify( indexedBox.box.getJson() );
 
+    document
+            .getElementById( "summary" )
+            .innerHTML = indexedBox.getDataHtml( "sample_cs_b_10_m_2", 1 );
+
     drawProductTable( basePlane, param.toggles );
 
     updateJson();
@@ -431,10 +435,6 @@ function updatePage() {
 
     // TODO: global access
     indexedBox = new IndexedBox( param.bases, param );
-
-    document
-            .getElementById( "summary" )
-            .innerHTML = indexedBox.getDataHtml( "sample_cs_b_10_m_2", 1 );
 
     document
             .getElementById( "basesVolume" )
@@ -480,6 +480,9 @@ function initPage( urlParam = true ) {
     if ( param.toggles.summary ) {
         showHideAll( [ 'selectedPoint', 'summary', 'summaryControls' ] );
     }
+    if ( param.toggles.summaryEditor ) {
+        showHideAll( [ 'summaryEditor' ] );
+    }
     if ( param.toggles.table ) {
         showHideAll(['tableControls','sample_cs_b_10_m_2_table']);
     }
@@ -489,8 +492,8 @@ function initPage( urlParam = true ) {
     if ( param.toggles.more ) {
         showHideAll( ['more-options'] );
     }
-    if ( param.toggles.editor ) {
-        showHideAll( ['editor'] );
+    if ( param.toggles.orbitEditor ) {
+        showHideAll( ['orbitEditor'] );
     }
     if ( param.toggles.colours ) {
         showHideAll( ['colours'] );

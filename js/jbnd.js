@@ -48,14 +48,14 @@ class Box {
 
     getJson() {
         return {
-           bases: this.bases,
-           sum: this.sum,
+           //bases: this.bases,
+           coordSum: this.sum,
            idSum: this.indexSum,
            //units: this.volumeUnits.length,
-           volume: this.volume,
-           area: this.surfaceArea,
-           erad: this.euclideanRadiance,
-           irad: this.indexRadiance
+           //volume: this.volume,
+           //area: this.surfaceArea,
+           //erad: this.euclideanRadiance,
+           //irad: this.indexRadiance
        };
     }
 
@@ -119,8 +119,8 @@ class PlacesIndex extends Index {
         return isPalindrome( [ this.permForward, this.permReverse ] );
     }
 
-    isDegenerate() {
-        return isDegenerate( [ this.permForward, this.permReverse ] );
+    isOrthogonal() {
+        return isOrthogonal( [ this.permForward, this.permReverse ] );
     }
 }
 
@@ -183,6 +183,10 @@ class CompositeIndex extends Index {
         }
     }
 
+    getType() {
+        return 'comp';
+    }
+
     getPlaneEquationTx() {
         return `( ${ this.primaryIndex.placesReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() }`
                 + " o "
@@ -222,32 +226,32 @@ class IndexedBox {
                     : a1 - a2;
             };
 
-            const palindromes = indexors
+            this.palindromes = indexors
                 .filter( pi => {
                     const [ [ f, pF ], [ r, pR ] ] = pi;
                     return isPalindrome( [ f, r ] );
                 } );
 
-            const secondaries = indexors
+            this.secondaries = indexors
                 .filter( pi => {
                     const [ [ f, pF ], [ r, pR ] ] = pi;
-                    return !isPalindrome( [ f, r ] ) && !isDegenerate( [ f, r ] );
+                    return !isPalindrome( [ f, r ] ) && !isOrthogonal( [ f, r ] );
                 } );
 
-            const degenerates = indexors
+            this.degenerates = indexors
                 .filter( pi => {
                     const [ [ f, pF ], [ r, pR ] ] = pi;
-                    return !isPalindrome( [ f, r ] ) && isDegenerate( [ f, r ] );
+                    return !isPalindrome( [ f, r ] ) && isOrthogonal( [ f, r ] );
                 } );
 
-            palindromes.sort( sorter );
-            secondaries.sort( sorter );
-            degenerates.sort( sorter );
+            this.palindromes.sort( sorter );
+            this.secondaries.sort( sorter );
+            this.degenerates.sort( sorter );
 
             [
-                ...palindromes,
-                ...secondaries,
-                ...degenerates
+                ...this.palindromes,
+                ...this.secondaries,
+                ...this.degenerates
             ].forEach( pi => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi ) ) );
         }
 
@@ -261,14 +265,14 @@ class IndexedBox {
 
         this.indexPlanes.forEach( plane => plane.initialise() );
 
-        const unitPlanes = this.indexPlanes.slice( 1 );
 
-        const composites = false;
+        const composites = toggles.includes( "composites" );
         const associates = toggles.includes( "associates" );
 
-        if ( composites && ( unitPlanes.length > 1 ) ) {
+        if ( composites ) {
 
-            permutations( unitPlanes )
+            pairs( this.indexPlanes.filter( i => i.isPalindrome() ) )
+                //.flatMap( p => [ p, [ p[1], p[0] ] ] )
                 .forEach( p => {
 
                     const ci = new CompositeIndex(
@@ -280,29 +284,106 @@ class IndexedBox {
                     ci.initialise();
                     this.indexPlanes.push( ci );
 
-                    if ( unitPlanes.length > 2 ) {
-                        const tci = new CompositeIndex(
-                             this.box,
-                             this.indexPlanes.length,
-                             ci,
-                             p[2]
+                    if ( associates ) {
+                        const cia = new CompositeIndex(
+                            this.box,
+                            this.indexPlanes.length,
+                            p[ 1 ],
+                            p[ 0 ]
                         );
-                        tci.initialise();
-                        this.indexPlanes.push( tci );
+                        cia.initialise();
+                        this.indexPlanes.push( cia );
+                    }
 
-                        if ( associates ) {
-                            const tic = new CompositeIndex(
-                                 this.box,
-                                 this.indexPlanes.length,
-                                 p[2],
-                                 ci
-                            );
-                            tic.initialise();
-                            this.indexPlanes.push( tic );
-                        }
+
+//                    if ( unitPlanes.length > 2 ) {
+//                        const tci = new CompositeIndex(
+//                             this.box,
+//                             this.indexPlanes.length,
+//                             ci,
+//                             p[2]
+//                        );
+//                        tci.initialise();
+//                        this.indexPlanes.push( tci );
+//
+//                        if ( associates ) {
+//                            const tic = new CompositeIndex(
+//                                 this.box,
+//                                 this.indexPlanes.length,
+//                                 p[2],
+//                                 ci
+//                            );
+//                            tic.initialise();
+//                            this.indexPlanes.push( tic );
+//                        }
+//                    }
+                } );
+
+            pairs( this.indexPlanes.filter( i => i.isOrthogonal() && !i.isPalindrome() ) )
+                //.flatMap( p => [ p, [ p[1], p[0] ] ] )
+                .forEach( p => {
+
+                    const ci = new CompositeIndex(
+                        this.box,
+                        this.indexPlanes.length,
+                        p[ 0 ],
+                        p[ 1 ]
+                    );
+                    ci.initialise();
+                    this.indexPlanes.push( ci );
+
+                    if ( associates ) {
+                        const cia = new CompositeIndex(
+                            this.box,
+                            this.indexPlanes.length,
+                            p[ 1 ],
+                            p[ 0 ]
+                        );
+                        cia.initialise();
+                        this.indexPlanes.push( cia );
                     }
                 } );
         }
+    }
+
+    buildAndInitialiseCompositeIndex( ids ) {
+        return this.buildCompositeIndex( ids );
+    }
+
+    buildCompositeIndex( ids ) {
+        if ( ids.length < 2 ) {
+            throw `buildCompositeIndex requires an array of at least length 2: ${ ids }`;
+        }
+
+        function ciName( ids ) {
+            return ids.length > 2
+                ? `( ${ ids[0] } o ` + ciName( ids.slice( 1 ) ) + " )"
+                : `( ${ ids[0] } o ${ ids[1] } )`;
+        }
+
+        const n =  ciName( ids );
+        const existingPlanes = this.indexPlanes.filter( p => p.getPlaneEquationTx().trim() == n );
+
+        if (existingPlanes.length > 0 ) {
+            console.log( `existingPlane: ${ n }`);
+            return existingPlanes[0];
+        }
+
+
+        const plane = ids.length == 2
+            ? this.indexPlanes[ ids[ 1 ] ]
+            : this.buildCompositeIndex( ids.slice( 1 ) ) ;
+
+        const ci = new CompositeIndex(
+            this.box,
+            this.indexPlanes.length,
+            this.indexPlanes[ ids[ 0 ] ],
+            plane
+        );
+
+        ci.initialise();
+        this.indexPlanes.push( ci );
+        return ci;
     }
 
     convolve( a, b, indexes ) {

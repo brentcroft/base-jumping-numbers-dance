@@ -170,6 +170,9 @@ function drawBasePlaneTable( tableArgs ) {
 
     var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false, globalIds = false } = tableArgs;
 
+    consoleLog( `orbits.table: ${ containerId }: id=${ basePlane.id }` );
+
+
     const gid = globalIds
         ? ( point ) => point.id
         : ( point ) => point.at( basePlane.id ).id;
@@ -495,7 +498,7 @@ function drawBasePlaneTable( tableArgs ) {
     try {
         sortTable( tableId, sortColumn, true, true );
     } catch ( e ) {
-        console.log(e);
+        consoleLog(e);
     }
 }
 
@@ -551,3 +554,49 @@ function drawProductTable( index, toggles ) {
     document.getElementById( 'products' ).innerHTML = `<span class='summaryRight'>e = { ${ identityIds } }</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
 }
 
+function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
+
+    consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
+
+    const sep = ", ";
+    const tableId = 'indexSummary_table';
+    var columnId = 0;
+
+    var dataHtml = "";
+    dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Type</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Perm. Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Places</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Rad</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Rad</th>`;
+    dataHtml += "</tr><tr>";
+    dataHtml += indexedBox
+        .indexPlanes
+        .map( index => {
+            const clickAction = `distributeMessages( '${ containerId }', [ { 'indexKey': '${ index.id }', 'sender': 'index.${ index.id }' } ] )`;
+            const selectedClass = selectedIndex == index.id ? "class='selected'" : "";
+            const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
+            const permHtml = `[${ index.permReverse || '' }] - [${ index.permForward || '' }]`;
+            var rowHtml = `<td>${ index.id }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.getType() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }] - [${ index.permForward || '' }]</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }] - [${ index.placesForward || '' }]</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( index ) }</td>`;
+            rowHtml += `<td align='center'>${ index.identities.length }</td>`;
+            rowHtml += `<td align='center'>${ index.orbits.length }</td>`;
+            rowHtml += `<td align='center'>${ index.fundamental }</td>`;
+            rowHtml += `<td align='center'>${ index.grossEuclideanPerimeter() }</td>`;
+            rowHtml += `<td align='center'>${ index.grossIndexPerimeter() }</td>`;
+            return rowHtml;
+        } )
+        .join( "</tr><tr>" );
+    dataHtml += "</tr></table>";
+    return dataHtml;
+}

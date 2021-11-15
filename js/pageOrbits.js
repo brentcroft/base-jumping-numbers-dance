@@ -45,7 +45,7 @@ function getControlValues() {
         try {
             return Number( document.getElementById( `b${i}` ).value );
         } catch ( e ) {
-            console.log( `Bad base control [b${i}] value: ${ e }, returning 1.` );
+            consoleLog( `Bad base control [b${i}] value: ${ e }, returning 1.` );
             return 1;
         }
     } );
@@ -198,7 +198,7 @@ function clearSelected() {
 function initialiseCheckBox( controlId, checked ) {
     const control = document.getElementById( controlId );
     if (!control) {
-        console.log( `No such checkbox: ${ controlId }` );
+        consoleLog( `No such checkbox: ${ controlId }` );
     }
     control.checked = checked;
 }
@@ -375,9 +375,11 @@ function isToggle( toggle ) {
 
 function updateJson() {
 
+    consoleLog( `updateJson: id=${ basePlane.id }` );
+
     document
         .getElementById( "sample_cs_b_10_m_2_riffler" )
-        .setAttribute( "max", `${ basePlane.orbits.length - 1 }` );
+        .setAttribute( "max", `${ basePlane.orbits.length }` );
 
     document
             .getElementById("orbit-system-data-text-area")
@@ -408,7 +410,7 @@ function updateJson() {
         framePage = "orbitsViewer.html?" + getCurrentQueryString( basePlane.key ) );
 }
 
-function updatePlane() {
+function selectIndexPlane() {
 
     const param = getControlValues();
 
@@ -416,17 +418,26 @@ function updatePlane() {
     basePlane = indexedBox.indexPlanes[ planeIndex ];
     putBasePlane( basePlane.key, basePlane );
 
+    consoleLog( `selectIndexPlane: id=${ basePlane.id }` );
+
+    drawProductTable( basePlane, param.toggles );
+
+    updateJson();
+}
+
+function rebuildIndexedBoxSummary() {
+
+    document
+            .getElementById( "planeIndex" )
+            .max = indexedBox.indexPlanes.length - 1;
+
     document
             .getElementById("captionTex")
             .innerHTML = JSON.stringify( indexedBox.box.getJson() );
 
     document
             .getElementById( "summary" )
-            .innerHTML = indexedBox.getDataHtml( "sample_cs_b_10_m_2", 1 );
-
-    drawProductTable( basePlane, param.toggles );
-
-    updateJson();
+            .innerHTML = drawBoxSummaryTable( indexedBox, "sample_cs_b_10_m_2", 1 );
 }
 
 function updatePage() {
@@ -440,11 +451,9 @@ function updatePage() {
             .getElementById( "basesVolume" )
             .value = indexedBox.box.volume;
 
-    document
-            .getElementById( "planeIndex" )
-            .max = indexedBox.indexPlanes.length - 1;
+    rebuildIndexedBoxSummary();
 
-    updatePlane();
+    selectIndexPlane();
 }
 
 function initPage( urlParam = true ) {
@@ -480,8 +489,8 @@ function initPage( urlParam = true ) {
     if ( param.toggles.summary ) {
         showHideAll( [ 'selectedPoint', 'summary', 'summaryControls' ] );
     }
-    if ( param.toggles.summaryEditor ) {
-        showHideAll( [ 'summaryEditor' ] );
+    if ( param.toggles.indexComposer ) {
+        showHideAll( [ 'indexComposer' ] );
     }
     if ( param.toggles.table ) {
         showHideAll(['tableControls','sample_cs_b_10_m_2_table']);
@@ -512,7 +521,7 @@ function initPage( urlParam = true ) {
         if ( event.data ) {
             var data = event.data;
 
-            //console.log( `data: ${ JSON.stringify( data ) }` );
+            consoleLog( `event.data: ${ JSON.stringify( data ) }` );
 
             if ( data.basis ) {
                 if ( "point" == data.basis ) {
@@ -537,8 +546,14 @@ function initPage( urlParam = true ) {
             } else if ( data.indexKey ) {
 
                 document.getElementById( 'planeIndex' ).value = data.indexKey;
-                updatePlane();
+
+                // swap global basePlane and register
+                // so child frames can access it.
+                basePlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
+                putBasePlane( basePlane.key, basePlane );
+
                 showIndex( "indexSummary", data.sender );
+                updateJson();
 
             } else if ( data.basePlaneKey ) {
                 const basePlane = getBasePlane( data.basePlaneKey );
@@ -551,7 +566,7 @@ function initPage( urlParam = true ) {
 
                 const [ bases, colorOrbitIndex, minPixel ] = data.colors;
                 putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, colorOrbitIndex, minPixel ) );
-                updatePlane();
+                selectIndexPlane();
 
             } else if ( data.toggleCentres ) {
             } else if ( data.toggleLines ) {
@@ -561,9 +576,9 @@ function initPage( urlParam = true ) {
         }
     });
 
-    distributeMessages( 'sample_cs_b_10_m_2', [ { 'indexKey': cv.planeIndex, 'sender': 'dummy.1' } ] );
+    distributeMessages( 'sample_cs_b_10_m_2', [ { 'indexKey': cv.planeIndex, 'sender': 'initPage.1' } ] );
 
     if ( param.id ) {
-        distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'dummy.' + param.id } ] );
+        distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'initPage.' + param.id } ] );
     }
 }

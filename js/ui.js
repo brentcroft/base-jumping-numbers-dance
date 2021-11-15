@@ -164,7 +164,7 @@ function getCurrentHarmonic( chainSystem ) {
             }
         }
     } catch ( e ) {
-        console.log( e );
+        cconsoleLog( e );
     }
     return chainSystem.chains;
 }
@@ -410,7 +410,7 @@ function drawChainSystemTable( containerId, chainSystem, cellClick, totalClick )
     try {
         MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, container ] );
     } catch ( e ) {
-        console.log( `Error: ${ e }: failed to typeset equation.` );
+        consoleLog( `Error: ${ e }: failed to typeset equation.` );
     }
 
     var sortColumn = 6;
@@ -463,7 +463,7 @@ function clickCell( tableId, rowNo, colNo ){
             cell.click();
         }
     } catch ( e ) {
-        console.log( `Error: ${ e }; clickCell( ${ tableId }, ${ rowNo }, ${ colNo } )` )
+        consoleLog( `Error: ${ e }; clickCell( ${ tableId }, ${ rowNo }, ${ colNo } )` )
     }
 }
 
@@ -721,8 +721,8 @@ function updateChainSystemEquation( id, chainSystem, chain ) {
     try {
         MathJax.Hub.Queue( [ "Typeset", MathJax.Hub, equation ] );
     } catch ( e ) {
-        console.log( `Error: ${ e }: failed to typeset equation.` );
+        consoleLog( `Error: ${ e }: failed to typeset equation.` );
     }
 
-    //console.log( `Typeset equation: ${ equationHtml }` )
+    //cconsoleLog( `Typeset equation: ${ equationHtml }` )
 }

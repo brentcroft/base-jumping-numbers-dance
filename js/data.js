@@ -1,4 +1,8 @@
 
+function consoleLog( s ) {
+    console.log( s );
+}
+
 const PI = 3.1415926;
 const TWO_PI = 2 * PI;
 

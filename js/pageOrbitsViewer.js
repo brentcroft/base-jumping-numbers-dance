@@ -306,7 +306,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         .forEach( sphereElement => {
             sphereElement.setAttribute( "radius", standardRadius );
             sphereElement.classList.remove("selected");
-            //console.log( `de-selected point: ${ sphereElement.id }` );
+            //consoleLog( `de-selected point: ${ sphereElement.id }` );
         });
 
     selectedPoints
@@ -317,9 +317,9 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
             if ( sphereElement && sphereElement.tagName == "SPHERE" ) {
                 sphereElement.setAttribute( "radius", selectedRadius );
                 sphereElement.classList.add("selected")
-                //console.log( `selected point: ${ JSON.stringify( p ) }` );
+                //consoleLog( `selected point: ${ JSON.stringify( p ) }` );
             } else {
-                console.log( `selected point not found: ${ JSON.stringify( p ) }` );
+                consoleLog( `selected point not found: ${ JSON.stringify( p ) }` );
             }
         } );
 
@@ -530,7 +530,7 @@ function plotBasePlane( basePlane, param ) {
     //x3dRuntime.runtime.showAll( "negZ");
     x3dRuntime.runtime.resetView();
 
-    //console.log( "Created X3DOM container: " + x3domContainerId );
+    //consoleLog( "Created X3DOM container: " + x3domContainerId );
 }
 
 
@@ -568,7 +568,7 @@ function initPage() {
                     const tooltipData = s.getAttribute( "tooltip" );
                     const point = JSON.parse( tooltipData );
 
-                    console.log( `selected point: [${ point.coord }] ${ point.id }; index-${basePlane.id}: ${ JSON.stringify( point.indexes[basePlane.id] ) }` );
+                    consoleLog( `selected point: [${ point.coord }] ${ point.id }; index-${basePlane.id}: ${ JSON.stringify( point.indexes[basePlane.id] ) }` );
 
                     distributeMessage( {
                         basis: "point",
@@ -582,7 +582,7 @@ function initPage() {
         if ( event.data ) {
             var data = event.data;
 
-            //console.log( `data: ${ JSON.stringify( data ) }` );
+            //cconsoleLog( `data: ${ JSON.stringify( data ) }` );
 
             if ( data.basis ) {
 

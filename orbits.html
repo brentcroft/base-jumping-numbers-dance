@@ -130,6 +130,10 @@
             font-size: 80%;
             width: 30pt;
         }
+        textarea.colourField {
+            font-size: 80%;
+            width: 200pt;
+        }
         input[type=button] {
             font-size: 80%;
         }
@@ -184,15 +188,16 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="7"/>x
-                <input type="number" min="1" id="b1" value="3"/>x
-                <input type="number" min="1" id="b2" value="2"/>
+                <input type="number" min="1" id="b1" value="5"/>x
+                <input type="number" min="1" id="b2" value="3"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="1" onchange="updatePlane()"/></label> |
+            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="1" onchange="selectIndexPlane()"/></label>
 
-            <span id="captionTex"></span>
+            <br/>
+            <span id="captionTex" class="summaryLeft"></span>
             <br/>
         </div>
 
@@ -227,7 +232,7 @@
                         function masterColorBasePlane() {
                             const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
                             initialiseBases( bases );
-                            updatePlane();
+                            selectIndexPlane();
                             distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'colourBasePlane.' + orbitIndex } ] );
                         }
                     </script>
@@ -253,24 +258,44 @@
     <div class="full-width">
         <div id="summaryControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="generate composite indexes">composites <input type="checkbox" id="compositesToggle" onchange="updatePage()"/></label> |
-            <label title="generate associate composite indexes">associates <input type="checkbox" id="associatesToggle" onchange="updatePage()"/></label>
-            <label title="display summary editor">editor<input type="checkbox" id="summaryEditorToggle" onchange="showHideAll( ['summaryEditor'], this )"/></label>
+            <label title="display index composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
+            <label title="generate associate composite indexes">associates <input type="checkbox" id="associatesToggle" onchange="updatePage()"/></label> |
+            composites:
+            <label title="generate palindromic composite indexes">pal <input type="checkbox" id="palindromicCompositesToggle" onchange="updatePage()"/></label> |
+            <label title="generate mixed composite indexes">mix <input type="checkbox" id="mixedCompositesToggle" onchange="updatePage()"/></label> |
+            <label title="generate orthogonal composite indexes">orth <input type="checkbox" id="orthogonalCompositesToggle" onchange="updatePage()"/></label>
         </div>
 
-        <div id="summaryEditor" class="summaryLeft" style="display: none">
-            <hr/>
+        <div id="indexComposer" style="display: none">
             <script>
                 function createPlanes() {
-                    const selectedPlaneIds = document.getElementById( 'selectedPlaneIds' ).value;
-                    const planeIds = selectedPlaneIds.split( "," ).map( x => Number( x ) )
-                    if ( planeIds.length > 1 ) {
+                    const pidsSetText = document.getElementById( 'selectedPlaneIds' ).value;
+                    const pids = pidsSetText
+                        .split( /\s*;\s*/ )
+                        .map( pidsText => pidsText.split( /\s*o|,\s*/ ) )
+                        .filter( pidsList => pidsList.length > 1 )
+                        .map( pidsList => pidsList
+                            .map( x => {
+                                const v = Number( x );
+                                return Number.isInteger( v ) ? v : x.trim();
+                            } )
+                        );
+
+                    document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = "";
+
+                    if ( pids.length > 0 ) {
+
                         try {
-                            document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = "";
-                            indexedBox.buildAndInitialiseCompositeIndex( planeIds );
-                            updatePlane();
-                            //document.getElementById( 'selectedPlaneIds' ).value = "";
-                            selectedPlanes = [];
+                            pids
+                                .forEach( pid => pid.forEach( id => {
+                                    if ( ! Number.isInteger( id ) ) {
+                                        throw `Invalid index composition: found '${ id }' in ( ${ pid.join(' o ') } ).`;
+                                    }
+                                } ) );
+
+                            pids
+                                .forEach( pid => indexedBox.buildAndInitialiseCompositeIndex( pid ) );
+                            rebuildIndexedBoxSummary();
                         } catch ( e ) {
                             document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
                             throw e;
@@ -278,10 +303,16 @@
                     }
                 }
             </script>
-            <label>ids: <input type="text" id="selectedPlaneIds" class="colourField"/></label>
-            <label><input type="button" onclick="createPlanes()" value="generate"/></label>
+            <label>Compose ids: <textarea type="text" id="selectedPlaneIds" class="colourField">1 o 2; 2 o 1;
+2 o 3; 3 o 2;
+3 o 1; 1 o 3;
+1 o 2 o 3;
+3 o 2 o 1;
+3 o 1 o 2;
+2 o 1 o 3</textarea></label>
+            <label><input type="button" onclick="createPlanes()" value="compose"/></label>
 
-            <div id="summaryEditorErrorMessage"></div>
+            <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>
 
         <div id="summary" style="display: none"></div>
@@ -290,8 +321,8 @@
     <div class="full-width">
         <div id="tableControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); updatePlane();"/></label> |
-            <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="updatePlane()"/></label> |
+            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); selectIndexPlane();"/></label> |
+            <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectIndexPlane()"/></label> |
             <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
             <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
             <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
@@ -375,7 +406,7 @@
                                     };
                                 });
 
-                        //console.log( messages );
+                        //consoleLog( messages );
 
                         distributeMessages(
                             'sample_cs_b_10_m_2',
@@ -412,9 +443,9 @@
     <div class="full-width">
         <div id="productsControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="updatePlane()"/></label> |
-            <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="updatePlane()"/></label> |
-            <label title="blank identity results">blank identity<input type="checkbox" id="productBlankIdentityToggle" onchange="updatePlane()"/></label>
+            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="selectIndexPlane()"/></label> |
+            <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="selectIndexPlane()"/></label> |
+            <label title="blank identity results">blank identity<input type="checkbox" id="productBlankIdentityToggle" onchange="selectIndexPlane()"/></label>
         </div>
 
         <div id="productsTable" style="display: none">

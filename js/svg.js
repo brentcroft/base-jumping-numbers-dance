@@ -108,7 +108,7 @@ function removeGridChains( id, cssClass = "chain" ) {
                 try {
                     svg_grid.removeChild( itemToRemove );
                 } catch ( e ) {
-                    //console.log("Error: " + e);
+                    consoleLog( "Error: removeGridChains: " + e );
                 }
             }
         }

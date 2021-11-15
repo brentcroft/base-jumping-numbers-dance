@@ -12,6 +12,9 @@ class Index {
         this.key = `plane-${ id }`;
         this.idx = new Array( this.box.volume );
         this.dix = new Array( this.box.volume );
+
+        this.forwardFrom = 0;
+        this.reverseFrom = 0;
     }
 
     initialise() {
@@ -143,7 +146,7 @@ class Index {
 
     joinPoints( pointIds, joinType = 0 ) {
 
-        console.log( `join: type=${ joinType }, ids: ${ pointIds }` );
+        consoleLog( `join: type=${ joinType }, ids: ${ pointIds }` );
 
         const [ p1, q1 ] = pointIds.map( id => this.idx[ id ] );
         const [ p1c, q1c ] = [ p1.conjugate, q1.conjugate ];
@@ -189,8 +192,8 @@ class Index {
             iq0c.di, iq1c.di, iq2c.di
         ];
 
-        console.log( `id cache: type=${ [ ip1.id, ip2.id, ip1c.id, ip2c.id, iq0.id, iq1.id, iq2.id, iq0c.id, iq1c.id, iq2c.id ] }` );
-        console.log( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq2, diq0c, diq1c, diq2c ] }` );
+        consoleLog( `id cache: type=${ [ ip1.id, ip2.id, ip1c.id, ip2c.id, iq0.id, iq1.id, iq2.id, iq0c.id, iq1c.id, iq2c.id ] }` );
+        consoleLog( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq2, diq0c, diq1c, diq2c ] }` );
 
         switch( joinType ) {
 
@@ -203,7 +206,7 @@ class Index {
                     ip1c.di = iq2c.id;
 
                     const result = [ ip1, ip1c, iq1, iq1c ];
-                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                    consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
 
@@ -217,7 +220,7 @@ class Index {
                     ip1c.di = iq1c.id;
 
                     const result = [ ip1, ip1c, iq0, iq0c ];
-                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                    consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 } else {
                     const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
                     throw ( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
@@ -237,7 +240,7 @@ class Index {
                     ip1c.di = diq0c;//iq1c.id;
 
                     const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
-                    console.log( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                    consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 } else {
                     const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
                     throw ( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
@@ -310,7 +313,7 @@ class Index {
                     }
                 } catch ( e ) {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
-                    console.log( msg );
+                    consoleLog( msg );
                     //break;
                     throw msg;
                 }
@@ -324,6 +327,36 @@ class Index {
 
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
 
+               // only for radiants
+                if ( i == 0 && orbit.order == 2 ) {
+
+                    const [ coordsA, coordsB ] = orbit.conjugateCoords();
+
+                    coordsA
+                        .map( p => p.indexes[indexId] )
+                        .forEach( p => {
+                            p.jump = 0;
+                        } );
+                    coordsB
+                        .map( p => p.indexes[indexId] )
+                        .forEach( p => {
+                            p.jump = 0;
+                        } );
+
+                    orbit = new Orbit( this, this.identities.length + 1, coordsA );
+                    const conjugateOrbit = new Orbit( this, this.identities.length + 2, coordsB  );
+
+                    orbit.conjugate = conjugateOrbit;
+                    conjugateOrbit.conjugate = orbit;
+
+                    this.identities.push( orbit );
+                    this.identities.push( conjugateOrbit );
+
+                    continue;
+                }
+
+
+
                 if ( orbit.order == 1 ) {
                     this.identities.push( orbit );
                 } else {
@@ -335,7 +368,7 @@ class Index {
 
                 if ( !antipodesCoord ) {
                     const msg = `Bad point no conjugate: ${ point }`;
-                    console.log( msg );
+                    cconsoleLog( msg );
                     //break;
                     throw msg;
                 }
@@ -531,26 +564,19 @@ class Index {
         this.centrePoints = centrePoints;
     }
 
-
-
     getPlaneEquationTx() {
         const basis = this.identityPlane.length;
-        const varIds = d => [ "x", "y", "z", "w", "v", "u", "t", "s", "r", "q", "p" ].map( x => `<i>${ x }</i>` )[d];
-        var plane = this
-            .identityPlane
-            .map( x => x );
+        const varIds = ( d ) => [
+                "x", "y", "z", "w", "v", "u", "t", "s", "r", "q", "p"
+            ].map( x => `<i>${ x }</i>` )[d];
 
-        const pad = s => `${ s }`.padStart( 1, " " );
+        const plane = this.identityPlane.map( x => x );
 
-        var planeMid = plane
-            .map( ( x, i ) => `${ x < 0 ? " + " : " - " }${ pad( Math.abs( x ) ) }${ varIds( i ) }` )
-            .slice( 1, basis - 1 )
-            .join("");
+        var eqn = plane
+              .map( ( x, i ) => `${ x < 0 ? i == 0 ? " " : " + " : " - " }${ Math.abs( x ) }${ varIds( i ) }` )
+              .join("");
 
-        var eqn = `${ pad( -1 * plane[0] ) }${ varIds( 0 ) }`;
-        eqn += `${ planeMid }`;
-        eqn += " = ";
-        eqn += `${ pad( plane[ basis - 1 ] ) }${ varIds( basis - 1) }`;
+        eqn += ` = ${ this.reverseFrom - this.forwardFrom }`;
 
         return eqn;
     }

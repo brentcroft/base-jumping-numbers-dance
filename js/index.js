@@ -113,11 +113,13 @@ class Index {
 
 
     apply( point ) {
-        return this.getPointFromIdx( this.pointAt( point ).di );
+        const p = this.pointAt( point );
+        return this.getPointFromIdx( p.di );
     }
 
     applyInverse( point ) {
-        return this.getPointFromDix( this.pointAt( point ).id );
+        const p = this.pointAt( point );
+        return this.getPointFromDix( p.id );
     }
 
     stepForward( point, p = 1 ) {

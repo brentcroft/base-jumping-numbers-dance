@@ -222,6 +222,12 @@ class Formula {
                             expressions.push(Expression.createOperatorExpression(char));
                             state = 0;
                         }
+                    } else if (char === '-') {
+                        if (expressions.length === 0 || this.isOperatorExpr(expressions[expressions.length - 1])) {
+                            state = 'within-nr';
+                            tmp = '-';
+                            break;
+                        }
                     } else if (char === '(') {
                         // left parenthesis found, seems to be the beginning of a new sub-expression:
                         state = 'within-parentheses';
@@ -447,7 +453,7 @@ class Formula {
      *   also returned as array.
      * @return {Number|Array} The evaluated result, or an array with results
      */
-    evaluate(valueObj) {
+    _evaluate(valueObj) {
         // resolve multiple value objects recursively:
         if (valueObj instanceof Array) {
             return valueObj.map((v) => this.evaluate(v));
@@ -468,6 +474,30 @@ class Formula {
         }
 
         return expr.evaluate({ ...this.indexedBox.getIndexMap(), ...valueObj });
+    }
+
+    evaluate(valueObj) {
+        const r = this._evaluate(valueObj);
+
+        if ( r instanceof CompositeIndex ) {
+            if ( !r.unindexed ) {
+                return r;
+            }
+
+            r.id = indexedBox.indexPlanes.length + 1;
+            r.indexPoints();
+            r.initialise();
+
+            const existingIndex = this.indexedBox.findExistingIndexes( r );
+
+            if ( !existingIndex ) {
+                this.indexedBox.indexPlanes.push( r );
+            }
+
+            return existingIndex || r;
+        } else {
+            return r;
+        }
     }
 
     hashValues(valueObj) {
@@ -612,7 +642,7 @@ class PowerExpression extends Expression {
                             locus,
                             this.base.evaluate(params),
                             [ false, false ],
-                            ( i < (exp - 1))
+                            false
                         );
             }
         } else if ( exp < 0 ) {
@@ -623,7 +653,7 @@ class PowerExpression extends Expression {
                             locus,
                             this.base.evaluate(params),
                             [ false, true ],
-                            ( i > (exp + 1))
+                            false
                         );
             }
         }

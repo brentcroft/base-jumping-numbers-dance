@@ -18,7 +18,7 @@ toggleKeys = {
     globalIds: 0,
     globalise: 1,
 
-    indexComposer: 0,
+    indexComposer: 1,
     palindromicPlanes: 1,
     mixedPlanes: 2,
     orthogonalPlanes: 3,

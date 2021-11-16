@@ -285,23 +285,6 @@
                                 .map( ft => new Formula( indexedBox, ft ) )
                                 .map( f => [ f, f.evaluate() ] );
 
-                            results
-                                .filter( r => r[1].unindexed )
-                                .forEach( result => {
-                                    const [ f, r ] = result;
-                                    r.id = indexedBox.indexPlanes.length;
-                                    r.indexPoints();
-                                    r.initialise();
-
-                                    const existingIndex = indexedBox.findExistingIndexes( r );
-
-                                    if ( existingIndex ) {
-                                        result[1] = existingIndex;
-                                    } else {
-                                        indexedBox.indexPlanes.push( r );
-                                    }
-                            } );
-
                             const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
 
                             document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
@@ -315,7 +298,7 @@
                     }
                 }
             </script>
-            <label>Compose ids: <textarea type="text" id="selectedPlaneIds" class="colourField">a0 * a1 * a2</textarea></label>
+            <label>Compose ids: <textarea type="text" id="selectedPlaneIds" class="colourField">a_0^-1</textarea></label>
             <label><input type="button" onclick="createPlanes()" value="compose"/></label>
 
             <div id="summaryEditorResult"></div>

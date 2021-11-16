@@ -125,10 +125,10 @@ class PlacesIndex extends Index {
 class CompositeIndex extends Index {
 
     static compositeLabel( primaryIndex, secondaryIndex, inverse = [ false, false ] ) {
-        return `( ${ inverse[0] ? '-' : '' }${ primaryIndex.getLabel() }`
-            + " * "
-            + `${ inverse[1] ? '-' : '' }${ secondaryIndex.getLabel() } )`;
-}
+        return `( ${ primaryIndex.getLabel() }${ inverse[0] ? '^-1' : '' }`
+                + " * "
+                + `${ secondaryIndex.getLabel() }${ inverse[1] ? '^-1' : '' } )`;
+    }
 
 
     constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ], autoInit = false ) {
@@ -160,10 +160,6 @@ class CompositeIndex extends Index {
     }
 
     indexPoint( point ) {
-
-        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.placesReverse ) {
-            consoleLog( `point: ${ point.report( this.primaryIndex.id ) }` );
-        }
 
         var wayPoint = this.inverse[0]
            ? this.primaryIndex.applyInverse( point )
@@ -199,11 +195,6 @@ class CompositeIndex extends Index {
 
         this.idx[ id ] = point;
         this.dix[ di ] = point;
-        if ( this.id == 11 && point.id == 26 && !this.secondaryIndex.placesReverse ) {
-            consoleLog( `wayPoint.p: ${ wayPoint.report( this.primaryIndex.id ) }` );
-            consoleLog( `wayPoint.s: ${ wayPoint.report( this.secondaryIndex.id ) }` );
-            consoleLog( `endPoint: ${ endPoint.report( this.secondaryIndex.id ) }` );
-        }
     }
 
     getType() {
@@ -211,9 +202,7 @@ class CompositeIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return `( ${ this.inverse[0] ? '-' : '' }${ this.primaryIndex.getLabel() }`
-                + " * "
-                + `${ this.inverse[1] ? '-' : '' }${ this.secondaryIndex.getLabel() } )`;
+        return this.getLabel();
     }
 }
 
@@ -274,14 +263,14 @@ class IndexedBox {
 
             const initialPlanes = [ ];
 
-            if ( toggles.includes( "orthogonalPlanes" ) ) {
-                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c' + i ) ) );
+            if ( toggles.includes( "palindromicPlanes" ) ) {
+                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a_' + i ) ) );
             }
             if ( toggles.includes( "mixedPlanes" ) ) {
-                this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b' + i ) ) );
+                this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b_' + i ) ) );
             }
-            if ( toggles.includes( "palindromicPlanes" ) ) {
-                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a' + i ) ) );
+            if ( toggles.includes( "orthogonalPlanes" ) ) {
+                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c_' + i ) ) );
             }
         }
 

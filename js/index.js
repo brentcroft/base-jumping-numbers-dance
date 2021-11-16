@@ -1,8 +1,10 @@
 
-var nonTrivialIndexJump = 0;
-var nonTrivialPerimeterJump = 0.0;
+const nonTrivialIndexJump = 0;
+const nonTrivialPerimeterJump = 0.0;
+const radiantOriginAndTerminusAreIdentities = true;
 
 var indexMap = {};
+
 
 class Index {
 
@@ -17,13 +19,27 @@ class Index {
         this.reverseFrom = 0;
     }
 
-    initialise() {
+    getLabel() {
+        return this.label;
+    }
+
+    toString() {
+        return this.getLabel();
+    }
+
+    initialise( globaliseIds = false ) {
         this.buildOrbits();
+
+        if ( globaliseIds ) {
+            this.globalise();
+        }
+
         this.buildCentreLines();
         this.findFundamental();
         this.findMaxWeight();
         this.analyzeOrbits();
     }
+
 
     isPalindrome() {
         return false;
@@ -131,7 +147,6 @@ class Index {
 
         const conjugateId = ( boxVolume - id - 1 );
 
-        // point references this index by
         point.indexes[this.id] = {
             id: id,
             di: di,
@@ -143,6 +158,44 @@ class Index {
         this.idx[ id ] = point;
         this.dix[ di ] = point;
     }
+
+
+    globalise() {
+        const newIdx = [...this.idx];
+        const newDix = [...this.dix];
+        const boxVolume = this.box.volume;
+
+        [
+            ...this.identities,
+            ...this.orbits
+        ].forEach( orbit => orbit.points.forEach( point => {
+
+            const idxPoint = this.pointAt( point );
+            const diPoint = this.idx[ idxPoint.di ];
+
+            const id = point.id;
+            const di = diPoint.id;
+
+            const conjugateId = ( boxVolume - id - 1 );
+
+            // replace
+            point.indexes[this.id] = {
+                id: id,
+                di: di,
+                conjugateId: conjugateId,
+                jump: this.getJump( id, di ),
+                radiant: ( conjugateId - id )
+            };
+
+            newIdx[ id ] = point;
+            newDix[ di ] = point;
+        }));
+
+        this.idx = newIdx;
+        this.dix = newDix;
+    }
+
+
 
     joinPoints( pointIds, joinType = 0 ) {
 
@@ -327,8 +380,7 @@ class Index {
 
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
 
-               // only for radiants
-                if ( i == 0 && orbit.order == 2 ) {
+                if ( radiantOriginAndTerminusAreIdentities && i == 0 && orbit.order == 2 ) {
 
                     const [ coordsA, coordsB ] = orbit.conjugateCoords();
 

@@ -566,6 +566,7 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
     dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Type</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Perm. Pair</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Places</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
@@ -585,6 +586,7 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
             const permHtml = `[${ index.permReverse || '' }] - [${ index.permForward || '' }]`;
             var rowHtml = `<td>${ index.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getType() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.getLabel() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }] - [${ index.permForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }] - [${ index.placesForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;

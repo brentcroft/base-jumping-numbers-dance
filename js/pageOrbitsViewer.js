@@ -346,6 +346,17 @@ function getBasePlaneCycles( basePlane, toggles ) {
 
     const root = reify( "transform", { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` } );
 
+    const gid = toggles.globalIds == 1
+        ? ( point ) => point.id
+        : ( point ) => point.at( indexId ).id;
+
+    const gidJump = toggles.globalIds == 1
+        ? ( point ) => {
+            const wayPoint = basePlane.getPointFromIdx( point.at( indexId ).di );
+            return wayPoint.id - point.id;
+        }
+        : ( point ) => point.at( indexId ).jump;
+
     // IDENTITIES GRID
     const attr = { "linetype": "0" };
 
@@ -364,7 +375,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                         .map( identity => reify(
                                 "transform",
                                 {
-                                    "translation": `${ identity.points[0].at(indexId).id } 0 ${ zOff * -1 }`
+                                    "translation": `${ gid( identity.points[0] ) } 0 ${ zOff * -1 }`
                                 },
                                 [
                                     //createSphereShape( `grid-point-${ identity.points[0].coord.join( '-' ) }`, 0.2, "red", 0.3, JSON.stringify( identity.points[0].getJson() ) ),
@@ -416,11 +427,11 @@ function getBasePlaneCycles( basePlane, toggles ) {
         .map( identityOrbit => identityOrbit.points[0] )
         .map( identityPoint => {
             return {
-                "id": identityPoint.id,
+                "id": gid( identityPoint ),
                 "report": identityPoint.report(),
                 "json": identityPoint.getJson(),
                 "coord": identityPoint.coord,
-                "jump": identityPoint.at(indexId).jump
+                "jump": gidJump( identityPoint )
              };
         })
         .map( identity => reify(
@@ -469,10 +480,9 @@ function getBasePlaneCycles( basePlane, toggles ) {
                             ...orbit
                                 .points
                                 .map( ( entry, i ) => {
-                                        const point = entry.at(indexId);
-                                        const halfJump = point.jump / 2;
+                                        const halfJump = gidJump( entry ) / 2;
                                         return reify(
-                                            "transform", { "translation": `${ point.id } 0 0` },
+                                            "transform", { "translation": `${ gid( entry ) } 0 0` },
                                             [
                                                 //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 1.17, "red", 0.5, JSON.stringify( entry.getJson() ) ),
                                                 createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) ),

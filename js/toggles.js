@@ -10,13 +10,13 @@ toggleKeys = {
     grid: 1,
     chart3d: 0,
     jumps: 0,
-    //midi: 0,
-    more: 0,
+    more: 1,
     scale3d: 0,
     summary: 1,
-    indexComposer: 0,
+    indexComposer: 1,
     table: 1,
-    globalIds: 1,
+    globalIds: 0,
+    globalise: 1,
     palindromicComposites: 0,
     mixedComposites: 0,
     orthogonalComposites: 0,
@@ -26,6 +26,5 @@ toggleKeys = {
     productBlankIdentity: 1,
     productCommuteIdentity: 1,
     multi: 0,
-    orbitEditor: 0,
-    negpol: 0
+    orbitEditor: 0
 }

@@ -442,6 +442,8 @@ function rebuildIndexedBoxSummary() {
 
 function updatePage() {
 
+    consoleLog( `updatePage:` );
+
     const param = getControlValues();
 
     // TODO: global access
@@ -454,6 +456,11 @@ function updatePage() {
     rebuildIndexedBoxSummary();
 
     selectIndexPlane();
+
+    distributeMessages( 'sample_cs_b_10_m_2', [
+        { 'indexKey': param.planeIndex, 'sender': 'updatePage.' + (param.planeIndex || 1 ) },
+        { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'updatePage.' + (param.id || 1 ) }
+    ] );
 }
 
 function initPage( urlParam = true ) {
@@ -575,10 +582,4 @@ function initPage( urlParam = true ) {
             }
         }
     });
-
-    distributeMessages( 'sample_cs_b_10_m_2', [ { 'indexKey': cv.planeIndex, 'sender': 'initPage.1' } ] );
-
-    if ( param.id ) {
-        distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'initPage.' + param.id } ] );
-    }
 }

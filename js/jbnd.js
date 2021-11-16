@@ -83,6 +83,8 @@ class RadiantIndex extends Index {
         // establish coord index functions
         this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
+
+        this.label = 'r';
     }
 
     getType() {
@@ -107,6 +109,8 @@ class PlacesIndex extends Index {
         // establish coord index functions
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
         this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
+
+        this.label = 'a' + (id - 1); //String.fromCharCode( id - 2 + parseInt("03B1", 16 ) );
     }
 
     isPalindrome() {
@@ -120,7 +124,14 @@ class PlacesIndex extends Index {
 
 class CompositeIndex extends Index {
 
-    constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ] ) {
+    static compositeLabel( primaryIndex, secondaryIndex, inverse = [ false, false ] ) {
+        return `( ${ inverse[0] ? '-' : '' }${ primaryIndex.getLabel() }`
+            + " * "
+            + `${ inverse[1] ? '-' : '' }${ secondaryIndex.getLabel() } )`;
+}
+
+
+    constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ], autoInit = false ) {
         super( box, id );
 
         this.primaryIndex = primaryIndex;
@@ -133,7 +144,19 @@ class CompositeIndex extends Index {
         this.identityPlaneGcd = 1;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
+        //
+        this.label = CompositeIndex.compositeLabel( primaryIndex, secondaryIndex, inverse );
+
+        if ( autoInit ) {
+            this.indexPoints();
+        } else {
+            this.unindexed = true;
+        }
+    }
+
+    indexPoints() {
         this.box.points.forEach( point => this.indexPoint( point ) );
+        delete this.unindexed;
     }
 
     indexPoint( point ) {
@@ -188,9 +211,9 @@ class CompositeIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return `( ${ this.inverse[0] ? '-' : '' }${ this.primaryIndex.placesReverse ? this.primaryIndex.id : this.primaryIndex.getPlaneEquationTx() }`
-                + " o "
-                + `${ this.inverse[1] ? '-' : '' }${ this.secondaryIndex.placesReverse ? this.secondaryIndex.id : this.secondaryIndex.getPlaneEquationTx() } )`;
+        return `( ${ this.inverse[0] ? '-' : '' }${ this.primaryIndex.getLabel() }`
+                + " * "
+                + `${ this.inverse[1] ? '-' : '' }${ this.secondaryIndex.getLabel() } )`;
     }
 }
 
@@ -202,9 +225,15 @@ class IndexedBox {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
         this.box.points = [];
-        this.indexPlanes = [ new RadiantIndex( this.box, 0 ) ];
+
+        this.box.radiance = new RadiantIndex( this.box, 0 );
+        this.box.unity = new CompositeIndex( this.box, 1, this.box.radiance, this.box.radiance );
+        this.box.unity.label = 'e';
+        this.indexPlanes = [ this.box.radiance, this.box.unity ];
 
         const toggles = param.toggles || [];
+
+        const globalise = toggles.includes( "globalise" );
 
         if ( bases.length < 2 ) {
             this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length ) );
@@ -253,6 +282,7 @@ class IndexedBox {
         }
 
         this.buildIndexes();
+        this.box.unity.indexPoints();
 
         // set conjugates
         const numPoints = this.box.points.length;
@@ -260,7 +290,7 @@ class IndexedBox {
             point.conjugate = this.box.points[ numPoints - point.id - 1];
         } );
 
-        this.indexPlanes.forEach( plane => plane.initialise() );
+        this.indexPlanes.forEach( plane => plane.initialise( globalise ) );
 
 
         const palindromicComposites = toggles.includes( "palindromicComposites" );
@@ -277,7 +307,8 @@ class IndexedBox {
                         this.box,
                         this.indexPlanes.length,
                         p[ 0 ],
-                        p[ 1 ]
+                        p[ 1 ],
+                        true
                     );
                     ci.initialise();
                     this.indexPlanes.push( ci );
@@ -287,7 +318,8 @@ class IndexedBox {
                             this.box,
                             this.indexPlanes.length,
                             p[ 1 ],
-                            p[ 0 ]
+                            p[ 0 ],
+                            true
                         );
                         cia.initialise();
                         this.indexPlanes.push( cia );
@@ -305,7 +337,8 @@ class IndexedBox {
                         this.box,
                         this.indexPlanes.length,
                         p[ 0 ],
-                        p[ 1 ]
+                        p[ 1 ],
+                        true
                     );
                     ci.initialise();
                     this.indexPlanes.push( ci );
@@ -315,7 +348,8 @@ class IndexedBox {
                             this.box,
                             this.indexPlanes.length,
                             p[ 1 ],
-                            p[ 0 ]
+                            p[ 0 ],
+                            true
                         );
                         cia.initialise();
                         this.indexPlanes.push( cia );
@@ -332,7 +366,8 @@ class IndexedBox {
                         this.box,
                         this.indexPlanes.length,
                         p[ 0 ],
-                        p[ 1 ]
+                        p[ 1 ],
+                        true
                     );
                     ci.initialise();
                     this.indexPlanes.push( ci );
@@ -342,14 +377,22 @@ class IndexedBox {
                             this.box,
                             this.indexPlanes.length,
                             p[ 1 ],
-                            p[ 0 ]
+                            p[ 0 ],
+                            true
                         );
                         cia.initialise();
                         this.indexPlanes.push( cia );
                     }
                 } );
         }
+    }
 
+    getIndexMap( label ) {
+        const keys = {};
+        this
+            .indexPlanes
+            .forEach( p => keys[ p.getLabel() ] = p );
+        return keys;
     }
 
     buildAndInitialiseCompositeIndex( ids ) {
@@ -363,12 +406,12 @@ class IndexedBox {
 
         function ciName( ids ) {
             return ids.length > 2
-                ? `( ${ ids[0] } o ` + ciName( ids.slice( 1 ) ) + " )"
-                : `( ${ ids[0] } o ${ ids[1] } )`;
+                ? `( ${ ids[0] } * ` + ciName( ids.slice( 1 ) ) + " )"
+                : `( ${ ids[0] } * ${ ids[1] } )`;
         }
 
         const n =  ciName( ids );
-        const existingPlanes = this.indexPlanes.filter( p => p.getPlaneEquationTx().trim() == n );
+        const existingPlanes = this.indexPlanes.filter( p => p.getLabel() == n );
 
         if (existingPlanes.length > 0 ) {
             consoleLog( `existingPlane: ${ n }`);
@@ -390,7 +433,8 @@ class IndexedBox {
             this.indexPlanes.length,
             this.indexPlanes[ id0 ],
             plane,
-            [ inverse0, inverse1 ]
+            [ inverse0, inverse1 ],
+            true
         );
 
         ci.initialise();
@@ -411,7 +455,9 @@ class IndexedBox {
         if ( place == this.box.bases.length ) {
             const point = new Point( this.box.points.length, locusStack, this.box.centre );
             this.box.points.push( point );
-            this.indexPlanes.forEach( indexer => indexer.indexPoint( point ) );
+            this.indexPlanes
+                .filter( i => !( i instanceof CompositeIndex ) )
+                .forEach( indexer => indexer.indexPoint( point ) );
         } else {
             for ( var i = 0; i < this.box.bases[place]; i++) {
                 locusStack.push( i );

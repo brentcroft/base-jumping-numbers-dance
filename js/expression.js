@@ -496,6 +496,10 @@ class Formula {
         return this.formulaExpression ? this.formulaExpression.toString() : '';
     }
 
+    toString() {
+        return this.getExpressionString();
+    }
+
     static calc(formula, valueObj, options = {}) {
         valueObj = valueObj || {};
         return new Formula(formula, options).evaluate(valueObj);
@@ -600,16 +604,28 @@ class PowerExpression extends Expression {
         var locus = params['e'];
         if ( exp == 0 ) {
             return params['e'];
-        }
-        for ( var i = 0; i < exp; i++ ) {
-            locus = new CompositeIndex(
-                        locus.box,
-                        Math.round( Math.random() * 10000 + 1),
-                        locus,
-                        this.base.evaluate(params),
-                        [ false, false ],
-                        ( i < (exp - 1))
-                    );
+        } else if ( exp > 0 ) {
+            for ( var i = 0; i < exp; i++ ) {
+                locus = new CompositeIndex(
+                            locus.box,
+                            Math.round( Math.random() * 10000 + 1),
+                            locus,
+                            this.base.evaluate(params),
+                            [ false, false ],
+                            ( i < (exp - 1))
+                        );
+            }
+        } else if ( exp < 0 ) {
+            for ( var i = 0; i > exp; i-- ) {
+                locus = new CompositeIndex(
+                            locus.box,
+                            Math.round( Math.random() * 10000 + 1),
+                            locus,
+                            this.base.evaluate(params),
+                            [ false, true ],
+                            ( i > (exp + 1))
+                        );
+            }
         }
 
         return locus;

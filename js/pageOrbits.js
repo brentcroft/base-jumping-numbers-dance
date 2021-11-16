@@ -552,15 +552,21 @@ function initPage( urlParam = true ) {
                 }
             } else if ( data.indexKey ) {
 
-                document.getElementById( 'planeIndex' ).value = data.indexKey;
+                const nextPlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
 
-                // swap global basePlane and register
-                // so child frames can access it.
-                basePlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
-                putBasePlane( basePlane.key, basePlane );
+                if ( nextPlane ) {
+                    document.getElementById( 'planeIndex' ).value = data.indexKey;
 
-                showIndex( "indexSummary", data.sender );
-                updateJson();
+                    // swap global basePlane and register
+                    // so child frames can access it.
+                    basePlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
+                    putBasePlane( basePlane.key, basePlane );
+
+                    showIndex( "indexSummary", data.sender );
+                    updateJson();
+                } else {
+                    consoleLog( `Select Index: No such index: ${ data.indexKey }` );
+                }
 
             } else if ( data.basePlaneKey ) {
                 const basePlane = getBasePlane( data.basePlaneKey );

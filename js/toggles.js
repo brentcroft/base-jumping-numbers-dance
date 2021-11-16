@@ -13,14 +13,16 @@ toggleKeys = {
     more: 1,
     scale3d: 0,
     summary: 1,
-    indexComposer: 1,
     table: 1,
+
     globalIds: 0,
     globalise: 1,
-    palindromicComposites: 0,
-    mixedComposites: 0,
-    orthogonalComposites: 0,
-    associates: 0,
+
+    indexComposer: 1,
+    palindromicPlanes: 1,
+    mixedPlanes: 2,
+    orthogonalPlanes: 3,
+
     products: 0,
     productByOrbits: 1,
     productBlankIdentity: 1,

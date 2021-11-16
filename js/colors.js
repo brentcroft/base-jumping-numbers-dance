@@ -1,6 +1,4 @@
 
-//const orbits = [ 1, 2, 5, 6, 9, 10, 15, 16];
-
 colourPointIndexDefault = {
     bases: [ 11, 5, 7 ],
     planeIndex: 9,
@@ -12,7 +10,7 @@ colourPointIndexDefault = {
 class ColorBasePlane extends IndexedBox {
 
     constructor( bases, colorPlaneIndex = 1, colorOrbitIndex = 0, minPixel = 0, maxPixel = 255 ) {
-        super( bases );
+        super( bases, { toggles: ['palindromicPlanes','mixedPlanes','orthogonalPlanes'] } );
         this.colorPlaneIndex = colorPlaneIndex;
         this.colorOrbitIndex = colorOrbitIndex;
         this.minPixel = minPixel;

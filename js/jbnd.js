@@ -93,7 +93,7 @@ class RadiantIndex extends Index {
 }
 
 class PlacesIndex extends Index {
-    constructor( box, id = 0, placeIndexorPair ) {
+    constructor( box, id = 0, placeIndexorPair, label ) {
         super( box, id );
         [
             [ this.permForward, this.placesForward ],
@@ -110,7 +110,7 @@ class PlacesIndex extends Index {
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
         this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
-        this.label = 'a' + (id - 1); //String.fromCharCode( id - 2 + parseInt("03B1", 16 ) );
+        this.label = label ? label : ('a' + (id - 1));
     }
 
     isPalindrome() {
@@ -218,8 +218,6 @@ class CompositeIndex extends Index {
 }
 
 
-
-
 class IndexedBox {
     constructor( bases = [], param = {} ) {
         this.box = new Box( bases );
@@ -274,11 +272,17 @@ class IndexedBox {
             this.secondaries.sort( sorter );
             this.degenerates.sort( sorter );
 
-            [
-                ...this.palindromes,
-                ...this.secondaries,
-                ...this.degenerates
-            ].forEach( pi => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi ) ) );
+            const initialPlanes = [ ];
+
+            if ( toggles.includes( "palindromicPlanes" ) ) {
+                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a' + i ) ) );
+            }
+            if ( toggles.includes( "mixedPlanes" ) ) {
+                this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b' + i ) ) );
+            }
+            if ( toggles.includes( "orthogonalPlanes" ) ) {
+                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c' + i ) ) );
+            }
         }
 
         this.buildIndexes();
@@ -291,100 +295,6 @@ class IndexedBox {
         } );
 
         this.indexPlanes.forEach( plane => plane.initialise( globalise ) );
-
-
-        const palindromicComposites = toggles.includes( "palindromicComposites" );
-        const mixedComposites = toggles.includes( "mixedComposites" );
-        const orthogonalComposites = toggles.includes( "orthogonalComposites" );
-        const associates = toggles.includes( "associates" );
-
-        if ( palindromicComposites ) {
-            pairs( this.indexPlanes.filter( i => i.isPalindrome() ) )
-                //.flatMap( p => [ p, [ p[1], p[0] ] ] )
-                .forEach( p => {
-
-                    const ci = new CompositeIndex(
-                        this.box,
-                        this.indexPlanes.length,
-                        p[ 0 ],
-                        p[ 1 ],
-                        true
-                    );
-                    ci.initialise();
-                    this.indexPlanes.push( ci );
-
-                    if ( associates ) {
-                        const cia = new CompositeIndex(
-                            this.box,
-                            this.indexPlanes.length,
-                            p[ 1 ],
-                            p[ 0 ],
-                            true
-                        );
-                        cia.initialise();
-                        this.indexPlanes.push( cia );
-                    }
-                } );
-        }
-
-
-        if ( mixedComposites ) {
-            pairs( this.indexPlanes.filter( i => !i.isOrthogonal() && !i.isPalindrome() && i.id > 0 ) )
-                //.flatMap( p => [ p, [ p[1], p[0] ] ] )
-                .forEach( p => {
-
-                    const ci = new CompositeIndex(
-                        this.box,
-                        this.indexPlanes.length,
-                        p[ 0 ],
-                        p[ 1 ],
-                        true
-                    );
-                    ci.initialise();
-                    this.indexPlanes.push( ci );
-
-                    if ( associates ) {
-                        const cia = new CompositeIndex(
-                            this.box,
-                            this.indexPlanes.length,
-                            p[ 1 ],
-                            p[ 0 ],
-                            true
-                        );
-                        cia.initialise();
-                        this.indexPlanes.push( cia );
-                    }
-                } );
-        }
-
-        if ( orthogonalComposites ) {
-            pairs( this.indexPlanes.filter( i => i.isOrthogonal() && !i.isPalindrome() ) )
-                //.flatMap( p => [ p, [ p[1], p[0] ] ] )
-                .forEach( p => {
-
-                    const ci = new CompositeIndex(
-                        this.box,
-                        this.indexPlanes.length,
-                        p[ 0 ],
-                        p[ 1 ],
-                        true
-                    );
-                    ci.initialise();
-                    this.indexPlanes.push( ci );
-
-                    if ( associates ) {
-                        const cia = new CompositeIndex(
-                            this.box,
-                            this.indexPlanes.length,
-                            p[ 1 ],
-                            p[ 0 ],
-                            true
-                        );
-                        cia.initialise();
-                        this.indexPlanes.push( cia );
-                    }
-                } );
-        }
     }
 
     getIndexMap( label ) {
@@ -397,6 +307,11 @@ class IndexedBox {
 
     buildAndInitialiseCompositeIndex( ids ) {
         return this.buildCompositeIndex( ids );
+    }
+
+    findExistingIndexes( index ) {
+        const matches = this.indexPlanes.filter( p => p.equals( index ) );
+        return matches.length > 0 ? matches[0] : null;
     }
 
     buildCompositeIndex( ids ) {

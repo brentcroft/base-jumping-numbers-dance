@@ -1,7 +1,7 @@
 
 const nonTrivialIndexJump = 0;
 const nonTrivialPerimeterJump = 0.0;
-const radiantOriginAndTerminusAreIdentities = true;
+const radiantOriginAndTerminusAreIdentities = false;
 
 var indexMap = {};
 
@@ -90,6 +90,27 @@ class Index {
         const orbit = this.orbits.find( orbit => orbit.points.includes( point ) );
         return orbit ? orbit : this.identities.find( identity => identity.points.includes( point ) );
     }
+
+    equals( other ) {
+        const matchedOrbits = [ ...this.identities, ...this.orbits ]
+            .filter( orbit => {
+                const otherOrbit = other.getOrbit( orbit.points[0] );
+                if ( !otherOrbit || otherOrbit.order != orbit.order ) {
+                    return false;
+                }
+                const otherPoints = otherOrbit.points;
+                const offset = otherPoints.indexOf( orbit.points[0] );
+                for ( var i = 0; i < otherPoints.length; i++ ) {
+                    if ( orbit.points[i] != otherPoints[ i + offset ] ) {
+                        return false;
+                    }
+                }
+                return true;
+            } );
+
+        return matchedOrbits.length == ( this.identities.length + this.orbits.length );
+    }
+
 
     apply( point ) {
         return this.getPointFromIdx( this.pointAt( point ).di );

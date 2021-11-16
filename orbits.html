@@ -264,11 +264,9 @@
         <div id="summaryControls" class="toolbar" style="display: none">
             <hr/>
             <label title="display index composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
-            <label title="generate associate composite indexes">associates <input type="checkbox" id="associatesToggle" onchange="updatePage()"/></label> |
-            composites:
-            <label title="generate palindromic composite indexes">pal <input type="checkbox" id="palindromicCompositesToggle" onchange="updatePage()"/></label> |
-            <label title="generate mixed composite indexes">mix <input type="checkbox" id="mixedCompositesToggle" onchange="updatePage()"/></label> |
-            <label title="generate orthogonal composite indexes">orth <input type="checkbox" id="orthogonalCompositesToggle" onchange="updatePage()"/></label>
+            <label title="generate palindromes">pal <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="generate mixed planes">mix <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="generate orthogonal planes">orth <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
         </div>
 
         <div id="indexComposer" style="display: none">
@@ -282,23 +280,31 @@
                     const pidsLines = pidsSetText.split( /\s*;\s*/ );
 
                     if ( pidsLines.length > 0 ) {
-
                         try {
-                            const demo = pidsLines
+                            const results = pidsLines
                                 .map( ft => new Formula( indexedBox, ft ) )
-
-                            const results = demo.map( f => f.evaluate() );
+                                .map( f => [ f, f.evaluate() ] );
 
                             results
-                                .filter( r => r.unindexed )
-                                .forEach( r => {
+                                .filter( r => r[1].unindexed )
+                                .forEach( result => {
+                                    const [ f, r ] = result;
                                     r.id = indexedBox.indexPlanes.length;
                                     r.indexPoints();
                                     r.initialise();
-                                    indexedBox.indexPlanes.push( r );
+
+                                    const existingIndex = indexedBox.findExistingIndexes( r );
+
+                                    if ( existingIndex ) {
+                                        result[1] = existingIndex;
+                                    } else {
+                                        indexedBox.indexPlanes.push( r );
+                                    }
                             } );
 
-                            document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ results.join( "\n" ) }</pre>`;
+                            const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
+
+                            document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
 
                             rebuildIndexedBoxSummary();
 
@@ -309,7 +315,7 @@
                     }
                 }
             </script>
-            <label>Compose ids: <textarea type="text" id="selectedPlaneIds" class="colourField">a1 * a2</textarea></label>
+            <label>Compose ids: <textarea type="text" id="selectedPlaneIds" class="colourField">a0 * a1 * a2</textarea></label>
             <label><input type="button" onclick="createPlanes()" value="compose"/></label>
 
             <div id="summaryEditorResult"></div>

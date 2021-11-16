@@ -13,12 +13,12 @@ toggleKeys = {
     more: 1,
     scale3d: 0,
     summary: 1,
-    table: 1,
+    table: 0,
 
     globalIds: 0,
     globalise: 1,
 
-    indexComposer: 1,
+    indexComposer: 0,
     palindromicPlanes: 1,
     mixedPlanes: 2,
     orthogonalPlanes: 3,

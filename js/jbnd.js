@@ -274,14 +274,14 @@ class IndexedBox {
 
             const initialPlanes = [ ];
 
-            if ( toggles.includes( "palindromicPlanes" ) ) {
-                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a' + i ) ) );
+            if ( toggles.includes( "orthogonalPlanes" ) ) {
+                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c' + i ) ) );
             }
             if ( toggles.includes( "mixedPlanes" ) ) {
                 this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b' + i ) ) );
             }
-            if ( toggles.includes( "orthogonalPlanes" ) ) {
-                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c' + i ) ) );
+            if ( toggles.includes( "palindromicPlanes" ) ) {
+                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a' + i ) ) );
             }
         }
 

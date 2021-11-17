@@ -488,6 +488,7 @@ class Formula {
             const existingIndexes = this.indexedBox.findMatchingIndexes( r );
 
             if ( existingIndexes.length == 0 ) {
+                r.label = this.getExpressionString();
                 this.indexedBox.indexPlanes.push( r );
                 return r;
             }

@@ -204,7 +204,7 @@ class CompositeIndex extends Index {
     }
 
     getPlaneEquationTx() {
-        return this.getLabel();
+        return this.alias;
     }
 }
 

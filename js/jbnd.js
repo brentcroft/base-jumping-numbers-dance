@@ -208,6 +208,19 @@ class CompositeIndex extends Index {
 
 
 class IndexedBox {
+
+    static indexSorter( a, b ) {
+        return (a.getLabel() == "r")
+            ? -1
+            : ( b.getLabel() == "r")
+                ? 1
+                : (a.getLabel() == "e")
+                    ? -1
+                    : ( b.getLabel() == "e")
+                        ? 1
+                        : a.getLabel().localeCompare( b.getLabel() );
+    }
+
     constructor( bases = [], param = {} ) {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
@@ -300,6 +313,10 @@ class IndexedBox {
 
     findExistingIndexes( index ) {
         const matches = this.indexPlanes.filter( p => p.equals( index ) );
+        if ( matches.length > 1 ) {
+
+            matches.sort( IndexedBox.indexSorter  );
+        }
         return matches.length > 0 ? matches[0] : null;
     }
 

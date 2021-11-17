@@ -17,6 +17,7 @@ class Index {
 
         this.forwardFrom = 0;
         this.reverseFrom = 0;
+        this.label = 'xxx';
     }
 
     getLabel() {
@@ -92,6 +93,13 @@ class Index {
     }
 
     equals( other ) {
+        const totalOrbits = ( this.identities.length + this.orbits.length );
+        const totalOtherOrbits = ( other.identities.length + other.orbits.length );
+
+        if ( totalOrbits != totalOtherOrbits ) {
+            return false;
+        }
+
         const matchedOrbits = [ ...this.identities, ...this.orbits ]
             .filter( orbit => {
                 const otherOrbit = other.getOrbit( orbit.points[0] );
@@ -108,7 +116,7 @@ class Index {
                 return true;
             } );
 
-        return matchedOrbits.length == ( this.identities.length + this.orbits.length );
+        return matchedOrbits.length == totalOrbits;
     }
 
 

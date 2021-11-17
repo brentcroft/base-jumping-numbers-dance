@@ -39,7 +39,7 @@ class Formula {
         this.formulaExpression = null;
         this.options = Object.assign(
             {
-                memoization: false
+                memoization: true
             },
             options
         );
@@ -467,7 +467,7 @@ class Formula {
             if (res !== null) {
                 return res;
             } else {
-                res = expr.evaluate({ ...MATH_CONSTANTS, ...valueObj });
+                res = expr.evaluate({ ...this.indexedBox.getIndexMap(), ...valueObj });
                 this.storeInMemory(valueObj, res);
                 return res;
             }
@@ -484,7 +484,7 @@ class Formula {
                 return r;
             }
 
-            r.id = indexedBox.indexPlanes.length + 1;
+            r.id = indexedBox.indexPlanes.length;
             r.indexPoints();
             r.initialise();
 

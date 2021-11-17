@@ -558,6 +558,17 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
 
     consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
 
+
+    indexedBox
+            .indexPlanes
+            .forEach( index => {
+                try {
+                    index.alias = new Formula( indexedBox, `${ index.getLabel() }^1` ).evaluate();
+                } catch ( e ) {
+                    consoleLog( `Error getting alias: ${ e }`);
+                }
+            } );
+
     const sep = ", ";
     const tableId = 'indexSummary_table';
     var columnId = 0;
@@ -585,18 +596,10 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
             const selectedClass = selectedIndex == index.id ? "class='selected'" : "";
             const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
 
-            const test = `${ index.getLabel() }^1`;
-            var aliasLabel = "";
-            try {
-                aliasLabel = new Formula( indexedBox, test ).evaluate();
-            } catch ( e ) {
-                consoleLog( `Error getting alias: ${ e }`);
-            }
-
             var rowHtml = `<td>${ index.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getType() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getLabel() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ aliasLabel == index.getLabel() ? '' : aliasLabel }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ !index.alias || index.alias == index.getLabel() ? '' : index.alias }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }] - [${ index.permForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }] - [${ index.placesForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;

@@ -20,8 +20,8 @@ toggleKeys = {
 
     indexComposer: 1,
     palindromicPlanes: 1,
-    mixedPlanes: 2,
-    orthogonalPlanes: 3,
+    mixedPlanes: 1,
+    orthogonalPlanes: 1,
 
     products: 0,
     productByOrbits: 1,

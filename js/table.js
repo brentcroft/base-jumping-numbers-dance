@@ -561,6 +561,7 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
 
     indexedBox
             .indexPlanes
+            .filter( index => !index.alias )
             .forEach( index => {
                 try {
                     index.alias = new Formula( indexedBox, `${ index.getLabel() }^1` ).evaluate();

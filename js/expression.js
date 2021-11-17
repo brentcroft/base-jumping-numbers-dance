@@ -480,9 +480,6 @@ class Formula {
         const r = this._evaluate(valueObj);
 
         if ( r instanceof CompositeIndex ) {
-            if ( !r.unindexed ) {
-                return r;
-            }
 
             r.id = indexedBox.indexPlanes.length;
             r.indexPoints();
@@ -613,7 +610,7 @@ class OperatorExpression extends Expression {
                 leftIndex,
                 rightIndex,
                 inverse,
-                false
+                true
             );
     }
 
@@ -642,7 +639,7 @@ class PowerExpression extends Expression {
                             locus,
                             this.base.evaluate(params),
                             [ false, false ],
-                            false
+                            true
                         );
             }
         } else if ( exp < 0 ) {
@@ -653,7 +650,7 @@ class PowerExpression extends Expression {
                             locus,
                             this.base.evaluate(params),
                             [ false, true ],
-                            false
+                            true
                         );
             }
         }

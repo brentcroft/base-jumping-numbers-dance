@@ -1,6 +1,6 @@
 
 function consoleLog( s ) {
-    //console.log( s );
+    console.log( s );
 }
 
 const PI = 3.1415926;

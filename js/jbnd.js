@@ -110,7 +110,7 @@ class PlacesIndex extends Index {
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
         this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
-        this.label = label ? label : ('a' + (id - 1));
+        this.label = label ? label : ('z' + (id - 1));
     }
 
     isPalindrome() {
@@ -131,7 +131,7 @@ class CompositeIndex extends Index {
     }
 
 
-    constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ], autoInit = false ) {
+    constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ], autoInit = false, alias ) {
         super( box, id );
 
         this.primaryIndex = primaryIndex;
@@ -146,6 +146,7 @@ class CompositeIndex extends Index {
 
         //
         this.label = CompositeIndex.compositeLabel( primaryIndex, secondaryIndex, inverse );
+        this.alias = alias || '';
 
         if ( autoInit ) {
             this.indexPoints();
@@ -188,7 +189,7 @@ class CompositeIndex extends Index {
         const existingPointIndexData = point.indexes[ this.id ];
 
         if ( existingPointIndexData ) {
-            consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
+            //consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
         }
 
         point.indexes[this.id] = pointIndexData;
@@ -227,7 +228,7 @@ class IndexedBox {
         this.box.points = [];
 
         this.box.radiance = new RadiantIndex( this.box, 0 );
-        this.box.unity = new CompositeIndex( this.box, 1, this.box.radiance, this.box.radiance );
+        this.box.unity = new CompositeIndex( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, 'r * r' );
         this.box.unity.label = 'e';
         this.indexPlanes = [ this.box.radiance, this.box.unity ];
 

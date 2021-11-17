@@ -85,6 +85,7 @@ class RadiantIndex extends Index {
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
         this.label = 'r';
+        this.alias = 'e^(1/2)'
     }
 
     getType() {
@@ -210,16 +211,19 @@ class CompositeIndex extends Index {
 
 class IndexedBox {
 
+//    static indexSorter( a, b ) {
+//        return (a.getLabel() == "r")
+//            ? -1
+//            : ( b.getLabel() == "r")
+//                ? 1
+//                : (a.getLabel() == "e")
+//                    ? -1
+//                    : ( b.getLabel() == "e")
+//                        ? 1
+//                        : a.getLabel().localeCompare( b.getLabel() );
+//    }
     static indexSorter( a, b ) {
-        return (a.getLabel() == "r")
-            ? -1
-            : ( b.getLabel() == "r")
-                ? 1
-                : (a.getLabel() == "e")
-                    ? -1
-                    : ( b.getLabel() == "e")
-                        ? 1
-                        : a.getLabel().localeCompare( b.getLabel() );
+        return a.id - b.id;
     }
 
     constructor( bases = [], param = {} ) {
@@ -312,13 +316,10 @@ class IndexedBox {
         return this.buildCompositeIndex( ids );
     }
 
-    findExistingIndexes( index ) {
+    findMatchingIndexes( index ) {
         const matches = this.indexPlanes.filter( p => p.equals( index ) );
-        if ( matches.length > 1 ) {
-
-            matches.sort( IndexedBox.indexSorter  );
-        }
-        return matches.length > 0 ? matches[0] : null;
+        matches.sort( IndexedBox.indexSorter  );
+        return matches;
     }
 
     buildCompositeIndex( ids ) {

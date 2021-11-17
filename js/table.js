@@ -242,11 +242,11 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
     chainsText += "<th colspan='1'></th>";
 
-    chainsText += `<th colspan='1'><code>${ basePlane.identityEuclideanRadiance() }</code></th>`;
+    chainsText += `<th colspan='1' class="minuend"><code>${ basePlane.identityEuclideanRadiance() }</code></th>`;
     chainsText += `<th colspan='1'><code>${ basePlane.identityEuclideanPerimeter() }</code></th>`;
     chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityEuclideanTension() }</code></th>`;
 
-    chainsText += `<th colspan='1'><code>${ basePlane.identityIndexRadiance() }</code></th>`;
+    chainsText += `<th colspan='1' class="minuend"><code>${ basePlane.identityIndexRadiance() }</code></th>`;
     chainsText += `<th colspan='1'><code>${ basePlane.identityIndexPerimeter() }</code></th>`;
     chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityIndexTorsion() }</code></th>`;
 
@@ -373,17 +373,17 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td align="center">${ orbit.centreRef }</td>`;
 
         if ( orbit.isFirstConjugate() && conj ) {
-            chainsText += `<td align="center">${ orbit.euclideanRadiance() * 2 }</td>`;
+            chainsText += `<td align="center" class="minuend">${ orbit.euclideanRadiance() * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.euclideanPerimeter() * 2 }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() * 2 }</td>`;
-            chainsText += `<td align="center">${ orbit.indexRadiance() * 2 }</td>`;
+            chainsText += `<td align="center" class="minuend">${ orbit.indexRadiance() * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.indexPerimeter() * 2 }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() * 2 }</td>`;
         } else {
-            chainsText += `<td align="center">${ orbit.euclideanRadiance() }</td>`;
+            chainsText += `<td align="center" class="minuend">${ orbit.euclideanRadiance() }</td>`;
             chainsText += `<td align="center">${ orbit.euclideanPerimeter() }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
-            chainsText += `<td align="center">${ orbit.indexRadiance() }</td>`;
+            chainsText += `<td align="center" class="minuend">${ orbit.indexRadiance() }</td>`;
             chainsText += `<td align="center">${ orbit.indexPerimeter() }</td>`;
             chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
         }
@@ -459,7 +459,7 @@ function drawBasePlaneTable( tableArgs ) {
     ];
 
     chainsText += "<td colspan='2'></td>";
-    chainsText += factoredTableTotalBlock( basePlane.grossEuclideanRadiance(), [ ...trialCommonDenominators ], totalClick );
+    chainsText += factoredTableTotalBlock( basePlane.grossEuclideanRadiance(), [ ...trialCommonDenominators ], totalClick, classList = ['minuend' ] );
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanPerimeter(), [ ...trialCommonDenominators ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
 
@@ -468,7 +468,7 @@ function drawBasePlaneTable( tableArgs ) {
     var indexRadianceGcd = gcd( indexRadiance, indexRadianceRoot );
     var torsionGcd = gcd( basePlane.grossIndexPerimeter(), basePlane.grossIndexTorsion() );
 
-    chainsText += factoredTableTotalBlock( indexRadiance, [ indexRadianceRoot ], totalClick );
+    chainsText += factoredTableTotalBlock( indexRadiance, [ indexRadianceRoot ], totalClick, classList = ['minuend' ] );
     chainsText += factoredTableTotalBlock( basePlane.grossIndexPerimeter(), [ torsionGcd ], totalClick );
     chainsText += factoredTableTotalBlock( basePlane.grossIndexTorsion(), [ torsionGcd ], totalClick, classList = ['difference' ]  );
 
@@ -564,7 +564,8 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
             .filter( index => !index.alias )
             .forEach( index => {
                 try {
-                    index.alias = new Formula( indexedBox, `${ index.getLabel() }^1` ).evaluate();
+                    const aliasIndex = new Formula( indexedBox, `${ index.getLabel() }^1` ).evaluate();
+                    index.alias = aliasIndex.getLabel();
                 } catch ( e ) {
                     consoleLog( `Error getting alias: ${ e }`);
                 }
@@ -587,8 +588,8 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Rad</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Rad</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Per<sup>2</sup></th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Per</th>`;
     dataHtml += "</tr><tr>";
     dataHtml += indexedBox
         .indexPlanes
@@ -600,7 +601,7 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
             var rowHtml = `<td>${ index.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getType() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getLabel() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ !index.alias || index.alias == index.getLabel() ? '' : index.alias }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ (!index.alias || index.alias == index.getLabel() ) ? '' : index.alias }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }] - [${ index.permForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }] - [${ index.placesForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;

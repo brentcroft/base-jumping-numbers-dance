@@ -109,7 +109,7 @@ class Index {
                 const otherPoints = otherOrbit.points;
                 const offset = otherPoints.indexOf( orbit.points[0] );
                 for ( var i = 0; i < otherPoints.length; i++ ) {
-                    if ( orbit.points[i] != otherPoints[ i + offset ] ) {
+                    if ( orbit.points[i] != otherPoints[ ( i + offset ) % otherPoints.length ] ) {
                         return false;
                     }
                 }

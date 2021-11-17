@@ -485,13 +485,14 @@ class Formula {
             r.indexPoints();
             r.initialise();
 
-            const existingIndex = this.indexedBox.findExistingIndexes( r );
+            const existingIndexes = this.indexedBox.findMatchingIndexes( r );
 
-            if ( !existingIndex ) {
+            if ( existingIndexes.length == 0 ) {
                 this.indexedBox.indexPlanes.push( r );
+                return r;
             }
 
-            return existingIndex || r;
+            return existingIndexes[0];
         } else {
             return r;
         }

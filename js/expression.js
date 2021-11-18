@@ -456,7 +456,7 @@ class Formula {
     _evaluate(valueObj) {
         // resolve multiple value objects recursively:
         if (valueObj instanceof Array) {
-            return valueObj.map((v) => this.evaluate(v));
+            return valueObj.map((v) => this._evaluate(v));
         }
         let expr = this.getExpression();
         if (!(expr instanceof Expression)) {

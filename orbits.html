@@ -12,6 +12,9 @@
         .full-width {
             clear: both;
         }
+        textarea.formulaPanel {
+            width: 100%;
+        }
 
         .caption {
             float: left;
@@ -194,7 +197,7 @@
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="4"/>x
+                <input type="number" min="1" id="b0" value="7"/>x
                 <input type="number" min="1" id="b1" value="3"/>x
                 <input type="number" min="1" id="b2" value="2"/>
             </span> |
@@ -283,13 +286,22 @@
                     const pidsSetText = document.getElementById( 'selectedPlaneIds' ).value;
                     const pidsLines = pidsSetText
                         .split( /\s*;\s*/ )
-                        .filter( l => l.trim().length == 0 || !l.trim().startsWith( '#' ));
+                        .map( ft => ft.trim() )
+                        .filter( ft => ft.length > 0 )
+                        .filter( ft => !ft.startsWith( '#' ) );
 
                     if ( pidsLines.length > 0 ) {
                         try {
+
+                            function dump( index ) {
+                                const idxText = index.idx.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
+                                const dixText = index.dix.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
+                                return `\nidx: ${ idxText }\ndix: ${ dixText }`;
+                            }
+
                             const results = pidsLines
                                 .map( ft => new Formula( indexedBox, ft ) )
-                                .map( f => [ f, f.evaluate() ] );
+                                .map( f => [ f, f.evaluate( { dump: dump } ) ] );
 
                             const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
 
@@ -304,19 +316,23 @@
                     }
                 }
             </script>
-            <label>Compose: 
-<textarea type="text" id="selectedPlaneIds" class="colourField" rows="10"># compositions;
+
+            <label><input type="button" onclick="createPlanes()" value="compose"/></label>
+
+<textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="10"># compositions;
 (c_0 * (c_2 * c_4)^-1)^-1;
 c_0 * c_2 * c_4;
 ((c_0 * c_2)^-1 * c_4)^-1;
 c_4 * c_2;
 c_2 * c_4;
+c_4^-1 * c_0;
+c_4 * c_0^-1;
 c_2 * c_0;
 c_0 * c_2;
-c_4 * c_0;
-c_0 * c_4
-</textarea></label>
-            <label><input type="button" onclick="createPlanes()" value="compose"/></label>
+dump( c_4 );
+dump( c_5 )
+</textarea>
+
 
             <span id="summaryEditorResult"></span>
             <div id="summaryEditorErrorMessage" class="difference"></div>

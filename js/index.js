@@ -119,6 +119,34 @@ class Index {
         return matchedOrbits.length == totalOrbits;
     }
 
+//    equals2( other ) {
+//
+//        const oidx = other.idx;
+//        const odix = other.dix;
+//
+//        oidx.indexOf()
+//        this.idx
+//            .map( (p,i) => { } );
+//
+//        const matchedOrbits = [ ...this.identities, ...this.orbits ]
+//            .filter( orbit => {
+//                const otherOrbit = other.getOrbit( orbit.points[0] );
+//                if ( !otherOrbit || otherOrbit.order != orbit.order ) {
+//                    return false;
+//                }
+//                const otherPoints = otherOrbit.points;
+//                const offset = otherPoints.indexOf( orbit.points[0] );
+//                for ( var i = 0; i < otherPoints.length; i++ ) {
+//                    if ( orbit.points[i] != otherPoints[ ( i + offset ) % otherPoints.length ] ) {
+//                        return false;
+//                    }
+//                }
+//                return true;
+//            } );
+//
+//        return matchedOrbits.length == totalOrbits;
+//    }
+
 
     apply( point ) {
         const p = this.pointAt( point );

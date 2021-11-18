@@ -16,7 +16,7 @@ toggleKeys = {
     table: 0,
 
     globalIds: 0,
-    globalise: 1,
+    globalise: 0,
 
     indexComposer: 1,
     palindromicPlanes: 1,

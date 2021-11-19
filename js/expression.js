@@ -504,6 +504,8 @@ class Formula {
             const existingIndexes = this.indexedBox.findMatchingIndexes( r );
 
             if ( existingIndexes.length == 0 ) {
+                r.label = this.getExpressionString();
+                r.alias = r.label;
                 this.indexedBox.indexPlanes.push( r );
                 return r;
             }
@@ -511,7 +513,7 @@ class Formula {
             const existingIndex = existingIndexes[0];
 
             if ( !existingIndex.alias || existingIndex.alias == existingIndex.getLabel() ) {
-                existingIndex.alias = r.getLabel();
+                existingIndex.alias = this.getExpressionString();
             }
 
             return existingIndex;

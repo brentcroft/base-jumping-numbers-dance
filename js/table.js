@@ -558,19 +558,6 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
 
     consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
 
-
-    indexedBox
-            .indexPlanes
-            .filter( index => !index.alias )
-            .forEach( index => {
-                try {
-                    const aliasIndex = new Formula( indexedBox, `${ index.getLabel() }^1` ).evaluate();
-                    index.alias = aliasIndex.getLabel();
-                } catch ( e ) {
-                    consoleLog( `Error getting alias: ${ e }`);
-                }
-            } );
-
     const sep = ", ";
     const tableId = 'indexSummary_table';
     var columnId = 0;

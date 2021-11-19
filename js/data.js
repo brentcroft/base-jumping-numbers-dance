@@ -392,7 +392,6 @@ function placeValuesPermutation( bases, perm = [] ) {
     return p;
 }
 
-
 function getCompositions( basis = 3 ) {
     return [
         "# compositions;",
@@ -411,6 +410,10 @@ function getCompositions( basis = 3 ) {
 
         "# a_2 ;",
         "b_2^-1 * c_1;",
-        "#(b_1^-1 * c_0)^-1;"
+        "#(b_1^-1 * c_0)^-1;",
+
+        "b_0^-1; b_1^-1; b_2^-1;",
+        "(c_1^-1 * c_0^-1); (c_1^-1 * c_2^-1); c_0^-1 * c_2;"
+
     ].join( "\n");
 }

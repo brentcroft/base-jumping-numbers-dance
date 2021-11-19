@@ -1,5 +1,5 @@
 
-const nonTrivialIndexJump = 0;
+const nonTrivialIndexJump = 0.5;
 const nonTrivialPerimeterJump = 0.0;
 const radiantOriginAndTerminusAreIdentities = false;
 
@@ -118,34 +118,6 @@ class Index {
 
         return matchedOrbits.length == totalOrbits;
     }
-
-//    equals2( other ) {
-//
-//        const oidx = other.idx;
-//        const odix = other.dix;
-//
-//        oidx.indexOf()
-//        this.idx
-//            .map( (p,i) => { } );
-//
-//        const matchedOrbits = [ ...this.identities, ...this.orbits ]
-//            .filter( orbit => {
-//                const otherOrbit = other.getOrbit( orbit.points[0] );
-//                if ( !otherOrbit || otherOrbit.order != orbit.order ) {
-//                    return false;
-//                }
-//                const otherPoints = otherOrbit.points;
-//                const offset = otherPoints.indexOf( orbit.points[0] );
-//                for ( var i = 0; i < otherPoints.length; i++ ) {
-//                    if ( orbit.points[i] != otherPoints[ ( i + offset ) % otherPoints.length ] ) {
-//                        return false;
-//                    }
-//                }
-//                return true;
-//            } );
-//
-//        return matchedOrbits.length == totalOrbits;
-//    }
 
 
     apply( point ) {
@@ -346,7 +318,7 @@ class Index {
                     consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 } else {
                     const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
-                    throw ( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                    throw new Error( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
 
@@ -366,7 +338,7 @@ class Index {
                     consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 } else {
                     const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
-                    throw ( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
+                    throw new Error( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
                 }
                 break;
 
@@ -430,7 +402,7 @@ class Index {
                     di = point.at(indexId).di;
 
                     if ( alreadySeen.includes( di ) ) {
-                        throw `Already seen: di=${ di }`;
+                        throw new Error( `Already seen: di=${ di }`);
                     } else {
                         alreadySeen.push( di );
                     }
@@ -438,7 +410,7 @@ class Index {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
                     consoleLog( msg );
                     //break;
-                    throw msg;
+                    throw new Error( msg );
                 }
             }
             return points;
@@ -492,7 +464,7 @@ class Index {
                     const msg = `Bad point no conjugate: ${ point }`;
                     cconsoleLog( msg );
                     //break;
-                    throw msg;
+                    throw new Error( msg );
                 }
 
                 if (tally[ antipodesCoord.at(indexId).di ] == -1) {

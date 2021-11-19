@@ -237,6 +237,12 @@ class Formula {
                         // left named var separator char found, seems to be the beginning of a named var:
                         state = 'within-named-var';
                         tmp = '';
+
+                    } else if (char === '"' || char === "'") {
+                        // left string separator char found, seems to be the beginning of a string:
+                        state = 'within-string';
+                        tmp = '' + char;
+
                     } else if (char.match(/[a-zA-Z]/)) {
                         // multiple chars means it may be a function, else its a var which counts as own expression:
                         if (act < lastChar && str.charAt(act + 1).match(/[a-zA-Z0-9_]/)) {
@@ -259,6 +265,16 @@ class Formula {
                         }
                     }
                     break;
+
+                case 'within-string':
+                    char = str.charAt(act);
+                    tmp += char;
+                    if (char === tmp[0]) {
+                        expressions.push(new StringExpression(tmp));
+                        state = 0;
+                    }
+                    break;
+
                 case 'within-nr':
                     char = str.charAt(act);
                     if (char.match(/[0-9.]/)) {
@@ -488,12 +504,17 @@ class Formula {
             const existingIndexes = this.indexedBox.findMatchingIndexes( r );
 
             if ( existingIndexes.length == 0 ) {
-                r.label = this.getExpressionString();
                 this.indexedBox.indexPlanes.push( r );
                 return r;
             }
 
-            return existingIndexes[0];
+            const existingIndex = existingIndexes[0];
+
+            if ( !existingIndex.alias || existingIndex.alias == existingIndex.getLabel() ) {
+                existingIndex.alias = r.getLabel();
+            }
+
+            return existingIndex;
         } else {
             return r;
         }
@@ -578,6 +599,20 @@ class ValueExpression extends Expression {
         if (isNaN(this.value)) {
             throw new Error('Cannot parse number: ' + value);
         }
+    }
+    evaluate(params = {}) {
+        return this.value;
+    }
+    toString() {
+        return String(this.value);
+    }
+}
+
+
+class StringExpression extends Expression {
+    constructor(value) {
+        super();
+        this.value = value.slice( 1, value.length - 1 );
     }
     evaluate(params = {}) {
         return this.value;

@@ -18,7 +18,12 @@ toggleKeys = {
     globalIds: 0,
     globalise: 0,
 
-    indexComposer: 1,
+    autoFormula: 1,
+    indexComposer: 0,
+
+    filterPairs: 1,
+    allPairs: 0,
+
     palindromicPlanes: 1,
     mixedPlanes: 1,
     orthogonalPlanes: 1,

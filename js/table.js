@@ -305,7 +305,7 @@ function drawBasePlaneTable( tableArgs ) {
                 try {
                     conjOrbitIdSum = conjOrbit.getIdSum();
                 } catch ( e ) {
-                    throw `Error: ${ e }`;
+                    throw e;
                 }
 
                 var conjOrbitSpaceGcd = gcd( maxIndex, conjOrbitIdSum );
@@ -606,11 +606,11 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
             rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }] - [${ index.placesForward || '' }]</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( index ) }</td>`;
-            rowHtml += `<td align='center'>${ index.identities.length }</td>`;
-            rowHtml += `<td align='center'>${ index.orbits.length }</td>`;
-            rowHtml += `<td align='center'>${ index.fundamental }</td>`;
-            rowHtml += `<td align='center'>${ index.grossEuclideanPerimeter() }</td>`;
-            rowHtml += `<td align='center'>${ index.grossIndexPerimeter() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.identities.length }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.orbits.length }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.fundamental }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.grossEuclideanPerimeter() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ index.grossIndexPerimeter() }</td>`;
             return rowHtml;
         } )
         .join( "</tr><tr>" );

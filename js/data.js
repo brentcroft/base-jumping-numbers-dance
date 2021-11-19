@@ -66,6 +66,15 @@ var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys
 
 var arrayIndexes = ( b ) => b.map( (x,i) => i );
 
+var numericArraySorter =  (a,b) => {
+    for ( var i = 0; i < a.length; i++ ) {
+        if ( a[i] != b[i] ) {
+            return a[i] - b[i];
+        }
+    }
+    return 0;
+};
+
 function isPalindrome( arrayPair ) {
     const [ a, b ] = arrayPair;
     const d = b.length;
@@ -75,7 +84,15 @@ function isPalindrome( arrayPair ) {
 function isOrthogonal( arrayPair ) {
     const [ a, b ] = arrayPair;
     const d = b.length;
-    return a.filter( (x,i) => x == b[i]).length > 0;
+    var atIndex = -1;
+    a.filter( (x,i) => {
+        if (x == b[i]){
+            atIndex = i;
+            return true;
+        }
+        return false;
+    });
+    return atIndex + 1;
 }
 
 function middleSum( a ) {
@@ -337,10 +354,9 @@ function pairs(list) {
     if (list.length < 2) {
         return [];
     }
-    var first = list[0],
-        rest  = list.slice(1),
-        p = rest.map(function (x) { return [first, x]; });
-    return p.concat( pairs( rest ) );
+    const first = list[0];
+    const rest = list.slice(1);
+    return rest.map( x => [ first, x ] ).concat( pairs( rest ) );
 }
 
 // https://stackoverflow.com/questions/9960908/permutations-in-javascript
@@ -349,16 +365,19 @@ function permutations(inputArr) {
 
     const permute = (arr, m = []) => {
         if (arr.length === 0) {
-            result.push(m)
+            result.push(m);
         } else {
             for (let i = 0; i < arr.length; i++) {
                 let curr = arr.slice();
                 let next = curr.splice(i, 1);
-                permute(curr.slice(), m.concat(next))
+                permute(curr.slice(), m.concat(next));
             }
         }
     }
-    permute(inputArr)
+
+    permute(inputArr);
+
+    result.sort( numericArraySorter );
 
     return result;
 }
@@ -374,3 +393,24 @@ function placeValuesPermutation( bases, perm = [] ) {
 }
 
 
+function getCompositions( basis = 3 ) {
+    return [
+        "# compositions;",
+        "# b_0, b_1, b_2;",
+        "c_0 * c_1;",
+        "c_2 * c_1;",
+        "c_2^-1 * c_0;",
+
+        "# a_0 ;",
+        "b_0 * c_2;",
+        "b_1 * c_0;",
+
+        "# a_1 ;",
+        "b_2 * c_1;",
+        "#(b_0^-1 * c_2)^-1;",
+
+        "# a_2 ;",
+        "b_2^-1 * c_1;",
+        "#(b_1^-1 * c_0)^-1;"
+    ].join( "\n");
+}

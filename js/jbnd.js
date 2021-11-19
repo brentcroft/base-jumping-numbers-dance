@@ -6,8 +6,7 @@ class Box {
 
         // generate placeValues according to the permutations of the basis of the bases
         this.placePermutations = permutations( arrayIndexes( this.bases ) );
-        this.placeIndexors = this.placePermutations
-            .map( perm => [ perm, placeValuesPermutation( this.bases, perm ) ] );
+        this.placeIndexors = this.placePermutations.map( perm => [ perm, placeValuesPermutation( this.bases, perm ) ] );
 
         this.rank = this.bases.length;
 
@@ -32,13 +31,12 @@ class Box {
 
         //
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
-
     }
 
     validateIds( ids ) {
         const invalidIds = ids.filter( id => id < 0 || id >= this.volume )
         if ( invalidIds.length > 0 ) {
-            throw `id out of range: ${ invalidIds }; box.volume=${ this.volume }`;
+            throw new Error( `id out of range: ${ invalidIds }; box.volume=${ this.volume }` );
         }
     }
 
@@ -211,17 +209,6 @@ class CompositeIndex extends Index {
 
 class IndexedBox {
 
-//    static indexSorter( a, b ) {
-//        return (a.getLabel() == "r")
-//            ? -1
-//            : ( b.getLabel() == "r")
-//                ? 1
-//                : (a.getLabel() == "e")
-//                    ? -1
-//                    : ( b.getLabel() == "e")
-//                        ? 1
-//                        : a.getLabel().localeCompare( b.getLabel() );
-//    }
     static indexSorter( a, b ) {
         return a.id - b.id;
     }
@@ -243,19 +230,56 @@ class IndexedBox {
         if ( bases.length < 2 ) {
             this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length ) );
         } else {
+            var indexors = pairs( this.box.placeIndexors );
 
-            const indexors = pairs( this.box.placeIndexors );
+            if ( toggles.includes( "allPairs" ) ) {
+                indexors = indexors.concat( indexors.map( p => [ p[1], p[0] ] ) );
+            }
 
-            const sorter = (a,b) => {
-                const [ [ a1, aPF ], [ a2, aPR ] ] = a;
-                const [ [ b1, bPF ], [ b2, bPR ] ] = b;
-                const l1 = middleSum( a1 ) + middleSum( a2 );
-                const l2 = middleSum( b1 ) + middleSum( b2 );
+            const typeOfIndexor = ( a ) => {
+                const [ l, r ] = [ a[0][0], a[1][0] ];
+                const p = isPalindrome( [ l, r ] );
+                if ( p ) {
+                    return 1;
+                }
+                const o = isOrthogonal( [ l, r ] );
+                return o ? -1 * o : 0;
+            }
 
-                return l1 != l2
-                    ? l1 - l2
-                    : a1 - a2;
+            const indexorSorter = ( a, b ) => {
+                const [ aL, aR ] = [ a[0][0], a[1][0] ];
+                const [ bL, bR ] = [ b[0][0], b[1][0] ];
+                const aT = typeOfIndexor( a );
+                const bT = typeOfIndexor( b );
+
+                return aT - bT;
             };
+
+            indexors.sort( indexorSorter );
+
+            if ( toggles.includes( "filterPairs" ) ) {
+                const removers = [];
+                for ( var i = 1; i < indexors.length; i++ ) {
+                    const a = indexors[i];
+                    const [ l, r ] = [ a[0][0], a[1][0] ];
+                    const pA = [ ...l, ...r ];
+                    for ( var j = i - 1; j >= 0; j-- ) {
+                        const q = indexors[j];
+                        const [ ql, qr ] = [ q[0][0], q[1][0] ];
+                        const qA = [ ...ql, ...qr ];
+                        if ( isPalindrome( [ l, qr ] ) && isPalindrome( [ r, ql ] ) ) {
+                            removers.push( a );
+                            break;
+                        } else if ( isPalindrome( [ l, ql ] ) && isPalindrome( [ r, qr ] ) ) {
+                           removers.push( a );
+                           break;
+                       }
+                    }
+                }
+                indexors = indexors.filter( x => !removers.includes( x ) );
+            }
+
+
 
             this.palindromes = indexors
                 .filter( pi => {
@@ -274,10 +298,6 @@ class IndexedBox {
                     const [ [ f, pF ], [ r, pR ] ] = pi;
                     return !isPalindrome( [ f, r ] ) && isOrthogonal( [ f, r ] );
                 } );
-
-            this.palindromes.sort( sorter );
-            this.secondaries.sort( sorter );
-            this.degenerates.sort( sorter );
 
             const initialPlanes = [ ];
 
@@ -324,7 +344,7 @@ class IndexedBox {
 
     buildCompositeIndex( ids ) {
         if ( ids.length < 2 ) {
-            throw `buildCompositeIndex requires an array of at least length 2: ${ ids }`;
+            throw new Error( `buildCompositeIndex requires an array of at least length 2: ${ ids }` );
         }
 
         function ciName( ids ) {

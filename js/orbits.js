@@ -76,7 +76,7 @@ class Orbit {
         this.points = points;
 
         if ( points.length < 1 ) {
-            throw `Orbit points is zero length: ${ index }`;
+            throw new Error( `Orbit points is zero length: ${ index }` );
         }
 
         this.rank = this.points[0].coord.length;

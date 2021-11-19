@@ -335,7 +335,7 @@ function getInstrumentSelectorHtml( id, onchangeScript ) {
 function playMidi( basePlane ) {
 
     if (!navigator.requestMIDIAccess) {
-        throw ('WebMIDI is not supported in this browser.');
+        throw new Error('WebMIDI is not supported in this browser.');
     }
 
     let midiOutput = null;

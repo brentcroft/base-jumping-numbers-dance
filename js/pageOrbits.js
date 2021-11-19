@@ -362,12 +362,54 @@ function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
 }
 
 
+function processFormula( pidsText ) {
+
+    document.getElementById( 'summaryEditorResult' ).innerHTML = "";
+    document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = "";
+
+    const pidsSetText = document.getElementById( 'selectedPlaneIds' ).value;
+    const pidsLines = ( pidsText || pidsSetText )
+        .split( /\s*;\s*/ )
+        .map( ft => ft.trim() )
+        .filter( ft => ft.length > 0 )
+        .filter( ft => !ft.startsWith( '#' ) );
+
+    if ( pidsLines.length > 0 ) {
+        try {
+            function dump( index ) {
+                const idxText = index.idx.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
+                const dixText = index.dix.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
+                return `\nidx: ${ idxText }\ndix: ${ dixText }`;
+            }
+
+            function label( index, key ) {
+                index.label = key;
+                return index;
+            }
+
+            const results = pidsLines
+                .map( ft => new Formula( indexedBox, ft ) )
+                .map( f => [ f, f.evaluate( { dump: dump, label: label } ) ] );
+
+            const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
+
+            document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
+        } catch ( e ) {
+            document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
+            throw e;
+        }
+
+        rebuildIndexedBoxSummary();
+    }
+}
+
+
 
 
 function isToggle( toggle ) {
     const toggleControl = document.getElementById( toggle + "Toggle" );
     if ( !toggleControl ) {
-        throw `No such toggle control: ${ toggle }Toggle`;
+        throw new Error( `No such toggle control: ${ toggle }Toggle` );
     }
     return toggleControl.checked;
 }
@@ -453,7 +495,11 @@ function updatePage() {
             .getElementById( "basesVolume" )
             .value = indexedBox.box.volume;
 
-    rebuildIndexedBoxSummary();
+    if ( param.toggles.includes( "autoFormula" ) ) {
+        processFormula( getCompositions( indexedBox.box.basis ) );
+    } else {
+        rebuildIndexedBoxSummary();
+    }
 
     selectIndexPlane();
 

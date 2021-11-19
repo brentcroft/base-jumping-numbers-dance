@@ -274,64 +274,15 @@
             <label title="generate palindromes">pal <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
             <label title="generate mixed planes">mix <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
             <label title="generate orthogonal planes">orth <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
+            <label title="generate all pairs">all <input type="checkbox" id="allPairsToggle" onchange="updatePage()"/></label>
+            <label title="filter pairs">filter <input type="checkbox" id="filterPairsToggle" onchange="updatePage()"/></label>
+            <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
         </div>
 
         <div id="indexComposer" style="display: none">
-            <script>
-                function createPlanes() {
-
-                    document.getElementById( 'summaryEditorResult' ).innerHTML = "";
-                    document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = "";
-
-                    const pidsSetText = document.getElementById( 'selectedPlaneIds' ).value;
-                    const pidsLines = pidsSetText
-                        .split( /\s*;\s*/ )
-                        .map( ft => ft.trim() )
-                        .filter( ft => ft.length > 0 )
-                        .filter( ft => !ft.startsWith( '#' ) );
-
-                    if ( pidsLines.length > 0 ) {
-                        try {
-
-                            function dump( index ) {
-                                const idxText = index.idx.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
-                                const dixText = index.dix.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
-                                return `\nidx: ${ idxText }\ndix: ${ dixText }`;
-                            }
-
-                            const results = pidsLines
-                                .map( ft => new Formula( indexedBox, ft ) )
-                                .map( f => [ f, f.evaluate( { dump: dump } ) ] );
-
-                            const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
-
-                            document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
-
-                            rebuildIndexedBoxSummary();
-
-                        } catch ( e ) {
-                            document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
-                            throw e;
-                        }
-                    }
-                }
-            </script>
-
-            <label><input type="button" onclick="createPlanes()" value="compose"/></label>
-
-<textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="10"># compositions;
-(c_0 * (c_2 * c_4)^-1)^-1;
-c_0 * c_2 * c_4;
-((c_0 * c_2)^-1 * c_4)^-1;
-c_4 * c_2;
-c_2 * c_4;
-c_4^-1 * c_0;
-c_4 * c_0^-1;
-c_2 * c_0;
-c_0 * c_2;
-dump( c_4 );
-dump( c_5 )
-</textarea>
+            <label><input type="button" onclick="processFormula()" value="compose"/></label>
+            <textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="3">label( c_0, "red" ); label( c_1, "green" ); label( c_2, "blue" );
+            </textarea>
 
 
             <span id="summaryEditorResult"></span>

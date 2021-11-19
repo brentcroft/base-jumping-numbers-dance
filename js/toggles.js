@@ -10,7 +10,8 @@ toggleKeys = {
     grid: 1,
     chart3d: 0,
     jumps: 0,
-    more: 1,
+
+    more: 0,
     scale3d: 0,
     summary: 1,
     table: 0,

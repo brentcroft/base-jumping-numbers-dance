@@ -1,7 +1,7 @@
 
-const nonTrivialIndexJump = 0.5;
-const nonTrivialPerimeterJump = 0.0;
-const radiantOriginAndTerminusAreIdentities = false;
+var nonTrivialIndexJump = 0;
+var nonTrivialPerimeterJump = 0.0;
+var radiantOriginAndTerminusAreIdentities = false;
 
 var indexMap = {};
 

@@ -342,7 +342,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
     const indexCentre = basePlane.box.indexCentre;
 
     const zOff = 1;
-    const scaleUnit = scale( [ 1, 1, 1 ], 10 / basePlane.box.volume );
+    const scaleUnit = scale( [ 1, 1, 1 ], 15 / basePlane.box.volume );
 
     const root = reify( "transform", { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` } );
 
@@ -473,7 +473,6 @@ function getBasePlaneCycles( basePlane, toggles ) {
                         "transform",
                         {
                             "translation": `0 0 ${ zOff * i }`,
-                            "class": "orbit-line",
                             "id": ("orbit." + orbit.index )
                         },
                         [
@@ -487,7 +486,10 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                                 //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 1.17, "red", 0.5, JSON.stringify( entry.getJson() ) ),
                                                 createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) ),
                                                 reify(
-                                                    "transform", { "translation": `${ halfJump } 0 0` },
+                                                    "transform", {
+                                                        "translation": `${ halfJump } 0 0`,
+                                                        "class": "orbit-line"
+                                                    },
                                                     [
                                                         createTorusShape( {
                                                                 outerRadius: halfJump,

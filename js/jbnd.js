@@ -83,7 +83,7 @@ class RadiantIndex extends Index {
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
         this.label = 'r';
-        this.alias = 'e^(1/2)'
+        this.alias = 'e^½'
     }
 
     getType() {

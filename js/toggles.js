@@ -22,8 +22,8 @@ toggleKeys = {
     autoFormula: 1,
     indexComposer: 0,
 
-    filterPairs: 0,
-    allPairs: 1,
+    filterPairs: 1,
+    allPairs: 0,
 
     palindromicPlanes: 1,
     mixedPlanes: 1,

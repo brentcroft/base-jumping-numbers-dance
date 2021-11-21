@@ -81,7 +81,7 @@ function isPalindrome( arrayPair ) {
     return a.filter( (x,i) => x == b[ d - i - 1 ]).length == d;
 }
 
-function isOrthogonal( arrayPair ) {
+function isOrthogonal( arrayPair, degree = 1 ) {
     const [ a, b ] = arrayPair;
     const d = b.length;
     var atIndex = -1;
@@ -94,6 +94,53 @@ function isOrthogonal( arrayPair ) {
     });
     return atIndex + 1;
 }
+
+function rightAlignment( arrayPair ) {
+    const [ a, b ] = arrayPair;
+    for ( var i = 0; i < b.length; i++ ) {
+        const ix = b.length - 1 - i;
+        if (a[ix] != b[ix] ) {
+            return i;
+        }
+    }
+    return b.length - 1;
+}
+
+
+function isLeftAligned( arrayPair, degree = 1 ) {
+    const [ a, b ] = arrayPair;
+    const maxDegree = b.length - 1
+    for ( var i = 0; i <= maxDegree; i++ ) {
+        if (a[i] != b[i] ) {
+            return degree == i;
+        }
+    }
+    return degree == maxDegree;
+}
+
+function isRightAligned( arrayPair, degree = 1 ) {
+    const [ a, b ] = arrayPair;
+    const maxDegree = b.length - 1
+    for ( var i = 0; i <= maxDegree; i++ ) {
+        const ix = maxDegree - i;
+        if (a[ix] != b[ix] ) {
+            return degree == i;
+        }
+    }
+    return degree == maxDegree;
+}
+
+function isLeftRisingFromTo( a, fromTo ) {
+    const [ f, t ] = fromTo;
+    for ( var i = f + 1; i <= t; i++ ) {
+        if (a[i] <= a[i-1] ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 
 function middleSum( a ) {
     return a.slice( 1, a.length - 1 ).reduce( (a,c) => a + c, 0 );

@@ -396,7 +396,6 @@ function processFormula( pidsText ) {
             document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
         } catch ( e ) {
             document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
-            throw e;
         }
 
         rebuildIndexedBoxSummary();

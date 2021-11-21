@@ -42,16 +42,8 @@ class Box {
 
     getJson() {
         return {
-           //bases: this.bases,
            coordSum: this.sum,
-           idSum: this.indexSum,
-           //placePermutations: this.placePermutations,
-           indexors: this.placeIndexors
-           //units: this.volumeUnits.length,
-           //volume: this.volume,
-           //area: this.surfaceArea,
-           //erad: this.euclideanRadiance,
-           //irad: this.indexRadiance
+           idSum: this.indexSum
        };
     }
 
@@ -213,6 +205,43 @@ class IndexedBox {
         return a.id - b.id;
     }
 
+    hasPalindromicPair( indexors, pair ) {
+        const [ a, b ] = pair;
+        const [ l1, r1 ] = [ a[0], b[0] ];
+
+        const pp = indexors
+            .filter( p => {
+                const [ c, d ] = p;
+                const [ l2, r2 ] = [ c[0], d[0] ];
+                return (isPalindrome( [ l1, r2 ] ) && isPalindrome( [ r1, l2 ] ) )
+                    || (isPalindrome( [ l1, l2 ] ) && isPalindrome( [ r1, r2 ] ) );
+            } );
+        return pp.length > 0;
+    }
+
+    getPalindromicPairsToEvict( indexors ) {
+        const removers = [];
+        for ( var i = 1; i < indexors.length; i++ ) {
+            const a = indexors[i];
+            const [ l, r ] = [ a[0][0], a[1][0] ];
+            const pA = [ ...l, ...r ];
+            for ( var j = i - 1; j >= 0; j-- ) {
+                const q = indexors[j];
+                const [ ql, qr ] = [ q[0][0], q[1][0] ];
+                const qA = [ ...ql, ...qr ];
+                if ( isPalindrome( [ l, qr ] ) && isPalindrome( [ r, ql ] ) ) {
+                    removers.push( a );
+                    break;
+                } else if ( isPalindrome( [ l, ql ] ) && isPalindrome( [ r, qr ] ) ) {
+                    removers.push( a );
+                    break;
+               }
+            }
+        }
+        return removers;
+    }
+
+
     constructor( bases = [], param = {} ) {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
@@ -257,55 +286,47 @@ class IndexedBox {
 
             indexors.sort( indexorSorter );
 
-            if ( toggles.includes( "filterPairs" ) ) {
-                const removers = [];
-                for ( var i = 1; i < indexors.length; i++ ) {
-                    const a = indexors[i];
-                    const [ l, r ] = [ a[0][0], a[1][0] ];
-                    const pA = [ ...l, ...r ];
-                    for ( var j = i - 1; j >= 0; j-- ) {
-                        const q = indexors[j];
-                        const [ ql, qr ] = [ q[0][0], q[1][0] ];
-                        const qA = [ ...ql, ...qr ];
-                        if ( isPalindrome( [ l, qr ] ) && isPalindrome( [ r, ql ] ) ) {
-                            removers.push( a );
-                            break;
-                        } else if ( isPalindrome( [ l, ql ] ) && isPalindrome( [ r, qr ] ) ) {
-                           removers.push( a );
-                           break;
-                       }
+            this.palindromes = [];
+            this.secondaries = [];
+            this.tertiaries = [];
+            this.degenerates = [];
+
+            const maxAlignment = this.box.rank - 2;
+
+            indexors
+                .forEach( pi => {
+                    const [ [ f, pF ], [ r, pR ] ] = pi;
+                    if ( isPalindrome( [ f, r ] ) ) {
+                        this.palindromes.push( pi );
+                    } else if ( isLeftAligned( [ f, r ], maxAlignment ) ) {
+                        // skip duplicates
+                    } else if ( isRightAligned( [ f, r ], maxAlignment ) ) {
+                        if ( !isLeftRisingFromTo( f, [ 2, maxAlignment + 1 ] ) ) {
+                            // skip right risers
+                        } else {
+                            this.degenerates.push( pi );
+                        }
+                    } else {
+                        if ( rightAlignment( [ f, r ] ) > 0 ) {
+                            this.tertiaries.push( pi );
+                        } else {
+                            this.secondaries.push( pi );
+                        }
                     }
-                }
-                indexors = indexors.filter( x => !removers.includes( x ) );
+                } );
+
+
+            if ( toggles.includes( "filterPairs" ) ) {
+                const removers = this.getPalindromicPairsToEvict( this.secondaries );
+                this.secondaries = this.secondaries.filter( x => !removers.includes( x ) );
             }
-
-
-
-            this.palindromes = indexors
-                .filter( pi => {
-                    const [ [ f, pF ], [ r, pR ] ] = pi;
-                    return isPalindrome( [ f, r ] );
-                } );
-
-            this.secondaries = indexors
-                .filter( pi => {
-                    const [ [ f, pF ], [ r, pR ] ] = pi;
-                    return !isPalindrome( [ f, r ] ) && !isOrthogonal( [ f, r ] );
-                } );
-
-            this.degenerates = indexors
-                .filter( pi => {
-                    const [ [ f, pF ], [ r, pR ] ] = pi;
-                    return !isPalindrome( [ f, r ] ) && isOrthogonal( [ f, r ] );
-                } );
-
-            const initialPlanes = [ ];
 
             if ( toggles.includes( "palindromicPlanes" ) ) {
                 this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a_' + i ) ) );
             }
             if ( toggles.includes( "mixedPlanes" ) ) {
                 this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b_' + i ) ) );
+                this.tertiaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 't_' + i ) ) );
             }
             if ( toggles.includes( "orthogonalPlanes" ) ) {
                 this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c_' + i ) ) );

@@ -199,12 +199,13 @@
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="7"/>x
                 <input type="number" min="1" id="b1" value="5"/>x
-                <input type="number" min="1" id="b2" value="3"/>
+                <input type="number" min="1" id="b2" value="3"/>x
+                <input type="number" min="1" id="b3" value="2"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="8" onchange="selectIndexPlane()"/></label>
+            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="10" onchange="selectIndexPlane()"/></label>
 
             <br/>
             <span id="captionTex" class="summaryLeft"></span>
@@ -270,12 +271,14 @@
     <div class="full-width">
         <div id="summaryControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="display index composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
             <label title="generate palindromes">pal <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
             <label title="generate mixed planes">mix <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
             <label title="generate orthogonal planes">orth <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
-            <label title="generate all pairs">all <input type="checkbox" id="allPairsToggle" onchange="updatePage()"/></label>
-            <label title="filter pairs">filter <input type="checkbox" id="filterPairsToggle" onchange="updatePage()"/></label>
+            <br/>
+            <label title="generate all pairs (i.e. inverses)">inverses <input type="checkbox" id="allPairsToggle" onchange="updatePage()"/></label> |
+            <label title="filter pairs">filter <input type="checkbox" id="filterPairsToggle" onchange="updatePage()"/></label> |
+            <label title="display index composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
+
             <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
         </div>
 

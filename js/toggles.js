@@ -19,15 +19,16 @@ toggleKeys = {
     globalIds: 0,
     globalise: 0,
 
-    autoFormula: 1,
+    autoFormula: 0,
     indexComposer: 0,
 
-    filterPairs: 1,
-    allPairs: 0,
+    inverses: 0,
+    reflections: 0,
 
-    palindromicPlanes: 1,
+    palindromicPlanes: 0,
     mixedPlanes: 1,
-    orthogonalPlanes: 1,
+    tertiaryPlanes: 1,
+    orthogonalPlanes: 0,
 
     products: 0,
     productByOrbits: 1,

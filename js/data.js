@@ -95,6 +95,16 @@ function isOrthogonal( arrayPair, degree = 1 ) {
     return atIndex + 1;
 }
 
+function leftAlignment( arrayPair ) {
+    const [ a, b ] = arrayPair;
+    for ( var i = 0; i < b.length; i++ ) {
+        if (a[i] != b[i] ) {
+            return i;
+        }
+    }
+    return b.length - 1;
+}
+
 function rightAlignment( arrayPair ) {
     const [ a, b ] = arrayPair;
     for ( var i = 0; i < b.length; i++ ) {
@@ -141,6 +151,17 @@ function isLeftRisingFromTo( a, fromTo ) {
 }
 
 
+function isRightRisingFromTo( a, fromTo ) {
+    const [ f, t ] = fromTo;
+    for ( var i = f; i < t; i++ ) {
+        if (a[i] >= a[i+1] ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 
 function middleSum( a ) {
     return a.slice( 1, a.length - 1 ).reduce( (a,c) => a + c, 0 );
@@ -180,6 +201,7 @@ var modularizeC        = ( p, b ) => {
     return m;
 };
 
+var arrayExactlyEquals = (a, b) => a.filter( (x,i) => x == b[i] ).length == a.length;
 var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
 var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v => a.includes( v ) );
 
@@ -444,19 +466,19 @@ function getCompositions( basis = 3 ) {
         "# compositions;",
 
         "# b_0, b_1, b_2;",
-        "c_0 * c_1;",
-        "c_2 * c_1;",
-        "c_2^-1 * c_0;",
+        "a_0 * a_1;",
+        "a_2 * a_1;",
+        "a_2^-1 * a_0;",
 
         "# a_0 ;",
-        "b_0 * c_2;",
-        "b_1 * c_0;",
+        "c_0 * a_2;",
+        "c_1 * a_0;",
 
-        "# a_1 ;",
-        "b_2 * c_1;",
+        "# z_1 ;",
+        "c_2 * a_1;",
 
-        "# a_2 ;",
-        "b_2^-1 * c_1;",
+        "# z_2 ;",
+        "c_2^-1 * a_1;",
 
     ].join( "\n");
 }

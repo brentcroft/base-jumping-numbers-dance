@@ -273,23 +273,21 @@
             <hr/>
             <label title="generate palindromes">pal <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
             <label title="generate mixed planes">mix <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="generate orthogonal planes">orth <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
+            <label title="generate tertiary planes">ter <input type="checkbox" id="tertiaryPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="generate orthogonal planes">ort <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
             <br/>
-            <label title="generate all pairs (i.e. inverses)">inverses <input type="checkbox" id="allPairsToggle" onchange="updatePage()"/></label> |
-            <label title="filter pairs">filter <input type="checkbox" id="filterPairsToggle" onchange="updatePage()"/></label> |
-            <label title="display index composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
-
+            <label title="generate inverses">inverses <input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
+            <label title="generate reflections">reflections <input type="checkbox" id="reflectionsToggle" onchange="updatePage()"/></label> |
+            <label title="index formula composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
             <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
         </div>
 
         <div id="indexComposer" style="display: none">
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="3">#;
-b_0^-1; b_1^-1; b_2^-1;
-c_1^-1 * c_0^-1; c_1^-1 * c_2^-1; c_0^-1 * c_2;
-# ;
-b_3^-1; b_4^-1; b_5^-1;
-c_1 * c_0; c_1 * c_2; c_2 * c_0^-1;
+# inverses;
+a_0^-1; a_1^-1; a_2^-1;
+z_0^-1; z_1^-1; z_2^-1;
             </textarea>
             <span id="summaryEditorResult"></span>
             <div id="summaryEditorErrorMessage" class="difference"></div>

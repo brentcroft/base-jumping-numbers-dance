@@ -43,7 +43,8 @@ class Box {
     getJson() {
         return {
            coordSum: this.sum,
-           idSum: this.indexSum
+           idSum: this.indexSum,
+           perms: this.placePermutations
        };
     }
 
@@ -219,25 +220,31 @@ class IndexedBox {
         return pp.length > 0;
     }
 
-    getPalindromicPairsToEvict( indexors ) {
+    getPalindromicPairsToEvict( indexors, reflections = false ) {
         const removers = [];
-        for ( var i = 1; i < indexors.length; i++ ) {
-            const a = indexors[i];
-            const [ l, r ] = [ a[0][0], a[1][0] ];
-            const pA = [ ...l, ...r ];
-            for ( var j = i - 1; j >= 0; j-- ) {
-                const q = indexors[j];
-                const [ ql, qr ] = [ q[0][0], q[1][0] ];
-                const qA = [ ...ql, ...qr ];
-                if ( isPalindrome( [ l, qr ] ) && isPalindrome( [ r, ql ] ) ) {
-                    removers.push( a );
-                    break;
-                } else if ( isPalindrome( [ l, ql ] ) && isPalindrome( [ r, qr ] ) ) {
-                    removers.push( a );
-                    break;
-               }
-            }
-        }
+
+        indexors
+            .forEach( (x,i) => {
+                if (i == 0 ) {
+                    return;
+                }
+                const [ a, b ] = x;
+                const [ al, ar ] = [ a[0], b[0] ];
+                indexors
+                    .slice( 0, i )
+                    .forEach( (y,j) => {
+                        const [ c, d ] = y;
+                        const [ cl, cr ] = [ c[0], d[0] ];
+
+                        const square = isPalindrome( [ al, cl ] ) && isPalindrome( [ ar, cr ] );
+                        const cross = isPalindrome( [ al, cr ] ) && isPalindrome( [ ar, cl ] );
+
+                        if ( !reflections && (cross || square)  ) {
+                            removers.push( x );
+                        }
+                    } );
+            } );
+
         return removers;
     }
 
@@ -261,9 +268,6 @@ class IndexedBox {
         } else {
             var indexors = pairs( this.box.placeIndexors );
 
-            if ( toggles.includes( "allPairs" ) ) {
-                indexors = indexors.concat( indexors.map( p => [ p[1], p[0] ] ) );
-            }
 
             const typeOfIndexor = ( a ) => {
                 const [ l, r ] = [ a[0][0], a[1][0] ];
@@ -286,6 +290,11 @@ class IndexedBox {
 
             indexors.sort( indexorSorter );
 
+            const [ inverses, reflections ] = [
+                toggles.includes( "inverses" ),
+                toggles.includes( "reflections" )
+            ];
+
             this.palindromes = [];
             this.secondaries = [];
             this.tertiaries = [];
@@ -296,18 +305,22 @@ class IndexedBox {
             indexors
                 .forEach( pi => {
                     const [ [ f, pF ], [ r, pR ] ] = pi;
+
                     if ( isPalindrome( [ f, r ] ) ) {
                         this.palindromes.push( pi );
+
                     } else if ( isLeftAligned( [ f, r ], maxAlignment ) ) {
-                        // skip duplicates
-                    } else if ( isRightAligned( [ f, r ], maxAlignment ) ) {
-                        if ( !isLeftRisingFromTo( f, [ 2, maxAlignment + 1 ] ) ) {
-                            // skip right risers
-                        } else {
+                        if ( reflections || isRightRisingFromTo( f, [ maxAlignment, this.box.rank - 1 ] ) ) {
                             this.degenerates.push( pi );
                         }
+
+                    } else if ( isRightAligned( [ f, r ], maxAlignment ) ) {
+                        if ( reflections || isLeftRisingFromTo( f, [ 2, maxAlignment + 1 ] ) ) {
+                            this.degenerates.push( pi );
+                        }
+
                     } else {
-                        if ( rightAlignment( [ f, r ] ) > 0 ) {
+                        if ( leftAlignment( [ f, r ] ) > 0 || rightAlignment( [ f, r ] ) > 0 ) {
                             this.tertiaries.push( pi );
                         } else {
                             this.secondaries.push( pi );
@@ -315,21 +328,36 @@ class IndexedBox {
                     }
                 } );
 
+            if ( !( inverses && reflections ) ) {
+                const sR = this.getPalindromicPairsToEvict( this.secondaries, reflections );
+                this.secondaries = this.secondaries.filter( x => !sR.includes( x ) );
 
-            if ( toggles.includes( "filterPairs" ) ) {
-                const removers = this.getPalindromicPairsToEvict( this.secondaries );
-                this.secondaries = this.secondaries.filter( x => !removers.includes( x ) );
+                const tR = this.getPalindromicPairsToEvict( this.tertiaries, reflections );
+                this.tertiaries = this.tertiaries.filter( x => !tR.includes( x ) );
+
+                const dR = this.getPalindromicPairsToEvict( this.degenerates, reflections );
+                this.degenerates = this.degenerates.filter( x => !dR.includes( x ) );
             }
 
-            if ( toggles.includes( "palindromicPlanes" ) ) {
-                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a_' + i ) ) );
+            if ( inverses ) {
+                this.degenerates = this.degenerates.concat( this.degenerates.map( p => [ p[1], p[0] ] ) );
+                this.secondaries = this.secondaries.concat( this.secondaries.map( p => [ p[1], p[0] ] ) );
+                this.tertiaries = this.tertiaries.concat( this.tertiaries.map( p => [ p[1], p[0] ] ) );
+                this.palindromes = this.palindromes.concat( this.palindromes.map( p => [ p[1], p[0] ] ) );
+            }
+
+
+            if ( toggles.includes( "orthogonalPlanes" ) ) {
+                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a_' + i ) ) );
+            }
+            if ( toggles.includes( "tertiaryPlanes" ) ) {
+                this.tertiaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b_' + i ) ) );
             }
             if ( toggles.includes( "mixedPlanes" ) ) {
-                this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b_' + i ) ) );
-                this.tertiaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 't_' + i ) ) );
+                this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c_' + i ) ) );
             }
-            if ( toggles.includes( "orthogonalPlanes" ) ) {
-                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c_' + i ) ) );
+            if ( toggles.includes( "palindromicPlanes" ) ) {
+                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'z_' + i ) ) );
             }
         }
 

@@ -568,7 +568,7 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Type</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Alias</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Perm. Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Perms</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Places</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;

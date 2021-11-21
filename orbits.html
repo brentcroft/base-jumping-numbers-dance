@@ -205,7 +205,7 @@
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="10" onchange="selectIndexPlane()"/></label>
+            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="2" onchange="selectIndexPlane()"/></label>
 
             <br/>
             <span id="captionTex" class="summaryLeft"></span>
@@ -284,9 +284,9 @@
 
         <div id="indexComposer" style="display: none">
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
-            <textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="3">#;
-# inverses;
+            <textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="3"># inverses;
 a_0^-1; a_1^-1; a_2^-1;
+c_0^-1; c_1^-1; c_2^-1;
 z_0^-1; z_1^-1; z_2^-1;
             </textarea>
             <span id="summaryEditorResult"></span>

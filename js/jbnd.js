@@ -31,6 +31,9 @@ class Box {
 
         //
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+
+        this.permCount = this.placePermutations.length;
+        this.pairCount = this.permCount  * (this.permCount - 1);
     }
 
     validateIds( ids ) {
@@ -41,10 +44,12 @@ class Box {
     }
 
     getJson() {
+
         return {
            coordSum: this.sum,
            idSum: this.indexSum,
-           perms: this.placePermutations
+           perms: this.permCount,
+           pairs: this.pairCount
        };
     }
 
@@ -328,7 +333,7 @@ class IndexedBox {
                     }
                 } );
 
-            if ( !( inverses && reflections ) ) {
+            if ( !reflections ) {
                 const sR = this.getPalindromicPairsToEvict( this.secondaries, reflections );
                 this.secondaries = this.secondaries.filter( x => !sR.includes( x ) );
 

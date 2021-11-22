@@ -558,8 +558,8 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
 
     consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
 
-    //const optionalColumns = [ "identity-equation", "monomial" ];
-    const optionalColumns = [  ]
+    const optionalColumns = [ "identity-equation", "monomial" ];
+    //const optionalColumns = [  ]
 
     const sep = ", ";
     const tableId = 'indexSummary_table';

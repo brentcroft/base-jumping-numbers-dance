@@ -60,11 +60,5 @@ indicating the index radiance, for example z_0:
 ![Image](img/box-7.3.2.z_0.png)
 
 
-
-
 # Reference
 E.g. see http://brentcroft.com/jumping-bases-numbers-dance/orbits.html
-
-| Group Action |
-|--------------|
-| fred |

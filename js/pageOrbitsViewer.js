@@ -556,7 +556,23 @@ function distributeMessages( messages = [] ) {
     messages.forEach( message => distributeMessage( message) );
 }
 
+var screenshotCount = 0;
 
+function screenshot() {
+
+    const filename = `snap_${ screenshotCount++ }`;
+    const x3dId = 'testContainer001_plot';
+    const x3dElement = document.getElementById( x3dId );
+    const imgUrl = x3dElement.runtime.getScreenshot();
+    const link = document.createElement( 'a' );
+
+    link.href = imgUrl;
+    link.download = filename + ".png";
+    link.innerHTML = filename;
+
+    const snaps = document.getElementById("snaps");
+    snaps.append( link );
+}
 
 
 function initPage() {

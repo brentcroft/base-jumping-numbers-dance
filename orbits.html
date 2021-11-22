@@ -198,9 +198,9 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="7"/>x
-                <input type="number" min="1" id="b1" value="5"/>x
-                <input type="number" min="1" id="b2" value="3"/>x
-                <input type="number" min="1" id="b3" value="2"/>
+                <input type="number" min="1" id="b1" value="3"/>x
+                <input type="number" min="1" id="b2" value="2"/>x
+                <input type="number" min="1" id="b3" value="1"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -271,13 +271,15 @@
     <div class="full-width">
         <div id="summaryControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="generate palindromes">pal <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="generate mixed planes">mix <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="generate tertiary planes">ter <input type="checkbox" id="tertiaryPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="generate orthogonal planes">ort <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
+            indexes:
+            <label title="generate sub boxes">a <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
+            <label title="generate b indexes">b  <input type="checkbox" id="tertiaryPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="generate c indexes">c <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="generate palindromes">z (palindromes) <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
             <br/>
             <label title="generate inverses">inverses <input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
-            <label title="generate reflections">reflections <input type="checkbox" id="reflectionsToggle" onchange="updatePage()"/></label> |
+            <label title="generate echoes">echoes <input type="checkbox" id="echoesToggle" onchange="updatePage()"/></label> |
+            <label title="generate identities">identities <input type="checkbox" id="identitiesToggle" onchange="updatePage()"/></label> |
             <label title="index formula composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
             <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
         </div>

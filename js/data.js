@@ -419,7 +419,7 @@ function placeValuesReverseArray( bases, offset = 0 ) {
 }
 
 
-function pairs(list) {
+function pairs( list ) {
     if (list.length < 2) {
         return [];
     }
@@ -470,15 +470,15 @@ function getCompositions( basis = 3 ) {
         "a_2 * a_1;",
         "a_2^-1 * a_0;",
 
-        "# a_0 ;",
-        "c_0 * a_2;",
-        "c_1 * a_0;",
+        "# z_0 ;",
+        "a_0 * a_1 * a_2;",
+        "#c_1 * a_0;",
 
         "# z_1 ;",
-        "c_2 * a_1;",
+        "a_2^-1 * a_0 * a_1;",
 
         "# z_2 ;",
-        "c_2^-1 * a_1;",
+        "a_0^-1 * a_2 * a_1;",
 
     ].join( "\n");
 }

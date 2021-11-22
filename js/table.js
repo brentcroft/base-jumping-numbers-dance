@@ -558,20 +558,26 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
 
     consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
 
+    //const optionalColumns = [ "identity-equation", "monomial" ];
+    const optionalColumns = [  ]
+
     const sep = ", ";
     const tableId = 'indexSummary_table';
     var columnId = 0;
 
     var dataHtml = "";
-    dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><tr>`;
+    dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>Box Actions</caption><tr>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Type</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Alias</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Perms</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Places</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Linear Place Function Pair</th>`;
+    if ( optionalColumns.includes(  "identity-equation" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
+    }
+    if ( optionalColumns.includes( "monomial" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbit Monomial</th>`;
+    }
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
@@ -586,13 +592,16 @@ function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
             const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
 
             var rowHtml = `<td>${ index.id }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.getType() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.getLabel() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ (!index.alias || index.alias == index.getLabel() ) ? '' : index.alias }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }] - [${ index.permForward || '' }]</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }] - [${ index.placesForward || '' }]</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( index ) }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }], [${ index.permForward || '' }]</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }], [${ index.placesForward || '' }]</td>`;
+            if ( optionalColumns.includes(  "identity-equation" ) ) {
+                rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
+            }
+            if ( optionalColumns.includes( "monomial" ) ) {
+                rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( index ) }</td>`;
+            }
             rowHtml += `<td align='center' ${clickAttr}>${ index.identities.length }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.orbits.length }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ index.fundamental }</td>`;

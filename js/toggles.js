@@ -23,7 +23,8 @@ toggleKeys = {
     indexComposer: 0,
 
     inverses: 0,
-    reflections: 0,
+    echoes: 0,
+    identities: 0,
 
     palindromicPlanes: 1,
     mixedPlanes: 1,

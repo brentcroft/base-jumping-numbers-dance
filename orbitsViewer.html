@@ -16,6 +16,9 @@
                 margin: 0px;
                 padding: 0px;
                 border: 0px;
+                background-color: #202021;
+                width: 100%;
+                height: 100%;
             }
             .plot-container {
                 margin: 0px;
@@ -56,8 +59,11 @@
         <script type="text/javascript" src="js/pageOrbitsViewer.js"></script>
     </head>
     <body id="testContainer001" onload="initPage()">
+        <input type="button" onclick="screenshot()" value="snap"/>
+        <span id="snaps"></span>
         <x3d id="testContainer001_plot" showStat="false" width="100%" height="100%">
             <scene id="testContainer001_plot_scene_root">
+
             </scene>
         </x3d>
         <div id="selectedPointsInfo" class="point-info">

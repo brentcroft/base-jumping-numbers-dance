@@ -210,7 +210,7 @@
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="2" onchange="selectIndexPlane()"/></label>
+            <label title="change the selected box action">action-id: <input type="number" min="0" id="actionIndex" value="0" onchange="selectBoxAction()"/></label>
 
             <span id="captionTex" class="summaryLeft"></span>
             <br/>
@@ -225,7 +225,7 @@
             <div id="more-options" style="display: none">
                 <hr/>
                 <label title="globalise all ids">globalise <input type="checkbox" id="globaliseToggle" onchange="updatePage()"/></label> |
-                <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectIndexPlane()"/></label> |
+                <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
                 <label title="minimal columns">min-cols <input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
@@ -238,7 +238,7 @@
                         function getColorConfiguration() {
                             return [
                                 [ vId("colour-red"), vId("colour-green"), vId("colour-blue") ],
-                                vId("colour-planeIndex"),
+                                vId("colour-actionIndex"),
                                 vId("colour-orbitIndex"),
                                 vId("colour-minPixel"),
                                 vId("colour-maxPixel") ];
@@ -250,7 +250,7 @@
                         function masterColorBasePlane() {
                             const [ bases, orbitIndex, minPixel, maxPixel ] = getColorConfiguration();
                             initialiseBases( bases );
-                            selectIndexPlane();
+                            selectBoxAction();
                             distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'colourBasePlane.' + orbitIndex } ] );
                         }
                     </script>
@@ -258,7 +258,7 @@
                     <input type="number" min="1" id="colour-red" value="4" class="colourField"/>
                     <input type="number" min="1" id="colour-green" value="4" class="colourField"/>
                     <input type="number" min="1" id="colour-blue" value="6" class="colourField"/> |
-                    plane <input type="number" min="1" id="colour-planeIndex" value="1" class="colourField"/> |
+                    plane <input type="number" min="1" id="colour-actionIndex" value="1" class="colourField"/> |
                     orbit <input type="number" min="1" id="colour-orbitIndex" value="1" class="colourField"/> |
                     <a href="javascript:masterColorBasePlane()">master</a> |
                     min-pixel <input type="number" min="0" max="255" id="colour-minPixel" value="50" class="colourField"/> |
@@ -276,15 +276,15 @@
     <div class="full-width">
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
-            indexes:
-            <label title="generate sub boxes">a <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
-            <label title="generate b indexes">b  <input type="checkbox" id="tertiaryPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="generate c indexes">c <input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="generate palindromes">z (palindromes) <input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
-            <br/>
+            layers:
+            <label title="orthogonal actions">a<input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="b actions">b <input type="checkbox" id="tertiaryPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="c actions">c<input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
+            <label title="palindromic actions">z<input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
             <label title="generate inverses">inverses <input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
             <label title="generate echoes">echoes <input type="checkbox" id="echoesToggle" onchange="updatePage()"/></label> |
             <label title="generate identities">identities <input type="checkbox" id="identitiesToggle" onchange="updatePage()"/></label> |
+            <label title="generate radiance">radiance <input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
             <label title="index formula composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
             <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
         </div>
@@ -306,7 +306,7 @@ z_0^-1; z_1^-1; z_2^-1;
     <div class="full-width">
         <div id="cyclesControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); selectIndexPlane();"/></label> |
+            <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); selectBoxAction();"/></label> |
             <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
             <label title="display jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
             <label title="display orbit editor">editor<input type="checkbox" id="orbitEditorToggle" onchange="showHideAll( ['orbitEditor'], this )"/></label>
@@ -425,9 +425,9 @@ z_0^-1; z_1^-1; z_2^-1;
     <div class="full-width">
         <div id="productsControls" class="toolbar" style="display: none">
             <hr/>
-            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="selectIndexPlane()"/></label> |
-            <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="selectIndexPlane()"/></label> |
-            <label title="blank identity results">blank identity<input type="checkbox" id="productBlankIdentityToggle" onchange="selectIndexPlane()"/></label>
+            <label title="sort columns and rows by orbits">by orbit<input type="checkbox" id="productByOrbitsToggle" onchange="selectBoxAction()"/></label> |
+            <label title="use the identity when convolution commutes">commute identity<input type="checkbox" id="productCommuteIdentityToggle" onchange="selectBoxAction()"/></label> |
+            <label title="blank identity results">blank identity<input type="checkbox" id="productBlankIdentityToggle" onchange="selectBoxAction()"/></label>
         </div>
 
         <div id="productsTable" style="display: none">

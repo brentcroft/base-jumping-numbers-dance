@@ -24,12 +24,12 @@ toggleKeys = {
     coords: 0,
     minCols: 0,
 
-    autoFormula: 1,
-    indexComposer: 0,
-
+    radiance: 0,
     inverses: 0,
     echoes: 0,
     identities: 0,
+    autoFormula: 1,
+    indexComposer: 0,
 
     palindromicPlanes: 1,
     mixedPlanes: 1,

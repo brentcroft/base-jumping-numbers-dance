@@ -15,8 +15,8 @@ function getParam( defaultValues ) {
             .map( x => Number( x ) );
     }
 
-    const indexParam = urlParams.get('planeIndex');
-    const planeIndex = ( indexParam ) ? Number( indexParam ): defaultValues.planeIndex;
+    const indexParam = urlParams.get('actionIndex');
+    const actionIndex = ( indexParam ) ? Number( indexParam ): defaultValues.actionIndex;
 
     const toggleParam = urlParams.get('toggles');
     if ( toggleParam ) {
@@ -29,7 +29,7 @@ function getParam( defaultValues ) {
     }
 
     return {
-        planeIndex: planeIndex,
+        actionIndex: actionIndex,
         id: urlParams.get('id'),
         bases: bases,
         orbits: urlParams.get('orbits'),
@@ -38,7 +38,7 @@ function getParam( defaultValues ) {
 }
 
 function getControlValues() {
-    const planeIndex = Number( document.getElementById( 'planeIndex' ).value );
+    const actionIndex = Number( document.getElementById( 'actionIndex' ).value );
     const baseCount = Number( document.getElementById( 'bases' ).value );
     const emptyBases = new Array( baseCount ).fill( 0 );
     const bases = emptyBases.map( (x,i) => {
@@ -55,23 +55,23 @@ function getControlValues() {
             .filter( k => isToggle( k ) );
 
     return {
-        planeIndex: planeIndex,
+        actionIndex: actionIndex,
         bases: bases,
         toggles: currentToggles
     };
 }
 
-function getCurrentQueryString( basePlaneKey, bases, planeIndex ) {
+function getCurrentQueryString( basePlaneKey, bases, actionIndex ) {
     const values = getControlValues();
 
     if ( !bases ) {
         bases = values.bases;
     }
-    if ( !planeIndex ) {
-        planeIndex = values.planeIndex;
+    if ( !actionIndex ) {
+        actionIndex = values.actionIndex;
     }
 
-    return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&planeIndex=${ values.planeIndex }&toggles=${ values.toggles.join( ',' ) }`;
+    return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&toggles=${ values.toggles.join( ',' ) }`;
 }
 
 function reopenWithArgs() {
@@ -306,14 +306,14 @@ function initialiseControls( param ) {
         document.getElementById( id ).value = value;
     }
 
-    setNumberField( "planeIndex", param.planeIndex );
+    setNumberField( "actionIndex", param.actionIndex );
 
-    const colourFields = [ "colour-red", "colour-green", "colour-blue", "colour-planeIndex", "colour-orbitIndex", "colour-minPixel" ];
+    const colourFields = [ "colour-red", "colour-green", "colour-blue", "colour-actionIndex", "colour-orbitIndex", "colour-minPixel" ];
 
     setNumberField( "colour-red", colourPointIndexDefault.bases[0] );
     setNumberField( "colour-green", colourPointIndexDefault.bases[1] );
     setNumberField( "colour-blue", colourPointIndexDefault.bases[2] );
-    setNumberField( "colour-planeIndex", colourPointIndexDefault.planeIndex );
+    setNumberField( "colour-actionIndex", colourPointIndexDefault.actionIndex );
     setNumberField( "colour-orbitIndex", colourPointIndexDefault.orbitIndex );
     setNumberField( "colour-minPixel", colourPointIndexDefault.minPixel );
     setNumberField( "colour-maxPixel", colourPointIndexDefault.maxPixel );
@@ -452,15 +452,15 @@ function updateJson() {
         framePage = "orbitsViewer.html?" + getCurrentQueryString( basePlane.key ) );
 }
 
-function selectIndexPlane() {
+function selectBoxAction() {
 
     const param = getControlValues();
 
-    const planeIndex = param.planeIndex % indexedBox.indexPlanes.length;
-    basePlane = indexedBox.indexPlanes[ planeIndex ];
+    const actionIndex = param.actionIndex % indexedBox.indexPlanes.length;
+    basePlane = indexedBox.indexPlanes[ actionIndex ];
     putBasePlane( basePlane.key, basePlane );
 
-    consoleLog( `selectIndexPlane: id=${ basePlane.id }` );
+    consoleLog( `selectBoxAction: id=${ basePlane.id }` );
 
     drawProductTable( basePlane, param.toggles );
 
@@ -470,7 +470,7 @@ function selectIndexPlane() {
 function rebuildIndexedBoxSummary( param ) {
 
     document
-            .getElementById( "planeIndex" )
+            .getElementById( "actionIndex" )
             .max = indexedBox.indexPlanes.length - 1;
 
 //    document
@@ -501,10 +501,10 @@ function updatePage() {
         rebuildIndexedBoxSummary( param );
     }
 
-    selectIndexPlane();
+    selectBoxAction();
 
     distributeMessages( 'sample_cs_b_10_m_2', [
-        { 'indexKey': param.planeIndex, 'sender': 'updatePage.' + (param.planeIndex || 1 ) },
+        { 'indexKey': param.actionIndex, 'sender': 'updatePage.' + (param.actionIndex || 1 ) },
         { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'updatePage.' + (param.id || 1 ) }
     ] );
 }
@@ -601,7 +601,7 @@ function initPage( urlParam = true ) {
                 const nextPlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
 
                 if ( nextPlane ) {
-                    document.getElementById( 'planeIndex' ).value = data.indexKey;
+                    document.getElementById( 'actionIndex' ).value = data.indexKey;
 
                     // swap global basePlane and register
                     // so child frames can access it.
@@ -625,7 +625,7 @@ function initPage( urlParam = true ) {
 
                 const [ bases, colorOrbitIndex, minPixel ] = data.colors;
                 putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, colorOrbitIndex, minPixel ) );
-                selectIndexPlane();
+                selectBoxAction();
 
             } else if ( data.toggleCentres ) {
             } else if ( data.toggleLines ) {

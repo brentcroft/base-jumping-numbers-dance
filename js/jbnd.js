@@ -256,21 +256,23 @@ class IndexedBox {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
         this.box.points = [];
-
-        this.box.radiance = new RadiantIndex( this.box, 0 );
-        this.box.unity = new CompositeIndex( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, 'r * r' );
-        this.box.unity.label = 'e';
-        this.indexPlanes = [ this.box.radiance, this.box.unity ];
+        this.indexPlanes = [];
 
         const toggles = param.toggles || [];
-
         const globalise = toggles.includes( "globalise" );
+
+        if (toggles.includes( "radiance" )) {
+            this.box.radiance = new RadiantIndex( this.box, 0 );
+            this.box.unity = new CompositeIndex( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, 'r * r' );
+            this.box.unity.label = 'e';
+            this.indexPlanes = [ this.box.radiance, this.box.unity ];
+        }
+
 
         if ( bases.length < 2 ) {
             this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length ) );
         } else {
             var indexors = pairs( this.box.placeValuePermutations );
-
 
             const typeOfIndexor = ( a ) => {
                 const [ l, r ] = [ a[0][0], a[1][0] ];
@@ -387,7 +389,13 @@ class IndexedBox {
         }
 
         this.buildIndexes();
-        this.box.unity.indexPoints();
+
+        if ( this.box.unity ) {
+
+            // radiance has been built
+            // unit is composite so not auto-indexed
+            this.box.unity.indexPoints();
+        }
 
         // set conjugates
         const numPoints = this.box.points.length;

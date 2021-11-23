@@ -451,12 +451,13 @@ function permutations(inputArr) {
     return result;
 }
 
-function placeValuesPermutation( bases, perm = [] ) {
+function placeValuesPermutation( bases, placePermutation = [] ) {
     var acc = 1;
     const p = new Array( bases.length ).fill( 0 );
     for ( var i = 0; i < bases.length; i++ ) {
-        p[perm[i]] = acc;
-        acc = acc * bases[perm[i]];
+        const place = placePermutation[i];
+        p[place] = acc;
+        acc = acc * bases[place];
     }
     return p;
 }

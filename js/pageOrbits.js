@@ -398,7 +398,7 @@ function processFormula( pidsText ) {
             document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
         }
 
-        rebuildIndexedBoxSummary();
+        rebuildIndexedBoxSummary( getControlValues() );
     }
 }
 
@@ -441,6 +441,7 @@ function updateJson() {
         globalIds: isToggle('globalIds'),
         jumps: isToggle('jumps'),
         perms: !isToggle('coords'),
+        minCols: isToggle('minCols')
     };
 
     drawBasePlaneTable( tableArgs );
@@ -466,19 +467,19 @@ function selectIndexPlane() {
     updateJson();
 }
 
-function rebuildIndexedBoxSummary() {
+function rebuildIndexedBoxSummary( param ) {
 
     document
             .getElementById( "planeIndex" )
             .max = indexedBox.indexPlanes.length - 1;
 
-    document
-            .getElementById("captionTex")
-            .innerHTML = JSON.stringify( indexedBox.box.getJson() );
+//    document
+//            .getElementById("captionTex")
+//            .innerHTML = JSON.stringify( indexedBox.box.getJson() );
 
     document
-            .getElementById( "summary" )
-            .innerHTML = drawBoxSummaryTable( indexedBox, "sample_cs_b_10_m_2", 1 );
+            .getElementById( "actionsTable" )
+            .innerHTML = drawBoxSummaryTable( indexedBox, "sample_cs_b_10_m_2", param, 1 );
 }
 
 function updatePage() {
@@ -497,7 +498,7 @@ function updatePage() {
     if ( param.toggles.includes( "autoFormula" ) ) {
         processFormula( getCompositions( indexedBox.box.basis ) );
     } else {
-        rebuildIndexedBoxSummary();
+        rebuildIndexedBoxSummary( param );
     }
 
     selectIndexPlane();
@@ -538,14 +539,14 @@ function initPage( urlParam = true ) {
         return;
     }
 
-    if ( param.toggles.summary ) {
-        showHideAll( [ 'selectedPoint', 'summary', 'summaryControls' ] );
+    if ( param.toggles.actions ) {
+        showHideAll( [ 'selectedPoint', 'actionsTable', 'actionControls' ] );
+    }
+    if ( param.toggles.cycles ) {
+        showHideAll(['cyclesControls','sample_cs_b_10_m_2_table']);
     }
     if ( param.toggles.indexComposer ) {
         showHideAll( [ 'indexComposer' ] );
-    }
-    if ( param.toggles.table ) {
-        showHideAll(['tableControls','sample_cs_b_10_m_2_table']);
     }
     if ( param.toggles.chart ) {
         showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler']);
@@ -559,9 +560,9 @@ function initPage( urlParam = true ) {
     if ( param.toggles.colours ) {
         showHideAll( ['colours'] );
     }
-    if ( param.toggles.midi ) {
-        showHideCSS( '.midi' );
-    }
+//    if ( param.toggles.midi ) {
+//        showHideCSS( '.midi' );
+//    }
 
     if ( param.toggles.products ) {
         showHideAll( ['productsTable'] );

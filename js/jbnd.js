@@ -3,22 +3,21 @@
 class Box {
     constructor( bases ) {
         this.bases = [...bases];
+        this.rank = this.bases.length;
 
         // generate placeValues according to the permutations of the basis of the bases
         this.placePermutations = permutations( arrayIndexes( this.bases ) );
         this.permCount = this.placePermutations.length;
         this.pairCount = this.permCount  * (this.permCount - 1);
 
-        this.placeIndexors = this.placePermutations.map( perm => [ perm, placeValuesPermutation( this.bases, perm ) ] );
-
-        this.rank = this.bases.length;
+        //
+        this.placeValuePermutations = this.placePermutations.map( perm => [ perm, placeValuesPermutation( this.bases, perm ) ] );
 
         this.volume = getVolume( this.bases );
         this.indexRadiance = getIndexRadiance( this.volume );
-        //this.volumeUnits = getUnits( this.volume );
+        this.euclideanRadiance = getEuclideanRadiance( this.bases );
 
         this.surfaceArea = getSurfaceArea( this.bases );
-        this.euclideanRadiance = getEuclideanRadiance( this.bases );
 
         // since each coord plus it's reflection in the centre equals the terminal
         this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
@@ -32,7 +31,6 @@ class Box {
         this.terminal = this.bases.map( x => x - 1 );
         this.diagonal = [ this.origin, this.terminal ];
 
-        //
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
     }
 
@@ -271,7 +269,7 @@ class IndexedBox {
         if ( bases.length < 2 ) {
             this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length ) );
         } else {
-            var indexors = pairs( this.box.placeIndexors );
+            var indexors = pairs( this.box.placeValuePermutations );
 
 
             const typeOfIndexor = ( a ) => {
@@ -356,20 +354,22 @@ class IndexedBox {
 
             if ( toggles.includes( "identities" ) ) {
                 this.identities = [];
-                this.box.placeIndexors
+                this.box.placeValuePermutations
                     .forEach( pi => {
                         this.identities.push( [ pi, pi ] );
                     } );
                 this.identities.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'e_' + i ) ) );
             } else {
                 const maxOnes = this.box.rank - 2;
-                const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
-                const indicatesIdentity = ( a, b ) => countOnes( a ) > maxOnes || countOnes( b ) > maxOnes;
+                if ( maxOnes > 0 ) {
+                    const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
+                    const indicatesIdentity = ( a, b ) => countOnes( a ) > maxOnes || countOnes( b ) > maxOnes;
 
-                this.degenerates = this.degenerates.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
-                this.secondaries = this.secondaries.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
-                this.tertiaries = this.tertiaries.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
-                this.palindromes = this.palindromes.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
+                    this.degenerates = this.degenerates.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
+                    this.secondaries = this.secondaries.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
+                    this.tertiaries = this.tertiaries.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
+                    this.palindromes = this.palindromes.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
+                }
             }
 
             if ( toggles.includes( "orthogonalPlanes" ) ) {

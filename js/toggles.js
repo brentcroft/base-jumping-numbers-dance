@@ -1,23 +1,28 @@
 //
 toggleKeys = {
-    conj: 1,
+
+    actions: 1,
+    cycles: 1,
+    chart: 1,
+    more: 0,
+
+    chart3d: 0,
+
     centres: 1,
     lines: 1,
     plane: 1,
-    chart: 1,
     colours: 0,
-    coords: 0,
     grid: 1,
-    chart3d: 0,
     jumps: 0,
 
-    more: 0,
-    scale3d: 0,
-    summary: 1,
-    table: 0,
 
-    globalIds: 0,
+    scale3d: 0,
+
     globalise: 0,
+    globalIds: 0,
+    conj: 1,
+    coords: 0,
+    minCols: 0,
 
     autoFormula: 1,
     indexComposer: 0,

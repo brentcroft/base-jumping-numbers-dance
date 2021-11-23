@@ -378,7 +378,6 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                     "translation": `${ gid( identity.points[0] ) } 0 ${ zOff * -1 }`
                                 },
                                 [
-                                    //createSphereShape( `grid-point-${ identity.points[0].coord.join( '-' ) }`, 0.2, "red", 0.3, JSON.stringify( identity.points[0].getJson() ) ),
                                     createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "black", attr )
                                 ]
                             )
@@ -472,8 +471,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                     reify(
                         "transform",
                         {
-                            "translation": `0 0 ${ zOff * i }`,
-                            "id": ("orbit." + orbit.index )
+                            "translation": `0 0 ${ zOff * i }`
                         },
                         [
                             ...orbit
@@ -483,12 +481,12 @@ function getBasePlaneCycles( basePlane, toggles ) {
                                         return reify(
                                             "transform", { "translation": `${ gid( entry ) } 0 0` },
                                             [
-                                                //createConeShape( `point-${ entry.coord.join("-") }`, pointParity * 1.17, "red", 0.5, JSON.stringify( entry.getJson() ) ),
                                                 createSphereShape( `point-${ entry.coord.join("-") }`, 0.3, color, 0, JSON.stringify( entry.getJson() ) ),
                                                 reify(
                                                     "transform", {
                                                         "translation": `${ halfJump } 0 0`,
-                                                        "class": "orbit-line"
+                                                        "class": "orbit-line",
+                                                        "id": ("orbit." + orbit.index )
                                                     },
                                                     [
                                                         createTorusShape( {

@@ -168,10 +168,13 @@ function getCycleIndexMonomialHtml( basePlane ) {
 
 function drawBasePlaneTable( tableArgs ) {
 
-    var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false, globalIds = false } = tableArgs;
+    var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false, globalIds = false, minCols = false } = tableArgs;
 
     consoleLog( `orbits.table: ${ containerId }: id=${ basePlane.id }` );
 
+    const optionalColumns = minCols
+        ? []
+        :  [ "line", "centre", "tension", "torsion" ];
 
     const gid = globalIds
         ? ( point ) => point.id
@@ -181,7 +184,7 @@ function drawBasePlaneTable( tableArgs ) {
     const tableId = tableContainerId + "_data";
 
     var chainsText = "";
-    chainsText += `<table id="${ tableId }" class='chain-details summary sortable'>`;
+    chainsText += `<table id="${ tableId }" class='chain-details summary sortable'><caption>Box Action Cycles</caption>`;
 
     var colIndex = 0;
     chainsText += "<tr>";
@@ -199,15 +202,22 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='8%'>Point Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, false, true )' width='8%'>Id Sum</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, false, true )' width='8%'>Order</th>`;
-    //chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Harmonic</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
+    if ( optionalColumns.includes( "line" ) ) {
+        chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Line</th>`;
+    }
+    if ( optionalColumns.includes( "centre" ) ) {
+        chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )'>Centre</th>`;
+    }
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Radiance is the sum of the squares of the (euclidean) distance between each coordinate and its reflection in the box centre.">E-Rad</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Perimeter is the sum of the squares of the (euclidean) distance between adjacent coordinates in an orbit.">E-Per<sup>2</sup></th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Radiance minus the sum of the squares of the Perimeters.">Tension</th>`;
+    if ( optionalColumns.includes( "tension" ) ) {
+        chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Euclidean Radiance minus the sum of the squares of the Perimeters.">Tension</th>`;
+    }
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Radiance is the sum of the index radiants (distance from the index centre) from each coordinate.">I-Rad</th>`;
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Perimeter is the sum of the index distance between adjacent coordinates in an orbit.">I-Per</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Radiance minus the Index Perimeter.">Torsion</th>`;
+    if ( optionalColumns.includes( "torsion" ) ) {
+        chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' title="The Index Radiance minus the Index Perimeter.">Torsion</th>`;
+    }
     chainsText += "</tr>";
 
     chainsText += "<tr>";
@@ -238,18 +248,22 @@ function drawBasePlaneTable( tableArgs ) {
     chainsText += `<th id="${ tableId }.g" align='center' onclick="${ clearClick }"><code>${ identityIdSum / identityIdSumGcd } * ${ identityIdSumGcd }</code></th>`;
 
     chainsText += `<th align='center' onclick="${ clearClick }"><code>( 1<sup>${ basePlane.identities.length }</sup> )</code></th>`;
-    //chainsText += "<th colspan='1'></th>";
-    chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
-    chainsText += "<th colspan='1'></th>";
-
+    if ( optionalColumns.includes( "line" ) ) {
+        chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
+    }
+    if ( optionalColumns.includes( "centre" ) ) {
+        chainsText += `<th align='center' onclick="${ clearClick }"></th>`;
+    }
     chainsText += `<th colspan='1' class="minuend"><code>${ basePlane.identityEuclideanRadiance() }</code></th>`;
     chainsText += `<th colspan='1'><code>${ basePlane.identityEuclideanPerimeter() }</code></th>`;
-    chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityEuclideanTension() }</code></th>`;
-
+    if ( optionalColumns.includes( "tension" ) ) {
+       chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityEuclideanTension() }</code></th>`;
+    }
     chainsText += `<th colspan='1' class="minuend"><code>${ basePlane.identityIndexRadiance() }</code></th>`;
     chainsText += `<th colspan='1'><code>${ basePlane.identityIndexPerimeter() }</code></th>`;
-    chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityIndexTorsion() }</code></th>`;
-
+    if ( optionalColumns.includes( "torsion" ) ) {
+        chainsText += `<th colspan='1' class="difference"><code>${ basePlane.identityIndexTorsion() }</code></th>`;
+    }
     chainsText += "</tr>";
 
     const orbits = basePlane.orbits;
@@ -368,24 +382,34 @@ function drawBasePlaneTable( tableArgs ) {
             chainsText += `<td align="center">${ orbit.order } * 1</td>`;
         }
 
-        //chainsText += `<td align="center">${ orbit.harmonic }</td>`;
-        chainsText += `<td align="center">${ orbit.getLineRef() }</td>`;
-        chainsText += `<td align="center">${ orbit.centreRef }</td>`;
-
+        if ( optionalColumns.includes( "line" ) ) {
+            chainsText += `<td align="center">${ orbit.getLineRef() }</td>`;
+        }
+        if ( optionalColumns.includes( "centre" ) ) {
+            chainsText += `<td align="center">${ orbit.centreRef }</td>`;
+        }
         if ( orbit.isFirstConjugate() && conj ) {
             chainsText += `<td align="center" class="minuend">${ orbit.euclideanRadiance() * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.euclideanPerimeter() * 2 }</td>`;
-            chainsText += `<td align="center" class="difference">${ orbit.tension() * 2 }</td>`;
+            if ( optionalColumns.includes( "tension" ) ) {
+                chainsText += `<td align="center" class="difference">${ orbit.tension() * 2 }</td>`;
+            }
             chainsText += `<td align="center" class="minuend">${ orbit.indexRadiance() * 2 }</td>`;
             chainsText += `<td align="center">${ orbit.indexPerimeter() * 2 }</td>`;
-            chainsText += `<td align="center" class="difference">${ orbit.torsion() * 2 }</td>`;
+            if ( optionalColumns.includes( "torsion" ) ) {
+                chainsText += `<td align="center" class="difference">${ orbit.torsion() * 2 }</td>`;
+            }
         } else {
             chainsText += `<td align="center" class="minuend">${ orbit.euclideanRadiance() }</td>`;
             chainsText += `<td align="center">${ orbit.euclideanPerimeter() }</td>`;
-            chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
+            if ( optionalColumns.includes( "tension" ) ) {
+                chainsText += `<td align="center" class="difference">${ orbit.tension() }</td>`;
+            }
             chainsText += `<td align="center" class="minuend">${ orbit.indexRadiance() }</td>`;
             chainsText += `<td align="center">${ orbit.indexPerimeter() }</td>`;
-            chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
+            if ( optionalColumns.includes( "torsion" ) ) {
+                chainsText += `<td align="center" class="difference">${ orbit.torsion() }</td>`;
+            }
         }
         chainsText += "</tr>";
     }
@@ -446,6 +470,13 @@ function drawBasePlaneTable( tableArgs ) {
         chainsText += `<td class="product-total" onclick="${ totalClick }"><span class="product-total">${ tos } ( * 2<sup>${ tn2s } )</sup></span></td>`;
     }
 
+    if ( optionalColumns.includes( "line" ) ) {
+        chainsText += "<td></td>";
+    }
+    if ( optionalColumns.includes( "centre" ) ) {
+        chainsText += "<td></td>";
+    }
+
     const edgeGcd = gcd( basePlane.box.bases[0], basePlane.box.bases[basePlane.box.rank - 1] );
 
     const euclideanRadiance = basePlane.box.euclideanRadiance;
@@ -458,10 +489,11 @@ function drawBasePlaneTable( tableArgs ) {
         euclideanRadianceGcd
     ];
 
-    chainsText += "<td colspan='2'></td>";
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanRadiance(), [ ...trialCommonDenominators ], totalClick, classList = ['minuend' ] );
     chainsText += factoredTableTotalBlock( basePlane.grossEuclideanPerimeter(), [ ...trialCommonDenominators ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.grossEuclideanTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
+    if ( optionalColumns.includes( "tension" ) ) {
+        chainsText += factoredTableTotalBlock( basePlane.grossEuclideanTension(), [ ...trialCommonDenominators ], totalClick, classList = ['difference' ]  );
+    }
 
     var indexRadiance = basePlane.grossIndexRadiance();
     var indexRadianceRoot = (maxIndex % 2) == 0 ? ( maxIndex / 2 ) : ( ( maxIndex + 1 ) / 2 );
@@ -470,8 +502,9 @@ function drawBasePlaneTable( tableArgs ) {
 
     chainsText += factoredTableTotalBlock( indexRadiance, [ indexRadianceRoot ], totalClick, classList = ['minuend' ] );
     chainsText += factoredTableTotalBlock( basePlane.grossIndexPerimeter(), [ torsionGcd ], totalClick );
-    chainsText += factoredTableTotalBlock( basePlane.grossIndexTorsion(), [ torsionGcd ], totalClick, classList = ['difference' ]  );
-
+    if ( optionalColumns.includes( "torsion" ) ) {
+        chainsText += factoredTableTotalBlock( basePlane.grossIndexTorsion(), [ torsionGcd ], totalClick, classList = ['difference' ]  );
+    }
 
     chainsText += "</tr>";
     chainsText += "</table>";
@@ -554,12 +587,13 @@ function drawProductTable( index, toggles ) {
     document.getElementById( 'products' ).innerHTML = `<span class='summaryRight'>e = { ${ identityIds } }</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
 }
 
-function drawBoxSummaryTable( indexedBox, containerId, selectedIndex = -1 ) {
+function drawBoxSummaryTable( indexedBox, containerId, param , selectedIndex = -1 ) {
 
     consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
 
-    const optionalColumns = [ "identity-equation", "monomial" ];
-    //const optionalColumns = [  ]
+    const toggles = param.toggles || [];
+
+    const optionalColumns = toggles.includes( "minCols" ) ? [] :  [ "identity-equation", "monomial" ];
 
     const sep = ", ";
     const tableId = 'indexSummary_table';

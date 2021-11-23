@@ -1,13 +1,36 @@
+# Groups in Boxes: Jumping Bases Numbers Dance
 
-# Thinking inside the Box: Finding Groups.
+## Thinking inside the Box
 
-A box is specified by a sequence of non-zero base numbers, say: `[ b_0, b_1, ..., b_(n-1) ]`.
-> the box rank is the number of bases.
+A box is specified by a sequence of non-zero base numbers.
+* the box rank is the number of bases.
+* the box volume is the product of the bases.
 
-> the box volume is the product of the bases.
+A box specifies a set of points, 
+corresponding to the coordinates that can be constructed within the bases 
+and the order of the set of points is equal to the box volume.
 
-A box specifies a set of points, with order equal to the box volume, say: `[ x_0, x_1, ..., x_(n-1) ]`.
-> for each place **i**: `0 <= x_i < b_i`.
+For example, the **7x5x3** box has 105 points, 
+with coordinates ranging from an origin point(0,0,0) 
+to a terminal point (6,4,2).
+
+Counting points in the box requires disambiguation of the points,
+and follows the same pattern humans use for decimal numbers;
+identify place values: | 5 x 3 | 3 | 1 |, and plug in each coordinate
+to get a distinct value.
+
+So, **(0,0,0) → 0**, and **(6,4,2) → 104**.
+
+
+
+>The number of ways of counting the points in a box 
+is equal to the number of permutations of its bases. 
+
+* In a box where the bases are all equal:
+all the permutations are equal and there is only one way to count.
+
+* In a box where no bases are equal:
+all permutations are distinct and there are many ways to count.
 
 
 #### Point Indexes:

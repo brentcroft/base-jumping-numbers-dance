@@ -207,16 +207,15 @@
 
             <label title="change the selected index of the box">index: <input type="number" min="0" id="planeIndex" value="2" onchange="selectIndexPlane()"/></label>
 
-            <br/>
             <span id="captionTex" class="summaryLeft"></span>
             <br/>
         </div>
 
         <div id="toolbar" class="toolbar">
-            <label title="show indexes table">summary <input type="checkbox" id="summaryToggle" onchange="showHideAll(['summaryControls','summary'], this )"/></label> |
-            <label title="show orbits table">table<input type="checkbox" id="tableToggle" onchange="showHideAll(['tableControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
-            <label title="show orbits chart">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
-            <label title="show more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
+            <label title="toggle actions table">actions<input type="checkbox" id="actionsToggle" onchange="showHideAll(['actionControls','actionsTable'], this )"/></label> |
+            <label title="toggle cycles table">cycles<input type="checkbox" id="cyclesToggle" onchange="showHideAll(['cyclesControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
+            <label title="toggle orbits chart">chart<input type="checkbox" id="chartToggle" onchange="showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler'], this)"/></label> |
+            <label title="toggle more options">more<input type="checkbox" id="moreToggle" onchange="showHideAll( ['more-options'], this )"/></label>
 
             <div id="more-options" style="display: none">
                 <hr/>
@@ -224,6 +223,7 @@
                 <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectIndexPlane()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
+                <label title="minimal columns">min-cols <input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
                 <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
 
                 <div id="colours" style="display: none">
@@ -269,7 +269,7 @@
     </div>
 
     <div class="full-width">
-        <div id="summaryControls" class="toolbar" style="display: none">
+        <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             indexes:
             <label title="generate sub boxes">a <input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label>
@@ -295,11 +295,11 @@ z_0^-1; z_1^-1; z_2^-1;
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>
 
-        <div id="summary" style="display: none"></div>
+        <div id="actionsTable" style="display: none"></div>
     </div>
 
     <div class="full-width">
-        <div id="tableControls" class="toolbar" style="display: none">
+        <div id="cyclesControls" class="toolbar" style="display: none">
             <hr/>
             <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); selectIndexPlane();"/></label> |
             <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |

@@ -184,7 +184,7 @@ function drawBasePlaneTable( tableArgs ) {
     const tableId = tableContainerId + "_data";
 
     var chainsText = "";
-    chainsText += `<table id="${ tableId }" class='chain-details summary sortable'><caption>Box Action Cycles</caption>`;
+    chainsText += `<table id="${ tableId }" class='chain-details summary sortable'><caption>Cycles</caption>`;
 
     var colIndex = 0;
     chainsText += "<tr>";
@@ -600,12 +600,12 @@ function drawBoxSummaryTable( indexedBox, containerId, param , selectedIndex = -
     var columnId = 0;
 
     var dataHtml = "";
-    dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>Box Actions</caption><tr>`;
+    dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>Actions</caption><tr>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Linear Place Function Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Function Pair</th>`;
     if ( optionalColumns.includes(  "identity-equation" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
     }

@@ -396,6 +396,7 @@ function processFormula( pidsText ) {
             document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
         } catch ( e ) {
             document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
+            consoleLog( e );
         }
 
         rebuildIndexedBoxSummary( getControlValues() );
@@ -455,7 +456,6 @@ function updateJson() {
 function selectBoxAction() {
 
     const param = getControlValues();
-
     const actionIndex = param.actionIndex % indexedBox.indexPlanes.length;
     basePlane = indexedBox.indexPlanes[ actionIndex ];
     putBasePlane( basePlane.key, basePlane );
@@ -463,6 +463,8 @@ function selectBoxAction() {
     consoleLog( `selectBoxAction: id=${ basePlane.id }` );
 
     drawProductTable( basePlane, param.toggles );
+
+    showIndex( "indexSummary", "action."+ actionIndex );
 
     updateJson();
 }
@@ -479,7 +481,7 @@ function rebuildIndexedBoxSummary( param ) {
 
     document
             .getElementById( "actionsTable" )
-            .innerHTML = drawBoxSummaryTable( indexedBox, "sample_cs_b_10_m_2", param, 1 );
+            .innerHTML = drawBoxSummaryTable( indexedBox, "sample_cs_b_10_m_2", param );
 }
 
 function updatePage() {
@@ -502,11 +504,6 @@ function updatePage() {
     }
 
     selectBoxAction();
-
-    distributeMessages( 'sample_cs_b_10_m_2', [
-        { 'indexKey': param.actionIndex, 'sender': 'updatePage.' + (param.actionIndex || 1 ) },
-        { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': 'updatePage.' + (param.id || 1 ) }
-    ] );
 }
 
 function initPage( urlParam = true ) {
@@ -560,10 +557,6 @@ function initPage( urlParam = true ) {
     if ( param.toggles.colours ) {
         showHideAll( ['colours'] );
     }
-//    if ( param.toggles.midi ) {
-//        showHideCSS( '.midi' );
-//    }
-
     if ( param.toggles.products ) {
         showHideAll( ['productsTable'] );
     }

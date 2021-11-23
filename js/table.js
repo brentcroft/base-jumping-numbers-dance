@@ -587,10 +587,11 @@ function drawProductTable( index, toggles ) {
     document.getElementById( 'products' ).innerHTML = `<span class='summaryRight'>e = { ${ identityIds } }</span><br/><pre>${ header }\n${ columns.join('\n') }</pre>`;
 }
 
-function drawBoxSummaryTable( indexedBox, containerId, param , selectedIndex = -1 ) {
+function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
-    consoleLog( `drawBoxSummaryTable: id=${ selectedIndex }` );
+    consoleLog( `drawBoxSummaryTable: id=${ JSON.stringify( param ) }` );
 
+    const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
     const optionalColumns = toggles.includes( "minCols" ) ? [] :  [ "identity-equation", "monomial" ];

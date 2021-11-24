@@ -389,7 +389,15 @@ function processFormula( pidsText ) {
 
             const results = pidsLines
                 .map( ft => new Formula( indexedBox, ft ) )
-                .map( f => [ f, f.evaluate( { dump: dump, label: label } ) ] );
+                .map( f => {
+                    try {
+                        const result = f.evaluate( { dump: dump, label: label } );
+                        return [ f, result ];
+                    } catch ( e ) {
+                        consoleLog( e );
+                        return [ f, e ];
+                    }
+                } );
 
             const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
 

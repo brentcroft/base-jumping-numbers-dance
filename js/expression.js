@@ -668,8 +668,11 @@ class PowerExpression extends Expression {
     evaluate(params = {}) {
         const exp = Number( this.exponent.evaluate(params) );
         var locus = params['e'];
+        if ( ! locus ) {
+            throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
+        }
         if ( exp == 0 ) {
-            return params['e'];
+            return locus;
         } else if ( exp > 0 ) {
             for ( var i = 0; i < exp; i++ ) {
                 locus = new CompositeIndex(

@@ -2,7 +2,7 @@
 toggleKeys = {
 
     actions: 1,
-    cycles: 1,
+    cycles: 0,
     chart: 1,
     more: 0,
 
@@ -25,16 +25,11 @@ toggleKeys = {
     minCols: 0,
 
     inverses: 0,
-    echoes: 0,
-    identities: 0,
+    harmonics: 0,
+    degenerates: 0,
     radiance: 1,
-    autoFormula: 1,
+    autoFormula: 0,
     indexComposer: 0,
-
-    palindromicPlanes: 1,
-    mixedPlanes: 1,
-    tertiaryPlanes: 1,
-    orthogonalPlanes: 1,
 
     products: 0,
     productByOrbits: 1,

@@ -49,13 +49,13 @@ Note that a pair of identical indexes will implement the identity permutation.
 A box has **n!n(n-1)** actions (excluding identical pairs) 
 and they form a group with a structure entirely defined by the rank of the box.
   1. each action appears with its inverse
-  2. each action has echoes
+  2. each action has harmonics
 
 A box group contains subgroups that implement all possible factorings of the box volume,
 thereby decomposing the box into constituent sub-boxes of lesser rank.
 
 ## Example: Box 3 x 5 x 7
-The following table shows the labelled set of box actions, with inverses, echoes and identities removed.
+The following table shows the labelled set of box actions, with inverses, harmonics and identities removed.
 
 NB: A radiance index and its square are reinstated to provide an identity. 
 

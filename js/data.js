@@ -95,6 +95,19 @@ function isOrthogonal( arrayPair, degree = 1 ) {
     return atIndex + 1;
 }
 
+function alignment( arrayPair ) {
+    const [ a, b ] = arrayPair;
+    var x = 0;
+    for ( var i = 0; i < b.length; i++ ) {
+        if (a[i] == b[i] ) {
+            x++;
+        }
+    }
+    return x;
+}
+
+
+
 function leftAlignment( arrayPair ) {
     const [ a, b ] = arrayPair;
     for ( var i = 0; i < b.length; i++ ) {
@@ -102,7 +115,7 @@ function leftAlignment( arrayPair ) {
             return i;
         }
     }
-    return b.length - 1;
+    return b.length;
 }
 
 function rightAlignment( arrayPair ) {
@@ -113,7 +126,7 @@ function rightAlignment( arrayPair ) {
             return i;
         }
     }
-    return b.length - 1;
+    return b.length;
 }
 
 
@@ -140,21 +153,18 @@ function isRightAligned( arrayPair, degree = 1 ) {
     return degree == maxDegree;
 }
 
-function isLeftRisingFromTo( a, fromTo ) {
-    const [ f, t ] = fromTo;
-    for ( var i = f + 1; i <= t; i++ ) {
-        if (a[i] <= a[i-1] ) {
+function isRisingFrom( a, from ) {
+    for ( var i = from + 1; i < a.length; i++ ) {
+        if (a[i-1] >= a[i] ) {
             return false;
         }
     }
     return true;
 }
 
-
-function isRightRisingFromTo( a, fromTo ) {
-    const [ f, t ] = fromTo;
-    for ( var i = f; i < t; i++ ) {
-        if (a[i] >= a[i+1] ) {
+function isRisingTo( a, to ) {
+    for ( var i = 0; i < to; i++ ) {
+        if (a[i] <= a[i+1] ) {
             return false;
         }
     }
@@ -199,6 +209,17 @@ var modularizeC        = ( p, b ) => {
         carry = ~~( v / b[i] );
     }
     return m;
+};
+
+var arrayCompare = (a, b) => {
+    for ( i = 0; i < b.length; i++ ) {
+        if ( a[i] < b[i] ) {
+            return -1;
+        } else if ( a[i] > b[i] ) {
+            return 1;
+        }
+    }
+    return 0;
 };
 
 var arrayExactlyEquals = (a, b) => a.filter( (x,i) => x == b[i] ).length == a.length;
@@ -429,9 +450,8 @@ function pairs( list ) {
 }
 
 // https://stackoverflow.com/questions/9960908/permutations-in-javascript
-function permutations(inputArr) {
+function permutations( inputArr ) {
     let result = [];
-
     const permute = (arr, m = []) => {
         if (arr.length === 0) {
             result.push(m);
@@ -443,11 +463,8 @@ function permutations(inputArr) {
             }
         }
     }
-
     permute(inputArr);
-
     result.sort( numericArraySorter );
-
     return result;
 }
 
@@ -467,19 +484,18 @@ function getCompositions( basis = 3 ) {
         "# compositions;",
 
         "# b_0, b_1, b_2;",
-        "a_0 * a_1;",
-        "a_2 * a_1;",
-        "a_2^-1 * a_0;",
+        "a_1 * a_2;",
+        "a_1 * a_0;",
+        "a_0 * a_2^-1;",
 
         "# z_0 ;",
         "a_0 * a_1 * a_2;",
-        "#c_1 * a_0;",
 
         "# z_1 ;",
         "a_2^-1 * a_0 * a_1;",
 
         "# z_2 ;",
-        "a_0^-1 * a_2 * a_1;",
+        "a_1 * a_2 * a_0^-1;",
 
     ].join( "\n");
 }

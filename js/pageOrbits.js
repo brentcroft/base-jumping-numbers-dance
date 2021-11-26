@@ -50,12 +50,18 @@ function getControlValues() {
         }
     } );
 
+    const actionLayers = [];
+    document
+            .querySelectorAll( ".box-layer-control" )
+            .forEach( blc => blc.checked? actionLayers.push( Number( blc.value ) ): 0 );
+
     const currentToggles = Object
             .keys( toggleKeys )
             .filter( k => isToggle( k ) );
 
     return {
         actionIndex: actionIndex,
+        actionLayers: actionLayers,
         bases: bases,
         toggles: currentToggles
     };
@@ -413,7 +419,6 @@ function processFormula( pidsText ) {
 
 
 
-
 function isToggle( toggle ) {
     const toggleControl = document.getElementById( toggle + "Toggle" );
     if ( !toggleControl ) {
@@ -465,16 +470,19 @@ function selectBoxAction() {
 
     const param = getControlValues();
     const actionIndex = param.actionIndex % indexedBox.indexPlanes.length;
+
+    consoleLog( `selectBoxAction: id=${ actionIndex }` );
     basePlane = indexedBox.indexPlanes[ actionIndex ];
-    putBasePlane( basePlane.key, basePlane );
 
-    consoleLog( `selectBoxAction: id=${ basePlane.id }` );
+    if ( basePlane ) {
+        putBasePlane( basePlane.key, basePlane );
 
-    drawProductTable( basePlane, param.toggles );
+        drawProductTable( basePlane, param.toggles );
 
-    showIndex( "indexSummary", "action."+ actionIndex );
+        showIndex( "indexSummary", "action."+ actionIndex );
 
-    updateJson();
+        updateJson();
+    }
 }
 
 function rebuildIndexedBoxSummary( param ) {
@@ -492,6 +500,59 @@ function rebuildIndexedBoxSummary( param ) {
             .innerHTML = drawBoxSummaryTable( indexedBox, "sample_cs_b_10_m_2", param );
 }
 
+
+function buildBoxLayersSelectors( indexedBox, param ) {
+
+    const container = document.getElementById( "boxLayerSelectors" );
+    while (container.firstChild ) {
+        container.removeChild( container.lastChild );
+    }
+
+    const actionLayers = param.actionLayers || [];
+
+    indexedBox.layerLabels.forEach( ( layerLabel, i ) => {
+        const [ id, label ] = layerLabel;
+        if ( i > 0 ) {
+            container
+                .appendChild(
+                    reify(
+                        "span",
+                        {},
+                        [],
+                        [ (span) => span.innerHTML = " | " ]
+                    ) );
+        }
+
+        const checked = actionLayers.includes( id );
+
+        container
+            .appendChild(
+                reify(
+                    "label",
+                    { "title": `${ label }` },
+                    [
+                        reify( "text", {}, [], [ t => t.innerHTML = `${ label }` ] ),
+                        reify(
+                            "input",
+                            {
+                                "id": "box-layer." + i,
+                                "type": "checkbox",
+                                "class": "box-layer-control",
+                                "value": id
+                            },
+                            [],
+                            [
+                                (control) => control.checked = checked,
+                                (control) => control.onchange = updatePage
+                            ]
+                        )
+                    ]
+                )
+            );
+    } );
+}
+
+
 function updatePage() {
 
     consoleLog( `updatePage:` );
@@ -506,10 +567,12 @@ function updatePage() {
             .value = indexedBox.box.volume;
 
     if ( param.toggles.includes( "autoFormula" ) ) {
-        processFormula( getCompositions( indexedBox.box.basis ) );
+        processFormula( getCompositions( indexedBox.box.rank ) );
     } else {
         rebuildIndexedBoxSummary( param );
     }
+
+    buildBoxLayersSelectors( indexedBox, param );
 
     selectBoxAction();
 }
@@ -612,7 +675,7 @@ function initPage( urlParam = true ) {
                     showIndex( "indexSummary", data.sender );
                     updateJson();
                 } else {
-                    consoleLog( `Select Index: No such index: ${ data.indexKey }` );
+                    consoleLog( `Select ActionElement: No such index: ${ data.indexKey }` );
                 }
 
             } else if ( data.basePlaneKey ) {

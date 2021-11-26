@@ -495,7 +495,7 @@ class Formula {
     evaluate(valueObj) {
         const r = this._evaluate(valueObj);
 
-        if ( r instanceof CompositeIndex ) {
+        if ( r instanceof CompositeAction ) {
 
             r.id = indexedBox.indexPlanes.length;
             r.indexPoints();
@@ -639,11 +639,11 @@ class OperatorExpression extends Expression {
         const leftIndex = this.left.evaluate(params);
         const rightIndex = this.right.evaluate(params);
         const inverse = [ false, false ];
-        const label = CompositeIndex.compositeLabel( leftIndex, rightIndex, inverse )
+        const label = CompositeAction.compositeLabel( leftIndex, rightIndex, inverse )
 
         return label in params
             ? params[label]
-            : new CompositeIndex(
+            : new CompositeAction(
                 leftIndex.box,
                 Math.round( Math.random() * 10000 + 1),
                 leftIndex,
@@ -675,7 +675,7 @@ class PowerExpression extends Expression {
             return locus;
         } else if ( exp > 0 ) {
             for ( var i = 0; i < exp; i++ ) {
-                locus = new CompositeIndex(
+                locus = new CompositeAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
                             locus,
@@ -686,7 +686,7 @@ class PowerExpression extends Expression {
             }
         } else if ( exp < 0 ) {
             for ( var i = 0; i > exp; i-- ) {
-                locus = new CompositeIndex(
+                locus = new CompositeAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
                             locus,

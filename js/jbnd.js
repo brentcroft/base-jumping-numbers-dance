@@ -4,16 +4,14 @@ class Box {
     constructor( bases ) {
         this.bases = [...bases];
         this.rank = this.bases.length;
+        this.volume = getVolume( this.bases );
 
-        // generate placeValues according to the permutations of the basis of the bases
         this.placePermutations = permutations( arrayIndexes( this.bases ) );
         this.permCount = this.placePermutations.length;
         this.pairCount = this.permCount  * (this.permCount - 1);
 
-        //
-        this.placeValuePermutations = this.placePermutations.map( perm => [ perm, placeValuesPermutation( this.bases, perm ) ] );
+        this.placeValuePermutations = this.placePermutations.map( ( perm, permId ) => new PlaceValuesPermutation( permId, bases, perm ) );
 
-        this.volume = getVolume( this.bases );
         this.indexRadiance = getIndexRadiance( this.volume );
         this.euclideanRadiance = getEuclideanRadiance( this.bases );
 
@@ -32,6 +30,33 @@ class Box {
         this.diagonal = [ this.origin, this.terminal ];
 
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+        this.points = this.buildPoints();
+
+        this.placeValuePermutations
+            .forEach( perm => perm.idx = new Array( this.volume ).fill( 0 ) );
+
+        this.points
+            .forEach( point => {
+
+                point.conjugate = this.points[ this.volume - point.id - 1];
+
+                this.placeValuePermutations
+                    .forEach( perm => perm.indexPoint( point ) );
+            } );
+    }
+
+    buildPoints( place = 0, locusStack = [], points = [] ) {
+        if ( place == this.rank ) {
+            const point = new Point( points.length, locusStack, this.centre );
+            points.push( point );
+        } else {
+            for ( var i = 0; i < this.bases[place]; i++) {
+                locusStack.push( i );
+                this.buildPoints( place + 1, locusStack, points );
+                locusStack.pop( i );
+            }
+        }
+        return points;
     }
 
     validateIds( ids ) {
@@ -59,7 +84,7 @@ class Box {
 
 
 
-class RadiantIndex extends Index {
+class RadiantAction extends ActionElement {
     constructor( box, id = 0 ) {
         super( box, id );
 
@@ -80,6 +105,37 @@ class RadiantIndex extends Index {
 
         this.label = 'r';
         this.alias = 'e^½'
+        this.idx = [];
+        this.dix = [];
+    }
+
+    indexPoint( point ) {
+        const boxVolume = this.box.volume;
+        const di = this.indexForward( point.coord );
+        const id = this.indexReverse( point.coord );
+
+        this.box.validateIds( [ id, di ] );
+
+        const conjugateId = ( boxVolume - id - 1 );
+
+        const pointIndexData = {
+            id: id,
+            di: di,
+            conjugateId: conjugateId,
+            jump: this.getJump( id, di ),
+            radiant: ( conjugateId - id )
+        };
+
+        const existingPointIndexData = point.indexes[ this.id ];
+
+        if ( existingPointIndexData ) {
+            consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
+        }
+
+        point.indexes[this.id] = pointIndexData;
+
+        this.idx[ id ] = point;
+        this.dix[ di ] = point;
     }
 
     getType() {
@@ -87,44 +143,60 @@ class RadiantIndex extends Index {
     }
 }
 
-class PlacesIndex extends Index {
-    constructor( box, id = 0, placeIndexorPair, label ) {
+class PlaceValuesAction extends ActionElement {
+    constructor( box, id = 0, placeValuesPermutationPair, label ) {
         super( box, id );
-        [
-            [ this.permForward, this.placesForward ],
-            [ this.permReverse, this.placesReverse ]
-        ] = placeIndexorPair;
-
-
-        // establish identity plane
-        this.identityPlane = this.placesForward.map( ( x, i ) => this.placesReverse[i] - x );
-        this.identityPlaneGcd = Math.abs( gcda( this.identityPlane ) );
+        this.pair = placeValuesPermutationPair;
+        this.identityPlane = this.pair.identityPlane;
+        this.identityPlaneGcd = this.pair.echo;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-
-        // establish coord index functions
-        this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
-        this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
-
         this.label = label ? label : ('z' + (id - 1));
+
+        this.idx = this.pair.left.idx;
+        this.dix = this.pair.right.idx;
+    }
+
+    indexPoint( point ) {
+        const boxVolume = this.box.volume;
+
+        const id = point.getId( this.pair.left.id );
+        const di = point.getId( this.pair.right.id );
+
+        const conjugateId = ( boxVolume - id - 1 );
+
+        const pointIndexData = {
+            id: id,
+            di: di,
+            conjugateId: conjugateId,
+            jump: this.getJump( id, di ),
+            radiant: ( conjugateId - id )
+        };
+
+        const existingPointIndexData = point.indexes[ this.id ];
+
+        if ( existingPointIndexData ) {
+            consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
+        }
+
+        point.indexes[this.id] = pointIndexData;
     }
 
     isPalindrome() {
-        return isPalindrome( [ this.permForward, this.permReverse ] );
+        return this.pair.isPalindrome();
     }
 
     isOrthogonal() {
-        return isOrthogonal( [ this.permForward, this.permReverse ] );
+        return this.pair.isOrthogonal();
     }
 }
 
-class CompositeIndex extends Index {
+class CompositeAction extends ActionElement {
 
     static compositeLabel( primaryIndex, secondaryIndex, inverse = [ false, false ] ) {
         return `( ${ primaryIndex.getLabel() }${ inverse[0] ? '^-1' : '' }`
                 + " * "
                 + `${ secondaryIndex.getLabel() }${ inverse[1] ? '^-1' : '' } )`;
     }
-
 
     constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ], autoInit = false, alias ) {
         super( box, id );
@@ -140,7 +212,7 @@ class CompositeIndex extends Index {
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         //
-        this.label = CompositeIndex.compositeLabel( primaryIndex, secondaryIndex, inverse );
+        this.label = CompositeAction.compositeLabel( primaryIndex, secondaryIndex, inverse );
         this.alias = alias || '';
 
         if ( autoInit ) {
@@ -205,212 +277,119 @@ class CompositeIndex extends Index {
 
 class IndexedBox {
 
-    static indexSorter( a, b ) {
-        return a.id - b.id;
-    }
-
-    hasPalindromicPair( indexors, pair ) {
-        const [ a, b ] = pair;
-        const [ l1, r1 ] = [ a[0], b[0] ];
-
-        const pp = indexors
-            .filter( p => {
-                const [ c, d ] = p;
-                const [ l2, r2 ] = [ c[0], d[0] ];
-                return (isPalindrome( [ l1, r2 ] ) && isPalindrome( [ r1, l2 ] ) )
-                    || (isPalindrome( [ l1, l2 ] ) && isPalindrome( [ r1, r2 ] ) );
-            } );
-        return pp.length > 0;
-    }
-
-    getPalindromicPairsToEvict( indexors, echoes = false ) {
-        const removers = [];
-
-        indexors
-            .forEach( (x,i) => {
-                if (i == 0 ) {
-                    return;
-                }
-                const [ a, b ] = x;
-                const [ al, ar ] = [ a[0], b[0] ];
-                indexors
-                    .slice( 0, i )
-                    .forEach( (y,j) => {
-                        const [ c, d ] = y;
-                        const [ cl, cr ] = [ c[0], d[0] ];
-
-                        const square = isPalindrome( [ al, cl ] ) && isPalindrome( [ ar, cr ] );
-                        const cross = isPalindrome( [ al, cr ] ) && isPalindrome( [ ar, cl ] );
-
-                        if ( !echoes && (cross || square)  ) {
-                            removers.push( x );
-                        }
-                    } );
-            } );
-
-        return removers;
-    }
-
-
     constructor( bases = [], param = {} ) {
-        this.box = new Box( bases );
-        this.key = "box-" + this.box.bases.join( "." );
-        this.box.points = [];
-        this.indexPlanes = [];
 
         const toggles = param.toggles || [];
+        const actionLayers = param.actionLayers || [];
+
+        const [ identities, inverses, harmonics, degenerates ] = [
+            toggles.includes( "identities" ),
+            toggles.includes( "inverses" ),
+            toggles.includes( "harmonics" ),
+            toggles.includes( "degenerates" )
+        ];
+
         const globalise = toggles.includes( "globalise" );
 
+        this.box = new Box( bases );
+        this.key = "box-" + this.box.bases.join( "." );
+
+
         if (toggles.includes( "radiance" )) {
-            this.box.radiance = new RadiantIndex( this.box, 0 );
-            this.box.unity = new CompositeIndex( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, 'r * r' );
+
+            this.box.radiance = new RadiantAction( this.box, 0 );
+            this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, 'r * r' );
             this.box.unity.label = 'e';
+
             this.indexPlanes = [ this.box.radiance, this.box.unity ];
+        } else {
+            this.indexPlanes = [];
         }
 
 
         if ( bases.length < 2 ) {
-            this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length ) );
+            this.indexPlanes.push( new PlaceValuesAction( this.box, this.indexPlanes.length ) );
         } else {
-            var indexors = pairs( this.box.placeValuePermutations );
+            var indexors = pairs( this.box.placeValuePermutations )
+                .map( pair => new PlaceValuesPermutationPair( pair[0], pair[1] ) );
 
-            const typeOfIndexor = ( a ) => {
-                const [ l, r ] = [ a[0][0], a[1][0] ];
-                const p = isPalindrome( [ l, r ] );
-                if ( p ) {
-                    return 1;
-                }
-                const o = isOrthogonal( [ l, r ] );
-                return o ? -1 * o : 0;
+            if ( inverses ) {
+                indexors.push( ...indexors.map( pair => pair.getInversePair() ) );
             }
 
-            const indexorSorter = ( a, b ) => {
-                const [ aL, aR ] = [ a[0][0], a[1][0] ];
-                const [ bL, bR ] = [ b[0][0], b[1][0] ];
-                const aT = typeOfIndexor( a );
-                const bT = typeOfIndexor( b );
+            this.box.placeValuePermutations
+                .forEach( perm => indexors.push( new PlaceValuesPermutationPair( perm, perm ) ) );
 
-                return aT - bT;
-            };
+            const indexorSorter = ( p1, p2 ) => p1.compareTo( p2 );
 
             indexors.sort( indexorSorter );
 
-            const [ inverses, echoes ] = [
-                toggles.includes( "inverses" ),
-                toggles.includes( "echoes" )
+            // capture all labels
+            this.layerLabels = [];
+            indexors.forEach( pair => this.layerLabels.filter( l => l[1] == pair.label ).length > 0 ? 0 : this.layerLabels.push( [ pair.layer, pair.label ] ) );
+            this.layerLabels.sort( (a,b) => a[0]- b[0] );
+
+            this.layers = [
+                ...this.layerLabels.map( x => [] ),
+                ...this.layerLabels.map( x => [] )
             ];
 
-            this.palindromes = [];
-            this.secondaries = [];
-            this.tertiaries = [];
-            this.degenerates = [];
-
-
-            const maxAlignment = this.box.rank - 2;
-
-
+            // group by layers
             indexors
-                .forEach( pi => {
-                    const [ [ f, pF ], [ r, pR ] ] = pi;
-
-                    if ( isPalindrome( [ f, r ] ) ) {
-                        this.palindromes.push( pi );
-
-                    } else if ( isLeftAligned( [ f, r ], maxAlignment ) ) {
-                        if ( echoes || isRightRisingFromTo( f, [ maxAlignment, this.box.rank - 1 ] ) ) {
-                            this.degenerates.push( pi );
-                        }
-
-                    } else if ( isRightAligned( [ f, r ], maxAlignment ) ) {
-                        if ( echoes || isLeftRisingFromTo( f, [ 2, maxAlignment + 1 ] ) ) {
-                            this.degenerates.push( pi );
-                        }
-
-                    } else {
-                        if ( leftAlignment( [ f, r ] ) > 0 || rightAlignment( [ f, r ] ) > 0 ) {
-                            this.tertiaries.push( pi );
-                        } else {
-                            this.secondaries.push( pi );
-                        }
-                    }
+                .filter( pair => actionLayers.includes( pair.layer ) )
+                .filter( pair => harmonics || !pair.harmonic )
+                .filter( pair => degenerates || !pair.degenerate )
+                .forEach( pair => {
+                    this.layers[ pair.layer ].push( pair );
                 } );
 
-            if ( !echoes ) {
-                const sR = this.getPalindromicPairsToEvict( this.secondaries, echoes );
-                this.secondaries = this.secondaries.filter( x => !sR.includes( x ) );
 
-                const tR = this.getPalindromicPairsToEvict( this.tertiaries, echoes );
-                this.tertiaries = this.tertiaries.filter( x => !tR.includes( x ) );
-
-                const dR = this.getPalindromicPairsToEvict( this.degenerates, echoes );
-                this.degenerates = this.degenerates.filter( x => !dR.includes( x ) );
-            }
-
-            if ( inverses ) {
-                this.degenerates = this.degenerates.concat( this.degenerates.map( p => [ p[1], p[0] ] ) );
-                this.secondaries = this.secondaries.concat( this.secondaries.map( p => [ p[1], p[0] ] ) );
-                this.tertiaries = this.tertiaries.concat( this.tertiaries.map( p => [ p[1], p[0] ] ) );
-                this.palindromes = this.palindromes.concat( this.palindromes.map( p => [ p[1], p[0] ] ) );
-            }
-
-
-            if ( toggles.includes( "identities" ) ) {
-                this.identities = [];
-                this.box.placeValuePermutations
-                    .forEach( pi => {
-                        this.identities.push( [ pi, pi ] );
-                    } );
-                this.identities.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'e_' + i ) ) );
-            } else {
+            if ( !identities ) {
                 const maxOnes = this.box.rank - 2;
                 if ( maxOnes > 0 ) {
                     const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
-                    const indicatesIdentity = ( a, b ) => countOnes( a ) > maxOnes || countOnes( b ) > maxOnes;
+                    const indicatesIdentity = ( pair ) => countOnes( pair.left.placeValues ) > maxOnes || countOnes( pair.left.placeValues ) > maxOnes;
 
-                    this.degenerates = this.degenerates.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
-                    this.secondaries = this.secondaries.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
-                    this.tertiaries = this.tertiaries.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
-                    this.palindromes = this.palindromes.filter( p => !indicatesIdentity( p[0][1], p[1][1] ) );
+                    for ( var i = 0; i < this.layers.length; i++ ) {
+                        this.layers[i] = this.layers[i].filter( pair => !indicatesIdentity( pair ) );
+                    }
                 }
             }
 
-            if ( toggles.includes( "orthogonalPlanes" ) ) {
-                this.degenerates.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'a_' + i ) ) );
-            }
-            if ( toggles.includes( "tertiaryPlanes" ) ) {
-                this.tertiaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'b_' + i ) ) );
-            }
-            if ( toggles.includes( "mixedPlanes" ) ) {
-                this.secondaries.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'c_' + i ) ) );
-            }
-            if ( toggles.includes( "palindromicPlanes" ) ) {
-                this.palindromes.forEach( (pi,i) => this.indexPlanes.push( new PlacesIndex( this.box, this.indexPlanes.length, pi, 'z_' + i ) ) );
-            }
+            // store reduced layers
+            this.layers = this.layers.filter( layer => layer.length > 0 );
+
+            this.layers
+                .forEach( ( layer, layerIndex) => layer
+                    .forEach( (pair , i) => this.indexPlanes
+                        .push(
+                            new PlaceValuesAction(
+                                this.box,
+                                this.indexPlanes.length,
+                                pair,
+                                `${ pair.label }_${ i }`
+                            )
+                        )
+                    )
+                );
         }
 
-        this.buildIndexes();
+        this.box.points
+            .forEach( point => this.indexPlanes
+                  .filter( i => !( i instanceof CompositeAction ) )
+                  .forEach( indexer => indexer.indexPoint( point ) ) );
 
-        if ( this.box.unity ) {
-
-            // radiance has been built
-            // unit is composite so not auto-indexed
+        if (toggles.includes( "radiance" )) {
+            // unity is composite so not auto-indexed
             this.box.unity.indexPoints();
         }
-
-        // set conjugates
-        const numPoints = this.box.points.length;
-        this.box.points.forEach( point => {
-            point.conjugate = this.box.points[ numPoints - point.id - 1];
-        } );
 
         this.indexPlanes.forEach( plane => plane.initialise( globalise ) );
     }
 
     getIndexMap( label ) {
         const keys = {};
-        this
-            .indexPlanes
-            .forEach( p => keys[ p.getLabel() ] = p );
+        this.indexPlanes.forEach( p => keys[ p.getLabel() ] = p );
         return keys;
     }
 
@@ -453,7 +432,7 @@ class IndexedBox {
         const id0 = Math.abs( ids[ 0 ] );
         const inverse0 = ids[ 0 ] < 0;
 
-        const ci = new CompositeIndex(
+        const ci = new CompositeAction(
             this.box,
             this.indexPlanes.length,
             this.indexPlanes[ id0 ],
@@ -474,21 +453,5 @@ class IndexedBox {
             .map( i => this.indexPlanes[i] )
             .forEach( index => locus = index.convolve( a, locus ) || locus );
         return locus;
-    };
-
-    buildIndexes( place = 0, locusStack = [] ) {
-        if ( place == this.box.bases.length ) {
-            const point = new Point( this.box.points.length, locusStack, this.box.centre );
-            this.box.points.push( point );
-            this.indexPlanes
-                .filter( i => !( i instanceof CompositeIndex ) )
-                .forEach( indexer => indexer.indexPoint( point ) );
-        } else {
-            for ( var i = 0; i < this.box.bases[place]; i++) {
-                locusStack.push( i );
-                this.buildIndexes( place + 1, locusStack );
-                locusStack.pop( i );
-            }
-        }
     }
 }

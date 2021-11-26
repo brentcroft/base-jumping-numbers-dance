@@ -606,6 +606,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Encoding</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Function Pair</th>`;
     if ( optionalColumns.includes(  "identity-equation" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
@@ -621,27 +622,52 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += "</tr><tr>";
     dataHtml += indexedBox
         .indexPlanes
-        .map( index => {
-            const clickAction = `distributeMessages( '${ containerId }', [ { 'indexKey': '${ index.id }', 'sender': 'index.${ index.id }' } ] )`;
-            const selectedClass = selectedIndex == index.id ? "class='selected'" : "";
-            const clickAttr = `id="index.${ index.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
+        .map( actionElement => {
+            const clickAction = `distributeMessages( '${ containerId }', [ { 'indexKey': '${ actionElement.id }', 'sender': 'actionElement.${ actionElement.id }' } ] )`;
+            const selectedClass = selectedIndex == actionElement.id ? "class='selected'" : "";
+            const clickAttr = `id="actionElement.${ actionElement.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
 
-            var rowHtml = `<td>${ index.id }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.getLabel() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ (!index.alias || index.alias == index.getLabel() ) ? '' : index.alias }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>[${ index.permReverse || '' }], [${ index.permForward || '' }]</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>[${ index.placesReverse || '' }], [${ index.placesForward || '' }]</td>`;
+            var rowHtml = `<td>${ actionElement.id }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getLabel() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ (!actionElement.alias || actionElement.alias == actionElement.getLabel() ) ? '' : actionElement.alias }</td>`;
+            if ( actionElement.pair ) {
+                const pair = actionElement.pair;
+                rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.perm || '' }], [${ pair.right.perm || '' }]</td>`;
+
+                var report = `f=${ pair.echo }`;
+                report += ` a=${ pair.alignment } [${ pair.leftAlignment }${ pair.leftRising ? 'y': 'n' }${ pair.rightAlignment }${ pair.rightRising ? 'y': 'n' }] `;
+                report += `${ pair.crossPermType }${ pair.squarePermType }`;
+                report += `${ pair.harmonic ? 'h' : '' }${ pair.inverse ? 'i' : '' }${ pair.degenerate ? 'd' : '' }`;
+
+                rowHtml += `<td align='center' ${clickAttr}>${ report }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.placeValues || '' }], [${ pair.right.placeValues || '' }]</td>`;
+            } else {
+                rowHtml += `<td align='center' ${clickAttr}></td>`;
+                rowHtml += `<td align='center' ${clickAttr}></td>`;
+                rowHtml += `<td align='center' ${clickAttr}></td>`;
+            }
             if ( optionalColumns.includes(  "identity-equation" ) ) {
-                rowHtml += `<td align='center' ${clickAttr}>${ index.getPlaneEquationTx() }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getPlaneEquationTx() }</td>`;
             }
             if ( optionalColumns.includes( "monomial" ) ) {
-                rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( index ) }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( actionElement ) }</td>`;
             }
-            rowHtml += `<td align='center' ${clickAttr}>${ index.identities.length }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.orbits.length }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.fundamental }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.grossEuclideanPerimeter() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ index.grossIndexPerimeter() }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.identities.length }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.orbits.length }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.fundamental }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() }</td>`;
+
+            const gip = actionElement.grossIndexPerimeter();
+            const gipGcd = actionElement.pair
+                ? gcd( actionElement.pair.echo, actionElement.grossIndexPerimeter() )
+                : 1;
+
+            if ( gipGcd > 1 ) {
+                rowHtml += `<td align='center' ${clickAttr}>${ gip / actionElement.pair.echo } * ${ gipGcd }</td>`;
+            } else {
+                rowHtml += `<td align='center' ${clickAttr}>${ gip }</td>`;
+            }
+
             return rowHtml;
         } )
         .join( "</tr><tr>" );

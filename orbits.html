@@ -203,9 +203,9 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="7"/>x
-                <input type="number" min="1" id="b1" value="3"/>x
-                <input type="number" min="1" id="b2" value="2"/>x
-                <input type="number" min="1" id="b3" value="1"/>
+                <input type="number" min="1" id="b1" value="5"/>x
+                <input type="number" min="1" id="b2" value="3"/>x
+                <input type="number" min="1" id="b3" value="2"/>
             </span> |
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
@@ -277,13 +277,11 @@
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             layers:
-            <label title="orthogonal actions">a<input type="checkbox" id="orthogonalPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="b actions">b <input type="checkbox" id="tertiaryPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="c actions">c<input type="checkbox" id="mixedPlanesToggle" onchange="updatePage()"/></label> |
-            <label title="palindromic actions">z<input type="checkbox" id="palindromicPlanesToggle" onchange="updatePage()"/></label> |
+            <span id="boxLayerSelectors"></span> |
+
             <label title="generate inverses">inverses <input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
-            <label title="generate echoes">echoes <input type="checkbox" id="echoesToggle" onchange="updatePage()"/></label> |
-            <label title="generate identities">identities <input type="checkbox" id="identitiesToggle" onchange="updatePage()"/></label> |
+            <label title="generate harmonics">harmonics <input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
+            <label title="generate degenerates">degenerates <input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
             <label title="generate radiance">radiance <input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
             <label title="index formula composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
             <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
@@ -293,7 +291,7 @@
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="3"># inverses;
 a_0^-1; a_1^-1; a_2^-1;
-c_0^-1; c_1^-1; c_2^-1;
+b_0^-1; b_1^-1; b_2^-1;
 z_0^-1; z_1^-1; z_2^-1;
             </textarea>
             <span id="summaryEditorResult"></span>

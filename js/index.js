@@ -6,7 +6,7 @@ var radiantOriginAndTerminusAreIdentities = false;
 var indexMap = {};
 
 
-class Index {
+class ActionElement {
 
     constructor( box, id = 0 ) {
         this.box = box;
@@ -44,18 +44,6 @@ class Index {
 
     isPalindrome() {
         return false;
-    }
-
-    isOrthogonal() {
-        return false;
-    }
-
-    getType() {
-        return this.isPalindrome()
-            ? 'pal'
-            : this.isOrthogonal()
-                ? 'orth'
-                : 'mix';
     }
 
     isNonTrivialIndexIdentity( id, di ) {
@@ -123,7 +111,7 @@ class Index {
     apply( point ) {
         const p = this.pointAt( point );
         if (!p) {
-            throw new Error( `Index ${ this.id } has no entry for the point: ${ point }.` );
+            throw new Error( `ActionElement ${ this.id } has no entry for the point: ${ point }.` );
         }
         return this.getPointFromIdx( p.di );
     }
@@ -173,32 +161,7 @@ class Index {
     }
 
     indexPoint( point ) {
-        const boxVolume = this.box.volume;
-        const di = this.indexForward( point.coord );
-        const id = this.indexReverse( point.coord );
-
-        this.box.validateIds( [ id, di ] );
-
-        const conjugateId = ( boxVolume - id - 1 );
-
-        const pointIndexData = {
-            id: id,
-            di: di,
-            conjugateId: conjugateId,
-            jump: this.getJump( id, di ),
-            radiant: ( conjugateId - id )
-        };
-
-        const existingPointIndexData = point.indexes[ this.id ];
-
-        if ( existingPointIndexData ) {
-            //consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
-        }
-
-        point.indexes[this.id] = pointIndexData;
-
-        this.idx[ id ] = point;
-        this.dix[ di ] = point;
+        throw new Error("Abstract method.");
     }
 
 

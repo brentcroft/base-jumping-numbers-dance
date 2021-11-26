@@ -224,7 +224,7 @@ class PlaceValuesPermutationPair {
         const leftDegeneracy = ( permPair ) => {
             const rank = permPair[0].length;
             const la = leftAlignment( permPair );
-            const leftRising = la < 1 ? false : isRisingTo( permPair[0], leftAlignment );
+            const leftRising = la < 1 ? false : isRisingTo( permPair[0], la );
             if ( la == 0 || la == rank ) {
                 return false;
             } else if ( la > 0 && !leftRising ) {

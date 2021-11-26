@@ -28,8 +28,17 @@ function getParam( defaultValues ) {
             .forEach( x => toggles[x] = 1 );
     }
 
+    var layers = defaultValues.actionLayers;
+    const layerParam = urlParams.get('layers');
+    if ( layerParam ) {
+        layers = layerParam
+            .split(',')
+            .map( x => Number( x ) );
+    }
+
     return {
         actionIndex: actionIndex,
+        actionLayers: layers,
         id: urlParams.get('id'),
         bases: bases,
         orbits: urlParams.get('orbits'),
@@ -77,7 +86,7 @@ function getCurrentQueryString( basePlaneKey, bases, actionIndex ) {
         actionIndex = values.actionIndex;
     }
 
-    return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&toggles=${ values.toggles.join( ',' ) }`;
+    return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&layers=${ values.actionLayers }&toggles=${ values.toggles.join( ',' ) }`;
 }
 
 function reopenWithArgs() {
@@ -519,7 +528,7 @@ function buildBoxLayersSelectors( indexedBox, param ) {
                         "span",
                         {},
                         [],
-                        [ (span) => span.innerHTML = " | " ]
+                        [ (span) => span.innerHTML = " " ]
                     ) );
         }
 
@@ -555,8 +564,6 @@ function buildBoxLayersSelectors( indexedBox, param ) {
 
 function updatePage() {
 
-    consoleLog( `updatePage:` );
-
     const param = getControlValues();
 
     // TODO: global access
@@ -583,6 +590,7 @@ function initPage( urlParam = true ) {
 
     if ( urlParam ) {
         cv.toggles = { ...toggleKeys };
+        cv.actionLayers = [ 1 ];
     } else {
         const toggles = cv.toggles;
         cv.toggles = {};

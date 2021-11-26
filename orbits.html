@@ -210,7 +210,7 @@
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected box action"> action-id: <input type="number" min="0" id="actionIndex" value="2" onchange="selectBoxAction()"/></label>
+            <label title="change the selected box action"> action-id: <input type="number" min="0" id="actionIndex" value="0" onchange="selectBoxAction()"/></label>
 
             <span id="captionTex" class="summaryLeft"></span>
             <br/>
@@ -276,8 +276,9 @@
     <div class="full-width">
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
-            layers:
-            <span id="boxLayerSelectors"></span> |
+            layers: <span id="boxLayerSelectors">
+                <input id="box-layer.dummy" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
+            </span>
 
             <label title="generate inverses">inverses <input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
             <label title="generate harmonics">harmonics <input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |

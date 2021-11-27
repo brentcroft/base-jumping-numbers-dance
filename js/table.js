@@ -189,10 +189,6 @@ function drawBasePlaneTable( tableArgs ) {
     var colIndex = 0;
     chainsText += "<tr>";
     chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true )'>Id</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Instrument</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Channel</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Percussion</th>`;
-    chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ } )' class='midi' style='display: ${midi?"":"none"};'>Repeat</th>`;
 
     if ( jumps ) {
         chainsText += `<th onclick='sortTable( "${ tableId }", ${ colIndex++ }, true, true )' width='20%'>Jumps</th>`;
@@ -285,17 +281,8 @@ function drawBasePlaneTable( tableArgs ) {
         var orbitIdSum = orbit.getIdSum();
         var orbitSpaceGcd = gcd( maxIndex, orbitIdSum );
 
-        var onSelectInstrument = `setMidiInstrument( ${ orbit.index }, this.value )`;
-        var onSelectPercussion = `setMidiInstrument( ${ orbit.index }, this.value, true )`;
-        var onSelectChannel = `setMidiChannel( ${ orbit.index }, this.value )`;
-        var onSelectRepeat = `setMidiRepeats( ${ orbit.index }, this.value )`;
-
         chainsText += `<tr>`;
         chainsText += `<td align="center">${ orbit.isSelfConjugate() ? orbit.index : orbit.isFirstConjugate() ? orbit.index : "<sup>(" + orbit.index + ")</sup>" }</td>`;
-        chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getInstrumentSelectorHtml( orbit.midi.instrument, onSelectInstrument ) }</td>`;
-        chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getChannelSelectorHtml( orbit.midi.channel, onSelectChannel ) }</td>`;
-        chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getPercussionInstrumentSelectorHtml( orbit.midi.percussion, onSelectPercussion ) }</td>`;
-        chainsText += `<td align="center" class='midi' style='display: ${midi?"":"none"};'>${ getRepeatSelectorHtml( orbit.midi.repeats, onSelectRepeat ) }</td>`;
 
         if ( perms ) {
             if ( orbit.isSelfConjugate() && conj ) {
@@ -454,7 +441,6 @@ function drawBasePlaneTable( tableArgs ) {
 
     chainsText += "<tr>";
     chainsText += "<td></td>";
-    chainsText += `<td colspan='4' class='midi' style='display: ${midi?"":"none"};'></td>`;
     if ( jumps ) {
         chainsText += "<td colspan='1'></td>";
     }
@@ -591,6 +577,12 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
     consoleLog( `drawBoxSummaryTable: id=${ JSON.stringify( param ) }` );
 
+    var monomialFilter = param.monomialFilter || 0
+    monomialFilter = Object.keys( monomialFilter ).length == 0
+        ? 0
+        : monomialFilter;
+
+
     const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
@@ -606,13 +598,13 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Encoding</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Signature</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Function Pair</th>`;
     if ( optionalColumns.includes(  "identity-equation" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
     }
     if ( optionalColumns.includes( "monomial" ) ) {
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbit Monomial</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Cycle Monomial</th>`;
     }
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
@@ -620,9 +612,27 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Per<sup>2</sup></th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Per</th>`;
     dataHtml += "</tr><tr>";
+
+    const monomialFilterMatches = ( m1, m2 ) => {
+        const k1 = Object.keys( m1 );
+        const k2 = Object.keys( m2 );
+        if ( k1.length != k2.length ) {
+            return false;
+        } else {
+            return k1.filter( k => m1[k] == m2[k] ).length == k1.length;
+        }
+    };
+
+    var totalRows = 0;
+
     dataHtml += indexedBox
         .indexPlanes
+        //.filter( actionElement => !monomialFilter || actionElement.pair )
+        .filter( actionElement => !monomialFilter || !actionElement.pair || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
         .map( actionElement => {
+
+            totalRows++;
+
             const clickAction = `distributeMessages( '${ containerId }', [ { 'indexKey': '${ actionElement.id }', 'sender': 'actionElement.${ actionElement.id }' } ] )`;
             const selectedClass = selectedIndex == actionElement.id ? "class='selected'" : "";
             const clickAttr = `id="actionElement.${ actionElement.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
@@ -633,13 +643,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             if ( actionElement.pair ) {
                 const pair = actionElement.pair;
                 rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.perm || '' }], [${ pair.right.perm || '' }]</td>`;
-
-                var report = `f=${ pair.echo }`;
-                report += ` a=${ pair.alignment } [${ pair.leftAlignment }${ pair.leftRising ? 'y': 'n' }${ pair.rightAlignment }${ pair.rightRising ? 'y': 'n' }] `;
-                report += `${ pair.crossPermType }${ pair.squarePermType }`;
-                report += `${ pair.harmonic ? 'h' : '' }${ pair.inverse ? 'i' : '' }${ pair.degenerate ? 'd' : '' }`;
-
-                rowHtml += `<td align='center' ${clickAttr}>${ report }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ pair.signature }</td>`;
                 rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.placeValues || '' }], [${ pair.right.placeValues || '' }]</td>`;
             } else {
                 rowHtml += `<td align='center' ${clickAttr}></td>`;
@@ -672,5 +676,6 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
         } )
         .join( "</tr><tr>" );
     dataHtml += "</tr></table>";
+    dataHtml += `<span class="summaryLeft">Total rows: ${ totalRows }</span>`;
     return dataHtml;
 }

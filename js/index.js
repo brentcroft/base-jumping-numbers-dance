@@ -498,13 +498,6 @@ class ActionElement {
 
             const points = orbit.points;
 
-            [
-                orbit.midi.instrument,
-                orbit.midi.percussion,
-                orbit.midi.channel,
-                orbit.midi.repeat
-            ] = getInstrumentForOrder( orbit.order );
-
             totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalEuclideanPerimeter += orbit.euclideanPerimeter();
             totalEuclideanRadiance += orbit.euclideanRadiance();

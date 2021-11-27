@@ -90,6 +90,12 @@ class PlaceValuesPermutationPair {
             return -1 * ( this.zeroedPlaces - other.zeroedPlaces );
         }
 
+        if ( !this.inverse && other.inverse ) {
+            return -1;
+        } else if ( this.inverse && !other.inverse ) {
+            return 1;
+        }
+
         if ( !this.degenerate && other.degenerate ) {
             return -1;
         } else if ( this.degenerate && !other.degenerate ) {
@@ -102,30 +108,7 @@ class PlaceValuesPermutationPair {
             return 1;
         }
 
-
-        if ( this.crossValue != other.crossValue ) {
-            return this.crossValue - other.crossValue;
-        }
-
-        if ( this.leftAlignment != other.leftAlignment ) {
-            return this.leftAlignment - other.leftAlignment;
-        }
-        if ( this.rightAlignment != other.rightAlignment ) {
-            return -1 * ( this.rightAlignment - other.rightAlignment );
-        }
-
-        if ( this.crossPermValue != other.crossPermValue ) {
-            return this.crossPermValue - other.crossPermValue;
-        }
-
-        if ( this.squarePermValue != other.squarePermValue ) {
-            return this.squarePermValue - other.squarePermValue;
-        }
-
         return this.harmonic - other.harmonic;
-
-//        const left = numericArraySorter( this.left.perm, other.left.perm );
-//        return left != 0 ? left :  numericArraySorter( this.right.perm, other.right.perm );
     }
 
     static layerLabel = ( i, palindrome ) => {
@@ -138,7 +121,8 @@ class PlaceValuesPermutationPair {
     static squarePermValue = ( l, r ) => arrayCompare( l.concat( r ), r.concat( l ).reverse() );
 
 
-    constructor( left, right, inversePair ) {
+    constructor( bases = [ 1 ], left, right, inversePair ) {
+        this.bases = bases;
         this.left = left;
         this.right = right;
         this.inverse = inversePair != null;
@@ -178,9 +162,9 @@ class PlaceValuesPermutationPair {
         this.permPair = [ this.left.perm, this.right.perm ];
 
         this.leftAlignment = leftAlignment( this.permPair );
-        this.leftRising = this.leftAlignment < 1
+        this.leftFalling = this.leftAlignment < 1
             ? false
-            : isRisingTo( this.left.perm, this.leftAlignment );
+            : isFallingTo( this.left.perm, this.leftAlignment );
 
         this.rightAlignment = rightAlignment( this.permPair );
         this.rightRising = this.rightAlignment < 1
@@ -193,57 +177,30 @@ class PlaceValuesPermutationPair {
             ? -1
             : alignment( this.permPair );
 
+        this.degenerate = (this.rightAlignment == this.alignment && !this.rightRising )
+            || (this.leftAlignment == this.alignment && !this.leftFalling );
+
+        //this.degenerate = this.crossPermValue >= 0;
+
+
         this.layer = isPalindrome( this.permPair )
             ? this.rank + 1
             : this.rank - this.zeroedPlaces;
 
         this.label = PlaceValuesPermutationPair.layerLabel( this.layer, this.rank + 1 );
 
-        this.harmonic = this.alignment > 0 && this.alignment != this.rightAlignment;
+        this.harmonic = this.alignment > 0
+            && !( this.alignment == this.leftAlignment || this.alignment == this.rightAlignment );
 
-        const rightDegeneracy = ( permPair ) => {
-            const rank = permPair[0].length;
-            const ra = rightAlignment( permPair );
-            const rightRising = ra < 1 ? false : isRisingFrom( permPair[0], ( rank - ra ) );
-            if ( ra == 0 || ra == rank ) {
-                return false;
-            } else if ( ra > 0 && !rightRising ) {
-                return true;
-            } else {
-                if ( (rank - ra) < 2 ) {
-                    return false;
-                }
-                const childPermPair = permPair.map( perm => perm.slice( 0, permPair[0].length - ra ) );
-                const childCrossValue = PlaceValuesPermutationPair.crossValue( ...childPermPair );
-                const childCrossPermValue = PlaceValuesPermutationPair.crossPermValue( ...childPermPair );
-                const childSquarePermValue = PlaceValuesPermutationPair.squarePermValue( ...childPermPair );
-                return childCrossValue >= 0 || childCrossPermValue > 0 || childSquarePermValue > 0;
-            }
-        };
 
-        const leftDegeneracy = ( permPair ) => {
-            const rank = permPair[0].length;
-            const la = leftAlignment( permPair );
-            const leftRising = la < 1 ? false : isRisingTo( permPair[0], la );
-            if ( la == 0 || la == rank ) {
-                return false;
-            } else if ( la > 0 && !leftRising ) {
-                return true;
-            } else {
-                if ( (rank - la) < 2 ) {
-                    return false;
-                }
-                const childPermPair = permPair.map( perm => perm.slice( la ) );
-                const childCrossValue = PlaceValuesPermutationPair.crossValue( ...childPermPair );
-                const childCrossPermValue = PlaceValuesPermutationPair.crossPermValue( ...childPermPair );
-                const childSquarePermValue = PlaceValuesPermutationPair.squarePermValue( ...childPermPair );
-                return childCrossValue >= 0 || childCrossPermValue > 0 || childSquarePermValue > 0;
-            }
-        };
 
-        this.degenerate = leftDegeneracy( this.permPair ) || rightDegeneracy( this.permPair );
+        var report = "";
+        report += `${ this.alignment }[${ this.leftAlignment }${ this.leftFalling ? 'y': 'n' }${ this.rightAlignment }${ this.rightRising ? 'y': 'n' }] `;
+        report += `${ this.crossPermType }${ this.squarePermType } `;
+        report += `${ this.inverse ? 'i' : '' }${ this.degenerate ? 'd' : '' }${ this.harmonic ? 'h' : '' } `;
+        report += `${ this.echo }`;
 
-        //this.degenerate = (this.rightAlignment > 0 && !this.rightRising ) || (this.leftAlignment > 0 && !this.leftRising );
+        this.signature = report;
     }
 
 
@@ -251,7 +208,7 @@ class PlaceValuesPermutationPair {
         if ( this.inversePair ) {
             throw new Error( `Pair already has an inverse: [${ this.left.perm }] [${ this.right.perm }].` );
         }
-        this.inversePair = new PlaceValuesPermutationPair( this.right, this.left, this );
+        this.inversePair = new PlaceValuesPermutationPair( this.bases, this.right, this.left, this );
         return this.inversePair;
     }
 }
@@ -262,12 +219,6 @@ class Orbit {
     constructor( parent, index, points ) {
         this.parent = parent;
         this.index = index;
-        this.midi = {
-            "instrument": 0,
-            "channel": 0,
-            "percussion": 0,
-            "repeats": 0
-        };
         this.points = points;
 
         if ( points.length < 1 ) {

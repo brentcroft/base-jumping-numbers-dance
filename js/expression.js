@@ -667,36 +667,42 @@ class PowerExpression extends Expression {
 
     evaluate(params = {}) {
         const exp = Number( this.exponent.evaluate(params) );
-        var locus = params['e'];
-        if ( ! locus ) {
-            throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
-        }
+        const start = this.base.evaluate(params);
+        var locus = start;
+
         if ( exp == 0 ) {
-            return locus;
+            // return identity
+            locus = params['e'];
+            if ( ! locus ) {
+                throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
+            }
+        } else if ( exp == 1 ) {
+            //
         } else if ( exp > 0 ) {
-            for ( var i = 0; i < exp; i++ ) {
+            for ( var i = 1; i < exp; i++ ) {
                 locus = new CompositeAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
-                            locus,
-                            this.base.evaluate(params),
+                            locus, start,
                             [ false, false ],
                             true
                         );
             }
         } else if ( exp < 0 ) {
+            locus = params['e'];
+            if ( ! locus ) {
+                throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
+            }
             for ( var i = 0; i > exp; i-- ) {
                 locus = new CompositeAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
-                            locus,
-                            this.base.evaluate(params),
+                            locus, start,
                             [ false, true ],
                             true
                         );
             }
         }
-
         return locus;
     }
 

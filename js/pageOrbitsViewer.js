@@ -562,13 +562,14 @@ function screenshot() {
     const x3dId = 'testContainer001_plot';
     const x3dElement = document.getElementById( x3dId );
     const imgUrl = x3dElement.runtime.getScreenshot();
-    const link = document.createElement( 'a' );
 
+    const link = document.createElement( 'a' );
     link.href = imgUrl;
     link.download = filename + ".png";
     link.innerHTML = filename;
 
     const snaps = document.getElementById("snaps");
+    snaps.append( " " );
     snaps.append( link );
 }
 

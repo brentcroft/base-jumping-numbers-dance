@@ -294,7 +294,6 @@ class IndexedBox {
         this.box = new Box( bases );
         this.key = "box-" + this.box.bases.join( "." );
 
-
         if (toggles.includes( "radiance" )) {
 
             this.box.radiance = new RadiantAction( this.box, 0 );
@@ -311,14 +310,14 @@ class IndexedBox {
             this.indexPlanes.push( new PlaceValuesAction( this.box, this.indexPlanes.length ) );
         } else {
             var indexors = pairs( this.box.placeValuePermutations )
-                .map( pair => new PlaceValuesPermutationPair( pair[0], pair[1] ) );
+                .map( pair => new PlaceValuesPermutationPair( bases, pair[0], pair[1] ) );
 
             if ( inverses ) {
                 indexors.push( ...indexors.map( pair => pair.getInversePair() ) );
             }
 
             this.box.placeValuePermutations
-                .forEach( perm => indexors.push( new PlaceValuesPermutationPair( perm, perm ) ) );
+                .forEach( perm => indexors.push( new PlaceValuesPermutationPair( bases, perm, perm ) ) );
 
             const indexorSorter = ( p1, p2 ) => p1.compareTo( p2 );
 

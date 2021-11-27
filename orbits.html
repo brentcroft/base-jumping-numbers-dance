@@ -195,7 +195,7 @@
         <div id="caption" class="caption">
             <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="4" onchange="initPage( false )"/></label>
 
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
@@ -280,21 +280,26 @@
                 <input id="box-layer.dummy" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
             </span>
 
-            <label title="generate inverses">inverses <input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
-            <label title="generate harmonics">harmonics <input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
-            <label title="generate degenerates">degenerates <input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
-            <label title="generate radiance">radiance <input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
-            <label title="index formula composer">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
-            <label title="auto compose">auto compose <input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
+            <label title="generate inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
+            <label title="generate harmonics">harmonics<input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
+            <label title="generate degenerates">degenerates<input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
+            <label title="generate radiance">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
+            <label title="display filter controls">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
+            <label title="display compose controls">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
+            <label title="auto compose">auto compose<input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
+        </div>
+
+        <div id="monomialFilterControls" style="display: none" class="summaryLeft">
+            <label title="Filter actions by monomial">
+                Monomial: <span id="monomialFilterDisplay"><font color="red"><i>(no monomial selected)</i></font></span>
+                <input type="checkbox" id="monomialFilterEnabled" onchange="updatePage()" value=""/>enable
+            </label>
+            <input type="text" id="monomialFilter" style="display: none"/>
         </div>
 
         <div id="indexComposer" style="display: none">
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
-            <textarea type="text" id="selectedPlaneIds" class="formulaPanel" rows="3"># inverses;
-a_0^-1; a_1^-1; a_2^-1;
-b_0^-1; b_1^-1; b_2^-1;
-z_0^-1; z_1^-1; z_2^-1;
-            </textarea>
+            <textarea id="compositionFormulas" class="formulaPanel" rows="3">r^2</textarea>
             <span id="summaryEditorResult"></span>
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>
@@ -444,9 +449,7 @@ z_0^-1; z_1^-1; z_2^-1;
             <label title="show orbit centres">centres<input type="checkbox" id="centresToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleCentres: 1 } )" /></label> |
             <label title="show the identity plane">plane<input type="checkbox" id="planeToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { togglePlane: 1 } )"/></label> |
             <label title="show orbit lines">lines<input type="checkbox" id="linesToggle" onchange="distributeMessage( 'sample_cs_b_10_m_2', { toggleLines: 1 } )"/></label>
-            <div>
-                <div id="expressor"></div>
-            </div>
+            <input type="button" onclick="screenshot( 'sample_cs_b_10_m_2' )" value="snap"/>
         </div>
 
         <div id="sample_cs_b_10_m_2_plot" style="display: none"></div>

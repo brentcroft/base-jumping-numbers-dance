@@ -26,10 +26,11 @@ toggleKeys = {
 
     inverses: 0,
     harmonics: 1,
-    degenerates: 0,
+    degenerates: 1,
     radiance: 0,
-    autoFormula: 1,
+    autoFormula: 0,
     indexComposer: 0,
+    monomialFilter: 1,
 
     products: 0,
     productByOrbits: 1,

@@ -162,6 +162,15 @@ function isRisingFrom( a, from ) {
     return true;
 }
 
+function isFallingTo( a, to ) {
+    for ( var i = 1; i < to; i++ ) {
+        if (a[i-1] <= a[i] ) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function isRisingTo( a, to ) {
     for ( var i = 0; i < to; i++ ) {
         if (a[i] <= a[i+1] ) {
@@ -480,22 +489,33 @@ function placeValuesPermutation( bases, placePermutation = [] ) {
 }
 
 function getCompositions( basis = 3 ) {
-    return [
-        "# compositions;",
+    const SYMBOLIC_COMPOSITIONS = {
+        3: [
+            "# compositions;",
 
-        "# b_0, b_1, b_2;",
-        "a_1 * a_2;",
-        "a_1 * a_0;",
-        "a_0 * a_2^-1;",
+            "# b_0, b_1, b_2;",
+            "a_1 * a_2;",
+            "a_1 * a_0;",
+            "a_0 * a_2^-1;",
 
-        "# z_0 ;",
-        "a_0 * a_1 * a_2;",
+            "# z_0 ;",
+            "a_0 * a_1 * a_2;",
 
-        "# z_1 ;",
-        "a_2^-1 * a_0 * a_1;",
+            "# z_1 ;",
+            "a_2^-1 * a_0 * a_1;",
 
-        "# z_2 ;",
-        "a_1 * a_2 * a_0^-1;",
+            "# z_2 ;",
+            "a_1 * a_2 * a_0^-1;",
 
-    ].join( "\n");
+        ],
+        "inverses": [
+            "a_0^-1; a_1^-1; a_2^-1;",
+            "b_0^-1; b_1^-1; b_2^-1;",
+            "z_0^-1; z_1^-1; z_2^-1;"
+        ]
+    };
+
+
+    return SYMBOLIC_COMPOSITIONS[ basis ].join( "\n");
 }
+

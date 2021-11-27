@@ -59,10 +59,15 @@ function getControlValues() {
         }
     } );
 
+    const monomialFilterEnabled = document.getElementById( 'monomialFilterEnabled' ).checked;
+    const monomialFilter = monomialFilterEnabled
+        ? JSON.parse( document.getElementById( 'monomialFilter' ).value )
+        : 0;
+
     const actionLayers = [];
     document
             .querySelectorAll( ".box-layer-control" )
-            .forEach( blc => blc.checked? actionLayers.push( Number( blc.value ) ): 0 );
+            .forEach( blc => blc.checked ? actionLayers.push( Number( blc.value ) ): 0 );
 
     const currentToggles = Object
             .keys( toggleKeys )
@@ -71,6 +76,7 @@ function getControlValues() {
     return {
         actionIndex: actionIndex,
         actionLayers: actionLayers,
+        monomialFilter: monomialFilter,
         bases: bases,
         toggles: currentToggles
     };
@@ -114,6 +120,15 @@ function reopenWithReversedArgs() {
     window.location.href = "?" + getCurrentQueryString( null, bases );
 }
 
+function screenshot( containerId ) {
+    const plotFrameId = containerId + "_plot_frame";
+    const plotFrame = document.getElementById( plotFrameId );
+    if (plotFrame ) {
+        plotFrame.contentWindow.screenshot();
+    } else {
+        throw new Error( `Can't find plotFrame: ${ plotFrameId }` );
+    }
+}
 
 function distributeMessage( containerId, message = {} ) {
     const canonicalMessage = JSON.parse( JSON.stringify( message ) );
@@ -218,64 +233,6 @@ function initialiseCheckBox( controlId, checked ) {
     control.checked = checked;
 }
 
-
-function applyExpression( control, id, size, incrementPlaces = true ) {
-
-    function maybeIncrementPlaces( control, id ) {
-        if ( Number( control.value ) >= Number( control.max ) ) {
-            control.value = 0;
-            const nextId = (id+1) % size;
-            const nextPlace = document.getElementById( "o" + nextId );
-            nextPlace.value = Number( nextPlace.value ) + 1;
-            maybeIncrementPlaces( nextPlace, nextId );
-        } else if ( Number( control.value ) < 0 ) {
-            control.value = Number( control.max ) - 1;
-            const nextId = (id+1) % size;
-            const nextPlace = document.getElementById( "o" + nextId );
-            nextPlace.value = Number( nextPlace.value ) - 1;
-            maybeIncrementPlaces( nextPlace, nextId );
-        }
-    }
-
-    if ( incrementPlaces ) {
-        maybeIncrementPlaces( control, id );
-    }
-
-    var locus = basePlane
-        .orbits
-        .map( (x, i) => Number( document.getElementById( "o" + i ).value ) );
-
-    distributeMessage( 'sample_cs_b_10_m_2', { basePlaneKey: basePlane.key, locus: locus } );
-}
-
-
-function initialiseExpressor( basePlane, redraw = true ) {
-    var expressor = document.getElementById( 'expressor' );
-    while ( expressor.firstChild ) {
-        expressor.removeChild( expressor.lastChild );
-    }
-    if ( redraw ) {
-        expressor.appendChild( reify( "hr" ) );
-        expressor.appendChild( reify(
-                "span",
-                {},
-                [],
-                [ s => s.innerHTML = "phase: " ]
-            )
-        );
-        basePlane.orbits.forEach( (orbit, i) => {
-            expressor.appendChild(
-                reify(
-                    "input",
-                    { "type": "number", "class": "colourField", "min": -1, "max": orbit.order, "id": ("o" + i), "value":0 },
-                    [],
-                    [ ( control ) => control.onchange = () => applyExpression( control, i, basePlane.orbits.length ) ]
-                )
-            );
-        } );
-    }
-}
-
 function initialiseBases( bases ) {
     document.getElementById( "bases" ).value = bases.length;
     const container = document.getElementById( "baseValues" );
@@ -339,57 +296,20 @@ function openPlot() {
     openX3DomFrame( 'sample_cs_b_10_m_2', basePlane );
 }
 
-function setMidiRepeats( orbitId, repeats ) {
-    var orbit = basePlane.orbits.filter( x => x.index == orbitId );
-    if ( orbit ) {
-        orbit[0].midi.repeats = repeats;
 
-        updateJson();
-    }
-}
-
-function setMidiChannel( orbitId, channel ) {
-    var orbit = basePlane.orbits.filter( x => x.index == orbitId );
-    if ( orbit ) {
-        orbit[0].midi.instrument = isPercussion ? 0 : instrument;
-        if ( orbit[0].midi.percussion == 0 ) {
-            orbit[0].midi.channel = channel;
-        }
-
-        updateJson();
-    }
-}
-
-function setMidiInstrument( orbitId, instrument, isPercussion = false ) {
-    var orbit = basePlane.orbits.filter( x => x.index == orbitId );
-    if ( orbit ) {
-        orbit[0].midi.instrument = isPercussion ? 0 : instrument;
-        orbit[0].midi.percussion = isPercussion ? instrument : 0;
-
-        if ( isPercussion ) {
-            orbit[0].midi.channel = 9;
-        } else if ( orbit[0].midi.channel == 9 ){
-            orbit[0].midi.channel = 0;
-        }
-
-        updateJson();
-    }
-}
-
-
-function processFormula( pidsText ) {
+function processFormula( compositionFormulasText ) {
 
     document.getElementById( 'summaryEditorResult' ).innerHTML = "";
     document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = "";
 
-    const pidsSetText = document.getElementById( 'selectedPlaneIds' ).value;
-    const pidsLines = ( pidsText || pidsSetText )
+    const compositionFormulas = compositionFormulasText || document.getElementById( 'compositionFormulas' ).value;
+    const compositionFormulaLines = ( compositionFormulas )
         .split( /\s*;\s*/ )
         .map( ft => ft.trim() )
         .filter( ft => ft.length > 0 )
         .filter( ft => !ft.startsWith( '#' ) );
 
-    if ( pidsLines.length > 0 ) {
+    if ( compositionFormulaLines.length > 0 ) {
         try {
             function dump( index ) {
                 const idxText = index.idx.map( p => String( p.id ).padStart( 2, ' ' ) ).join( ", " );
@@ -402,7 +322,7 @@ function processFormula( pidsText ) {
                 return index;
             }
 
-            const results = pidsLines
+            const results = compositionFormulaLines
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
@@ -517,23 +437,57 @@ function buildBoxLayersSelectors( indexedBox, param ) {
         container.removeChild( container.lastChild );
     }
 
+    const switchAllLayersOn = () => {
+        document
+                .querySelectorAll( ".box-layer-control" )
+                .forEach( blc => {
+                    if ( blc.value == "*" ) {
+                       blc.checked = false;
+                    } else if ( !blc.checked ) {
+                        blc.checked = true;
+                    }
+                } );
+        [ "inversesToggle", "harmonicsToggle", "degeneratesToggle" ]
+            .forEach( toggleId => {
+                const toggle = document.getElementById( toggleId );
+                if ( !toggle.checked ) {
+                    toggle.checked = true;
+                }
+            } );
+        updatePage();
+    };
+
+
+    container
+        .appendChild(
+            reify( "label", { "title": "All layers" },
+                [
+                    reify( "text", {}, [], [ t => t.innerHTML = "*" ] ),
+                    reify( "input",
+                        {
+                            "id": "box-layer.*",
+                            "type": "checkbox",
+                            "class": "box-layer-control",
+                            "value": "*"
+                        }, [], [
+                            (control) => control.onchange = switchAllLayersOn
+                        ]
+                    )
+                ]
+            )
+        );
+
+    container.append( " | " );
+
+
     const actionLayers = param.actionLayers || [];
 
     indexedBox.layerLabels.forEach( ( layerLabel, i ) => {
         const [ id, label ] = layerLabel;
-        if ( i > 0 ) {
-            container
-                .appendChild(
-                    reify(
-                        "span",
-                        {},
-                        [],
-                        [ (span) => span.innerHTML = " " ]
-                    ) );
-        }
+
+        container.append( " " );
 
         const checked = actionLayers.includes( id );
-
         container
             .appendChild(
                 reify(
@@ -559,6 +513,8 @@ function buildBoxLayersSelectors( indexedBox, param ) {
                 )
             );
     } );
+
+    container.append( " | " );
 }
 
 
@@ -574,7 +530,8 @@ function updatePage() {
             .value = indexedBox.box.volume;
 
     if ( param.toggles.includes( "autoFormula" ) ) {
-        processFormula( getCompositions( indexedBox.box.rank ) );
+        const compositionFormulas = document.getElementById( "compositionFormulas" ).value;
+        processFormula( compositionFormulas );
     } else {
         rebuildIndexedBoxSummary( param );
     }
@@ -620,6 +577,9 @@ function initPage( urlParam = true ) {
     }
     if ( param.toggles.cycles ) {
         showHideAll(['cyclesControls','sample_cs_b_10_m_2_table']);
+    }
+    if ( param.toggles.monomialFilter ) {
+        showHideAll( [ 'monomialFilterControls' ] );
     }
     if ( param.toggles.indexComposer ) {
         showHideAll( [ 'indexComposer' ] );
@@ -673,12 +633,16 @@ function initPage( urlParam = true ) {
                 const nextPlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
 
                 if ( nextPlane ) {
-                    document.getElementById( 'actionIndex' ).value = data.indexKey;
+                    const actionIndexElement = document.getElementById( 'actionIndex' );
+                    actionIndexElement.value = data.indexKey;
 
                     // swap global basePlane and register
                     // so child frames can access it.
                     basePlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
                     putBasePlane( basePlane.key, basePlane );
+
+                    document.getElementById( 'monomialFilter' ).value = JSON.stringify( basePlane.cycleIndexMonomial );
+                    document.getElementById( 'monomialFilterDisplay' ).innerHTML = getCycleIndexMonomialHtml( basePlane );
 
                     showIndex( "indexSummary", data.sender );
                     updateJson();

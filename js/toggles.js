@@ -25,8 +25,8 @@ toggleKeys = {
     minCols: 0,
 
     inverses: 0,
-    harmonics: 1,
-    degenerates: 1,
+    harmonics: 0,
+    degenerates: 0,
     radiance: 0,
     autoFormula: 0,
     indexComposer: 0,

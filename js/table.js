@@ -586,7 +586,9 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
-    const optionalColumns = toggles.includes( "minCols" ) ? [] :  [ "identity-equation", "monomial" ];
+    const optionalColumns = toggles.includes( "minCols" )
+        ? [ "identity-equation", "monomial" ]
+        : [ "identity-equation", "monomial", "signature" ];
 
     const sep = ", ";
     const tableId = 'indexSummary_table';
@@ -598,7 +600,9 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Signature</th>`;
+    if ( optionalColumns.includes(  "signature" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Signature</th>`;
+    }
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Function Pair</th>`;
     if ( optionalColumns.includes(  "identity-equation" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
@@ -643,11 +647,15 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             if ( actionElement.pair ) {
                 const pair = actionElement.pair;
                 rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.perm || '' }], [${ pair.right.perm || '' }]</td>`;
-                rowHtml += `<td align='center' ${clickAttr}>${ pair.signature }</td>`;
+                if ( optionalColumns.includes(  "signature" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}>${ pair.signature }</td>`;
+                }
                 rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.placeValues || '' }], [${ pair.right.placeValues || '' }]</td>`;
             } else {
                 rowHtml += `<td align='center' ${clickAttr}></td>`;
-                rowHtml += `<td align='center' ${clickAttr}></td>`;
+                if ( optionalColumns.includes(  "signature" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}></td>`;
+                }
                 rowHtml += `<td align='center' ${clickAttr}></td>`;
             }
             if ( optionalColumns.includes(  "identity-equation" ) ) {

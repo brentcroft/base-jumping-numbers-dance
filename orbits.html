@@ -12,8 +12,16 @@
         .full-width {
             clear: both;
         }
+
         textarea.formulaPanel {
             width: 100%;
+            font-size: 80%;
+        }
+
+        .symbolic-composition-control {
+            border: dotted 1px;
+            padding: 2px;
+            background: LemonChiffon;
         }
 
         .caption {
@@ -211,7 +219,7 @@
 
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
-            <label title="change the selected box action"> action-id: <input type="number" min="0" id="actionIndex" value="0" onchange="selectBoxAction()"/></label>
+            <label title="change the selected box action"> action-id: <input type="number" min="0" id="actionIndex" value="1" onchange="selectBoxAction()"/></label>
 
             <span id="captionTex" class="summaryLeft"></span>
             <br/>
@@ -278,7 +286,10 @@
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             layers: <span id="boxLayerSelectors">
-                <input id="box-layer.dummy" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
+                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>
+                <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
+                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
+                <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
             </span>
 
             <label title="generate inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
@@ -311,7 +322,9 @@
         <div id="indexComposer" style="display: none">
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"  class="summaryLeft"></span>
-            <textarea id="compositionFormulas" class="formulaPanel" rows="3">r^2</textarea>
+            <form><textarea id="compositionFormulas" class="formulaPanel" rows="3">a_1 * a_2; a_1 * a_0; a_0 * a_2^-1;
+a_2 * a_1; a_0 * a_1; (a_2^-1 * a_0)^-1;
+a_0 * a_1 * a_2; a_2^-1 * a_0 * a_1; a_1 * a_2 * a_0^-1;</textarea></form>
             <span id="summaryEditorResult"></span>
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>

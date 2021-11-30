@@ -192,9 +192,12 @@ function showAllOrbits( containerId, basePlane ) {
 }
 
 function showIndex( containerId, senderId  ) {
-    const tableCells = document
-        .getElementById( containerId + "_table" )
-        .querySelectorAll( "td.box_index" );
+    const table = document.getElementById( containerId + "_table" )
+//    if ( !table ) {
+//        return;
+//    }
+
+    const tableCells = table.querySelectorAll( "td.box_index" );
 
     const [ sourceId, ...oids ] = senderId.split( "." );
 
@@ -335,8 +338,8 @@ function processFormula( compositionFormulasText ) {
                 } );
 
             const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
-
             document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
+
         } catch ( e ) {
             document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
             consoleLog( e );
@@ -419,10 +422,6 @@ function rebuildIndexedBoxSummary( param ) {
     document
             .getElementById( "actionIndex" )
             .max = indexedBox.indexPlanes.length - 1;
-
-//    document
-//            .getElementById("captionTex")
-//            .innerHTML = JSON.stringify( indexedBox.box.getJson() );
 
     document
             .getElementById( "actionsTable" )
@@ -532,16 +531,13 @@ function buildCompositionSelectors(  ) {
 
     Object
         .entries( SYMBOLIC_COMPOSITIONS )
-        .map( sc => reify(
-                "a", { "class": "symbolic-composition-control" },
-                [],
+        .map( sc => reify( "a", { "class": "symbolic-composition-control" }, [],
                 [
                     (control) => control.innerHTML = sc[0],
                     (control) => control.onclick = () => selectSymbolicRepresentation( sc[0] )
                 ]
             ) )
         .forEach( ( scLink, i ) => {
-
             if ( i > 0 ) {
                 container.append( " " );
             }
@@ -561,18 +557,16 @@ function updatePage() {
             .getElementById( "basesVolume" )
             .value = indexedBox.box.volume;
 
+    buildBoxLayersSelectors( indexedBox, param );
     buildCompositionSelectors();
+    rebuildIndexedBoxSummary( param );
+
+    selectBoxAction();
 
     if ( param.toggles.includes( "autoFormula" ) ) {
         const compositionFormulas = document.getElementById( "compositionFormulas" ).value;
         processFormula( compositionFormulas );
-    } else {
-        rebuildIndexedBoxSummary( param );
     }
-
-    buildBoxLayersSelectors( indexedBox, param );
-
-    selectBoxAction();
 }
 
 function initPage( urlParam = true ) {

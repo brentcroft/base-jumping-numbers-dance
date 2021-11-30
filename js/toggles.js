@@ -22,13 +22,13 @@ toggleKeys = {
     globalIds: 0,
     conj: 1,
     coords: 0,
-    minCols: 0,
+    minCols: 1,
 
     inverses: 0,
     harmonics: 0,
     degenerates: 0,
     radiance: 0,
-    autoFormula: 0,
+    autoFormula: 1,
     indexComposer: 0,
     monomialFilter: 1,
 

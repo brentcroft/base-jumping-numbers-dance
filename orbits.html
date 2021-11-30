@@ -292,7 +292,17 @@
         <div id="monomialFilterControls" style="display: none" class="summaryLeft">
             <label title="Filter actions by monomial">
                 Monomial: <span id="monomialFilterDisplay"><font color="red"><i>(no monomial selected)</i></font></span>
-                <input type="checkbox" id="monomialFilterEnabled" onchange="updatePage()" value=""/>enable
+                <script>
+                    function disableCheckBoxIfNoFilterElseUpdatePage( control ) {
+                        const filterText = document.getElementById( "monomialFilter" ).value;
+                        if ( filterText ) {
+                            updatePage();
+                        } else {
+                            control.checked = false;
+                        }
+                    }
+                </script>
+                <input type="checkbox" id="monomialFilterEnabled" onchange="disableCheckBoxIfNoFilterElseUpdatePage( this )" value=""/>enable
             </label>
             <input type="text" id="monomialFilter" style="display: none"/>
         </div>

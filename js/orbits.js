@@ -96,19 +96,19 @@ class PlaceValuesPermutationPair {
             return 1;
         }
 
-        if ( !this.degenerate && other.degenerate ) {
-            return -1;
-        } else if ( this.degenerate && !other.degenerate ) {
-            return 1;
-        }
-
         if ( !this.harmonic && other.harmonic ) {
             return -1;
         } else if ( this.harmonic && !other.harmonic ) {
             return 1;
         }
 
-        return this.harmonic - other.harmonic;
+        if ( !this.degenerate && other.degenerate ) {
+            return -1;
+        } else if ( this.degenerate && !other.degenerate ) {
+            return 1;
+        }
+
+        return this.echo - other.echo;
     }
 
     static layerLabel = ( i, palindrome ) => {
@@ -140,63 +140,65 @@ class PlaceValuesPermutationPair {
         // which inverse
         this.crossValue = PlaceValuesPermutationPair.crossValue( this.left.perm, this.right.perm );
         this.crossValueType = this.crossValue > 0
-            ? "right"
+            ? "+"
             : this.crossValue < 0
-                ? "left"
-                : "even";
+                ? "-"
+                : "=";
 
         this.crossPermValue = PlaceValuesPermutationPair.crossPermValue( this.left.perm, this.right.perm );
         this.crossPermType = this.crossPermValue > 0
-            ? "cr"
+            ? "r"
             : this.crossPermValue < 0
-                ? "cl"
-                : "";
+                ? "l"
+                : "-";
 
         this.squarePermValue = PlaceValuesPermutationPair.squarePermValue( this.left.perm, this.right.perm );
         this.squarePermType = this.squarePermValue > 0
-            ? "sr"
+            ? "r"
             : this.squarePermValue < 0
-                ? "sl"
-                : "";
+                ? "l"
+                : "-";
 
         this.permPair = [ this.left.perm, this.right.perm ];
 
-        this.leftAlignment = leftAlignment( this.permPair );
-        this.leftFalling = this.leftAlignment < 1
-            ? false
-            : isFallingTo( this.left.perm, this.leftAlignment );
+        this.palindrome = isPalindrome( this.permPair );
 
-        this.rightAlignment = rightAlignment( this.permPair );
-        this.rightRising = this.rightAlignment < 1
-           ? false
-           : isRisingFrom( this.left.perm, ( this.rank - this.rightAlignment ) );
+        [
+            [ this.alignedPlaces, this.alignedWeights ],
+            this.unalignedPlaces
+        ] = alignedPlaces( this.permPair );
 
-        // palindrome has alignment of 0
-        // even though odd one has common middle item
-        this.alignment = isPalindrome( this.permPair )
-            ? -1
-            : alignment( this.permPair );
+        if ( this.alignedPlaces.length > 1 && !isRisingFrom( this.alignedPlaces, 0 ) ) {
+            this.degenerate = true;
 
-        this.degenerate = (this.rightAlignment == this.alignment && !this.rightRising )
-            || (this.leftAlignment == this.alignment && !this.leftFalling );
+        } else if ( this.alignedPlaces.length == 1 ) {
+             if ( PlaceValuesPermutationPair.crossPermValue( this.unalignedPlaces[0], this.unalignedPlaces[1] ) > 0 ) {
+                this.degenerate = true;
+             }
+        }
 
-        //this.degenerate = this.crossPermValue >= 0;
+        this.harmonic = false;
+
+        if ( this.echo > 1 ) {
+            if ( this.alignedWeights.length > 0 ) {
+                if ( this.alignedWeights[0] != ( this.rank - this.alignedPlaces.length ) ) {
+                    this.harmonic = true;
+                }
+            }
+        }
 
 
-        this.layer = isPalindrome( this.permPair )
+        this.layer = this.palindrome
             ? this.rank + 1
             : this.rank - this.zeroedPlaces;
 
         this.label = PlaceValuesPermutationPair.layerLabel( this.layer, this.rank + 1 );
 
-        this.harmonic = this.alignment > 0
-            && !( this.alignment == this.leftAlignment || this.alignment == this.rightAlignment );
-
 
 
         var report = "";
-        report += `${ this.alignment }[${ this.leftAlignment }${ this.leftFalling ? 'y': 'n' }${ this.rightAlignment }${ this.rightRising ? 'y': 'n' }] `;
-        report += `${ this.crossPermType }${ this.squarePermType } `;
+        report += `${ this.alignedPlaces.length } `;
+        report += `${ this.crossValueType }${ this.crossPermType }/${ this.squarePermType } `;
         report += `${ this.inverse ? 'i' : '' }${ this.degenerate ? 'd' : '' }${ this.harmonic ? 'h' : '' } `;
         report += `${ this.echo }`;
 

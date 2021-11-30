@@ -95,15 +95,22 @@ function isOrthogonal( arrayPair, degree = 1 ) {
     return atIndex + 1;
 }
 
-function alignment( arrayPair ) {
+function alignedPlaces( arrayPair ) {
     const [ a, b ] = arrayPair;
-    var x = 0;
+    const aligned = [];
+    const alignedWeights = [];
+    const unalignedLeft = [];
+    const unalignedRight = [];
     for ( var i = 0; i < b.length; i++ ) {
         if (a[i] == b[i] ) {
-            x++;
+            aligned.push( a[i] );
+            alignedWeights.push( i );
+        } else {
+            unalignedLeft.push( a[i] );
+            unalignedRight.push( b[i] );
         }
     }
-    return x;
+    return [ [ aligned, alignedWeights ], [ unalignedLeft, unalignedRight ] ];
 }
 
 
@@ -162,6 +169,18 @@ function isRisingFrom( a, from ) {
     return true;
 }
 
+function isReverseFallingFromValue( a, value ) {
+    var v = value;
+    for ( var i = (a.length - 1); i >= 0; i-- ) {
+        if (a[i] != v ) {
+            return false;
+        }
+        v--;
+    }
+    return true;
+}
+
+
 function isFallingTo( a, to ) {
     for ( var i = 1; i < to; i++ ) {
         if (a[i-1] <= a[i] ) {
@@ -173,7 +192,7 @@ function isFallingTo( a, to ) {
 
 function isRisingTo( a, to ) {
     for ( var i = 0; i < to; i++ ) {
-        if (a[i] <= a[i+1] ) {
+        if (a[i-1] >= a[i] ) {
             return false;
         }
     }

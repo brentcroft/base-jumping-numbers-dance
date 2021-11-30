@@ -518,6 +518,38 @@ function buildBoxLayersSelectors( indexedBox, param ) {
 }
 
 
+
+function buildCompositionSelectors(  ) {
+
+    const container = document.getElementById( "compositionSelectors" );
+    while (container.firstChild ) {
+        container.removeChild( container.lastChild );
+    }
+
+    const selectSymbolicRepresentation = ( key ) => {
+        document.getElementById( "compositionFormulas" ).value = SYMBOLIC_COMPOSITIONS[ key ].join( "\n" );
+    };
+
+    Object
+        .entries( SYMBOLIC_COMPOSITIONS )
+        .map( sc => reify(
+                "a", { "class": "symbolic-composition-control" },
+                [],
+                [
+                    (control) => control.innerHTML = sc[0],
+                    (control) => control.onclick = () => selectSymbolicRepresentation( sc[0] )
+                ]
+            ) )
+        .forEach( ( scLink, i ) => {
+
+            if ( i > 0 ) {
+                container.append( " " );
+            }
+            container.appendChild( scLink )
+        } );
+}
+
+
 function updatePage() {
 
     const param = getControlValues();
@@ -528,6 +560,8 @@ function updatePage() {
     document
             .getElementById( "basesVolume" )
             .value = indexedBox.box.volume;
+
+    buildCompositionSelectors();
 
     if ( param.toggles.includes( "autoFormula" ) ) {
         const compositionFormulas = document.getElementById( "compositionFormulas" ).value;

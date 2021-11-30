@@ -672,7 +672,7 @@ class PowerExpression extends Expression {
 
         if ( exp == 0 ) {
             // return identity
-            locus = params['e'];
+            locus = params['e'] || params['e_0'];
             if ( ! locus ) {
                 throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
             }
@@ -689,7 +689,7 @@ class PowerExpression extends Expression {
                         );
             }
         } else if ( exp < 0 ) {
-            locus = params['e'];
+            locus = params['e'] || params['e_0'];
             if ( ! locus ) {
                 throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
             }

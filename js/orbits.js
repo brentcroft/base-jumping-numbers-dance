@@ -179,7 +179,7 @@ class PlaceValuesPermutationPair {
 
         this.harmonic = false;
 
-        if ( this.echo > 1 ) {
+        if ( this.echo > 1 && !this.palindrome ) {
             if ( this.alignedWeights.length > 0 ) {
                 if ( this.alignedWeights[0] != ( this.rank - this.alignedPlaces.length ) ) {
                     this.harmonic = true;
@@ -194,10 +194,8 @@ class PlaceValuesPermutationPair {
 
         this.label = PlaceValuesPermutationPair.layerLabel( this.layer, this.rank + 1 );
 
-
-
         var report = "";
-        report += `${ this.alignedPlaces.length } `;
+        report += `${ this.palindrome ? 'p' : this.alignedPlaces.length } `;
         report += `${ this.crossValueType }${ this.crossPermType }/${ this.squarePermType } `;
         report += `${ this.inverse ? 'i' : '' }${ this.degenerate ? 'd' : '' }${ this.harmonic ? 'h' : '' } `;
         report += `${ this.echo }`;

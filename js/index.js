@@ -11,8 +11,6 @@ class ActionElement {
         this.box = box;
         this.id = id;
         this.key = `plane-${ id }`;
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
 
         this.forwardFrom = 0;
         this.reverseFrom = 0;

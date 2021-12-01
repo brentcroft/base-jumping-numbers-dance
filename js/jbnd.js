@@ -165,6 +165,7 @@ class PlaceValuesAction extends ActionElement {
         this.pair.actionIndex = this.actionIndex;
         this.label = `${ this.pair.inverse ? 'i' : '' }${ this.pair.label }_${ this.actionIndex }`;
 
+        // reference to component indexes
         this.idx = this.pair.left.idx;
         this.dix = this.pair.right.idx;
     }
@@ -205,28 +206,29 @@ class PlaceValuesAction extends ActionElement {
 
 class CompositeAction extends ActionElement {
 
-    static compositeLabel( primaryIndex, secondaryIndex, inverse = [ false, false ] ) {
-        return `( ${ primaryIndex.getLabel() }${ inverse[0] ? '^-1' : '' }`
-                + " * "
-                + `${ secondaryIndex.getLabel() }${ inverse[1] ? '^-1' : '' } )`;
+    static compositeLabel( primaryIndex, secondaryIndex ) {
+        return `( ${ primaryIndex.getLabel() } * ${ secondaryIndex.getLabel() }`;
     }
 
-    constructor( box, id = 0, primaryIndex, secondaryIndex, inverse = [ false, false ], autoInit = false, alias ) {
+    constructor( box, id = 0, primaryIndex, secondaryIndex, autoInit = false, reverse = false ) {
         super( box, id );
 
         this.primaryIndex = primaryIndex;
         this.secondaryIndex = secondaryIndex;
+        this.reverse = reverse;
 
-        this.inverse = inverse;
+        // todo: fast calculate on fly?
+        this.idx = new Array( this.box.volume );
+        this.dix = new Array( this.box.volume );
 
-        // establish identity plane
+        // todo: no identity plane
         this.identityPlane = [ -1, -1, 1 ];
         this.identityPlaneGcd = 1;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         //
-        this.label = CompositeAction.compositeLabel( primaryIndex, secondaryIndex, inverse );
-        this.alias = alias || [];
+        this.label = CompositeAction.compositeLabel( primaryIndex, secondaryIndex );
+        this.alias = [];
 
         if ( autoInit ) {
             this.indexPoints();
@@ -242,13 +244,15 @@ class CompositeAction extends ActionElement {
 
     indexPoint( point ) {
 
-        var wayPoint = this.inverse[0]
-           ? this.primaryIndex.applyInverse( point )
-           : this.primaryIndex.apply( point );
+//        var wayPoint = this.primaryIndex.apply( point );
+//        var endPoint = this.reverse
+//            ? this.secondaryIndex.applyInverse( wayPoint )
+//            : this.secondaryIndex.apply( wayPoint );
 
-        var endPoint = this.inverse[1]
-            ? this.secondaryIndex.applyInverse( wayPoint )
-            : this.secondaryIndex.apply( wayPoint );
+        var wayPoint = this.reverse
+            ? this.secondaryIndex.applyInverse( point )
+            : this.secondaryIndex.apply( point );
+        var endPoint = this.primaryIndex.apply( wayPoint );
 
         // global ids
         const id = point.id;
@@ -310,7 +314,7 @@ class IndexedBox {
         if (toggles.includes( "radiance" )) {
 
             this.box.radiance = new RadiantAction( this.box, 0 );
-            this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, [ 'r * r' ] );
+            this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance );
             this.box.unity.label = 'e';
 
             this.indexPlanes = [ this.box.radiance, this.box.unity ];
@@ -445,7 +449,6 @@ class IndexedBox {
             this.indexPlanes.length,
             this.indexPlanes[ id0 ],
             plane,
-            [ inverse0, inverse1 ],
             true
         );
 

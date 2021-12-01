@@ -513,7 +513,8 @@ class Formula {
             const aliasText = this.getExpressionString();
 
             existingIndexes.forEach( existingIndex => {
-                if ( existingIndex.alias ) {
+                if ( `e * ${ existingIndex }` == aliasText ) {
+                } else if ( existingIndex.alias ) {
                     if ( !existingIndex.alias.includes( aliasText ) ) {
                         existingIndex.alias.push( aliasText );
                     }
@@ -616,7 +617,6 @@ class ValueExpression extends Expression {
     }
 }
 
-
 class StringExpression extends Expression {
     constructor(value) {
         super();
@@ -644,8 +644,8 @@ class OperatorExpression extends Expression {
     evaluate(params = {}) {
         const leftIndex = this.left.evaluate(params);
         const rightIndex = this.right.evaluate(params);
-        const inverse = [ false, false ];
-        const label = CompositeAction.compositeLabel( leftIndex, rightIndex, inverse )
+
+        const label = CompositeAction.compositeLabel( leftIndex, rightIndex )
 
         return label in params
             ? params[label]
@@ -654,7 +654,6 @@ class OperatorExpression extends Expression {
                 Math.round( Math.random() * 10000 + 1),
                 leftIndex,
                 rightIndex,
-                inverse,
                 true
             );
     }
@@ -690,7 +689,6 @@ class PowerExpression extends Expression {
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
                             locus, start,
-                            [ false, false ],
                             true
                         );
             }
@@ -704,7 +702,7 @@ class PowerExpression extends Expression {
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
                             locus, start,
-                            [ false, true ],
+                            true,
                             true
                         );
             }

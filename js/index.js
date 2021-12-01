@@ -248,10 +248,25 @@ class ActionElement {
         var totalIndexPerimeter = 0;
         var totalTension = 0;
 
+        var totalOrderSpace = 0;
+        var totalNetOrderSpace = 0;
+        var totalNet2Space = 0;
+
         const cycleIndexMonomial  = {};
 
         for ( var i = 0; i < this.orbits.length; i++ ) {
             var orbit = this.orbits[i];
+
+            totalOrderSpace *= orbit.order;
+            totalNetOrderSpace *= orbit.isSelfConjugate()
+                ? ( orbit.order / 2 )
+                : orbit.isFirstConjugate()
+                    ? orbit.order
+                    : 1;
+            totalNet2Space += orbit.isSelfConjugate() || orbit.isFirstConjugate()
+                ? 1
+                : 0;
+
 
             cycleIndexMonomial[orbit.order] = ( orbit.order in cycleIndexMonomial )
                 ? cycleIndexMonomial[orbit.order] + 1
@@ -263,6 +278,10 @@ class ActionElement {
             totalIndexPerimeter += orbit.indexPerimeter( this.id );
             totalIndexRadiance += orbit.indexRadiance( this.id );
         }
+
+        this.totalOrderSpace = totalOrderSpace;
+        this.totalNetOrderSpace = totalNetOrderSpace;
+        this.totalNet2Space = totalNet2Space;
 
         Object.entries( cycleIndexMonomial ).sort( (a, b) => a < b );
         this.cycleIndexMonomial = cycleIndexMonomial;

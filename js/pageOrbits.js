@@ -476,42 +476,41 @@ function buildBoxLayersSelectors( indexedBox, param ) {
             )
         );
 
-    container.append( " | " );
+    if ( indexedBox.layerLabels ) {
+        container.append( " | " );
+        const actionLayers = param.actionLayers || [];
+        indexedBox.layerLabels.forEach( ( layerLabel, i ) => {
+            const [ id, label ] = layerLabel;
+            container.append( " " );
+            const checked = actionLayers.includes( id );
+            container
+                .appendChild(
+                    reify(
+                        "label",
+                        { "title": `${ label }` },
+                        [
+                            reify( "text", {}, [], [ t => t.innerHTML = `${ label }` ] ),
+                            reify(
+                                "input",
+                                {
+                                    "id": "box-layer." + i,
+                                    "type": "checkbox",
+                                    "class": "box-layer-control",
+                                    "value": id
+                                },
+                                [],
+                                [
+                                    (control) => control.checked = checked,
+                                    (control) => control.onchange = updatePage
+                                ]
+                            )
+                        ]
+                    )
+                );
+        } );
+    }
 
 
-    const actionLayers = param.actionLayers || [];
-
-    indexedBox.layerLabels.forEach( ( layerLabel, i ) => {
-        const [ id, label ] = layerLabel;
-
-        container.append( " " );
-
-        const checked = actionLayers.includes( id );
-        container
-            .appendChild(
-                reify(
-                    "label",
-                    { "title": `${ label }` },
-                    [
-                        reify( "text", {}, [], [ t => t.innerHTML = `${ label }` ] ),
-                        reify(
-                            "input",
-                            {
-                                "id": "box-layer." + i,
-                                "type": "checkbox",
-                                "class": "box-layer-control",
-                                "value": id
-                            },
-                            [],
-                            [
-                                (control) => control.checked = checked,
-                                (control) => control.onchange = updatePage
-                            ]
-                        )
-                    ]
-                )
-            );
-    } );
 
     container.append( " | " );
 }

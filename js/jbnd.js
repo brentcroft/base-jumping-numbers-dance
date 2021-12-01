@@ -100,11 +100,20 @@ class RadiantAction extends ActionElement {
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         // establish coord index functions
-        this.indexReverse = ( coord ) => this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
+        this.indexReverse = ( coord ) => {
+            const index = this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
+            // enforce origin and terminal
+            // radiantOriginAndTerminusAreIdentities
+            return index == 0
+                ? this.reverseFrom
+                : index == this.reverseFrom
+                    ? 0
+                    : index;
+        };
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
         this.label = 'r';
-        this.alias = 'e^½'
+        this.alias = ['e^½'];
         this.idx = [];
         this.dix = [];
     }
@@ -144,13 +153,17 @@ class RadiantAction extends ActionElement {
 }
 
 class PlaceValuesAction extends ActionElement {
-    constructor( box, id = 0, placeValuesPermutationPair, label ) {
+    constructor( box, id = 0, placeValuesPermutationPair, actionIndex ) {
         super( box, id );
         this.pair = placeValuesPermutationPair;
         this.identityPlane = this.pair.identityPlane;
         this.identityPlaneGcd = this.pair.echo;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-        this.label = label ? label : ('z' + (id - 1));
+        this.actionIndex = (this.pair.inverse ? this.pair.inversePair.actionIndex : actionIndex );
+
+        //
+        this.pair.actionIndex = this.actionIndex;
+        this.label = `${ this.pair.inverse ? 'i' : '' }${ this.pair.label }_${ this.actionIndex }`;
 
         this.idx = this.pair.left.idx;
         this.dix = this.pair.right.idx;
@@ -213,7 +226,7 @@ class CompositeAction extends ActionElement {
 
         //
         this.label = CompositeAction.compositeLabel( primaryIndex, secondaryIndex, inverse );
-        this.alias = alias || '';
+        this.alias = alias || [];
 
         if ( autoInit ) {
             this.indexPoints();
@@ -270,7 +283,7 @@ class CompositeAction extends ActionElement {
     }
 
     getPlaneEquationTx() {
-        return this.alias;
+        return this.alias.join(" / ");
     }
 }
 
@@ -297,7 +310,7 @@ class IndexedBox {
         if (toggles.includes( "radiance" )) {
 
             this.box.radiance = new RadiantAction( this.box, 0 );
-            this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, 'r * r' );
+            this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance, [ false, false ], false, [ 'r * r' ] );
             this.box.unity.label = 'e';
 
             this.indexPlanes = [ this.box.radiance, this.box.unity ];
@@ -306,18 +319,16 @@ class IndexedBox {
         }
 
 
-        if ( bases.length < 2 ) {
-            this.indexPlanes.push( new PlaceValuesAction( this.box, this.indexPlanes.length ) );
-        } else {
+        if ( bases.length > 1 ) {
             var indexors = pairs( this.box.placeValuePermutations )
-                .map( pair => new PlaceValuesPermutationPair( bases, pair[0], pair[1] ) );
+                .map( ( pair, i ) => new PlaceValuesPermutationPair( bases, pair[0], pair[1], null, i ) );
 
             if ( inverses ) {
                 indexors.push( ...indexors.map( pair => pair.getInversePair() ) );
             }
 
             this.box.placeValuePermutations
-                .forEach( perm => indexors.push( new PlaceValuesPermutationPair( bases, perm, perm ) ) );
+                .forEach( ( perm, i ) => indexors.push( new PlaceValuesPermutationPair( bases, perm, perm, null, i ) ) );
 
             const indexorSorter = ( p1, p2 ) => p1.compareTo( p2 );
 
@@ -333,44 +344,42 @@ class IndexedBox {
                 ...this.layerLabels.map( x => [] )
             ];
 
-            // group by layers
+            // todo:: move to PlaceValuesPermutationPair constructor
+            const maxOnes = this.box.rank - 2;
+            const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
+            const indicatesIdentity = ( pair ) => countOnes( pair.left.placeValues ) > maxOnes || countOnes( pair.right.placeValues ) > maxOnes;
+
+            // filter and group by layers
             indexors
                 .filter( pair => actionLayers.includes( pair.layer ) )
                 .filter( pair => harmonics || !pair.harmonic )
                 .filter( pair => degenerates || !pair.degenerate )
+                .filter( pair => degenerates || !indicatesIdentity( pair )  )
                 .forEach( pair => {
                     this.layers[ pair.layer ].push( pair );
                 } );
 
 
-            if ( !identities ) {
-                const maxOnes = this.box.rank - 2;
-                if ( maxOnes > 0 ) {
-                    const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
-                    const indicatesIdentity = ( pair ) => countOnes( pair.left.placeValues ) > maxOnes || countOnes( pair.left.placeValues ) > maxOnes;
-
-                    for ( var i = 0; i < this.layers.length; i++ ) {
-                        this.layers[i] = this.layers[i].filter( pair => !indicatesIdentity( pair ) );
-                    }
-                }
-            }
-
-            // store reduced layers
+            // remove empty layers
             this.layers = this.layers.filter( layer => layer.length > 0 );
 
             this.layers
-                .forEach( ( layer, layerIndex) => layer
-                    .forEach( (pair , i) => this.indexPlanes
-                        .push(
-                            new PlaceValuesAction(
-                                this.box,
-                                this.indexPlanes.length,
-                                pair,
-                                `${ pair.label }_${ i }`
+                .forEach( layer => {
+                    var actionIndex = 0;
+                    layer
+                        .forEach( (pair , i) => this.indexPlanes
+                            .push(
+                                new PlaceValuesAction(
+                                    this.box,
+                                    this.indexPlanes.length,
+                                    pair,
+                                    pair.inverse
+                                        ? -1
+                                        : actionIndex++
+                                )
                             )
-                        )
-                    )
-                );
+                        );
+                } );
         }
 
         this.box.points

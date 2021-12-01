@@ -322,9 +322,18 @@
         <div id="indexComposer" style="display: none">
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"  class="summaryLeft"></span>
-            <form><textarea id="compositionFormulas" class="formulaPanel" rows="3">a_1 * a_2; a_1 * a_0; a_0 * a_2^-1;
-a_2 * a_1; a_0 * a_1; (a_2^-1 * a_0)^-1;
-a_0 * a_1 * a_2; a_2^-1 * a_0 * a_1; a_1 * a_2 * a_0^-1;</textarea></form>
+            <form name="compositionFormulas"><textarea id="compositionFormulas" class="formulaPanel" rows="3">#3d-odd-full;
+a_0^-1; a_1^-1; a_2^-1;
+e * a_3; e * a_4; e * a_5;
+
+a_1 * a_0; ia_0 * ia_1;
+a_1 * a_2; ia_2 * ia_1;
+a_0 * a_1;  ia_1 * ia_0;
+a_2 * a_1; ia_1 * ia_2;
+a_0 * ia_2; a_2 * ia_0;
+ia_0 * a_2; ia_2 * a_0;
+a_0 * a_1 * a_2; ia_2 * a_0 * a_1; a_1 * a_2 * ia_0;
+a_2 * ia_0 * ia_1; ia_1 * ia_2 * a_0; ia_0 * ia_1 * ia_2; </textarea></form>
             <span id="summaryEditorResult"></span>
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>
@@ -337,117 +346,8 @@ a_0 * a_1 * a_2; a_2^-1 * a_0 * a_1; a_1 * a_2 * a_0^-1;</textarea></form>
             <hr/>
             <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); selectBoxAction();"/></label> |
             <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
-            <label title="display jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
-            <label title="display orbit editor">editor<input type="checkbox" id="orbitEditorToggle" onchange="showHideAll( ['orbitEditor'], this )"/></label>
+            <label title="display jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label>
         </div>
-
-        <div id="orbitEditor" class="summaryLeft" style="display: none">
-            <hr/>
-            <script>
-                function addOrbits( basePlane, orbits ) {
-                    const mergeType = Number( document.getElementById("orbitOperation").value );
-                    basePlane.mergeOrbits( orbits, mergeType );
-                    updateJson();
-                }
-
-                function conjugateOrbits( basePlane, orbits ) {
-                    const mergeType = Number( document.getElementById("orbitOperation").value );
-                    basePlane.conjugateOrbits( orbits, mergeType );
-                    updateJson();
-                }
-
-                function joinPoints( joinType = 0 ) {
-                    const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
-                    const pointIds = selectedPointIds.split( "," ).map( x => Number( x ) )
-                    if ( pointIds.length > 1 ) {
-                        try {
-                            document.getElementById( 'pointOperationErrorMessage' ).innerHTML = "";
-                            basePlane.joinPoints( pointIds, joinType );
-                            updateJson();
-                            document.getElementById( 'selectedPointIds' ).value = "";
-                            selectedPoints = [];
-                        } catch ( e ) {
-                            document.getElementById( 'pointOperationErrorMessage' ).innerHTML = e;
-                        }
-                    }
-                }
-
-
-                function convolvePoints() {
-                    const selectedPointIds = document.getElementById( 'selectedPointIds' ).value;
-                    const pointIds = selectedPointIds.split( "," ).map( x => Number( x ) )
-                    if ( pointIds.length > 1 ) {
-                        document.getElementById( 'pointOperationErrorMessage' ).innerHTML = "";
-                        try {
-                            const a = basePlane.idx[ pointIds[0] ];
-                            const b = basePlane.idx[ pointIds[1] ];
-
-                            const c = basePlane.convolve( a, b ) || basePlane.getIdentityPoint();
-
-                            var eqnHtml = `${ a } o ${ b } = ` + c;
-                            eqnHtml += "<br/>";
-                            eqnHtml += `${ basePlane.pointAt( a ).id } * ${ basePlane.pointAt( b ).id } = ` + basePlane.pointAt( c ).id;
-                            eqnHtml += "<br/>";
-                            eqnHtml += `<pre>${ c }.indexes\n` + c.indexes
-                                .map( (p,i) => i + ": " + JSON.stringify( p ) )
-                                .join( "\n" )
-                                + "</pre>";
-
-                            document.getElementById( 'pointOperationErrorMessage' ).innerHTML = eqnHtml;
-
-                        } catch ( e ) {
-                            document.getElementById( 'pointOperationErrorMessage' ).innerHTML = e;
-                        }
-                    }
-                }
-
-
-                function rotateSelectedOrbits() {
-                    const orbitIds = getSelectedOrbitIds( 'sample_cs_b_10_m_2_table', basePlane );
-                    if ( orbitIds.length > 0 ) {
-                        basePlane.rotateOrbits( orbitIds );
-                        updateJson();
-
-                        const messages = orbitIds
-                            .map( orbitId => {
-                                    return {
-                                        'basePlaneKey': basePlane.key,
-                                        'multi': isToggle('multi'),
-                                        'sender': ('dummy.' + orbitId)
-                                    };
-                                });
-
-                        //consoleLog( messages );
-
-                        distributeMessages(
-                            'sample_cs_b_10_m_2',
-                            messages
-                        );
-                    }
-                }
-
-                function clearPointSelections() {
-                    document.getElementById( 'selectedPointIds' ).value = "";
-                    selectedPoints = [];
-                    distributeMessages(
-                        'sample_cs_b_10_m_2', [
-                            { 'basis': 'selected-points', 'points': selectedPoints }
-                        ] )
-                }
-            </script>
-            selected points:
-            <label>ids: <input type="text" id="selectedPointIds" class="colourField"/></label>
-            <label><input type="button" onclick="convolvePoints()" value="convolve"/></label> |
-
-            <label><input type="button" onclick="joinPoints( 0 )" value="twist" title="p1&#8594;q2 &amp; q1&#8594;p2"/></label> |
-            <label><input type="button" onclick="joinPoints( 1 )" value="join" title="p1&#8594;q1 &amp; q0&#8594;p2"/></label> |
-            <label><input type="button" onclick="joinPoints( 2 )" value="splice" title="p1&#8594;q1 &amp; q1&#8594;p2 &amp; q0&#8594;q2"/></label> |
-            <label><input type="button" onclick="rotateSelectedOrbits()" value="rotate"/></label> |
-            <label><input type="button" onclick="clearPointSelections()" value="deselect"/></label>
-
-            <div id="pointOperationErrorMessage"></div>
-        </div>
-
         <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
     </div>
 

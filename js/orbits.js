@@ -125,14 +125,23 @@ class PlaceValuesPermutationPair {
         this.bases = bases;
         this.left = left;
         this.right = right;
-        this.inverse = inversePair != null;
         this.inversePair = inversePair;
+        this.inverse = inversePair || false;
 
         this.rank = this.left.perm.length;
 
         this.identityPlane = this.left.placeValues.map( ( x, i ) => this.right.placeValues[i] - x );
         this.echo = Math.abs( gcda( this.identityPlane ) );
         this.zeroedPlaces = this.identityPlane.reduce( (a,c) => c==0 ? a + 1 : a, 0 );
+
+        this.permPair = [ this.left.perm, this.right.perm ];
+
+        this.palindrome = isPalindrome( this.permPair );
+        this.layer = this.palindrome
+            ? this.rank + 1
+            : this.rank - this.zeroedPlaces;
+        this.label = PlaceValuesPermutationPair.layerLabel( this.layer, this.rank + 1 );
+
 
         // place values difference sum
         this.placeValuesDiffSum = this.left.placeValues.map( (x,i) => Math.abs( x - this.right.placeValues[i] ) ).reduce( (a,c) => a + c, 0 );
@@ -159,9 +168,7 @@ class PlaceValuesPermutationPair {
                 ? "l"
                 : "-";
 
-        this.permPair = [ this.left.perm, this.right.perm ];
 
-        this.palindrome = isPalindrome( this.permPair );
 
         [
             [ this.alignedPlaces, this.alignedWeights ],
@@ -188,11 +195,7 @@ class PlaceValuesPermutationPair {
         }
 
 
-        this.layer = this.palindrome
-            ? this.rank + 1
-            : this.rank - this.zeroedPlaces;
 
-        this.label = PlaceValuesPermutationPair.layerLabel( this.layer, this.rank + 1 );
 
         var report = "";
         report += `${ this.palindrome ? 'p' : this.alignedPlaces.length } `;

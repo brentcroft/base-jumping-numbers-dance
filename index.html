@@ -1,0 +1,475 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+
+        <script type="text/javascript" src="js/data.js"></script>
+        <script type="text/javascript" src="js/orbits.js"></script>
+        <script type="text/javascript" src="js/factors.js"></script>
+        <script type="text/javascript" src="js/colors.js"></script>
+        <script type="text/javascript" src="js/table.js"></script>
+
+        <script type="text/javascript" src="js/x3dom-full.js"></script>
+        <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
+
+        <script type="text/javascript" src="js/3d.js"></script>
+        <script
+                id="MathJax-script"
+                type="text/javascript"
+                async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML">
+        </script>
+        <script>
+            MathJax = {
+              tex: {
+                tags: 'ams'
+              }
+            };
+        </script>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                width: 80%;
+                font-size: 80%;
+                padding: 20pt;
+            }
+
+            .small {
+                font: italic 40% sans-serif;
+            }
+
+            th {
+                vertical-align: bottom;
+            }
+
+            .pagebreak {
+                min-height: 1px;
+                page-break-before: always;
+            }
+
+            .equation-list { list-style-type: none; }
+            .equation-list li { padding: 6pt; }
+        </style>
+        <script>
+            function writeBoxes( id, bases = [3,5,7]) {
+
+                var box = `<x3d id="box-${ id }" showStat="false"><scene>`;
+
+                for ( var i = 0; i < bases[0]; i++ ) {
+                    for ( var j = 0; j < bases[1]; j++ ) {
+                        for ( var k = 0; k < bases[2]; k++ ) {
+
+                            box += `<transform translation="${ i } ${ j } ${ k }">`;
+                            box += "<shape>";
+                            box += "<appearance><material emissiveColor='0 0 1' transparency='0.9' ></material></appearance>";
+                            box += `size='0.9 0.9 0.9' ></box>`;
+                            box += "</>shape>";
+                            box += "</transform>";
+                        }
+                    }
+                }
+                box += "</>scene></x3d>";
+                document.write( `<div id="${ id }">${ box }</div>`);
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            <h1>Thinking inside the Box</h1>
+
+            A box is specified by a sequence of \( n \) natural numbers.
+            <br/>
+            <br/>
+
+            A 2 or 3 dimensional box can be visualised directly.
+            For example, a 3 x 5 x 7 box:
+            <x3d showStat="false" width="600" height="400">
+                <scene>
+                    <transform translate="-3 -2 -1">
+                        <inline url="img/box-pack-3x5x7.x3d" />
+                    </transform>
+                </scene>
+            </x3d>
+
+
+            <h3>Square Boxes</h3>
+            A box with \(n\) bases is square if all the bases have the same value.
+            <br/>
+            <br/>
+            The volume of a square box is \( v = b^n \).
+            <br/>
+            <br/>
+
+            <h3>Base-10 Boxes</h3>
+            The set of coordinates for a square box with a shared base value of \( 10 \)
+            coincides exactly with the base-10 numeral system.
+            <br/>
+            <br/>
+
+            The components of each coordinate are digits and the place values (powers of 10) are implicit.
+            <br/>
+            <br/>
+
+            Each and every coordinate is identified by a unique id number,
+            <b>a distinct value within the range of the box volume</b>:
+
+            \begin{align*}
+            id & = x_0.10^{ n - 2 } + x_1.10^{ n - 3 }
+            + x_2.10^{ n - 4 }
+            + ...
+            + x_{ n - 3 }.10^2 + x_{ n - 2 }.10 + x_{ n - 1 } \\
+            \end{align*}
+
+            <br/>
+            <br/>
+
+            <h3>General Boxes</h3>
+            In general, for a box with \(n\) bases \(b_0, b_1, ..., b_{ n - 1 } > 1\),
+            then for each and every coordinate \( ( x_0, x_1, ..., x_{ n - 1 } ) \),
+            a distinct value within the range of the box volume,
+            can be constructed as follows:
+
+            \begin{align*}
+            id & = x_0.\prod_{ i = 0 }^{ n - 2 }b_i + x_1.\prod_{ i = 0 }^{ n - 3 }b_i
+            + x_2.\prod_{ i = 0 }^{ n - 4 }b_i
+            + ...
+            + x_{ n - 3 }.b_0b_1 + x_{ n - 2 }.b_0 + x_{ n - 1 } \\
+            \end{align*}
+
+            \begin{align*}
+            id & = \sum_{ j = 0 }^{ n - 1 } ( x_j.\prod_{ i = 0 }^{ n - 2 - j }b_i )
+            \end{align*}
+            <br/>
+            <br/>
+        </div>
+
+        <div>
+
+            <hr class="pagebreak"/>
+            <h2>Twist</h2>
+
+            A conjugate value can be constructed,
+            with respect to the first,
+            by iterating  in reverse order
+            over the base and coordinate values:
+
+            \begin{align*}
+                di & = x_0 + x_1.b_{ n - 1 } + x_2.b_{ n - 2 }b_{ n - 1 }
+                    + ...
+                    + x_{ n - 3 }.\prod_{ i = 3 }^{ n - 1 }b_i + x_{ n - 2 }.\prod_{ i = 2 }^{ n - 1 }b_i + x_{ n - 1 }.\prod_{ i = 1 }^{ n - 1 }b_i \\
+            \end{align*}
+
+            \begin{align*}
+                di & = \sum_{ j = 0 }^{ n - 1 } ( x_j.\prod_{ i = j }^{ n - 1 - j }b_i )
+            \end{align*}
+            <br/>
+            <br/>
+            Hence, two indexes of the coordinates
+            can be constructed using the \( id \) and \( di \) values
+            for each coordinate respectively.
+            <br/>
+            <br/>
+        </div>
+
+        <div>
+            The function \( twist \)
+            uses the \( di \) value for a given coordinate
+            to obtain a coordinate from the \( id \) index.
+
+            \begin{align*}
+                twist( c_0 ) \to c_1
+            \end{align*}
+
+            <br/>
+            <br/>
+            The inverse function \( twist^{-1} \)
+            uses the \( id \) value for a given coordinate
+            to obtain a coordinate from the \( di \) index.
+
+            \begin{align*}
+                twist^{ -1 }( c_1 ) \to c_0
+            \end{align*}
+            <br/>
+            <br/>
+        </div>
+
+        <div>
+            For each coordinate \( x \), the jump value is defined:  \( j( x ) -> di( x ) - id( x ) \):
+
+            \begin{align*}
+            j_x & = x_0 + x_1.b_{ n - 1 } + x_2.b_{ n - 2 }b_{ n - 1 }
+            + ...
+            + x_{ n - 3 }.\prod_{ i = 3 }^{ n - 1 }b_i + x_{ n - 2 }.\prod_{ i = 2 }^{ n - 1 }b_i + x_{ n - 1 }.\prod_{ i = 1 }^{ n - 1 }b_i \\
+            & - x_0.\prod_{ i = 0 }^{ n - 2 }b_i + x_1.\prod_{ i = 0 }^{ n - 3 }b_i
+            + x_2.\prod_{ i = 0 }^{ n - 4 }b_i
+            + ...
+            + x_{ n - 3 }.b_0b_1 + x_{ n - 2 }.b_0 + x_{ n - 1 }
+            \end{align*}
+
+            Hence:
+            \begin{align*}
+            j_x & =
+            x_0.( 1 - \prod_{ i = 0 }^{ n - 2 }b_i ) +
+            x_1.(b_{ n - 1 } - \prod_{ i = 0 }^{ n - 3 }b_i ) +
+            x_2.(b_{ n - 2 }b_{ n - 1 } - \prod_{ i = 0 }^{ n - 4 }b_i ) + \\
+            & ... +
+            x_{ n - 3 }.( \prod_{ i = 3 }^{ n - 1 }b_i - b_0b_1 ) +
+            x_{ n - 2 }.( \prod_{ i = 2 }^{ n - 1 }b_i - b_0 ) +
+            x_{ n - 1 }.( \prod_{ i = 1 }^{ n - 1 }b_i - 1 )\\
+            \end{align*}
+
+            or:
+
+            \begin{align*}
+            j_x = \sum_{ i = 0 }^{ n - 1 }x_i.(
+                \prod_{ j = i }^{ n - 1 }b_j
+                - \prod_{ k = 0 }^{ i - 1 }b_k
+            )
+            \end{align*}
+
+            Given that the volume \( v \) is:
+
+            \begin{align*}
+            v & = \prod_{ i = 0 }^{ n - 1 }b_i \\
+            v & = \prod_{ i = j }^{ n - 1 }b_i . \prod_{ i = 0 }^{ j - 1 }b_i
+            \end{align*}
+
+            We have:
+            \begin{align*}
+            j_x & = x_0.( 1 - { v \over b_{n-1} } ) +
+            x_1.( b_{ n - 1 } - { v \over (b_{n-1}b_{n-2}) } ) +
+            x_2.( b_{ n - 2 }b_{ n - 1 } - { v \over (b_{n-1}b_{n-2}b_{n-3}) } ) + \\
+            & ... +
+            x_{ n - 3 }.( { v \over b_0b_1b_2 }- b_0b_1 ) +
+            x_{ n - 2 }.( { v \over b_0b_1 }- b_0 ) +
+            x_{ n - 1 }.( { v \over b_0 } - 1 ) \\
+            \end{align*}
+
+
+
+
+        </div>
+
+        <div>
+            Coordinates which occur on the diagonal from the origin \( ( 0, 0, ... 0 ) \)
+            to the terminus \( ( b_0 - 1, b_1 - 1, ..., b_{ n - 1 } - 1 ) \) are self-conjugate.
+        </div>
+
+
+        <div>
+            <hr class="pagebreak"/>
+
+            A non-empty sequence of coordinates,
+            where the ends join up,
+            makes an orbit in the box.
+            <br/><br/>
+
+            A box has many possible sets of disjoint orbits
+            that span the coordinates
+            (every coordinate appears once and in one orbit only).
+            <br/>
+            <br/>
+        </div>
+        <div>
+
+            <hr class="pagebreak"/>
+            <h2>Orbit Algebra</h2>
+
+            Given a box with bases \(l, m, n > 1\),
+            then a circular system of \( p \) independent equations,
+            where \( p < (lmn - 1) \),
+            can be constructed,
+            starting from any coordinate \( ( i_0, j_0, k_0 ) \)
+            and applying \( twist \) successively \( p \) times
+            until the starting coordinate recurs (i.e. \( i_0 = i_p, j_0 = j_p \) and \( k_0 = k_p \)).
+
+            \begin{align*}
+            lm.i_1 + l.j_1 + k_1 &= i_0 + n.j_0 + mn.k_0\\
+            lm.i_2 + l.j_2 + k_2 &= i_1 + n.j_1 + mn.k_1\\
+            lm.i_3 + l.j_3 + k_3 &= i_2 + n.j_2 + mn.k_2\\
+            & ... \\
+            lm.i_{p-1} + l.j_{p-1} + k_{p-1} &= i_{p-2} + n.j_{p-2} + mn.k_{p-2}\\
+            lm.i_0 + l.j_0 + k_0 &= i_{p-1} + n.j_{p-1} + mn.k_{p-1}
+            \end{align*}
+            <br/>
+        </div>
+
+        <hr/>
+        <div>
+            The sum of coordinate digits in each orbit is constrained:
+
+            \begin{align}
+                (lm - 1)\sum_{x=0}^{p-1} i_x + (l - n)\sum_{x=0}^{p-1} j_x  + (1 - mn)\sum_{x=0}^{p-1} k_x & = 0\\
+            \end{align}
+            <br/>
+            <br/>
+
+            Furthermore, for every coordinate in an orbit of length \( p \):
+
+            \begin{align*}
+                lm.i_0 + l.j_0 + k_0 &= { ( 1 - lm^2n ) \over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}i_t \\
+                                     & + { n( 1 - lm )\over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+
+            \begin{matrix}
+                C = { ( 1 - lm^2n ) \over ( 1 - (mn)^{p} ) }, & D = { n( 1 - lm )\over ( 1 - (mn)^{p} ) }
+            \end{matrix}
+            \begin{align*}
+                lm.i_0 + l.j_0 + k_0 &= C \sum_{t=0}^{p-1} (mn)^{p-t-1}i_t + D \sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+
+        </div>
+        <hr/>
+
+        <div>
+            Construct identity ladder resolving for k:
+            <br/><br/>
+
+            \begin{align*}
+            k_1 &= - l( m.i_1 + j_1 ) + i_0 + n.j_0 + mn.k_0 \\
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 + mn.k_1 \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 + mn.k_2 \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn.k_3 \\
+            &... \\
+            k_{p-1} &= - l( m.i_{p-1} + j_{p-1} ) + i_{p-2} + n.j_{p-2} + mn.k_{p-2} \\
+            k_0 &= - l( m.i_0 + j_0 ) + i_{p-1} + n.j_{p-1} + mn.k_{p-1} \\
+            \end{align*}
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Build out 1:
+            <br/><br/>
+
+            \begin{align*}
+            k_1 &=  - l( m.i_1 + j_1 ) + i_0 + n.j_0 + mn.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 2:
+            <br/><br/>
+
+            \begin{align*}
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 + mn.k_1 \\
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 + mn.( - l( m.i_1 + j_1 ) + i_0 + n.j_0 + mn.k_0 ) \\
+            k_2 &= - l( m.i_2 + j_2 ) + i_1 + n.j_1 - lmn( m.i_1 + j_1 ) + mn.i_0 + mn^2.j_0 + m^2n^2.k_0 \\
+            k_2 &= - l( m.i_2 + j_2 ) + ( 1 - lm^2n ).i_1 + n( 1 - lm ).j_1 + mn.i_0 + mn^2.j_0 + m^2n^2.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 3:
+            <br/><br/>
+
+            \begin{align*}
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 + mn.k_2 \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 + mn( - l( m.i_2 + j_2 ) + ( 1 - lm^2n ).i_1 + n( 1 - lm ).j_1 + mn.i_0 + mn^2.j_0 + m^2n^2.k_0 ) \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 - lmn( m.i_2 + j_2 ) + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 \\
+            k_3 &= - l( m.i_3 + j_3 ) + i_2 + n.j_2 - lm^2n.i_2 - lmn.j_2 + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 \\
+            k_3 &= - l( m.i_3 + j_3 ) + ( 1 - lm^2n ).i_2 + n( 1 - lm ).j_2 + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 4:
+            <br/><br/>
+
+            \begin{align*}
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn.k_3 \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn.( ( 1 - lm^2n ).i_2 + n( 1 - lm ).j_2 - l( m.i_3 + j_3 ) + mn( 1 - lm^2n ).i_1 + mn^2( 1 - lm ).j_1 + m^2n^2.i_0 + m^2n^3.j_0 + m^3n^3.k_0 ) \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 - lmn( m.i_3 + j_3 ) + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 \\
+            k_4 &= - l( m.i_4 + j_4 ) + i_3 + n.j_3 - lmn( m.i_3 + j_3 ) + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 \\
+            k_4 &= - l( m.i_4 + j_4 ) + ( 1 - lm^2n ).i_3 + n( 1 - lm ).j_3 + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <div>
+            Build out 5:
+            <br/><br/>
+
+            \begin{align*}
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 + mn.k_4 \\
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 + mn.( ( 1 - lm^2n ).i_3 + n( 1 - lm).j_3 - l( m.i_4 + j_4 ) + mn( 1 - lm^2n ).i_2 + mn^2( 1 - lm ).j_2 + m^2n^2( 1 - lm^2n ).i_1 + m^2n^3( 1 - lm ).j_1 + m^3n^3.i_0 + m^3n^4.j_0 + m^4n^4.k_0 ) \\
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 + mn( 1 - lm^2n ).i_3 + mn^2( 1 - lm).j_3 - lmn( m.i_4 + j_4 ) + m^2n^2( 1 - lm^2n ).i_2 + m^2n^3( 1 - lm ).j_2 + m^3n^3( 1 - lm^2n ).i_1 + m^3n^4( 1 - lm ).j_1 + m^4n^4.i_0 + m^4n^5.j_0 + m^5n^5.k_0 \\
+            k_5 &= - l( m.i_5 + j_5 ) + i_4 + n.j_4 - lmn( m.i_4 + j_4 ) + mn( 1 - lm^2n ).i_3 + mn^2( 1 - lm).j_3 + m^2n^2( 1 - lm^2n ).i_2 + m^2n^3( 1 - lm ).j_2 + m^3n^3( 1 - lm^2n ).i_1 + m^3n^4( 1 - lm ).j_1 + m^4n^4.i_0 + m^4n^5.j_0 + m^5n^5.k_0 \\
+            \end{align*}
+
+            \begin{align*}
+            k_5 &= - l( m.i_5 + j_5 ) \\
+                &+ (mn)^0( 1 - lm^2n ).i_4 + (mn)^0n( 1 - lm ).j_4 \\
+                &+ (mn)^1( 1 - lm^2n ).i_3 + (mn)^1n( 1 - lm).j_3 \\
+                &+ (mn)^2( 1 - lm^2n ).i_2 + (mn)^2n( 1 - lm ).j_2 \\
+                &+ (mn)^3( 1 - lm^2n ).i_1 + (mn)^3n( 1 - lm ).j_1 \\
+                &+ (mn)^4.i_0 + (mn)^4n.j_0 + (mn)^5.k_0 \\
+
+
+            k_5 &= - l( m.i_5 + j_5 ) \\
+                &+( 1 - lm^2n )\sum_{t=1}^{5-1} (mn)^{5-t-1}i_t \\
+                &+ n( 1 - lm )\sum_{t=1}^{5-1} (mn)^{5-t-1}j_t \\
+                &+ (mn)^4.i_0 + (mn)^4n.j_0 + (mn)^5.k_0 \\
+            \end{align*}
+
+            <br/><br/>
+        </div>
+        <hr class="pagebreak"/>
+        <div>
+            Generalize for \(p\):
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}.i_0 + n(mn)^{p-1}.j_0 + (mn)^{p}.k_0 \\
+            \end{align*}
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}.i_0 + n(mn)^{p-1}.j_0 + (mn)^{p}.( - l( m.i_0 + j_0 ) + i_{p-1} + n.j_{p-1} + mn.k_{p-1} ) \\
+            \end{align*}
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}.i_0 \\
+                    &+ n(mn)^{p-1}.j_0 \\
+                    &- l(mn)^{p}( m.i_0 + j_0 ) + (mn)^{p}.i_{p-1} + (mn)^{p}n.j_{p-1} + (mn)^{p}mn.k_{p-1} \\
+            \end{align*}
+
+            Complete the sums:
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ ((mn)^{p-1} - lm^2n(mn)^{p-1}).i_0 \\
+                    &+ (n(mn)^{p-1} - l(mn)^{p}).j_0 \\
+                    &+ (mn)^{p}.i_{p-1} + (mn)^{p}n.j_{p-1} + (mn)^{p}mn.k_{p-1} \\
+            \end{align*}
+
+            \begin{align*}
+                k_p &= - l( m.i_p + j_p ) \\
+                    &+( 1 - lm^2n )\sum_{t=1}^{p-1} (mn)^{5-t-1}i_t \\
+                    &+ n( 1 - lm )\sum_{t=1}^{p-1} (mn)^{5-t-1}j_t \\
+                    &+ (mn)^{p-1}( 1 - lm^2n ).i_0 \\
+                    &+ (mn)^{p-1}n( 1 - lm ).j_0 \\
+                    &+ (mn)^{p}( i_{p-1} + n.j_{p-1} + mn.k_{p-1} ) \\
+            \end{align*}
+
+            Recall that: \( lm.i_0 + l.j_0 + k_0 = i_{p-1} + n.j_{p-1} + mn.k_{p-1} \)<br/>
+            and \( i_0 = i_p, j_0 = j_p and k_0 = k_p \)
+
+            \begin{align*}
+                ( 1 - (mn)^{p} )( lm.i_0 + l.j_0 + k_0 ) &= ( 1 - lm^2n )\sum_{t=0}^{p-1} (mn)^{p-t-1}i_t + n( 1 - lm )\sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+            \begin{align*}
+                ( lm.i_0 + l.j_0 + k_0 ) &= { ( 1 - lm^2n ) \over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}i_t + { n( 1 - lm )\over ( 1 - (mn)^{p} ) } \sum_{t=0}^{p-1} (mn)^{p-t-1}j_t \\
+            \end{align*}
+        </div>
+    </body>
+</html>

@@ -24,7 +24,7 @@ toggleKeys = {
     coords: 0,
     minCols: 1,
 
-    inverses: 0,
+    inverses: 1,
     harmonics: 0,
     degenerates: 0,
     radiance: 0,
@@ -36,6 +36,5 @@ toggleKeys = {
     productByOrbits: 1,
     productBlankIdentity: 1,
     productCommuteIdentity: 1,
-    multi: 0,
-    orbitEditor: 0
+    multi: 0
 }

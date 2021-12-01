@@ -1,7 +1,6 @@
 
 var nonTrivialIndexJump = 0;
 var nonTrivialPerimeterJump = 0.0;
-var radiantOriginAndTerminusAreIdentities = false;
 
 var indexMap = {};
 
@@ -30,21 +29,11 @@ class ActionElement {
 
     initialise( globaliseIds = false ) {
         this.buildOrbits();
-
-        if ( globaliseIds ) {
-            this.globalise();
-        }
-
-        this.buildCentreLines();
         this.findFundamental();
-        this.findMaxWeight();
+        this.buildCentreLines();
         this.analyzeOrbits();
     }
 
-
-    isPalindrome() {
-        return false;
-    }
 
     isNonTrivialIndexIdentity( id, di ) {
         const boxVolume = this.box.volume;
@@ -107,7 +96,6 @@ class ActionElement {
         return matchedOrbits.length == totalOrbits;
     }
 
-
     apply( point ) {
         const p = this.pointAt( point );
         if (!p) {
@@ -165,179 +153,6 @@ class ActionElement {
     }
 
 
-    globalise() {
-        const newIdx = [...this.idx];
-        const newDix = [...this.dix];
-        const boxVolume = this.box.volume;
-
-        [
-            ...this.identities,
-            ...this.orbits
-        ].forEach( orbit => orbit.points.forEach( point => {
-
-            const idxPoint = this.pointAt( point );
-            const diPoint = this.idx[ idxPoint.di ];
-
-            const id = point.id;
-            const di = diPoint.id;
-
-            const conjugateId = ( boxVolume - id - 1 );
-
-            // replace
-            point.indexes[this.id] = {
-                id: id,
-                di: di,
-                conjugateId: conjugateId,
-                jump: this.getJump( id, di ),
-                radiant: ( conjugateId - id )
-            };
-
-            newIdx[ id ] = point;
-            newDix[ di ] = point;
-        }));
-
-        this.idx = newIdx;
-        this.dix = newDix;
-    }
-
-
-
-    joinPoints( pointIds, joinType = 0 ) {
-
-        consoleLog( `join: type=${ joinType }, ids: ${ pointIds }` );
-
-        const [ p1, q1 ] = pointIds.map( id => this.idx[ id ] );
-        const [ p1c, q1c ] = [ p1.conjugate, q1.conjugate ];
-
-        const [ ip1, iq1, ip1c, iq1c ] = [
-            p1.indexes[this.id],
-            q1.indexes[this.id],
-            p1c.indexes[this.id],
-            q1c.indexes[this.id]
-        ];
-
-        // dix must be maintained
-        const [ p0, p0c ] = [ this.dix[ip1.id], this.dix[ip1c.id] ];
-        const [ q0, q0c ] = [ this.dix[iq1.id], this.dix[iq1c.id] ];
-
-        //
-        const [ p2, p2c ] = [ this.idx[ip1.di], this.idx[ip1c.di] ];
-        const [ q2, q2c ] = [ this.idx[iq1.di], this.idx[iq1c.di] ];
-
-        const [ ip0, ip0c, ip2, ip2c ] = [
-            p0.indexes[this.id],
-            p0c.indexes[this.id],
-            p2.indexes[this.id],
-            p2c.indexes[this.id]
-        ];
-        const [ iq0, iq0c, iq2, iq2c, ] = [
-            q0.indexes[this.id],
-            q0c.indexes[this.id],
-            q2.indexes[this.id],
-            q2c.indexes[this.id]
-        ];
-
-        // cache changing di values
-        const [
-            dip0,  dip1,  dip2,
-            dip0c, dip1c, dip2c,
-            diq0,  diq1,  diq2,
-            diq0c, diq1c, diq2c
-        ] = [
-            ip0.di,  ip1.di,  ip2.di,
-            ip0c.di, ip1c.di, ip2c.di,
-            iq0.di,  iq1.di,  iq2.di,
-            iq0c.di, iq1c.di, iq2c.di
-        ];
-
-        consoleLog( `id cache: type=${ [ ip1.id, ip2.id, ip1c.id, ip2c.id, iq0.id, iq1.id, iq2.id, iq0c.id, iq1c.id, iq2c.id ] }` );
-        consoleLog( `di cache: type=${ [ dip1, dip2, dip1c, dip2c, diq0, diq1, diq2, diq0c, diq1c, diq2c ] }` );
-
-        switch( joinType ) {
-
-            case 0: {
-                    // then q1 must point at p2
-                    iq1.di = ip2.id;
-                    iq1c.di = ip2c.id;
-                    // if p1 points at q2
-                    ip1.di = iq2.id;
-                    ip1c.di = iq2c.id;
-
-                    const result = [ ip1, ip1c, iq1, iq1c ];
-                    consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
-                }
-                break;
-
-
-            case 1: if ( ip1.di != iq1.id ){
-                    // then q0 must point at p2
-                    iq0.di = ip2.id;
-                    iq0c.di = ip2c.id;
-                    // if p1 points at q1
-                    ip1.di = iq1.id;
-                    ip1c.di = iq1c.id;
-
-                    const result = [ ip1, ip1c, iq0, iq0c ];
-                    consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
-                } else {
-                    const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
-                    throw new Error( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
-                }
-                break;
-
-
-            case 2: if ( ip1.di != iq1.id ) {
-                    // then q0 must point at q2
-                    iq0.di = diq1;//iq2.id;
-                    iq0c.di = diq1c;//iq2c.id;
-                    // and q1 points at p2
-                    iq1.di = dip1;//ip2.id;
-                    iq1c.di = dip1c;//ip2c.id;
-                    // if p1 points at q1
-                    ip1.di = diq0;//iq1.id;
-                    ip1c.di = diq0c;//iq1c.id;
-
-                    const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
-                    consoleLog( `joined: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
-                } else {
-                    const result = [ ip1, ip1c, iq0, iq0c, iq1, iq1c ];
-                    throw new Error( `Invalid join (${ joinType }): iq1.di == iq1.id: ${ result.map( p => "[" + p.id + "," + p.di  + "]" ).join(", ") }` );
-                }
-                break;
-
-
-            default:
-        }
-
-        // reset dix
-        this.dix[ip0.di] = p0;
-        this.dix[ip0c.di] = p0c;
-
-        this.dix[ip1.di] = p1;
-        this.dix[ip1c.di] = p1c;
-
-        this.dix[ip2.di] = p2;
-        this.dix[ip2c.di] = p2c;
-
-        this.dix[iq0.di] = q0;
-        this.dix[iq0c.di] = q0c;
-
-        this.dix[iq1.di] = q1;
-        this.dix[iq1c.di] = q1c;
-
-        this.dix[iq2.di] = q2;
-        this.dix[iq2c.di] = q2c;
-
-        // reset jumps
-        [
-            ip0,  ip1,  ip2,
-            ip0c, ip1c, ip2c,
-            iq0,  iq1,  iq2,
-            iq0c, iq1c, iq2c
-        ].forEach( p => p.jump = this.getJump( p.di - p.id ) );
-
-        this.initialise();
-    }
 
     buildOrbits() {
         this.identities = [];
@@ -385,35 +200,6 @@ class ActionElement {
 
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
 
-                if ( radiantOriginAndTerminusAreIdentities && i == 0 && orbit.order == 2 ) {
-
-                    const [ coordsA, coordsB ] = orbit.conjugateCoords();
-
-                    coordsA
-                        .map( p => p.indexes[indexId] )
-                        .forEach( p => {
-                            p.jump = 0;
-                        } );
-                    coordsB
-                        .map( p => p.indexes[indexId] )
-                        .forEach( p => {
-                            p.jump = 0;
-                        } );
-
-                    orbit = new Orbit( this, this.identities.length + 1, coordsA );
-                    const conjugateOrbit = new Orbit( this, this.identities.length + 2, coordsB  );
-
-                    orbit.conjugate = conjugateOrbit;
-                    conjugateOrbit.conjugate = orbit;
-
-                    this.identities.push( orbit );
-                    this.identities.push( conjugateOrbit );
-
-                    continue;
-                }
-
-
-
                 if ( orbit.order == 1 ) {
                     this.identities.push( orbit );
                 } else {
@@ -458,86 +244,36 @@ class ActionElement {
 
     analyzeOrbits() {
 
-        const maxIndex = this.box.volume - 1;
-
-        var totalHarmonicSum = new Array( this.box.bases.length ).fill( 0 );
-        var totalWeight = 0;
-        var totalRotation = 0;
-
         var totalEuclideanRadiance = 0;
         var totalEuclideanPerimeter = 0;
         var totalIndexRadiance = 0;
         var totalIndexPerimeter = 0;
         var totalTension = 0;
 
-        var totalOrderSpace = 1;
-        var totalNetOrderSpace = 1;
-        var totalNet2Space = 0;
-
         const cycleIndexMonomial  = {};
-
-       // calculate harmonics
-        var harmonics = {};
 
         for ( var i = 0; i < this.orbits.length; i++ ) {
             var orbit = this.orbits[i];
-
-            harmonics[ orbit.order ] = ( orbit.order in harmonics ) ? ( harmonics[ orbit.order ] + 1 ) : 1;
-
-            var harmonic = this.fundamental / orbit.order;
 
             cycleIndexMonomial[orbit.order] = ( orbit.order in cycleIndexMonomial )
                 ? cycleIndexMonomial[orbit.order] + 1
                 : 1
 
-            orbit.harmonic = harmonic;
-            orbit.weight = orbit.gcd * harmonic;
-            orbit.harmonicSum = orbit.sum.map( x => x * harmonic);
-            orbit.bias = [ orbit.weight, this.maxWeight, reduce( orbit.weight, this.maxWeight ) ];
-            orbit.biasFactor = ( orbit.bias[0] / orbit.bias[1] );
-
-            const points = orbit.points;
-
-            totalHarmonicSum = orbit.harmonicSum.map( (x, i)  => x + totalHarmonicSum[i] );
             totalEuclideanPerimeter += orbit.euclideanPerimeter();
             totalEuclideanRadiance += orbit.euclideanRadiance();
 
-            totalWeight += orbit.weight;
             totalIndexPerimeter += orbit.indexPerimeter( this.id );
             totalIndexRadiance += orbit.indexRadiance( this.id );
-
-            totalOrderSpace *= orbit.order;
-            totalNetOrderSpace *= orbit.isSelfConjugate()
-                ? ( orbit.order / 2 )
-                : orbit.isFirstConjugate()
-                    ? orbit.order
-                    : 1;
-
-            totalNet2Space += orbit.isSelfConjugate() || orbit.isFirstConjugate() ? 1 : 0;
         }
 
         Object.entries( cycleIndexMonomial ).sort( (a, b) => a < b );
         this.cycleIndexMonomial = cycleIndexMonomial;
-
-        this.totalOrderSpace = totalOrderSpace;
-        this.totalNetOrderSpace = totalNetOrderSpace;
-        this.totalNet2Space = totalNet2Space;
-
-        this.totalHarmonicSum = totalHarmonicSum;
 
         this.totalIndexRadiance = totalIndexRadiance;
         this.totalIndexPerimeter = totalIndexPerimeter;
 
         this.totalEuclideanRadiance = totalEuclideanRadiance;
         this.totalEuclideanPerimeter = totalEuclideanPerimeter;
-
-        this.harmonics = harmonics;
-        this.maxIndex = maxIndex;
-        this.totalWeight = totalWeight;
-
-        // reference into each orbit
-        this.originPoints = this.orbits.map( orbit => 0 );
-        this.locusPoints = [].concat( this.originPoints );
     }
 
     buildCentreLines() {
@@ -631,126 +367,6 @@ class ActionElement {
         return eqn;
     }
 
-    getCaptionHtml() {
-        var cimHtml = "plane: <span class='equation'>" + this.getPlaneEquationTx() + "</span>, ";
-        cimHtml += " <span class='equation'>|e| - 1 = " + this.identityPlaneGcd + "</span>";
-        cimHtml += " | orbits: <span class='monomial'>" + getCycleIndexMonomialHtml( this ) + "</span>";
-        return cimHtml;
-    }
-
-    rotateOrbits( orbitIds, times = 1 ) {
-        const orbits = orbitIds
-            .map( id => this.orbits.filter( x => x.index == id )[0] )
-            .filter( orbit => orbit.isSelfConjugate() || orbit.isFirstConjugate() );
-
-        orbits.forEach( orbit => {
-            orbit.rotate( times );
-            if ( !orbit.isSelfConjugate() && !orbit.isFirstConjugate() ) {
-                orbit.conjugate.rotate( times )
-            }
-        } );
-    }
-
-    mergeOrbits( orbitIds, mergeType ) {
-
-        const orbits = orbitIds
-            .map( id => this.orbits.filter( x => x.index == id )[0] )
-            .filter( orbit => orbit.isSelfConjugate() || orbit.isFirstConjugate() );
-
-        var orbit = orbits[0];
-
-        for ( var oi = 1; oi < orbits.length; oi++ ) {
-            const orbit2 = orbits[oi];
-
-            const idsToRemove = [
-                    this.orbits.indexOf( orbit ),
-                    this.orbits.indexOf( orbit.conjugate ),
-                    this.orbits.indexOf( orbit2 ),
-                    this.orbits.indexOf( orbit2.conjugate ),
-                ]
-                .reduce( (unique,id) => unique.includes( id ) ? unique : [...unique, id ], [] );
-            idsToRemove.sort( (a,b) => b - a );
-            idsToRemove.forEach( id => this.orbits.splice( id, 1) );
-
-            const [ o1a, o1b ] = orbit.conjugateCoords();
-            const [ o2b, o2a ] = orbit2.conjugateCoords();
-
-            const coordsA = interleave( o1a, o2a );
-            const coordsB = interleave( o1b, o2b );
-
-            if ( orbit.isSelfConjugate() ) {
-                const points = [ ...coordsA, ...coordsB ];
-
-                // switch master
-                orbit = new Orbit( this, orbit.index, points );
-                orbit.conjugate = orbit;
-                orbit.centreRef = 0;
-
-                this.orbits.splice( idsToRemove[0], 0, orbit );
-
-            } else {
-                // switch master
-                orbit = new Orbit( this, orbit.index, coordsA );
-                const orbitB = new Orbit( this, orbit2.index, coordsB );
-
-                orbit.conjugate = orbitB;
-                orbit.centreRef = 0;
-                orbitB.conjugate = orbit;
-                orbitB.centreRef = 0;
-
-                this.orbits.splice( idsToRemove[0], 0, orbit, orbitB );
-            }
-            this.updateOrbitIndexes();
-        }
-        this.analyzeOrbits();
-    }
-
-
-    conjugateOrbits( orbitIds, mergeType ) {
-
-        const orbits = orbitIds
-            .map( id => this.orbits.filter( x => x.index == id )[0] )
-            .filter( orbit => orbit.isSelfConjugate() || orbit.isFirstConjugate() );
-
-        var orbit = orbits[0];
-
-        for ( var oi = 1; oi < orbits.length; oi++ ) {
-            const orbit2 = orbits[oi];
-
-            const idsToRemove = [
-                    this.orbits.indexOf( orbit ),
-                    this.orbits.indexOf( orbit.conjugate ),
-                    this.orbits.indexOf( orbit2 ),
-                    this.orbits.indexOf( orbit2.conjugate )
-                ]
-                .reduce( (unique,id) => unique.includes( id ) ? unique : [...unique, id ], [] );
-            idsToRemove.sort( (a,b) => b - a );
-            idsToRemove
-                .forEach( id => this.orbits.splice( id, 1) );
-
-            const [ o1a, o1b ] = orbit.conjugateCoords();
-            const [ o2b, o2a ] = orbit2.conjugateCoords();
-
-            const coordsA = interleave( o1a, o2a );
-            const coordsB = interleave( o1b, o2b );
-
-            // switch master
-            orbit = new Orbit( this, orbit.index, coordsA );
-            const orbitB = new Orbit( this, orbit2.index, coordsB );
-
-            orbit.conjugate = orbitB;
-            orbit.centreRef = 0;
-            orbitB.conjugate = orbit;
-            orbitB.centreRef = 0;
-
-            this.orbits.splice( orbit.index - 1, 0, orbitB );
-            this.orbits.splice( orbit.index - 1, 0, orbit );
-
-            this.updateOrbitIndexes();
-        }
-        this.analyzeOrbits();
-    }
-
     getJson() {
         return {
             id: this.id,
@@ -781,21 +397,10 @@ class ActionElement {
         };
     }
 
-    updateOrbitIndexes() {
-        this.orbits.forEach( ( orbit, index ) => orbit.index = index + 1 );
-    }
-
     findFundamental() {
         this.fundamental = this.orbits.length > 0
             ? lcma( this.orbits.map( (x,i) => x.order ) )
             : 1;
-    }
-
-    findMaxWeight() {
-        this.maxWeight = ( this.box.bases[0] - 1 ) * this.fundamental;
-        this.box.bases.forEach( ( b, i ) => {
-            this.maxWeight = reduce( this.maxWeight, ( b - 1 ) * this.fundamental );
-        });
     }
 
 

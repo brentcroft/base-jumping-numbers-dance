@@ -603,7 +603,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     if ( optionalColumns.includes(  "signature" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Signature</th>`;
     }
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Function Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Values Pair</th>`;
     if ( optionalColumns.includes(  "identity-equation" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
     }
@@ -641,9 +641,13 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             const selectedClass = selectedIndex == actionElement.id ? "class='selected'" : "";
             const clickAttr = `id="actionElement.${ actionElement.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
 
+            const actionAlias = ( actionElement.alias && actionElement.alias.length > 0 )
+                ? actionElement.alias.join( " / " )
+                : "";
+
             var rowHtml = `<td>${ actionElement.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getLabel() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ (!actionElement.alias || actionElement.alias == actionElement.getLabel() ) ? '' : actionElement.alias }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionAlias }</td>`;
             if ( actionElement.pair ) {
                 const pair = actionElement.pair;
                 rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.perm || '' }], [${ pair.right.perm || '' }]</td>`;

@@ -505,18 +505,24 @@ class Formula {
 
             if ( existingIndexes.length == 0 ) {
                 r.label = this.getExpressionString();
-                r.alias = r.label;
+                r.alias = [];
                 this.indexedBox.indexPlanes.push( r );
                 return r;
             }
 
-            const existingIndex = existingIndexes[0];
+            const aliasText = this.getExpressionString();
 
-            if ( !existingIndex.alias || existingIndex.alias == existingIndex.getLabel() ) {
-                existingIndex.alias = this.getExpressionString();
-            }
+            existingIndexes.forEach( existingIndex => {
+                if ( existingIndex.alias ) {
+                    if ( !existingIndex.alias.includes( aliasText ) ) {
+                        existingIndex.alias.push( aliasText );
+                    }
+                } else {
+                    existingIndex.alias = [ aliasText ];
+                }
+            } );
 
-            return existingIndex;
+            return existingIndexes[0];
         } else {
             return r;
         }
@@ -753,11 +759,11 @@ class VariableExpression extends Expression {
     }
 
     evaluate(params = {}) {
-        // params contain variable / value pairs: If this object's variable matches
-        // a varname found in the params, return the value.
-        // eg: params = {x: 5,y:3}, varname = x, return 5
-        if (params[this.varName] !== undefined) {
-            return params[this.varName];
+        var result = params[ this.varName ];
+        if ( result !== undefined ) {
+            return result;
+        } else if ( "e" == this.varName && params[this.varName+"_0"] !== undefined) {
+            return params[this.varName+"_0"];
         } else {
             throw new Error('Cannot evaluate ' + this.varName + ': No value given');
         }

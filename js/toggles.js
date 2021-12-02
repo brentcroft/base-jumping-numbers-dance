@@ -22,9 +22,9 @@ toggleKeys = {
     globalIds: 0,
     conj: 1,
     coords: 0,
-    minCols: 1,
+    minCols: 0,
 
-    inverses: 1,
+    inverses: 0,
     harmonics: 0,
     degenerates: 0,
     radiance: 0,

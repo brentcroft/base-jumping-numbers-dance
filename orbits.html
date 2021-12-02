@@ -4,7 +4,7 @@
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 80%;
+            font-size: 100%;
             padding-left: 20pt;
             padding-right: 20pt;
         }
@@ -15,13 +15,14 @@
 
         textarea.formulaPanel {
             width: 100%;
-            font-size: 80%;
         }
 
-        .symbolic-composition-control {
+        a.symbolic-composition-control {
             border: dotted 1px;
             padding: 2px;
+            margin: 2px;
             background: LemonChiffon;
+            #font-weight: bold;
         }
 
         .caption {
@@ -177,10 +178,7 @@
 
     <script type="text/javascript" src="js/toggles.js"></script>
 
-    <script type="text/javascript" src="js/midi.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
-
-    <script type="text/javascript" src="js/bases.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/jbnd.js"></script>
@@ -286,10 +284,10 @@
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             layers: <span id="boxLayerSelectors">
-                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>
+<!--                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>-->
                 <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
-                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
-                <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
+<!--                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>-->
+<!--                <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>-->
             </span>
 
             <label title="generate inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
@@ -319,22 +317,13 @@
             <input type="text" id="monomialFilter" style="display: none"/>
         </div>
 
-        <div id="indexComposer" style="display: none">
+        <div id="indexComposer" style="display: none" class="summaryLeft">
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
-            <span id="compositionSelectors"  class="summaryLeft"></span>
-            <form name="compositionFormulas"><textarea id="compositionFormulas" class="formulaPanel" rows="3">#3d-odd-full;
-a_0^-1; a_1^-1; a_2^-1;
-e * a_0; e * a_1; e * a_2;
-
-a_1 * a_0; ia_0 * ia_1;
-a_1 * a_2; ia_2 * ia_1;
-a_0 * a_1;  ia_1 * ia_0;
-a_2 * a_1; ia_1 * ia_2;
-a_0 * ia_2; a_2 * ia_0;
-ia_0 * a_2; ia_2 * a_0;
-a_0 * a_1 * a_2; ia_2 * a_0 * a_1; a_1 * a_2 * ia_0;
-a_2 * ia_0 * ia_1; ia_1 * ia_2 * a_0; ia_0 * ia_1 * ia_2; </textarea></form>
-            <span id="summaryEditorResult"></span>
+            <span id="compositionSelectors"></span>
+            <form name="compositionFormulas">
+                <textarea id="compositionFormulas" class="formulaPanel" rows="3"></textarea>
+                <label>Results: <textarea id="summaryEditorResult" class="formulaPanel" rows="3" disabled="disabled"></textarea></label>
+            </form>
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>
 

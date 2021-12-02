@@ -492,7 +492,7 @@ function permutations( inputArr ) {
         }
     }
     permute(inputArr);
-    result.sort( numericArraySorter );
+    //result.sort( numericArraySorter );
     return result;
 }
 

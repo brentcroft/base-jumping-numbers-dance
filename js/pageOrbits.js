@@ -92,7 +92,7 @@ function getCurrentQueryString( basePlaneKey, bases, actionIndex ) {
         actionIndex = values.actionIndex;
     }
 
-    return (basePlaneKey ? "id=" + basePlaneKey + "&" : "") + `bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&layers=${ values.actionLayers }&toggles=${ values.toggles.join( ',' ) }`;
+    return `id=${ basePlaneKey }&bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&layers=${ values.actionLayers }&toggles=${ values.toggles.join( ',' ) }`;
 }
 
 function reopenWithArgs() {
@@ -193,9 +193,6 @@ function showAllOrbits( containerId, basePlane ) {
 
 function showIndex( containerId, senderId  ) {
     const table = document.getElementById( containerId + "_table" )
-//    if ( !table ) {
-//        return;
-//    }
 
     const tableCells = table.querySelectorAll( "td.box_index" );
 
@@ -338,14 +335,14 @@ function processFormula( compositionFormulasText ) {
                 } );
 
             const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
-            document.getElementById( 'summaryEditorResult' ).innerHTML = `<pre>${ report }</pre>`;
+            document.getElementById( 'summaryEditorResult' ).innerHTML = `${ report }`;
 
         } catch ( e ) {
             document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = `<pre>${ e }</pre>`;
             consoleLog( e );
         }
 
-        rebuildIndexedBoxSummary( getControlValues() );
+        rebuildIndexedBoxSummary( indexedBox, getControlValues() );
     }
 }
 
@@ -362,7 +359,7 @@ function isToggle( toggle ) {
 
 function updateJson() {
 
-    consoleLog( `updateJson: id=${ basePlane.id }` );
+    consoleLog( `updateJson: id=${ basePlane.key }` );
 
     document
         .getElementById( "sample_cs_b_10_m_2_riffler" )
@@ -417,7 +414,7 @@ function selectBoxAction() {
     }
 }
 
-function rebuildIndexedBoxSummary( param ) {
+function rebuildIndexedBoxSummary( indexedBox, param ) {
 
     document
             .getElementById( "actionIndex" )
@@ -509,28 +506,28 @@ function buildBoxLayersSelectors( indexedBox, param ) {
                 );
         } );
     }
-
-
-
     container.append( " | " );
 }
 
 
 
-function buildCompositionSelectors(  ) {
+function buildCompositionSelectors( indexedBox, param ) {
 
     const container = document.getElementById( "compositionSelectors" );
     while (container.firstChild ) {
         container.removeChild( container.lastChild );
     }
 
+    const SC = SYMBOLIC_COMPOSITIONS[ indexedBox.box.rank ];
+
     const selectSymbolicRepresentation = ( key ) => {
-        document.getElementById( "compositionFormulas" ).value = SYMBOLIC_COMPOSITIONS[ key ].join( "\n" );
+        document.getElementById( "compositionFormulas" ).value = SC[ key ].join( "\n" );
+        updatePage();
     };
 
     Object
-        .entries( SYMBOLIC_COMPOSITIONS )
-        .map( sc => reify( "a", { "class": "symbolic-composition-control" }, [],
+        .entries( SC )
+        .map( sc => reify( "a", { "class": "symbolic-composition-control", "title": `Prepare SYMBOLIC_COMPOSITIONS[ "${ sc[0] }" ]` }, [],
                 [
                     (control) => control.innerHTML = sc[0],
                     (control) => control.onclick = () => selectSymbolicRepresentation( sc[0] )
@@ -557,8 +554,8 @@ function updatePage() {
             .value = indexedBox.box.volume;
 
     buildBoxLayersSelectors( indexedBox, param );
-    buildCompositionSelectors();
-    rebuildIndexedBoxSummary( param );
+    buildCompositionSelectors( indexedBox, param );
+    rebuildIndexedBoxSummary( indexedBox, param );
 
     selectBoxAction();
 
@@ -648,7 +645,7 @@ function initPage( urlParam = true ) {
                     }
 
                     const selectedPointIds = document.getElementById( "selectedPointIds" );
-                    selectedPointIds.value = selectedPoints.map( p => p.indexes[basePlane.id].id ).join( ", ");
+                    selectedPointIds.value = selectedPoints.map( p => p.indexes[basePlane.key].id ).join( ", ");
 
                     distributeMessages(
                         'sample_cs_b_10_m_2', [

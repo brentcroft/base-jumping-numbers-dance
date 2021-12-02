@@ -324,7 +324,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         } );
 
     const selectedPointsInfo = selectedPoints
-        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + point.id + " " + JSON.stringify( point.indexes[basePlane.id] ) )
+        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + point.id + " " + JSON.stringify( point.indexes[basePlane.key] ) )
         .join( "\n" );
 
     document
@@ -335,7 +335,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
 
 function getBasePlaneCycles( basePlane, toggles ) {
 
-    const indexId = basePlane.id;
+    const indexId = basePlane.key;
     const orbits = basePlane.orbits;
     const fixedPointTransparency = 0.1;
     const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
@@ -346,16 +346,8 @@ function getBasePlaneCycles( basePlane, toggles ) {
 
     const root = reify( "transform", { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` } );
 
-    const gid = toggles.globalIds == 1
-        ? ( point ) => point.id
-        : ( point ) => point.at( indexId ).id;
-
-    const gidJump = toggles.globalIds == 1
-        ? ( point ) => {
-            const wayPoint = basePlane.getPointFromIdx( point.at( indexId ).di );
-            return wayPoint.id - point.id;
-        }
-        : ( point ) => point.at( indexId ).jump;
+    const gid = ( point ) => point.at( indexId ).id;
+    const gidJump = ( point ) => point.at( indexId ).jump;
 
     // IDENTITIES GRID
     const attr = { "linetype": "0" };
@@ -595,7 +587,7 @@ function initPage() {
                     const tooltipData = s.getAttribute( "tooltip" );
                     const point = JSON.parse( tooltipData );
 
-                    consoleLog( `selected point: [${ point.coord }] ${ point.id }; index-${basePlane.id}: ${ JSON.stringify( point.indexes[basePlane.id] ) }` );
+                    consoleLog( `selected point: [${ point.coord }] ${ point.id }; index-${basePlane.id}: ${ JSON.stringify( point.indexes[basePlane.key] ) }` );
 
                     distributeMessage( {
                         basis: "point",

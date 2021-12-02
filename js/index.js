@@ -5,16 +5,214 @@ var nonTrivialPerimeterJump = 0.0;
 var indexMap = {};
 
 
+const pvppIndex = [0];
+
+class PlaceValuesPermutation {
+    constructor( id, perm = [], bases, volume, forwardFrom = 0 ) {
+        this.id = id;
+        this.key =  2 * id;
+        this.perm = perm;
+        this.antiPerm = [...perm].reverse();
+        this.placeValues = placeValuesPermutation( bases, this.perm );
+        this.antiPlaceValues = placeValuesPermutation( bases, this.antiPerm );
+        this.forwardFrom = forwardFrom;
+        this.idx = new Array( volume ).fill( -1 )
+        this.dix = new Array( volume ).fill( -1 )
+    }
+    indexOf( coord ) {
+        return this.placeValues.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
+    }
+    antiIndexOf( coord ) {
+        return this.antiPlaceValues.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
+    }
+    indexPoint( point ) {
+        const indexValue = this.indexOf( point.coord );
+        const antiIndexValue = this.antiIndexOf( point.coord );
+
+        point.idx[ this.key ] = indexValue;
+        point.idx[ this.key + 1 ] = antiIndexValue;
+
+        this.idx[ indexValue ] = point;
+        this.dix[ antiIndexValue ] = point;
+    }
+}
+
+
+class PlaceValuesPermutationPair {
+
+    compareTo( other ) {
+        if ( this.zeroedPlaces != other.zeroedPlaces ) {
+            return -1 * ( this.zeroedPlaces - other.zeroedPlaces );
+        } else if ( !this.inverse && other.inverse ) {
+            return -1;
+        } else if ( this.inverse && !other.inverse ) {
+            return 1;
+        } else if ( !this.harmonic && other.harmonic ) {
+            return -1;
+        } else if ( this.harmonic && !other.harmonic ) {
+            return 1;
+        } else if ( !this.degenerate && other.degenerate ) {
+            return -1;
+        } else if ( this.degenerate && !other.degenerate ) {
+            return 1;
+        }
+        return this.echo - other.echo;
+    }
+
+    static layerLabel = ( i, palindrome ) => {
+        const labels = 'e_abcdfghijklmnopqrstuvwxy';
+        return i == palindrome ? "z" : labels[i];
+    }
+
+    static crossValue = ( l, r ) => arrayCompare( l, r );
+    static crossPermValue = ( l, r ) => arrayCompare( l.concat( r ), l.concat( r ).reverse() );
+    static squarePermValue = ( l, r ) => arrayCompare( l.concat( r ), r.concat( l ).reverse() );
+
+    static extractMembers = ( state, placeValuePerms ) => {
+        const [ leftState, rightState ] = state;
+        const [ left, right ] = placeValuePerms;
+
+        var members = [];
+
+        if ( leftState && rightState ) {
+            // bad
+            members = [
+                state,
+                [ left.key + 1, right.key + 1 ],
+                [ left.dix, right.dix ],
+                [ left.antiPerm, right.antiPerm ],
+                [ left.antiPlaceValues, right.antiPlaceValues ] ];
+        } else if (!leftState && rightState) {
+            // ok
+            members = [
+                state,
+                [ left.key, right.key + 1 ],
+                [ left.idx, right.dix ],
+                [ left.perm, right.antiPerm ],
+                [ left.placeValues, right.antiPlaceValues ] ];
+
+        } else if (leftState && !rightState) {
+            // bad
+            members = [
+                state,
+                [ left.key + 1, right.key ],
+                [ left.dix, right.idx ],
+                [ left.antiPerm, right.perm ],
+                [ left.antiPlaceValues, right.placeValues ] ];
+
+        } else {
+            // ok
+            members = [
+                state,
+                [ left.key, right.key ],
+                [ left.idx, right.idx ],
+                [ left.perm, right.perm ],
+                [ left.placeValues, right.placeValues ] ];
+        }
+        return members;
+    };
+
+    toString() {
+        return "[" + this.permPair.map( p => p.join(", ") ).join( "], [" ) + "]";
+    }
+
+    constructor( id, bases = [ 1 ], left, right, state = [ false, false ], inversePair ) {
+        this.key = pvppIndex[0]++;
+        this.id = id;
+        this.bases = bases;
+        this.inversePair = inversePair;
+        this.inverse = (inversePair != null);
+
+        const members = PlaceValuesPermutationPair.extractMembers( state, [ left, right ] );
+        [
+            [ this.leftState, this.rightState ],
+            [ this.leftId, this.rightId ],
+            [ this.idx, this.dix ],
+            this.permPair,
+            [ this.leftPlaceValues, this.rightPlaceValues ]
+        ] = members;
+
+        this.rank = this.permPair[0].length;
+
+        this.identityPlane = this.leftPlaceValues.map( ( x, i ) => this.rightPlaceValues[i] - x );
+        this.echo = Math.abs( gcda( this.identityPlane ) );
+        this.zeroedPlaces = this.identityPlane.reduce( (a,c) => c==0 ? a + 1 : a, 0 );
+
+        this.palindrome = isPalindrome( this.permPair );
+        this.layer = this.palindrome
+            ? this.rank + 1
+            : this.rank - this.zeroedPlaces;
+
+        this.label = PlaceValuesPermutationPair.layerLabel( this.layer, this.rank + 1 );
+
+        [
+            [ this.alignedPlaces, this.alignedWeights ],
+            this.unalignedPlaces
+        ] = alignedPlaces( this.permPair );
+
+        if ( this.alignedPlaces.length > 1 && !isRisingFrom( this.alignedPlaces, 0 ) ) {
+            this.degenerate = true;
+
+        } else if ( this.alignedPlaces.length == 1 ) {
+             if ( PlaceValuesPermutationPair.crossPermValue( this.unalignedPlaces[0], this.unalignedPlaces[1] ) > 0 ) {
+                this.degenerate = true;
+             }
+        }
+
+//        if ( !this.degenerate && this.rank > 2 ) {
+//            const maxOnes = this.rank - 2;
+//            const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
+//            const indicatesIdentity = ( pair ) => countOnes( left.placeValues ) > maxOnes || countOnes( right.placeValues ) > maxOnes;
+//            this.degenerate = indicatesIdentity( this );
+//        }
+
+        this.harmonic = false;
+
+        if ( this.echo > 1 && !this.palindrome ) {
+            if ( this.alignedWeights.length > 0 ) {
+                if ( this.alignedWeights[0] != ( this.rank - this.alignedPlaces.length ) ) {
+                    this.harmonic = true;
+                }
+            }
+        }
+
+        var report = "";
+        report += `(${ this.palindrome ? 'p' : this.alignedPlaces.length }) `;
+        report += `${ this.leftState ? 'u' : 'd' }${ this.rightState ? 'u' : 'd' } `;
+        report += `${ this.inverse ? 'i' : '' }${ this.degenerate ? 'd' : '' }${ this.harmonic ? 'h' : '' } `;
+        report += `${ this.echo }`;
+
+        this.signature = report;
+    }
+
+
+    getInversePair() {
+        if ( this.inversePair ) {
+            throw new Error( `Pair already has an inverse: [${ this.left.perm }] [${ this.right.perm }].` );
+        }
+        this.inversePair = new PlaceValuesPermutationPair( this.bases, this.right, this.left, this );
+        return this.inversePair;
+    }
+}
+
+const aeElementId = [ 0 ];
+
 class ActionElement {
 
     constructor( box, id = 0 ) {
         this.box = box;
         this.id = id;
-        this.key = `plane-${ id }`;
+        this.key = aeElementId[0]++;
+
+        this.cycleIndexMonomial = [];
 
         this.forwardFrom = 0;
         this.reverseFrom = 0;
         this.label = 'xxx';
+    }
+
+    toString() {
+        return this.label;
     }
 
     getLabel() {
@@ -25,7 +223,7 @@ class ActionElement {
         return this.getLabel();
     }
 
-    initialise( globaliseIds = false ) {
+    initialise() {
         this.buildOrbits();
         this.findFundamental();
         this.buildCentreLines();
@@ -143,7 +341,7 @@ class ActionElement {
     }
 
     pointAt( point ) {
-        return point.at(this.id);
+        return point.at(this.key);
     }
 
     indexPoint( point ) {
@@ -156,7 +354,7 @@ class ActionElement {
         this.identities = [];
         this.orbits = [];
         const tally = [ ...this.dix ];
-        const indexId = this.id;
+        const indexId = this.key;
 
         function extractOrbitCoordsAndTally( orbitId, startIndex, idx, tally ) {
             var point = idx[ startIndex ];
@@ -171,11 +369,28 @@ class ActionElement {
 
             while ( di != startIndex ) {
                 try {
+                    if ( !di ) {
+                        throw new Error("No id: " + di );
+                    }
+
+
                     tally[ di ] = -1;
                     point = idx[ di ];
-                    point.at(indexId).orbitId = orbitId;
+
+                    if ( !point ) {
+                        throw new Error("No point for id: " + di );
+                    }
+
+                    const pointData = point.at(indexId);
+
+                    if ( !pointData ) {
+                        throw new Error("No point data for point: " + point );
+                    }
+
+                    pointData.orbitId = orbitId;
                     points.push( point );
-                    di = point.at(indexId).di;
+
+                    di = pointData.di;
 
                     if ( alreadySeen.includes( di ) ) {
                         throw new Error( `Already seen: di=${ di }`);
@@ -186,7 +401,7 @@ class ActionElement {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
                     consoleLog( msg );
                     //break;
-                    throw new Error( msg );
+                    throw new Error( msg, { cause: e } );
                 }
             }
             return points;
@@ -275,8 +490,8 @@ class ActionElement {
             totalEuclideanPerimeter += orbit.euclideanPerimeter();
             totalEuclideanRadiance += orbit.euclideanRadiance();
 
-            totalIndexPerimeter += orbit.indexPerimeter( this.id );
-            totalIndexRadiance += orbit.indexRadiance( this.id );
+            totalIndexPerimeter += orbit.indexPerimeter();
+            totalIndexRadiance += orbit.indexRadiance();
         }
 
         this.totalOrderSpace = totalOrderSpace;
@@ -448,7 +663,7 @@ class ActionElement {
         return this
             .identities
             .map( orbit => orbit.points[0] )
-            .map( p => p.at(this.id) )
+            .map( p => p.at(this.key) )
             .map( p => this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialPerimeterJump : 0 )
             .reduce( (a,r) => a + r, 0);
     }
@@ -482,7 +697,7 @@ class ActionElement {
             .identities
             .map( x => x
                 .points
-                .map( p => Math.abs( p.at(this.id).radiant ) )
+                .map( p => Math.abs( p.at(this.key).radiant ) )
                 .reduce( (a,c) => a + c, 0 ) )
             .reduce( (a, c) => a + c, 0 ) / 2;
     }
@@ -506,7 +721,7 @@ class ActionElement {
     identityIndexPerimeter() {
         return this.identities
             .map( identityOrbit => identityOrbit.points[0] )
-            .map( indexedIdentity => indexedIdentity.at(this.id) )
+            .map( indexedIdentity => indexedIdentity.at(this.key) )
             .map( identity => identity.jump )
             .reduce( (a,c) => a + c, 0 );
     }

@@ -6,16 +6,18 @@ class Box {
         this.rank = this.bases.length;
         this.volume = getVolume( this.bases );
 
-        this.placePermutations = permutations( arrayIndexes( this.bases ) );
-        this.permCount = this.placePermutations.length;
-        this.pairCount = this.permCount  * (this.permCount - 1);
+        const seedPerm = arrayIndexes( this.bases );
+        this.placeValuePermutations = seedPerm
+            .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] )
+            .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
 
-        this.placeValuePermutations = this.placePermutations.map( ( perm, permId ) => new PlaceValuesPermutation( permId, bases, perm ) );
+        this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
+
+        this.permCount = this.placeValuePermutations.length;
+        this.pairCount = this.permCount  * (this.permCount - 1);
 
         this.indexRadiance = getIndexRadiance( this.volume );
         this.euclideanRadiance = getEuclideanRadiance( this.bases );
-
-        this.surfaceArea = getSurfaceArea( this.bases );
 
         // since each coord plus it's reflection in the centre equals the terminal
         this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
@@ -32,14 +34,9 @@ class Box {
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
         this.points = this.buildPoints();
 
-        this.placeValuePermutations
-            .forEach( perm => perm.idx = new Array( this.volume ).fill( 0 ) );
-
         this.points
             .forEach( point => {
-
                 point.conjugate = this.points[ this.volume - point.id - 1];
-
                 this.placeValuePermutations
                     .forEach( perm => perm.indexPoint( point ) );
             } );
@@ -67,7 +64,6 @@ class Box {
     }
 
     getJson() {
-
         return {
            coordSum: this.sum,
            idSum: this.indexSum,
@@ -135,13 +131,13 @@ class RadiantAction extends ActionElement {
             radiant: ( conjugateId - id )
         };
 
-        const existingPointIndexData = point.indexes[ this.id ];
+        const existingPointIndexData = point.indexes[ this.key ];
 
         if ( existingPointIndexData ) {
             consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
         }
 
-        point.indexes[this.id] = pointIndexData;
+        point.indexes[this.key] = pointIndexData;
 
         this.idx[ id ] = point;
         this.dix[ di ] = point;
@@ -152,29 +148,29 @@ class RadiantAction extends ActionElement {
     }
 }
 
+const pvaIndex = [0];
+
 class PlaceValuesAction extends ActionElement {
-    constructor( box, id = 0, placeValuesPermutationPair, actionIndex ) {
+    constructor( box, id = 0, placeValuesPermutationPair ) {
         super( box, id );
         this.pair = placeValuesPermutationPair;
         this.identityPlane = this.pair.identityPlane;
         this.identityPlaneGcd = this.pair.echo;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-        this.actionIndex = (this.pair.inverse ? this.pair.inversePair.actionIndex : actionIndex );
 
         //
-        this.pair.actionIndex = this.actionIndex;
-        this.label = `${ this.pair.inverse ? 'i' : '' }${ this.pair.label }_${ this.actionIndex }`;
+        this.label = `${ this.pair.label }_${ this.pair.id }${ this.pair.inverse ? 'i' : '' }${ this.pair.harmonic ? `h${ this.pair.echo }` : '' }`;
 
         // reference to component indexes
-        this.idx = this.pair.left.idx;
-        this.dix = this.pair.right.idx;
+        this.idx = this.pair.idx;
+        this.dix = this.pair.dix;
     }
 
     indexPoint( point ) {
         const boxVolume = this.box.volume;
 
-        const id = point.getId( this.pair.left.id );
-        const di = point.getId( this.pair.right.id );
+        const id = point.getId( this.pair.leftId );
+        const di = point.getId( this.pair.rightId );
 
         const conjugateId = ( boxVolume - id - 1 );
 
@@ -186,21 +182,13 @@ class PlaceValuesAction extends ActionElement {
             radiant: ( conjugateId - id )
         };
 
-        const existingPointIndexData = point.indexes[ this.id ];
+        const existingPointIndexData = point.indexes[ this.key ];
+
+        point.indexes[this.key] = pointIndexData;
 
         if ( existingPointIndexData ) {
             consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
         }
-
-        point.indexes[this.id] = pointIndexData;
-    }
-
-    isPalindrome() {
-        return this.pair.isPalindrome();
-    }
-
-    isOrthogonal() {
-        return this.pair.isOrthogonal();
     }
 }
 
@@ -244,11 +232,6 @@ class CompositeAction extends ActionElement {
 
     indexPoint( point ) {
 
-//        var wayPoint = this.primaryIndex.apply( point );
-//        var endPoint = this.reverse
-//            ? this.secondaryIndex.applyInverse( wayPoint )
-//            : this.secondaryIndex.apply( wayPoint );
-
         var wayPoint = this.reverse
             ? this.secondaryIndex.applyInverse( point )
             : this.secondaryIndex.apply( point );
@@ -270,13 +253,13 @@ class CompositeAction extends ActionElement {
            radiant: ( conjugateId - id )
         };
 
-        const existingPointIndexData = point.indexes[ this.id ];
+        const existingPointIndexData = point.indexes[ this.key ];
 
         if ( existingPointIndexData ) {
             //consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
         }
 
-        point.indexes[this.id] = pointIndexData;
+        point.indexes[this.key] = pointIndexData;
 
         this.idx[ id ] = point;
         this.dix[ di ] = point;
@@ -324,15 +307,80 @@ class IndexedBox {
 
 
         if ( bases.length > 1 ) {
-            var indexors = pairs( this.box.placeValuePermutations )
-                .map( ( pair, i ) => new PlaceValuesPermutationPair( bases, pair[0], pair[1], null, i ) );
 
-            if ( inverses ) {
-                indexors.push( ...indexors.map( pair => pair.getInversePair() ) );
-            }
+            const [ DD, DU, UD, UU ] = [
+                [ 0, 0 ],
+                [ 0, 1 ],
+                [ 1, 0 ],
+                [ 1, 1 ]
+            ];
 
+            const indexors = [];
+
+            var identityId = 0;
+            var palindromeId = 0;
             this.box.placeValuePermutations
-                .forEach( ( perm, i ) => indexors.push( new PlaceValuesPermutationPair( bases, perm, perm, null, i ) ) );
+                .forEach( ( pvp, i ) => {
+
+                    const identity = new PlaceValuesPermutationPair( identityId++, bases, pvp, pvp, DD );
+                    const palindrome = new PlaceValuesPermutationPair( palindromeId++, bases, pvp, pvp, UD );
+
+                    indexors.push( identity );
+                    indexors.push( palindrome );
+
+                    if ( inverses ) {
+                        indexors.push( new PlaceValuesPermutationPair( identity.id, bases, pvp, pvp, UU, identity ) );
+                        indexors.push( new PlaceValuesPermutationPair( palindrome.id, bases, pvp, pvp, DU, palindrome ) );
+                    }
+                });
+
+            var downers = 0;
+
+            pairs( this.box.placeValuePermutations )
+                .forEach( ( pair, i ) => {
+                    const [
+                        du,
+                        ud
+                    ] = [
+                        new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU ),
+                        new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD )
+                    ];
+                    [
+                        du,
+                        ud
+                    ].forEach( pvpp => indexors.push( pvpp ) );
+
+                    const dd = new PlaceValuesPermutationPair( downers, bases, pair[0], pair[1], DD );
+                    const uu = new PlaceValuesPermutationPair( downers + 1, bases, pair[0], pair[1], UU );
+
+                    [
+                        dd,
+                        uu
+                    ].forEach( pvpp => indexors.push( pvpp ) );
+
+
+
+                    if ( inverses ) {
+
+                        const [
+                            idu, iud,
+                            idd, iuu
+                        ] = [
+                            new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, du ),
+                            new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, ud ),
+                            new PlaceValuesPermutationPair( downers, bases, pair[1], pair[0], DD, dd ),
+                            new PlaceValuesPermutationPair( downers + 1, bases, pair[1], pair[0], UU, uu )
+                        ];
+
+                        [
+                            idu,
+                            iud,
+                            idd,
+                            iuu
+                        ].forEach( pvpp => indexors.push( pvpp ) );
+                    }
+                    downers += 2;
+                } );
 
             const indexorSorter = ( p1, p2 ) => p1.compareTo( p2 );
 
@@ -343,45 +391,27 @@ class IndexedBox {
             indexors.forEach( pair => this.layerLabels.filter( l => l[1] == pair.label ).length > 0 ? 0 : this.layerLabels.push( [ pair.layer, pair.label ] ) );
             this.layerLabels.sort( (a,b) => a[0]- b[0] );
 
-            this.layers = [
-                ...this.layerLabels.map( x => [] ),
-                ...this.layerLabels.map( x => [] )
-            ];
-
-            // todo:: move to PlaceValuesPermutationPair constructor
-            const maxOnes = this.box.rank - 2;
-            const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
-            const indicatesIdentity = ( pair ) => countOnes( pair.left.placeValues ) > maxOnes || countOnes( pair.right.placeValues ) > maxOnes;
+            const layers = new Array( indexors.length + 2 ).fill( 0 );
+            layers.forEach( (x,i) => layers[i] = [] );
 
             // filter and group by layers
             indexors
                 .filter( pair => actionLayers.includes( pair.layer ) )
                 .filter( pair => harmonics || !pair.harmonic )
                 .filter( pair => degenerates || !pair.degenerate )
-                .filter( pair => degenerates || !indicatesIdentity( pair )  )
                 .forEach( pair => {
-                    this.layers[ pair.layer ].push( pair );
+                    layers[ pair.layer ].push( pair );
                 } );
 
-
             // remove empty layers
-            this.layers = this.layers.filter( layer => layer.length > 0 );
+            this.layers = layers.filter( layer => layer.length > 0 );
 
             this.layers
                 .forEach( layer => {
                     var actionIndex = 0;
                     layer
                         .forEach( (pair , i) => this.indexPlanes
-                            .push(
-                                new PlaceValuesAction(
-                                    this.box,
-                                    this.indexPlanes.length,
-                                    pair,
-                                    pair.inverse
-                                        ? -1
-                                        : actionIndex++
-                                )
-                            )
+                            .push( new PlaceValuesAction( this.box, this.indexPlanes.length, pair, pair.id ) )
                         );
                 } );
         }
@@ -396,7 +426,7 @@ class IndexedBox {
             this.box.unity.indexPoints();
         }
 
-        this.indexPlanes.forEach( plane => plane.initialise( globalise ) );
+        this.indexPlanes.forEach( plane => plane.initialise() );
     }
 
     getIndexMap( label ) {

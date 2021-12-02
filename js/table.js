@@ -168,9 +168,9 @@ function getCycleIndexMonomialHtml( basePlane ) {
 
 function drawBasePlaneTable( tableArgs ) {
 
-    var { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false, globalIds = false, minCols = false } = tableArgs;
+    const { containerId, basePlane, cellClick, clearClick, totalClick, midi = false, conj = false, perms = false, jumps = false, globalIds = false, minCols = false } = tableArgs;
 
-    consoleLog( `orbits.table: ${ containerId }: id=${ basePlane.id }` );
+    //consoleLog( `orbits.table: ${ containerId }: id=${ basePlane.id }` );
 
     const optionalColumns = minCols
         ? []
@@ -178,7 +178,7 @@ function drawBasePlaneTable( tableArgs ) {
 
     const gid = globalIds
         ? ( point ) => point.id
-        : ( point ) => point.at( basePlane.id ).id;
+        : ( point ) => point.at( basePlane.key ).id;
 
     const tableContainerId = containerId + "_table";
     const tableId = tableContainerId + "_data";
@@ -575,7 +575,7 @@ function drawProductTable( index, toggles ) {
 
 function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
-    consoleLog( `drawBoxSummaryTable: id=${ JSON.stringify( param ) }` );
+    //consoleLog( `drawBoxSummaryTable: id=${ JSON.stringify( param ) }` );
 
     var monomialFilter = param.monomialFilter || 0
     monomialFilter = Object.keys( monomialFilter ).length == 0
@@ -631,8 +631,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
     dataHtml += indexedBox
         .indexPlanes
-        //.filter( actionElement => !monomialFilter || actionElement.pair )
-        .filter( actionElement => !monomialFilter || !actionElement.pair || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
+        .filter( actionElement => !monomialFilter || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
         .map( actionElement => {
 
             totalRows++;
@@ -650,11 +649,11 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             rowHtml += `<td align='center' ${clickAttr}>${ actionAlias }</td>`;
             if ( actionElement.pair ) {
                 const pair = actionElement.pair;
-                rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.perm || '' }], [${ pair.right.perm || '' }]</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ pair }</td>`;
                 if ( optionalColumns.includes(  "signature" ) ) {
                     rowHtml += `<td align='center' ${clickAttr}>${ pair.signature }</td>`;
                 }
-                rowHtml += `<td align='center' ${clickAttr}>[${ pair.left.placeValues || '' }], [${ pair.right.placeValues || '' }]</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>[${ pair.leftPlaceValues || '' }], [${ pair.rightPlaceValues || '' }]</td>`;
             } else {
                 rowHtml += `<td align='center' ${clickAttr}></td>`;
                 if ( optionalColumns.includes(  "signature" ) ) {

@@ -511,6 +511,9 @@ function buildBoxLayersSelectors( indexedBox, param ) {
 
 
 
+
+
+
 function buildCompositionSelectors( indexedBox, param ) {
 
     const container = document.getElementById( "compositionSelectors" );

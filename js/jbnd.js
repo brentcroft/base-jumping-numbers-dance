@@ -81,8 +81,7 @@ class PlaceValuesAction extends ActionElement {
         this.identityPlaneGcd = this.pair.echo;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
-        //
-        this.label = `${ this.pair.label }_${ this.pair.id }${ this.pair.inverse ? 'i' : '' }${ this.pair.harmonic ? `h${ this.pair.echo }` : '' }`;
+        this.label = `${ this.pair.label }_${ this.pair.id }${ this.pair.harmonic ? `h${ this.pair.echo }` : '' }${ this.pair.inverse ? 'i' : '' }`;
         this.symbols = [ this.pair.symbol ];
 
         // reference to component indexes
@@ -272,37 +271,46 @@ class IndexedBox {
             var uppers = 0;
 
             pairs( this.box.placeValuePermutations )
-                .forEach( ( pair, i ) => {
+                .forEach( ( p, i ) => {
 
-                    const du = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU, null, false );
-                    const duh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, null, true );
+                    // rotate every iteration
+                    const pair = (i % 2) ? [ p[1], p[0] ] : [ p[0], p[1] ];
 
+                    var dd = null;
+                    var uu = null;
+                    var idd = null;
+                    var iuu = null;
 
-                    const dd = new PlaceValuesPermutationPair( uppers, bases, pair[0], pair[1], DD );
-                    const uu = new PlaceValuesPermutationPair( uppers + 1, bases, pair[0], pair[1], UU );
+                    var du = null;
+                    var duh = null;
 
-                    [ dd, duh, uu, du ].forEach( pvpp => indexors.push( pvpp ) );
+                    var idu = null;
+                    var iduh = null;
+
+                    dd = new PlaceValuesPermutationPair( uppers, bases, pair[0], pair[1], DD );
+                    uu = new PlaceValuesPermutationPair( uppers + 1, bases, pair[0], pair[1], UU );
+
+                    du = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU, null, false );
+
+                    duh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, null, true );
 
                     if ( inverses ) {
+                        idd = new PlaceValuesPermutationPair( uppers, bases, pair[1], pair[0], DD, dd );
+                        iuu = new PlaceValuesPermutationPair( uppers + 1, bases, pair[1], pair[0], UU, uu );
 
-                        const ud = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD, null, true );
-
-                        const [
-                            iud,
-                            idd, iuu
-                        ] = [
-                            new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, ud, false ),
-                            new PlaceValuesPermutationPair( uppers, bases, pair[1], pair[0], DD, dd ),
-                            new PlaceValuesPermutationPair( uppers + 1, bases, pair[1], pair[0], UU, uu )
-                        ];
-
-                        [
-                            ud,
-                            iud,
-                            idd,
-                            iuu
-                        ].forEach( pvpp => indexors.push( pvpp ) );
+                        // swap places && swap state
+                        idu = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD, duh, true );
+                        iduh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, du, false );
                     }
+
+                    [ dd, idd, uu, iuu ]
+                        .filter( p => p )
+                        .forEach( p => indexors.push( p ) );
+
+                    [ du, duh, idu, iduh ]
+                        .filter( p => p )
+                        .forEach( p => indexors.push( p ) );
+
                     uppers += 2;
                 } );
 

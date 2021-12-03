@@ -82,7 +82,7 @@ class Box {
             default:
         }
 
-        this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
+        //this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
 
         this.permCount = this.placeValuePermutations.length;
         this.pairCount = this.permCount  * (this.permCount - 1);
@@ -173,7 +173,7 @@ class PlaceValuesPermutationPair {
     }
 
     static layerLabel = ( i, palindrome ) => {
-        const labels = 'e_abcdfghijklmnopqrstuvwxy';
+        const labels = 'e!abcdfghijklmnopqrstuvwxy';
         return i == palindrome ? "z" : labels[i];
     }
 

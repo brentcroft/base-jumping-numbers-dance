@@ -26,9 +26,9 @@ toggleKeys = {
     colours: 0,
 
     inverses: 1,
-    harmonics: 0,
-    degenerates: 1,
-    radiance: 1,
+    harmonics: 1,
+    degenerates: 0,
+    radiance: 0,
     autoFormula: 1,
     indexComposer: 0,
     monomialFilter: 1,

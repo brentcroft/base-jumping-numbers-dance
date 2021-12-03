@@ -1,83 +1,5 @@
 
 
-class Box {
-    constructor( bases ) {
-        this.bases = [...bases];
-        this.rank = this.bases.length;
-        this.volume = getVolume( this.bases );
-
-        const seedPerm = arrayIndexes( this.bases );
-        this.placeValuePermutations = seedPerm
-            .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] )
-            .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
-
-        this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
-
-        this.permCount = this.placeValuePermutations.length;
-        this.pairCount = this.permCount  * (this.permCount - 1);
-
-        this.indexRadiance = getIndexRadiance( this.volume );
-        this.euclideanRadiance = getEuclideanRadiance( this.bases );
-
-        // since each coord plus it's reflection in the centre equals the terminal
-        this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
-
-        // even times odd has to be even
-        this.indexSum = ( this.volume * ( this.volume - 1 ) / 2 );
-        this.indexCentre = ( this.volume - 1 ) / 2;
-
-        // fixed points
-        this.origin = new Array( bases.length ).fill( 0 );
-        this.terminal = this.bases.map( x => x - 1 );
-        this.diagonal = [ this.origin, this.terminal ];
-
-        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
-        this.points = this.buildPoints();
-
-        this.points
-            .forEach( point => {
-                point.conjugate = this.points[ this.volume - point.id - 1];
-                this.placeValuePermutations
-                    .forEach( perm => perm.indexPoint( point ) );
-            } );
-    }
-
-    buildPoints( place = 0, locusStack = [], points = [] ) {
-        if ( place == this.rank ) {
-            const point = new Point( points.length, locusStack, this.centre );
-            points.push( point );
-        } else {
-            for ( var i = 0; i < this.bases[place]; i++) {
-                locusStack.push( i );
-                this.buildPoints( place + 1, locusStack, points );
-                locusStack.pop( i );
-            }
-        }
-        return points;
-    }
-
-    validateIds( ids ) {
-        const invalidIds = ids.filter( id => id < 0 || id >= this.volume )
-        if ( invalidIds.length > 0 ) {
-            throw new Error( `id out of range: ${ invalidIds }; box.volume=${ this.volume }` );
-        }
-    }
-
-    getJson() {
-        return {
-           coordSum: this.sum,
-           idSum: this.indexSum,
-           perms: this.permCount,
-           pairs: this.pairCount
-       };
-    }
-
-    toString() {
-        return JSON.stringify( this.getJson(), null, 4 );
-    }
-}
-
-
 
 
 class RadiantAction extends ActionElement {
@@ -109,6 +31,7 @@ class RadiantAction extends ActionElement {
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
         this.label = 'r';
+        this.symbols = [];
         this.alias = ['e^½'];
         this.idx = [];
         this.dix = [];
@@ -160,6 +83,7 @@ class PlaceValuesAction extends ActionElement {
 
         //
         this.label = `${ this.pair.label }_${ this.pair.id }${ this.pair.inverse ? 'i' : '' }${ this.pair.harmonic ? `h${ this.pair.echo }` : '' }`;
+        this.symbols = [ this.pair.symbol ];
 
         // reference to component indexes
         this.idx = this.pair.idx;
@@ -194,18 +118,23 @@ class PlaceValuesAction extends ActionElement {
 
 class CompositeAction extends ActionElement {
 
-    static compositeLabel( primaryIndex, secondaryIndex ) {
-        return `( ${ primaryIndex.getLabel() } * ${ secondaryIndex.getLabel() }`;
+    static compositeLabel( leftAction, rightAction ) {
+        return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
     }
 
-    constructor( box, id = 0, primaryIndex, secondaryIndex, autoInit = false, reverse = false ) {
+    static compositeSymbol( leftAction, rightAction ) {
+        return leftAction.symbols && leftAction.symbols.length > 0
+            ? `${ leftAction.symbols[0] } * ${ rightAction.symbols[0] }`
+            : "1";
+    }
+
+    constructor( box, id = 0, leftAction, rightAction, autoInit = false, reverse = false ) {
         super( box, id );
 
-        this.primaryIndex = primaryIndex;
-        this.secondaryIndex = secondaryIndex;
+        this.leftAction = leftAction;
+        this.rightAction = rightAction;
         this.reverse = reverse;
 
-        // todo: fast calculate on fly?
         this.idx = new Array( this.box.volume );
         this.dix = new Array( this.box.volume );
 
@@ -215,7 +144,8 @@ class CompositeAction extends ActionElement {
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         //
-        this.label = CompositeAction.compositeLabel( primaryIndex, secondaryIndex );
+        this.label = CompositeAction.compositeLabel( leftAction, rightAction );
+        this.symbols = [ CompositeAction.compositeSymbol( leftAction, rightAction ) ];
         this.alias = [];
 
         if ( autoInit ) {
@@ -233,9 +163,9 @@ class CompositeAction extends ActionElement {
     indexPoint( point ) {
 
         var wayPoint = this.reverse
-            ? this.secondaryIndex.applyInverse( point )
-            : this.secondaryIndex.apply( point );
-        var endPoint = this.primaryIndex.apply( wayPoint );
+            ? this.rightAction.applyInverse( point )
+            : this.rightAction.apply( point );
+        var endPoint = this.leftAction.apply( wayPoint );
 
         // global ids
         const id = point.id;
@@ -435,64 +365,9 @@ class IndexedBox {
         return keys;
     }
 
-    buildAndInitialiseCompositeIndex( ids ) {
-        return this.buildCompositeIndex( ids );
-    }
-
     findMatchingIndexes( index ) {
         const matches = this.indexPlanes.filter( p => p.equals( index ) );
         matches.sort( IndexedBox.indexSorter  );
         return matches;
-    }
-
-    buildCompositeIndex( ids ) {
-        if ( ids.length < 2 ) {
-            throw new Error( `buildCompositeIndex requires an array of at least length 2: ${ ids }` );
-        }
-
-        function ciName( ids ) {
-            return ids.length > 2
-                ? `( ${ ids[0] } * ` + ciName( ids.slice( 1 ) ) + " )"
-                : `( ${ ids[0] } * ${ ids[1] } )`;
-        }
-
-        const n =  ciName( ids );
-        const existingPlanes = this.indexPlanes.filter( p => p.getLabel() == n );
-
-        if (existingPlanes.length > 0 ) {
-            consoleLog( `existingPlane: ${ n }`);
-            return existingPlanes[0];
-        }
-
-        const id1 = Math.abs( ids[ 1 ] );
-        const inverse1 = ids[ 1 ] < 0;
-
-        const plane = ids.length == 2
-            ? this.indexPlanes[ id1 ]
-            : this.buildCompositeIndex( ids.slice( 1 ) ) ;
-
-        const id0 = Math.abs( ids[ 0 ] );
-        const inverse0 = ids[ 0 ] < 0;
-
-        const ci = new CompositeAction(
-            this.box,
-            this.indexPlanes.length,
-            this.indexPlanes[ id0 ],
-            plane,
-            true
-        );
-
-        ci.initialise();
-        this.indexPlanes.push( ci );
-        return ci;
-    }
-
-    convolve( a, b, indexes ) {
-        indexes = indexes || this.indexPlanes;
-        var locus = b;
-        indexes
-            .map( i => this.indexPlanes[i] )
-            .forEach( index => locus = index.convolve( a, locus ) || locus );
-        return locus;
     }
 }

@@ -513,6 +513,7 @@ class Formula {
             const aliasText = this.getExpressionString();
 
             existingIndexes.forEach( existingIndex => {
+
                 if ( `e * ${ existingIndex }` == aliasText ) {
                 } else if ( existingIndex.alias ) {
                     if ( !existingIndex.alias.includes( aliasText ) ) {
@@ -520,6 +521,12 @@ class Formula {
                     }
                 } else {
                     existingIndex.alias = [ aliasText ];
+                }
+
+                if ( existingIndex.symbols ) {
+                    existingIndex.symbols.push( ...r.symbols );
+                } else {
+                    existingIndex.symbols = [ ...r.symbols ];
                 }
             } );
 
@@ -642,18 +649,18 @@ class OperatorExpression extends Expression {
     }
 
     evaluate(params = {}) {
-        const leftIndex = this.left.evaluate(params);
-        const rightIndex = this.right.evaluate(params);
+        const leftAction = this.left.evaluate(params);
+        const rightAction = this.right.evaluate(params);
 
-        const label = CompositeAction.compositeLabel( leftIndex, rightIndex )
+        const label = CompositeAction.compositeLabel( leftAction, rightAction )
 
         return label in params
             ? params[label]
             : new CompositeAction(
-                leftIndex.box,
+                leftAction.box,
                 Math.round( Math.random() * 10000 + 1),
-                leftIndex,
-                rightIndex,
+                leftAction,
+                rightAction,
                 true
             );
     }

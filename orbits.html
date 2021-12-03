@@ -284,10 +284,10 @@
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             layers: <span id="boxLayerSelectors">
-<!--                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>-->
+                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>
                 <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
-<!--                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>-->
-<!--                <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>-->
+                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
+                <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
             </span>
 
             <label title="generate inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
@@ -321,7 +321,18 @@
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="3"></textarea>
+                <textarea id="compositionFormulas" class="formulaPanel" rows="3"># 3d-0-full ;
+e * a_0; e * a_1; e * a_2;
+a_0^-1; a_1^-1; a_2^-1;
+a_1 * a_0; a_0i * a_1i;
+a_1 * a_2; a_2i * a_1i;
+a_0 * a_1;  a_1i * a_0i;
+a_2 * a_1; a_1i * a_2i;
+a_0 * a_2i; a_2 * a_0i;
+a_0i * a_2; a_2i * a_0;
+a_0 * a_1 * a_2; a_2i * a_0 * a_1; a_1 * a_2 * a_0i;
+a_2 * a_0i * a_1i; a_1i * a_2i * a_0;
+a_0i * a_1i * a_2i</textarea>
                 <label>Results: <textarea id="summaryEditorResult" class="formulaPanel" rows="3" disabled="disabled"></textarea></label>
             </form>
             <div id="summaryEditorErrorMessage" class="difference"></div>

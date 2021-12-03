@@ -6,7 +6,10 @@ var indexMap = {};
 
 
 const pvppIndex = [0];
-
+const PERMUTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
+/*
+    A seed permutation
+*/
 class PlaceValuesPermutation {
     constructor( id, perm = [], bases, volume, forwardFrom = 0 ) {
         this.id = id;
@@ -16,8 +19,9 @@ class PlaceValuesPermutation {
         this.placeValues = placeValuesPermutation( bases, this.perm );
         this.antiPlaceValues = placeValuesPermutation( bases, this.antiPerm );
         this.forwardFrom = forwardFrom;
-        this.idx = new Array( volume ).fill( -1 )
-        this.dix = new Array( volume ).fill( -1 )
+        this.idx = new Array( volume ).fill( -1 );
+        this.dix = new Array( volume ).fill( -1 );
+        this.symbol = PERMUTATION_KEYS[this.id];
     }
     indexOf( coord ) {
         return this.placeValues.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
@@ -36,6 +40,87 @@ class PlaceValuesPermutation {
         this.dix[ antiIndexValue ] = point;
     }
 }
+
+
+
+class Box {
+    constructor( bases ) {
+        this.bases = [...bases];
+        this.rank = this.bases.length;
+        this.volume = getVolume( this.bases );
+
+        const seedPerm = arrayIndexes( this.bases );
+        this.placeValuePermutations = seedPerm
+            .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] )
+            .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+
+        this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
+
+        this.permCount = this.placeValuePermutations.length;
+        this.pairCount = this.permCount  * (this.permCount - 1);
+
+        this.indexRadiance = getIndexRadiance( this.volume );
+        this.euclideanRadiance = getEuclideanRadiance( this.bases );
+
+        // since each coord plus it's reflection in the centre equals the terminal
+        this.sum = this.bases.map( ( x, i ) => ( x - 1 ) * this.volume / 2 );
+
+        // even times odd has to be even
+        this.indexSum = ( this.volume * ( this.volume - 1 ) / 2 );
+        this.indexCentre = ( this.volume - 1 ) / 2;
+
+        // fixed points
+        this.origin = new Array( bases.length ).fill( 0 );
+        this.terminal = this.bases.map( x => x - 1 );
+        this.diagonal = [ this.origin, this.terminal ];
+
+        this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+        this.points = this.buildPoints();
+
+        this.points
+            .forEach( point => {
+                point.conjugate = this.points[ this.volume - point.id - 1];
+                this.placeValuePermutations
+                    .forEach( perm => perm.indexPoint( point ) );
+            } );
+    }
+
+    buildPoints( place = 0, locusStack = [], points = [] ) {
+        if ( place == this.rank ) {
+            const point = new Point( points.length, locusStack, this.centre );
+            points.push( point );
+        } else {
+            for ( var i = 0; i < this.bases[place]; i++) {
+                locusStack.push( i );
+                this.buildPoints( place + 1, locusStack, points );
+                locusStack.pop( i );
+            }
+        }
+        return points;
+    }
+
+    validateIds( ids ) {
+        const invalidIds = ids.filter( id => id < 0 || id >= this.volume )
+        if ( invalidIds.length > 0 ) {
+            throw new Error( `id out of range: ${ invalidIds }; box.volume=${ this.volume }` );
+        }
+    }
+
+    getJson() {
+        return {
+           coordSum: this.sum,
+           idSum: this.indexSum,
+           perms: this.permCount,
+           pairs: this.pairCount
+       };
+    }
+
+    toString() {
+        return JSON.stringify( this.getJson(), null, 4 );
+    }
+}
+
+
 
 
 class PlaceValuesPermutationPair {
@@ -132,6 +217,8 @@ class PlaceValuesPermutationPair {
             [ this.leftPlaceValues, this.rightPlaceValues ]
         ] = members;
 
+        this.symbol = `${ left.symbol }${ this.leftState ? '🠅' : '🠇' }${ right.symbol }${ this.rightState ? '🠅' : '🠇' }`;
+
         this.rank = this.permPair[0].length;
 
         this.identityPlane = this.leftPlaceValues.map( ( x, i ) => this.rightPlaceValues[i] - x );
@@ -195,6 +282,10 @@ class PlaceValuesPermutationPair {
     }
 }
 
+
+
+
+
 const aeElementId = [ 0 ];
 
 class ActionElement {
@@ -209,6 +300,7 @@ class ActionElement {
         this.forwardFrom = 0;
         this.reverseFrom = 0;
         this.label = 'xxx';
+        this.symbols = [];
     }
 
     toString() {

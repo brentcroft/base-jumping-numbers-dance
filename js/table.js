@@ -587,8 +587,8 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     const toggles = param.toggles || [];
 
     const optionalColumns = toggles.includes( "minCols" )
-        ? [ "identity-equation", "monomial" ]
-        : [ "identity-equation", "monomial", "signature" ];
+        ? [ "monomial" ]
+        : [ "identity-equation", "monomial", "signature", "permutation-pair", "place-values-pair" ];
 
     const sep = ", ";
     const tableId = 'indexSummary_table';
@@ -599,11 +599,16 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Symbolic</th>`;
+    if ( optionalColumns.includes(  "permutation-pair" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
+    }
     if ( optionalColumns.includes(  "signature" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Signature</th>`;
     }
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Values Pair</th>`;
+    if ( optionalColumns.includes(  "place-values-pair" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Values Pair</th>`;
+    }
     if ( optionalColumns.includes(  "identity-equation" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
     }
@@ -647,19 +652,28 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             var rowHtml = `<td>${ actionElement.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getLabel() }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ actionAlias }</td>`;
+            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.symbols.join( " = " ) }</td>`;
             if ( actionElement.pair ) {
                 const pair = actionElement.pair;
-                rowHtml += `<td align='center' ${clickAttr}>${ pair }</td>`;
+                if ( optionalColumns.includes(  "permutation-pair" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}>${ pair }</td>`;
+                }
                 if ( optionalColumns.includes(  "signature" ) ) {
                     rowHtml += `<td align='center' ${clickAttr}>${ pair.signature }</td>`;
                 }
-                rowHtml += `<td align='center' ${clickAttr}>[${ pair.leftPlaceValues || '' }], [${ pair.rightPlaceValues || '' }]</td>`;
+                if ( optionalColumns.includes(  "place-values-pair" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}>[${ pair.leftPlaceValues || '' }], [${ pair.rightPlaceValues || '' }]</td>`;
+                }
             } else {
-                rowHtml += `<td align='center' ${clickAttr}></td>`;
+                if ( optionalColumns.includes(  "permutation-pair" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}></td>`;
+                }
                 if ( optionalColumns.includes(  "signature" ) ) {
                     rowHtml += `<td align='center' ${clickAttr}></td>`;
                 }
-                rowHtml += `<td align='center' ${clickAttr}></td>`;
+                if ( optionalColumns.includes(  "place-values-pair" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}></td>`;
+                }
             }
             if ( optionalColumns.includes(  "identity-equation" ) ) {
                 rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getPlaneEquationTx() }</td>`;

@@ -588,7 +588,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
     const optionalColumns = toggles.includes( "minCols" )
         ? [ "monomial" ]
-        : [ "identity-equation", "monomial", "signature", "permutation-pair", "place-values-pair" ];
+        : [ "identity-equation", "monomial", "XXXsignature", "permutation-pair", "place-values-pair" ];
 
     const sep = ", ";
     const tableId = 'indexSummary_table';
@@ -601,21 +601,21 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Symbolic</th>`;
     if ( optionalColumns.includes(  "permutation-pair" ) ) {
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutation Pair</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutations</th>`;
     }
     if ( optionalColumns.includes(  "signature" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Signature</th>`;
     }
     if ( optionalColumns.includes(  "place-values-pair" ) ) {
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Values Pair</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Values</th>`;
     }
     if ( optionalColumns.includes(  "identity-equation" ) ) {
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Equation</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity</th>`;
     }
     if ( optionalColumns.includes( "monomial" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Cycle Monomial</th>`;
     }
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identities</th>`;
+    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Fixed Points</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Per<sup>2</sup></th>`;

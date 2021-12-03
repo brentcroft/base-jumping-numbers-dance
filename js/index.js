@@ -49,10 +49,38 @@ class Box {
         this.rank = this.bases.length;
         this.volume = getVolume( this.bases );
 
-        const seedPerm = arrayIndexes( this.bases );
-        this.placeValuePermutations = seedPerm
-            .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] )
-            .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+
+        const perm = arrayIndexes( this.bases );
+        const seedPerms = [ perm ];
+
+        switch( this.rank ) {
+
+            case 1:
+            case 2:
+                this.placeValuePermutations = seedPerms
+                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+                break;
+
+            case 3:
+                this.placeValuePermutations = seedPerms
+                    .flatMap( seedPerm => seedPerm
+                        .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] ) )
+                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+
+                break;
+
+            case 4:
+                seedPerms.push( [ perm[0], perm[2], perm[1], perm[3] ] );
+
+                this.placeValuePermutations = seedPerms
+                    .flatMap( seedPerm => seedPerm
+                        .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] ) )
+                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+
+                break;
+
+            default:
+        }
 
         this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
 
@@ -201,7 +229,7 @@ class PlaceValuesPermutationPair {
         return "[" + this.permPair.map( p => p.join(", ") ).join( "], [" ) + "]";
     }
 
-    constructor( id, bases = [ 1 ], left, right, state = [ false, false ], inversePair ) {
+    constructor( id, bases = [ 1 ], left, right, state = [ false, false ], inversePair, harmonic ) {
         this.key = pvppIndex[0]++;
         this.id = id;
         this.bases = bases;
@@ -253,15 +281,15 @@ class PlaceValuesPermutationPair {
 //            this.degenerate = indicatesIdentity( this );
 //        }
 
-        this.harmonic = false;
+        this.harmonic = harmonic;
 
-        if ( this.echo > 1 && !this.palindrome ) {
-            if ( this.alignedWeights.length > 0 ) {
-                if ( this.alignedWeights[0] != ( this.rank - this.alignedPlaces.length ) ) {
-                    this.harmonic = true;
-                }
-            }
-        }
+//        if ( this.echo > 1 && !this.palindrome ) {
+//            if ( this.alignedWeights.length > 0 ) {
+//                if ( this.alignedWeights[0] != ( this.rank - this.alignedPlaces.length ) ) {
+//                    this.harmonic = true;
+//                }
+//            }
+//        }
 
         var report = "";
         report += `(${ this.palindrome ? 'p' : this.alignedPlaces.length }) `;
@@ -373,11 +401,17 @@ class ActionElement {
                 }
                 const otherPoints = otherOrbit.points;
                 const offset = otherPoints.indexOf( orbit.points[0] );
+
                 for ( var i = 0; i < otherPoints.length; i++ ) {
                     if ( orbit.points[i] != otherPoints[ ( i + offset ) % otherPoints.length ] ) {
                         return false;
                     }
                 }
+                if ( offset > 0 ) {
+                    //consoleLog( `offset > 0: ${ offset }; \n${ orbit.toString() }\n${ otherOrbit.toString() }`);
+                    return true;
+                }
+
                 return true;
             } );
 

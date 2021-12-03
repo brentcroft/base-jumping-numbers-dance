@@ -210,8 +210,8 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="7"/>x
-                <input type="number" min="1" id="b1" value="5"/>x
-                <input type="number" min="1" id="b2" value="3"/>x
+                <input type="number" min="1" id="b1" value="3"/>x
+                <input type="number" min="1" id="b2" value="2"/>x
                 <input type="number" min="1" id="b3" value="2"/>
             </span> |
 
@@ -235,7 +235,8 @@
                 <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
-                <label title="minimal columns">min-cols <input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
+                <label title="minimal columns">min-cols<input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
+                <label title="radiance excludes terminal fixed points">fixed-rad<input type="checkbox" id="fixedRadToggle" onchange="updatePage()"/></label> |
                 <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
 
                 <div id="colours" style="display: none">
@@ -321,18 +322,15 @@
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="3"># 3d-0-full ;
-e * a_0; e * a_1; e * a_2;
-a_0^-1; a_1^-1; a_2^-1;
-a_1 * a_0; a_0i * a_1i;
-a_1 * a_2; a_2i * a_1i;
-a_0 * a_1;  a_1i * a_0i;
-a_2 * a_1; a_1i * a_2i;
-a_0 * a_2i; a_2 * a_0i;
-a_0i * a_2; a_2i * a_0;
-a_0 * a_1 * a_2; a_2i * a_0 * a_1; a_1 * a_2 * a_0i;
-a_2 * a_0i * a_1i; a_1i * a_2i * a_0;
-a_0i * a_1i * a_2i</textarea>
+                <textarea id="compositionFormulas" class="formulaPanel" rows="3"># 3d-canonical;
+# b constructions;
+a_1 * a_2i; a_2 * a_1i; a_1i * a_2; a_2i * a_1;
+a_0 * a_1i; a_1 * a_0i; a_0i * a_1; a_1i * a_0;
+a_2 * a_0i; a_0 * a_2i; a_2i * a_0; a_0i * a_2;
+# z constructions;
+a_1i * a_2 * a_0i; a_1 * a_2i * a_0;
+a_0i * a_1 * a_2i; a_0 * a_1i * a_2;
+a_2i * a_0 * a_1i; a_2 * a_0i * a_1; </textarea>
                 <label>Results: <textarea id="summaryEditorResult" class="formulaPanel" rows="3" disabled="disabled"></textarea></label>
             </form>
             <div id="summaryEditorErrorMessage" class="difference"></div>

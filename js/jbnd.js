@@ -1,9 +1,6 @@
 
-
-
-
 class RadiantAction extends ActionElement {
-    constructor( box, id = 0 ) {
+    constructor( box, id = 0, enforceTerminalIdentities = false ) {
         super( box, id );
 
         this.forwardFrom = 0;
@@ -20,19 +17,22 @@ class RadiantAction extends ActionElement {
         // establish coord index functions
         this.indexReverse = ( coord ) => {
             const index = this.placesReverse.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
-            // enforce origin and terminal
-            // radiantOriginAndTerminusAreIdentities
-            return index == 0
-                ? this.reverseFrom
-                : index == this.reverseFrom
-                    ? 0
-                    : index;
+
+            if ( enforceTerminalIdentities ) {
+                return index == 0
+                    ? this.reverseFrom
+                    : index == this.reverseFrom
+                        ? 0
+                        : index;
+            } else {
+                return index;
+            }
         };
         this.indexForward = ( coord ) => this.placesForward.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.reverseFrom );
 
         this.label = 'r';
         this.symbols = [];
-        this.alias = ['e^½'];
+        this.alias = [];
         this.idx = [];
         this.dix = [];
     }
@@ -123,9 +123,14 @@ class CompositeAction extends ActionElement {
     }
 
     static compositeSymbol( leftAction, rightAction ) {
+        const one = '1';
         return leftAction.symbols && leftAction.symbols.length > 0
-            ? `${ leftAction.symbols[0] } * ${ rightAction.symbols[0] }`
-            : "1";
+            ? leftAction.symbols[0] == one
+                ? rightAction.symbols[0]
+                : rightAction.symbols[0] == one
+                    ? leftAction.symbols[0]
+                    : `${ leftAction.symbols[0] } * ${ rightAction.symbols[0] }`
+            : one;
     }
 
     constructor( box, id = 0, leftAction, rightAction, autoInit = false, reverse = false ) {
@@ -226,7 +231,7 @@ class IndexedBox {
 
         if (toggles.includes( "radiance" )) {
 
-            this.box.radiance = new RadiantAction( this.box, 0 );
+            this.box.radiance = new RadiantAction( this.box, 0, toggles.includes( "fixedRad" ) );
             this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance );
             this.box.unity.label = 'e';
 
@@ -264,57 +269,46 @@ class IndexedBox {
                     }
                 });
 
-            var downers = 0;
+            var uppers = 0;
 
             pairs( this.box.placeValuePermutations )
                 .forEach( ( pair, i ) => {
-                    const [
-                        du,
-                        ud
-                    ] = [
-                        new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU ),
-                        new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD )
-                    ];
-                    [
-                        du,
-                        ud
-                    ].forEach( pvpp => indexors.push( pvpp ) );
 
-                    const dd = new PlaceValuesPermutationPair( downers, bases, pair[0], pair[1], DD );
-                    const uu = new PlaceValuesPermutationPair( downers + 1, bases, pair[0], pair[1], UU );
-
-                    [
-                        dd,
-                        uu
-                    ].forEach( pvpp => indexors.push( pvpp ) );
+                    const du = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU, null, false );
+                    const duh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, null, true );
 
 
+                    const dd = new PlaceValuesPermutationPair( uppers, bases, pair[0], pair[1], DD );
+                    const uu = new PlaceValuesPermutationPair( uppers + 1, bases, pair[0], pair[1], UU );
+
+                    [ dd, duh, uu, du ].forEach( pvpp => indexors.push( pvpp ) );
 
                     if ( inverses ) {
 
+                        const ud = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD, null, true );
+
                         const [
-                            idu, iud,
+                            iud,
                             idd, iuu
                         ] = [
-                            new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, du ),
-                            new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, ud ),
-                            new PlaceValuesPermutationPair( downers, bases, pair[1], pair[0], DD, dd ),
-                            new PlaceValuesPermutationPair( downers + 1, bases, pair[1], pair[0], UU, uu )
+                            new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, ud, false ),
+                            new PlaceValuesPermutationPair( uppers, bases, pair[1], pair[0], DD, dd ),
+                            new PlaceValuesPermutationPair( uppers + 1, bases, pair[1], pair[0], UU, uu )
                         ];
 
                         [
-                            idu,
+                            ud,
                             iud,
                             idd,
                             iuu
                         ].forEach( pvpp => indexors.push( pvpp ) );
                     }
-                    downers += 2;
+                    uppers += 2;
                 } );
 
             const indexorSorter = ( p1, p2 ) => p1.compareTo( p2 );
 
-            indexors.sort( indexorSorter );
+            //indexors.sort( indexorSorter );
 
             // capture all labels
             this.layerLabels = [];

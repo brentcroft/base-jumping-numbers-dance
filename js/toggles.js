@@ -11,7 +11,6 @@ toggleKeys = {
     centres: 1,
     lines: 1,
     plane: 1,
-    colours: 0,
     grid: 1,
     jumps: 0,
 
@@ -22,10 +21,12 @@ toggleKeys = {
     globalIds: 0,
     conj: 1,
     coords: 0,
-    minCols: 1,
+    minCols: 0,
+    fixedRad: 0,
+    colours: 0,
 
     inverses: 1,
-    harmonics: 1,
+    harmonics: 0,
     degenerates: 1,
     radiance: 1,
     autoFormula: 1,

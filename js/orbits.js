@@ -21,7 +21,6 @@ class Point {
         this.euclideanRadiance = centre ? 2 * distance2( this.coord, centre ) : 0;
         this.indexes = [];
         this.idx = [];
-        this.dix = [];
     }
 
     getJson() {
@@ -36,9 +35,7 @@ class Point {
     getId( id ) {
         return this.idx[id];
     }
-    getDi( di ) {
-        return this.dix[di];
-    }
+
 
     at( indexId ) {
         return this.indexes[ indexId ];
@@ -94,6 +91,11 @@ class Orbit {
         this.conjugate = this;
     }
 
+    toString() {
+        return `(${ this.parent.label }/)orbit: ${ this.index }`;
+    }
+
+
     isIdentity() {
         return this.points.length < 2;
     }
@@ -117,9 +119,6 @@ class Orbit {
             : [ this.points, this.conjugate.points ];
     }
 
-    toString() {
-        return `orbit: ${ this.index }`;
-    }
 
     // INDEX
     indexRadiance() {

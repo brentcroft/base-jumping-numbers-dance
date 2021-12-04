@@ -21,7 +21,7 @@ toggleKeys = {
     globalIds: 0,
     conj: 1,
     coords: 0,
-    minCols: 1,
+    minCols: 0,
     maxCols: 0,
     fixedRad: 0,
     colours: 0,

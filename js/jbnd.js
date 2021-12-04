@@ -1,5 +1,5 @@
 
-class RadiantAction extends ActionElement {
+class RadiantAction extends BoxAction {
     constructor( box, id = 0, enforceTerminalIdentities = false ) {
         super( box, id );
 
@@ -73,7 +73,7 @@ class RadiantAction extends ActionElement {
 
 const pvaIndex = [0];
 
-class PlaceValuesAction extends ActionElement {
+class PlaceValuesAction extends BoxAction {
     constructor( box, id = 0, placeValuesPermutationPair ) {
         super( box, id );
         this.pair = placeValuesPermutationPair;
@@ -115,7 +115,7 @@ class PlaceValuesAction extends ActionElement {
     }
 }
 
-class CompositeAction extends ActionElement {
+class CompositeAction extends BoxAction {
 
     static compositeLabel( leftAction, rightAction ) {
         return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
@@ -253,6 +253,7 @@ class IndexedBox {
 
             var identityId = 0;
             var palindromeId = 0;
+
             this.box.placeValuePermutations
                 .forEach( ( pvp, i ) => {
 
@@ -290,24 +291,23 @@ class IndexedBox {
                     dd = new PlaceValuesPermutationPair( uppers, bases, pair[0], pair[1], DD );
                     uu = new PlaceValuesPermutationPair( uppers + 1, bases, pair[0], pair[1], UU );
 
-                    du = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU, null, false );
-
-                    duh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, null, true );
+                    idu = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD, duh, false );
+                    iduh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, du, true );
 
                     if ( inverses ) {
                         idd = new PlaceValuesPermutationPair( uppers, bases, pair[1], pair[0], DD, dd );
                         iuu = new PlaceValuesPermutationPair( uppers + 1, bases, pair[1], pair[0], UU, uu );
 
                         // swap places && swap state
-                        idu = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], UD, duh, true );
-                        iduh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], UD, du, false );
+                        duh = new PlaceValuesPermutationPair( i, bases, pair[1], pair[0], DU, iduh, false );
+                        du = new PlaceValuesPermutationPair( i, bases, pair[0], pair[1], DU, idu, true );
                     }
 
                     [ dd, idd, uu, iuu ]
                         .filter( p => p )
                         .forEach( p => indexors.push( p ) );
 
-                    [ du, duh, idu, iduh ]
+                    [ idu, iduh, duh, du ]
                         .filter( p => p )
                         .forEach( p => indexors.push( p ) );
 

@@ -64,10 +64,15 @@ function getControlValues() {
         ? JSON.parse( document.getElementById( 'monomialFilter' ).value )
         : 0;
 
+    const filterLayers = [];
+    document
+            .querySelectorAll( ".box-layer-control-filter" )
+            .forEach( blc => blc.checked ? filterLayers.push( Number( blc.value ) ) : 0 );
+
     const actionLayers = [];
     document
             .querySelectorAll( ".box-layer-control" )
-            .forEach( blc => blc.checked ? actionLayers.push( Number( blc.value ) ): 0 );
+            .forEach( blc => blc.checked ? actionLayers.push( Number( blc.value ) ) : 0 );
 
     const currentToggles = Object
             .keys( toggleKeys )
@@ -76,6 +81,7 @@ function getControlValues() {
     return {
         actionIndex: actionIndex,
         actionLayers: actionLayers,
+        filterLayers: filterLayers,
         monomialFilter: monomialFilter,
         bases: bases,
         toggles: currentToggles
@@ -326,8 +332,7 @@ function processFormula( compositionFormulasText ) {
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
-                        const result = f.evaluate( { dump: dump, label: label } );
-                        return [ f, result ];
+                        return [ f, f.evaluate( { dump: dump, label: label } ) ];
                     } catch ( e ) {
                         consoleLog( e );
                         return [ f, e ];
@@ -426,92 +431,91 @@ function rebuildIndexedBoxSummary( indexedBox, param ) {
 }
 
 
-function buildBoxLayersSelectors( indexedBox, param ) {
+function buildBoxLayersSelectors( indexedBox, param, containerId = "boxLayerSelectors", filter = false ) {
 
-    const container = document.getElementById( "boxLayerSelectors" );
+    const container = document.getElementById( containerId );
     while (container.firstChild ) {
         container.removeChild( container.lastChild );
     }
 
-    const switchAllLayersOn = () => {
-        document
-                .querySelectorAll( ".box-layer-control" )
-                .forEach( blc => {
-                    if ( blc.value == "*" ) {
-                       blc.checked = false;
-                    } else if ( !blc.checked ) {
-                        blc.checked = true;
+    if ( !filter ) {
+        const switchAllLayersOn = () => {
+            document
+                    .querySelectorAll( ".box-layer-control" )
+                    .forEach( blc => {
+                        if ( blc.value == "*" ) {
+                           blc.checked = false;
+                        } else if ( !blc.checked ) {
+                            blc.checked = true;
+                        }
+                    } );
+            [ "inversesToggle", "harmonicsToggle", "degeneratesToggle" ]
+                .forEach( toggleId => {
+                    const toggle = document.getElementById( toggleId );
+                    if ( !toggle.checked ) {
+                        toggle.checked = true;
                     }
                 } );
-        [ "inversesToggle", "harmonicsToggle", "degeneratesToggle" ]
-            .forEach( toggleId => {
-                const toggle = document.getElementById( toggleId );
-                if ( !toggle.checked ) {
-                    toggle.checked = true;
-                }
-            } );
-        updatePage();
-    };
+            updatePage();
+        };
 
-
-    container
-        .appendChild(
-            reify( "label", { "title": "All layers" },
-                [
-                    reify( "text", {}, [], [ t => t.innerHTML = "*" ] ),
-                    reify( "input",
-                        {
-                            "id": "box-layer.*",
-                            "type": "checkbox",
-                            "class": "box-layer-control",
-                            "value": "*"
-                        }, [], [
-                            (control) => control.onchange = switchAllLayersOn
-                        ]
-                    )
-                ]
-            )
-        );
+        container
+            .appendChild(
+                reify( "label", { "title": "All layers" },
+                    [
+                        reify( "text", {}, [], [ t => t.innerHTML = "*" ] ),
+                        reify( "input",
+                            {
+                                "id": "box-layer.*",
+                                "type": "checkbox",
+                                "class": "box-layer-control",
+                                "value": "*"
+                            }, [], [
+                                (control) => control.onchange = switchAllLayersOn
+                            ]
+                        )
+                    ]
+                )
+            );
+    }
 
     if ( indexedBox.layerLabels ) {
         container.append( " | " );
         const actionLayers = param.actionLayers || [];
+        const filterLayers = param.filterLayers || [];
         indexedBox.layerLabels.forEach( ( layerLabel, i ) => {
             const [ id, label ] = layerLabel;
             container.append( " " );
             const checked = actionLayers.includes( id );
-            container
-                .appendChild(
-                    reify(
-                        "label",
-                        { "title": `${ label }` },
-                        [
-                            reify( "text", {}, [], [ t => t.innerHTML = `${ label }` ] ),
-                            reify(
-                                "input",
-                                {
-                                    "id": "box-layer." + i,
-                                    "type": "checkbox",
-                                    "class": "box-layer-control",
-                                    "value": id
-                                },
-                                [],
-                                [
-                                    (control) => control.checked = checked,
-                                    (control) => control.onchange = updatePage
-                                ]
-                            )
-                        ]
-                    )
-                );
+            if (!filter || checked) {
+                container
+                    .appendChild(
+                        reify(
+                            "label",
+                            { "title": `${ label }${ filter ? " filter" : "" }` },
+                            [
+                                reify( "text", {}, [], [ t => t.innerHTML = `${ label }` ] ),
+                                reify(
+                                    "input",
+                                    {
+                                        "id": `box-layer${ filter ? ".filter" : "" }.${ i }`,
+                                        "type": "checkbox",
+                                        "class": `box-layer-control${ filter ? "-filter" : "" }`,
+                                        "value": id
+                                    },
+                                    [],
+                                    [
+                                        (control) => control.checked = filter ? filterLayers.includes( id ) : checked,
+                                        (control) => control.onchange = updatePage
+                                    ]
+                                )
+                            ]
+                        )
+                    );
+            }
         } );
     }
-    container.append( " | " );
 }
-
-
-
-
 
 
 function buildCompositionSelectors( indexedBox, param ) {
@@ -557,12 +561,14 @@ function updatePage() {
             .value = indexedBox.box.volume;
 
     buildBoxLayersSelectors( indexedBox, param );
+    buildBoxLayersSelectors( indexedBox, param, "boxLayerFilterSelectors", true );
+
     buildCompositionSelectors( indexedBox, param );
     rebuildIndexedBoxSummary( indexedBox, param );
 
     selectBoxAction();
 
-    if ( param.toggles.includes( "autoFormula" ) ) {
+    if ( param.toggles.includes( "autoCompose" ) ) {
         const compositionFormulas = document.getElementById( "compositionFormulas" ).value;
         processFormula( compositionFormulas );
     }
@@ -674,7 +680,7 @@ function initPage( urlParam = true ) {
                     showIndex( "indexSummary", data.sender );
                     updateJson();
                 } else {
-                    consoleLog( `Select ActionElement: No such index: ${ data.indexKey }` );
+                    consoleLog( `Select BoxAction: No such index: ${ data.indexKey }` );
                 }
 
             } else if ( data.basePlaneKey ) {

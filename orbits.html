@@ -236,6 +236,7 @@
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
                 <label title="minimal columns">min-cols<input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
+                <label title="maximal columns">max-cols<input type="checkbox" id="maxColsToggle" onchange="updatePage()"/></label> |
                 <label title="radiance excludes terminal fixed points">fixed-rad<input type="checkbox" id="fixedRadToggle" onchange="updatePage()"/></label> |
                 <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
 
@@ -289,7 +290,7 @@
                 <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
                 <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
                 <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
-            </span>
+            </span> |
 
             <label title="generate inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
             <label title="generate harmonics">harmonics<input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
@@ -297,12 +298,14 @@
             <label title="generate radiance">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
             <label title="display filter controls">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
             <label title="display compose controls">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
-            <label title="auto compose">auto compose<input type="checkbox" id="autoFormulaToggle" onchange="updatePage()"/></label>
+            <label title="auto compose">auto compose<input type="checkbox" id="autoComposeToggle" onchange="updatePage()"/></label>
         </div>
 
         <div id="monomialFilterControls" style="display: none" class="summaryLeft">
+            Filter:
             <label title="Filter actions by monomial">
-                Monomial: <span id="monomialFilterDisplay"><font color="red"><i>(no monomial selected)</i></font></span>
+                monomial<input type="checkbox" id="monomialFilterEnabled" onchange="disableCheckBoxIfNoFilterElseUpdatePage( this )" value=""/>
+                <span id="monomialFilterDisplay"><font color="red"><i>(no monomial selected)</i></font></span>
                 <script>
                     function disableCheckBoxIfNoFilterElseUpdatePage( control ) {
                         const filterText = document.getElementById( "monomialFilter" ).value;
@@ -313,10 +316,11 @@
                         }
                     }
                 </script>
-                <input type="checkbox" id="monomialFilterEnabled" onchange="disableCheckBoxIfNoFilterElseUpdatePage( this )" value=""/>enable
+                <input type="text" id="monomialFilter" style="display: none"/>
             </label>
-            <span id="boxLayerFilterSelectors"></span>
-            <input type="text" id="monomialFilter" style="display: none"/>
+            <span id="boxLayerFilterSelectors">
+                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>
+            </span>
         </div>
 
         <div id="indexComposer" style="display: none" class="summaryLeft">

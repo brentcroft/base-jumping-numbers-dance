@@ -283,14 +283,6 @@ class PlaceValuesPermutationPair {
 
         this.harmonic = harmonic;
 
-//        if ( this.echo > 1 && !this.palindrome ) {
-//            if ( this.alignedWeights.length > 0 ) {
-//                if ( this.alignedWeights[0] != ( this.rank - this.alignedPlaces.length ) ) {
-//                    this.harmonic = true;
-//                }
-//            }
-//        }
-
         var report = "";
         report += `(${ this.palindrome ? 'p' : this.alignedPlaces.length }) `;
         report += `${ this.leftState ? 'u' : 'd' }${ this.rightState ? 'u' : 'd' } `;
@@ -316,11 +308,13 @@ class PlaceValuesPermutationPair {
 
 const aeElementId = [ 0 ];
 
-class ActionElement {
+class BoxAction {
 
     constructor( box, id = 0 ) {
         this.box = box;
         this.id = id;
+
+        // todo: who is using this
         this.key = aeElementId[0]++;
 
         this.cycleIndexMonomial = [];
@@ -421,7 +415,7 @@ class ActionElement {
     apply( point ) {
         const p = this.pointAt( point );
         if (!p) {
-            throw new Error( `ActionElement ${ this.id } has no entry for the point: ${ point }.` );
+            throw new Error( `BoxAction ${ this.id } has no entry for the point: ${ point }.` );
         }
         return this.getPointFromIdx( p.di );
     }
@@ -473,8 +467,6 @@ class ActionElement {
     indexPoint( point ) {
         throw new Error("Abstract method.");
     }
-
-
 
     buildOrbits() {
         this.identities = [];
@@ -550,8 +542,7 @@ class ActionElement {
 
                 if ( !antipodesCoord ) {
                     const msg = `Bad point no conjugate: ${ point }`;
-                    cconsoleLog( msg );
-                    //break;
+                    consoleLog( msg );
                     throw new Error( msg );
                 }
 
@@ -582,7 +573,6 @@ class ActionElement {
     }
 
     analyzeOrbits() {
-
         var totalEuclideanRadiance = 0;
         var totalEuclideanPerimeter = 0;
         var totalIndexRadiance = 0;
@@ -709,20 +699,10 @@ class ActionElement {
     }
 
     getPlaneEquationTx() {
-        const basis = this.identityPlane.length;
-        const varIds = ( d ) => [
-                "x", "y", "z", "w", "v", "u", "t", "s", "r", "q", "p"
-            ].map( x => `<i>${ x }</i>` )[d];
-
-        const plane = this.identityPlane.map( x => x );
-
-        var eqn = plane
+        const varIds = ( d ) => [ "x", "y", "z", "w", "v", "u", "t", "s", "r", "q", "p" ].map( x => `<i>${ x }</i>` )[d];
+        return this.identityPlane
               .map( ( x, i ) => `${ x < 0 ? i == 0 ? " " : " + " : " - " }${ Math.abs( x ) }${ varIds( i ) }` )
-              .join("");
-
-        eqn += ` = ${ this.reverseFrom - this.forwardFrom }`;
-
-        return eqn;
+              .join("") + ` = ${ this.reverseFrom - this.forwardFrom }`;
     }
 
     getJson() {

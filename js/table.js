@@ -577,18 +577,25 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
     //consoleLog( `drawBoxSummaryTable: id=${ JSON.stringify( param ) }` );
 
-    var monomialFilter = param.monomialFilter || 0
+    var monomialFilter = param.monomialFilter || 0;
     monomialFilter = Object.keys( monomialFilter ).length == 0
         ? 0
         : monomialFilter;
 
+    var filterLayers = param.filterLayers || [];
 
     const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
-    const optionalColumns = toggles.includes( "minCols" )
-        ? [ "monomial" ]
-        : [ "identity-equation", "monomial", "XXXsignature", "permutation-pair", "place-values-pair" ];
+    const optionalColumns = [ "monomial", "identity-equation", "composition" ];
+
+    if ( toggles.includes( "minCols" ) ) {
+        optionalColumns.pop();
+        optionalColumns.pop();
+    }
+    if ( toggles.includes( "maxCols" ) ) {
+        optionalColumns.push( "permutation-pair", "place-values-pair" );
+    }
 
     const sep = ", ";
     const tableId = 'indexSummary_table';
@@ -598,7 +605,9 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     dataHtml += `<table id='${ tableId }' class='chain-details summary sortable'><caption>Actions</caption><tr>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Id</th>`;
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Label</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
+    if ( optionalColumns.includes(  "composition" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Composition</th>`;
+    }
     dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Symbolic</th>`;
     if ( optionalColumns.includes(  "permutation-pair" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Permutations</th>`;
@@ -610,7 +619,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Place Values</th>`;
     }
     if ( optionalColumns.includes(  "identity-equation" ) ) {
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Surface</th>`;
     }
     if ( optionalColumns.includes( "monomial" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Cycle Monomial</th>`;
@@ -636,7 +645,8 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
     dataHtml += indexedBox
         .indexPlanes
-        .filter( actionElement => !monomialFilter || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
+        .filter( actionElement => actionElement instanceof CompositeAction || filterLayers.length == 0 || filterLayers.includes( actionElement.pair.layer ) )
+        .filter( actionElement => actionElement instanceof CompositeAction || !monomialFilter || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
         .map( actionElement => {
 
             totalRows++;
@@ -651,7 +661,9 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
             var rowHtml = `<td>${ actionElement.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getLabel() }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ actionAlias }</td>`;
+            if ( optionalColumns.includes(  "composition" ) ) {
+                rowHtml += `<td align='center' ${clickAttr}>${ actionAlias }</td>`;
+            }
             rowHtml += `<td align='center' ${clickAttr}>${ actionElement.symbols.join( " = " ) }</td>`;
             if ( actionElement.pair ) {
                 const pair = actionElement.pair;

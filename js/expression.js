@@ -129,46 +129,6 @@ class Formula {
         return s;
     }
 
-    /**
-     * Parses the given formula string by using a state machine into a single Expression object,
-     * which represents an expression tree (aka AST).
-     *
-     * First, we split the string into 'expression': An expression can be:
-     *   - a number, e.g. '3.45'
-     *   - an unknown variable, e.g. 'x'
-     *   - a single char operator, such as '*','+' etc...
-     *   - a named variable, in [], e.g. [myvar]
-     *   - a function, such as sin(x)
-     *   - a parenthessed expression, containing other expressions
-     *
-     * We want to create an expression tree out of the string. This is done in 2 stages:
-     * 1. form single expressions from the string: parse the string into known expression objects:
-     *   - numbers/variables
-     *   - operators
-     *   - braces (with a sub-expression)
-     *   - functions (with sub-expressions (aka argument expressions))
-     *   This will lead to an array of expressions.
-     *  As an example:
-     *  "2 + 3 * (4 + 3 ^ 5) * sin(PI * x)" forms an array of the following expressions:
-     *  `[2, +, 3, *, bracketExpr(4,+,3,^,5), * , functionExpr(PI,*,x)]`
-     * 2. From the raw expression array we form an expression tree by evaluating the expressions in the correct order:
-     *    e.g.:
-     *  the expression array `[2, +, 3, *, bracketExpr(4,+,3,^,5), * , functionExpr(PI,*,x)]` will be transformed into the expression tree:
-     *  ```
-     *         root expr:  (+)
-     *                     / \
-     *                    2    (*)
-     *                        / \
-     *                     (*)  functionExpr(...)
-     *                     / \
-     *                    3   (bracket(..))
-     * ```
-     *
-     * In the end, we have a single root expression node, which then can be evaluated in the evaluate() function.
-     *
-     * @param {String} str The formula string, e.g. '3*sin(PI/x)'
-     * @returns {Expression} An expression object, representing the expression tree
-     */
     parse(str) {
         // clean the input string first. spaces, math constant replacements etc.:
         str = this.cleanupInputString(str);
@@ -492,6 +452,7 @@ class Formula {
         return expr.evaluate({ ...this.indexedBox.getIndexMap(), ...valueObj });
     }
 
+    // todo: externalize work on indexedBox
     evaluate(valueObj) {
         const r = this._evaluate(valueObj);
 
@@ -524,7 +485,9 @@ class Formula {
                 }
 
                 if ( existingIndex.symbols ) {
-                    existingIndex.symbols.push( ...r.symbols );
+                    r.symbols
+                        .filter( symbol => !existingIndex.symbols.includes( symbol ) )
+                        .forEach( symbol => existingIndex.symbols.push( symbol ) );
                 } else {
                     existingIndex.symbols = [ ...r.symbols ];
                 }

@@ -1,6 +1,8 @@
 <html>
 <head>
     <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/jbnd.css">
+
     <script type="text/javascript" src="js/data.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
@@ -12,217 +14,333 @@
     <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
     <script type="text/javascript" src="js/3d.js"></script>
-    <script
-            id="MathJax-script"
-            type="text/javascript"
-            async
-            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML">
-    </script>
+
     <script>
-            MathJax = {
-              tex: {
-                tags: 'ams'
-              }
-            };
+        function drawBoxItems( bases = [ 3, 5 ] ) {
 
+            const box = new Box( bases );
+            const columns = box
+                .points
+                .map( p => [
+                    p.idx[0] == p.idx[1] ? ' class="fixed-point"' : '',
+                    p.idx[0],
+                    p.idx[1] ] );
 
+            const upRow = columns
+                .map( x => `<td${ x[0] }>${ x[1] }</td>` )
+                .join( "\n" );
 
-    </script>
-    <style>
-            body {
-                font-family: Arial, Helvetica, sans-serif;
-                width: 80%;
-                font-size: 80%;
-                padding: 20pt;
-            }
+            const downRow = columns
+                .map( x => `<td${ x[0] }>${ x[2] }</td>` )
+                .join( "\n" );
 
-            .small {
-                font: italic 40% sans-serif;
-            }
-
-            th {
-                vertical-align: bottom;
-            }
-
-            .pagebreak {
-                min-height: 1px;
-                page-break-before: always;
-            }
-
-            .equation-list { list-style-type: none; }
-            .equation-list li { padding: 6pt; }
-
-
-            .place-values-table {
-                font-size: 90%;
-            }
-
-            .places-values-spacer {
-                border-bottom: dotted 1px;
-            }
-
-            th.places-left  {
-                border-bottom: dashed 1px;
-            }
-            th.places-right  {
-                border-bottom: dashed 1px;
-            }
-
-            th.tally-value  {
-                border-bottom: dashed 1px;
-                text-align: center;
-                font-style: italic;
-                font-weight: normal;
-            }
-            td.tally-value {
-                text-align: center;
-                font-weight: normal;
-                font-style: italic;
-                font-weight: bold;
-                background: LemonChiffon;
-            }
-
-            .places-left {
-                text-align: center;
-                font-weight: normal;
-            }
-            .places-right {
-                text-align: center;
-                font-weight: normal;
-            }
-
-            .box-text {
-                font-weight: bold;
-            }
-
-            table.raw-permutation  {
-            }
-
-            table.raw-permutations  {
-                font-weight: bold;
-                padding: 20px;
-            }
-
-            table.raw-permutation td {
-                text-align: center;
-                font-weight: bold;
-                padding: 5px;
-                margin: 10px;
-            }
-
-            table.raw-permutation tr:first-child td {
-                border-bottom: dotted 1px;
-            }
-
-            table.raw-permutation td {
-                border-left: dotted 1px;
-                width: 20px;
-            }
-
-            table.raw-permutation td:first-child {
-                border-left: 0px;
-            }
-
-            .fixed-point {
-                color: red;
-            }
-
-            ol.raw-permutation li {
-              #list-style: symbols(cyclic "&alpha;" "&beta;");
-              list-style-type: lower-greek;
-            }
-
-
-
-            .minuend {
-                color: blue;
-            }
-
-            .chain-details { font-size: 90%; border-top: solid 1px black; }
-            .chain-details tr { vertical-align: top; }
-            .chain-details tr:nth-child(even) { background: Ivory; }
-            .chain-details tr:nth-child(odd) { background: WhiteSmoke; }
-            .chain-details tr:last-child td { border-top: double 1px; }
-            .chain-details td { text-align: center; padding-left: 25px; padding-right: 25px; }
-
-
-
-    </style>
-    <script>
-            function drawBoxItems( bases = [ 3, 5 ] ) {
-
-                const box = new Box( bases );
-                const columns = box
-                    .points
-                    .map( p => [
-                        p.idx[0] == p.idx[1] ? ' class="fixed-point"' : '',
-                        p.idx[0],
-                        p.idx[1] ] );
-
-                const upRow = columns
-                    .map( x => `<td${ x[0] }>${ x[1] }</td>` )
-                    .join( "\n" );
-
-                const downRow = columns
-                    .map( x => `<td${ x[0] }>${ x[2] }</td>` )
-                    .join( "\n" );
-
-                return `<table class="raw-permutation"><tr>${ downRow }</tr><tr>${ upRow }</tr></table>`;
-            }
-
-
-
+            return `<table class="raw-permutation"><tr>${ downRow }</tr><tr>${ upRow }</tr></table>`;
+        }
     </script>
 </head>
 <body>
-    <h1>Thinking inside the box</h1>
+    <h1>Thinking inside the Box</h1>
 
     <h2>Tally Ho!</h2>
     To tally a box means to systematically count the items (or points) inside.
     <br/>
     <br/>
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-0.5 -0.5 0" scale="1 1 1">
+                    <inline url="x3d/grid-7x5x3.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+
+
     The process seems obvious:
-    <ol>
+    <ol type="I">
         <li>assign an initial tally value of 0</li>
         <li>
             unpack each point
-            <ol>
+            <ol type="i">
                 <li>assign the current tally value to the current point</li>
                 <li>increase the tally by 1</li>
             </ol>
         </li>
-        <li>collect the final tally (increased by 1 after the final point)</li>
-        <li>assert the final tally is equal to the volume of the box</li>
+        <li>collect the final tally</li>
+        <li>assert that the final tally is equal to the volume of the box</li>
     </ol>
+
     At the end of the process,
     each point will have been assigned a unique tally value,
-    an index value,
-    from 0 up to one less than the volume of the box.
+    from 0 up to one less than the volume of the box - an index value.
     <br/>
     <br/>
+    This article will consider:
+    <ul type="square">
+        <li>the different ways to tally/index a box - place value tables</li>
+        <li>the relationships between different place value tables - resonances</li>
+        <li>the group actions that arise</li>
+        <li>a physical interpretation as energy quanta and spin</li>
+    </ul>
 
-    <h2>Two dimensional boxes</h2>
+    <h3>Place Value Tables</h3>
 
-    There are two ways to unpack the two-dimensional box <span class="box-text">5 x 3</span>;
-    either counting 5 lots of 3, or as 3 lots of 5.
+    A place value table is familiar in base 10 as representing
+    the sum of completed powers of 10;
+    a fragment of the table for the box <span class="box-text">10 x 10 x 10</span> is shown below:
+
+    <table class="place-values-table">
+        <tr>
+            <th class="places-left">100's</th>
+            <th class="places-left">10's</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+        </tr>
+        <tr>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+        </tr>
+        <tr>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">10</th>
+        </tr>
+        <tr>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">100</th>
+        </tr>
+        <tr>
+            <th class="places-left">9</th>
+            <th class="places-left">9</th>
+            <th class="places-left">9</th>
+            <th class="tally-value">(10<sup>3</sup> - 1)</th>
+        </tr>
+    </table>
     <br/>
+    Every point occurs as a row in the table
+    and each row provides a coordinate for the point.
     <br/>
-    Clearly, each way must tally to the same volume,
-    but each way can assign different tally values to some points.
-    <br/>
-    <br/>
-    This is seen by aligning some rows from the corresponding place values tables:
+    <div class="pagebreak">&nbsp;</div>
+
+    For an arbitrary box in 3 dimensions, say <span class="box-text">a x b x c</span>,
+    six distinct place value tables can be constructed:
     <br/>
     <br/>
     <table class="place-values-table">
         <tr>
-            <th class="places-left">fives</th>
+            <th class="places-left">(a x b)</th>
+            <th class="places-left">a</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(b x c)</th>
+            <th class="places-left">b</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(c x a)</th>
+            <th class="places-left">c</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+        </tr>
+        <tr>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+        </tr>
+        <tr>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">a</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">b</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">c</th>
+        </tr>
+        <tr>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">(a x b)</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">(b x c)</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">(c x a)</th>
+        </tr>
+        <tr>
+            <th class="places-left">(c - 1)</th>
+            <th class="places-left">(b - 1)</th>
+            <th class="places-left">(a - 1)</th>
+            <th class="tally-value">(a x b x c) - 1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(a - 1)</th>
+            <th class="places-left">(c - 1)</th>
+            <th class="places-left">(b - 1)</th>
+            <th class="tally-value">(a x b x c) - 1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(b - 1)</th>
+            <th class="places-left">(a - 1)</th>
+            <th class="places-left">(c - 1)</th>
+            <th class="tally-value">(a x b x c) - 1</th>
+        </tr>
+    </table>
+    <br/>
+    <br/>
+    <table class="place-values-table">
+        <tr>
+            <th class="places-left">(a x b)</th>
+            <th class="places-left">b</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(b x c)</th>
+            <th class="places-left">c</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(c x a)</th>
+            <th class="places-left">a</th>
+            <th class="places-left">units</th>
+            <th class="tally-value">value</th>
+        </tr>
+        <tr>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="tally-value">1</th>
+        </tr>
+        <tr>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">b</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">c</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">0</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">a</th>
+        </tr>
+        <tr>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">(a x b)</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">(b x c)</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">1</th>
+            <th class="places-left">0</th>
+            <th class="places-left">0</th>
+            <th class="tally-value">(c x a)</th>
+        </tr>
+        <tr>
+            <th class="places-left">(c - 1)</th>
+            <th class="places-left">(a - 1)</th>
+            <th class="places-left">(b - 1)</th>
+            <th class="tally-value">(a x b x c) - 1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(a - 1)</th>
+            <th class="places-left">(b - 1)</th>
+            <th class="places-left">(c - 1)</th>
+            <th class="tally-value">(a x b x c) - 1</th>
+            <th>&nbsp;&nbsp;&nbsp;</th>
+            <th class="places-left">(b - 1)</th>
+            <th class="places-left">(c - 1)</th>
+            <th class="places-left">(a - 1)</th>
+            <th class="tally-value">(a x b x c) - 1</th>
+        </tr>
+    </table>
+    <br/>
+
+    <h3>Conjugate Points and Radiance</h3>
+    Two points are conjugate when they are symmetrically opposite each other, with respect to the centre of the box.
+    <br/>
+    <br/>
+    <ul>
+        <li>the radiance of a point is the square of the euclidean distance from the point to it's conjugate point.</li>
+        <li>the sum of the radiance of every point in a box gives the total radiance of the box</li>
+        <li>the total radiance of the box represents a maximum energy that can be contained in the box</li>
+    </ul>
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-0.5 -0.5 0" scale="1 1 1">
+                    <inline url="x3d/grid-7x5x3.rad.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+    <!--
+
+
+
+    -->
+    <h2 class="pagebreak">Two Dimensional Boxes</h2>
+
+    There are two ways to unpack the two-dimensional box <span class="box-text">5 x 3</span>;
+    either counting 5 lots of 3, or 3 lots of 5.
+    Either way must tally to the same volume,
+    but each way may assign different tally values to some points.
+    This is seen by aligning rows from corresponding place values tables
+    (NB: the second place table is reversed):
+    <br/>
+    <br/>
+    <table class="place-values-table">
+        <tr>
+            <th class="places-left">5's</th>
             <th class="places-left">units</th>
             <th class="tally-value">(tally)</th>
             <th>&nbsp;</th>
             <th class="tally-value">(tally)</th>
             <th class="places-right">units</th>
-            <th class="places-right">threes</th>
+            <th class="places-right">3's</th>
         </tr>
         <tr>
             <td class="places-left">0</td>
@@ -300,10 +418,9 @@
         </tr>
     </table>
     <br/>
-    <br/>
     The tally columns together implement a permutation of 15 points,
     which can be considered from two, mutually inverse, perspectives:
-    <br/>
+
     <br/>
     <table class="raw-permutations">
         <tr>
@@ -321,16 +438,12 @@
             </td>
         </tr>
     </table>
-    <br/>
-    <br/>
-
-    <div style="page-break-before: always;">&nbsp;</div>
 
     This permutation of 15 points has 3 fixed points and 2 cycles (or orbits) each with 6 member points,
     where the inverse is the same fixed points and cycles in reverse order.
     <br/>
     <br/>
-    <table class="chain-details summary sortable" data-sort-column="0">
+    <table class="chain-details summary" data-sort-column="0">
         <tr>
             <th>Id</th>
             <th>Cycle</th>
@@ -373,20 +486,13 @@
         </tr>
     </table>
     <br/>
-    In this case, both orbits are self-conjugate.
-    <br/>
-    <br/>
-    Two points are conjugate when:
-    <ul>
-        <li>they are opposite each other with respect to the centre of the box</li>
-        <li>the sum of the index values equals one less than the box volume</li>
-    </ul>
-    Self-conjugate orbits are indicated in the table by splitting the orbit member sequence into two equal parts
+    In this case, both orbits are self-conjugate, the member points accompany, and are opposite their conjugates.
+    Self-conjugate orbits are indicated (in the table) by splitting the orbit member sequence into two equal parts
     and laying the parts over each other so that each point lies over its conjugate.
     Therefore, a self-conjugate orbit cannot have an odd number of members.
     <br/>
     <br/>
-    The fixed points and orbits can be visualized in a 2 dimensional grid:
+    The fixed points and orbits can be visualized in a 2 dimensional grid, and in a radiance diagram:
     <ul>
         <li>The euclidean perimeter of each orbit is the distance travelled for a complete revolution - hence a
             velocity
@@ -394,30 +500,30 @@
         <li>The square of the perimeter is therefore proportional to some quanta of energy,
             the inverse orbit having a corresponding negative relative value
         </li>
-    </ul>
-    <div>
-        <x3d showStat="false" width="600" height="400">
-            <scene>
-                <transform translation="-1 -0.5 0" scale="1.9 1.9 1.9">
-                    <inline url="x3d/box-5x3.euc.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
-    </div>
-    The fixed points and orbits can also be visualized in a radiance diagram:
-    <ul>
         <li>The sum of the absolute value of the index jumps of each orbit is the index distance (perimeter) travelled
             for a complete revolution
         </li>
     </ul>
-    <div>
-        <x3d showStat="false" width="600" height="400">
-            <scene>
-                <transform scale="0.8 0.8 0.8">
-                    <inline url="x3d/box-5x3.rad.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
+    <div class="grid-container">
+        <div>
+            <x3d showStat="false" width="350" height="250">
+                <scene>
+                    <transform translation="-1 -0.5 0" scale="1.8 1.8 1.8">
+                        <inline url="x3d/box-5x3.euc.x3d"/>
+                    </transform>
+                </scene>
+            </x3d>
+        </div>
+
+        <div>
+            <x3d showStat="false" width="350" height="250">
+                <scene>
+                    <transform scale="0.8 0.8 0.8">
+                        <inline url="x3d/box-5x3.rad.x3d"/>
+                    </transform>
+                </scene>
+            </x3d>
+        </div>
     </div>
 
     <div style="page-break-before: always;">&nbsp;</div>
@@ -488,29 +594,28 @@
     <br/>
     The first two orbits make a conjugate pair,
     whereas the remaining three are self-conjugate.
-    <div>
-        <x3d showStat="false" width="600" height="400">
-            <scene>
-                <transform translation="-1" scale="1.5 1.5 1.5">
-                    <inline url="x3d/box-3x7.euc.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
-    </div>
-
-    <div>
-        <x3d showStat="false" width="600" height="400">
-            <scene>
-                <transform scale="0.7 0.7 0.7">
-                    <inline url="x3d/box-3x7.rad.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
+    <div class="grid-container">
+        <div>
+            <x3d showStat="false" width="350" height="250">
+                <scene>
+                    <transform translation="-1" scale="1.4 1.4 1.4">
+                        <inline url="x3d/box-3x7.euc.x3d"/>
+                    </transform>
+                </scene>
+            </x3d>
+        </div>
+        <div>
+            <x3d showStat="false" width="350" height="250">
+                <scene>
+                    <transform scale="0.7 0.7 0.7">
+                        <inline url="x3d/box-3x7.rad.x3d"/>
+                    </transform>
+                </scene>
+            </x3d>
+        </div>
     </div>
     <br/>
     <br/>
-    <div style="page-break-before: always;">&nbsp;</div>
-
     The box <span class="box-text">7 x 5</span> has the following table and diagrams:
     <br/>
     <br/>
@@ -572,26 +677,25 @@
             </td>
         </tr>
     </table>
-
-
-    <div>
-        <x3d showStat="false" width="600" height="400">
-            <scene>
-                <transform translation="0 -1 0" scale="1.2 1.2 1.2">
-                    <inline url="x3d/box-7x5.euc.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
-    </div>
-
-    <div>
-        <x3d showStat="false" width="600" height="400">
-            <scene>
-                <transform scale="0.7 0.7 0.7">
-                    <inline url="x3d/box-7x5.rad.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
+    <div class="grid-container">
+        <div>
+            <x3d showStat="false" width="350" height="250">
+                <scene>
+                    <transform translation="-1 -1 0" scale="1.2 1.2 1.2">
+                        <inline url="x3d/box-7x5.euc.x3d"/>
+                    </transform>
+                </scene>
+            </x3d>
+        </div>
+        <div>
+            <x3d showStat="false" width="350" height="250">
+                <scene>
+                    <transform scale="0.7 0.7 0.7">
+                        <inline url="x3d/box-7x5.rad.x3d"/>
+                    </transform>
+                </scene>
+            </x3d>
+        </div>
     </div>
 
     <div style="page-break-before: always;">&nbsp;</div>

@@ -406,7 +406,7 @@ function getSurfaceArea( bases ) {
 */
 function getEuclideanRadiance( bases ) {
 
-    const volume = bases.reduce( (a,c) => a*c, 1 );
+    const volume = bases.reduce( (a,c) => a * c, 1 );
     const volumeFactor = ( b ) => ( volume / b );
     const sumTriangles = ( n ) => n * ( n + 1 ) / 2;
     const sumSquares = ( n ) => n * ( n + 1 ) * ( 2 * n + 1 ) / 6;

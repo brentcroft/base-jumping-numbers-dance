@@ -77,10 +77,10 @@
     <br/>
     This article will consider:
     <ul type="square">
-        <li>the different ways to tally/index a box - place value tables</li>
-        <li>the relationships between different place value tables - resonances</li>
-        <li>the group actions that arise</li>
-        <li>a physical interpretation as energy quanta and spin</li>
+        <li>the different ways to tally/index a box using place value tables</li>
+        <li>the resonances between different place value tables</li>
+        <li>the group actions that manipulate resonances</li>
+        <li>a physical interpretation of resonances as energy quanta and spin</li>
     </ul>
 
     <h3>Place Value Tables</h3>
@@ -300,6 +300,7 @@
     <br/>
 
     <h3>Conjugate Points and Radiance</h3>
+
     Two points are conjugate when they are symmetrically opposite each other, with respect to the centre of the box.
     <br/>
     <br/>
@@ -317,6 +318,15 @@
             </scene>
         </x3d>
     </div>
+
+    Note that the radiance is an operator that swaps each point with its conjugate.
+    <br/>
+    <br/>
+    Applying the radiance operator twice returns each point to its starting place - equivalent to the identity operator.
+    <br/>
+    <br/>
+    Symbolically <span class="box-text">e = r<sup>2</sup></span> </li>
+
     <!--
 
 
@@ -703,22 +713,66 @@
     <h2>Three dimensional boxes</h2>
     There are 6 ways to unpack the three-dimensional box <span class="box-text">7 x 5 x 3</span>
     corresponding with 6 permutations of the 3 bases.
+    Selecting one permutation and then rotating the bases provides another two;
+    these permutations are labelled "up" using an up arrow 🠅.
+    The reversal of each of these then provides the remaining three,
+    and these permutations are labelled "down" using an arrow 🠇.
     <br/>
     <br/>
     <table class="chain-details summary sortable">
         <tr><th>Label</th><th>Perm</th><th>Place Values</th></tr>
         <tr><td>α🠅</td><td>[ 2, 1, 0 ]</td><td>[ 15, 3, 1 ]</td></tr>
-        <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, 21, 7 ]</td></tr>
-        <tr><td>γ🠅</td><td>[ 1, 0, 2 ]</td><td>[ 5, 1, 35 ]</td></tr>
         <tr><td>α🠇</td><td>[ 0, 1, 2 ]</td><td>[ 1, 7, 35 ]</td></tr>
+        <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, 21, 7 ]</td></tr>
         <tr><td>β🠇</td><td>[ 1, 2, 0 ]</td><td>[ 15, 1, 5 ]</td></tr>
+        <tr><td>γ🠅</td><td>[ 1, 0, 2 ]</td><td>[ 5, 1, 35 ]</td></tr>
         <tr><td>γ🠇</td><td>[ 2, 0, 1 ]</td><td>[ 5, 1, 35 ]</td></tr>
         <tr><td colspan="3"></td></tr>
     </table>
     <br/>
-    <br/>
-    The index produced by each way of unpacking can be compared with every other one (including itself)
+    The index produced by each way of unpacking can be compared with every other one (including selves)
     to create 36 permutations of 105 points (the box volume).
+    <br/>
+    <table class="place-values-table">
+        <tr><th>Label</th><th>Symbolic</th><th>Fixed Points</th><th>Orbits</th><th>Order</th><th>E-Per2</th><th>I-Per</th></tr>
+        <tr><td>e_0</td><td>α🠇α🠇</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>e_0i</td><td>α🠅α🠅</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>e_1</td><td>β🠇β🠇</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>e_1i</td><td>β🠅β🠅</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>e_2</td><td>γ🠇γ🠇</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>e_2i</td><td>γ🠅γ🠅</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>a_0</td><td>α🠅β🠇</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 2</td></tr>
+        <tr><td>a_0h14</td><td>β🠅α🠇</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 14</td></tr>
+        <tr><td>a_0i</td><td>β🠇α🠅</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 2</td></tr>
+        <tr><td>a_0h14i</td><td>α🠇β🠅</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 14</td></tr>
+        <tr><td>a_1</td><td>γ🠅α🠇</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 2</td></tr>
+        <tr><td>a_1h6</td><td>α🠅γ🠇</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 6</td></tr>
+        <tr><td>a_1i</td><td>α🠇γ🠅</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 2</td></tr>
+        <tr><td>a_1h6i</td><td>γ🠇α🠅</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 6</td></tr>
+        <tr><td>a_2</td><td>β🠅γ🠇</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 2</td></tr>
+        <tr><td>a_2h10</td><td>γ🠅β🠇</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 10</td></tr>
+        <tr><td>a_2i</td><td>γ🠇β🠅</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 2</td></tr>
+        <tr><td>a_2h10i</td><td>β🠇γ🠅</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 10</td></tr>
+        <tr><td>b_0</td><td>α🠇β🠇 = α🠇γ🠅 * β🠅γ🠇</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+        <tr><td>b_0i</td><td>β🠇α🠇 = γ🠇β🠅 * γ🠅α🠇</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+        <tr><td>b_1</td><td>α🠅β🠅 = γ🠅α🠇 * γ🠇β🠅</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+        <tr><td>b_1i</td><td>β🠅α🠅 = β🠅γ🠇 * α🠇γ🠅</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+        <tr><td>b_2</td><td>γ🠇α🠇 = γ🠇β🠅 * α🠅β🠇</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+        <tr><td>b_2i</td><td>α🠇γ🠇 = β🠇α🠅 * β🠅γ🠇</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+        <tr><td>b_3</td><td>γ🠅α🠅 = β🠅γ🠇 * β🠇α🠅</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+        <tr><td>b_3i</td><td>α🠅γ🠅 = α🠅β🠇 * γ🠇β🠅</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+        <tr><td>b_4</td><td>β🠇γ🠇 = β🠇α🠅 * γ🠅α🠇</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+        <tr><td>b_4i</td><td>γ🠇β🠇 = α🠇γ🠅 * α🠅β🠇</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+        <tr><td>b_5</td><td>β🠅γ🠅 = α🠅β🠇 * α🠇γ🠅</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+        <tr><td>b_5i</td><td>γ🠅β🠅 = γ🠅α🠇 * β🠇α🠅</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+        <tr><td>z_0</td><td>α🠅α🠇 = γ🠅α🠇 * γ🠇β🠅 * α🠅β🠇</td><td>3</td><td>19</td><td>36</td><td>660</td><td>853 * 2</td></tr>
+        <tr><td>z_0i</td><td>α🠇α🠅 = α🠇γ🠅 * β🠅γ🠇 * β🠇α🠅</td><td>3</td><td>19</td><td>36</td><td>660</td><td>853 * 2</td></tr>
+        <tr><td>z_1</td><td>β🠅β🠇 = α🠅β🠇 * α🠇γ🠅 * β🠅γ🠇</td><td>3</td><td>5</td><td>300</td><td>660</td><td>853 * 2</td></tr>
+        <tr><td>z_1i</td><td>β🠇β🠅 = β🠇α🠅 * γ🠅α🠇 * γ🠇β🠅</td><td>3</td><td>5</td><td>300</td><td>660</td><td>853 * 2</td></tr>
+        <tr><td>z_2</td><td>γ🠅γ🠇 = β🠅γ🠇 * β🠇α🠅 * γ🠅α🠇</td><td>3</td><td>9</td><td>4180</td><td>660</td><td>853 * 2</td></tr>
+        <tr><td>z_2i</td><td>γ🠇γ🠅 = γ🠇β🠅 * α🠅β🠇 * α🠇γ🠅</td><td>3</td><td>9</td><td>4180</td><td>660</td><td>853 * 2</td></tr>
+        <tr><td colspan="7">&nbsp;</td></tr>
+    </table>
     <br/>
     <br/>
     Clearly, comparing an index with itself must produce an identity permutation.

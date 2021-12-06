@@ -1,0 +1,646 @@
+<x3d>
+    <scene id="testContainer001_plot_scene_root" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" pickmode="idBuf" dopickpass="true">
+        <collision enabled="false" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" isactive="true">
+            <transform scale="0.42857142857142855 0.42857142857142855 0.42857142857142855" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" translation="0,0,0" rotation="0,0,0,0" scaleorientation="0,0,0,0">
+                <transform translation="-17.5 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                    <collision class="grid-coords" enabled="false" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" isactive="true">
+                        <transform translation="0 0 -1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape linetype="0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="black" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    <lineproperties linetype="0" applied="true"/>
+                                </appearance>
+                                <lineset vertexcount="3" solid="true" ccw="true" usegeocache="true" lit="true">
+                                    <coordinate point="0 0 0 0 0 2 0 0 0 -1"/>
+                                </lineset>
+                            </shape>
+                        </transform>
+                        <transform translation="17 0 -1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape linetype="0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="black" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    <lineproperties linetype="0" applied="true"/>
+                                </appearance>
+                                <lineset vertexcount="3" solid="true" ccw="true" usegeocache="true" lit="true">
+                                    <coordinate point="0 0 0 0 0 2 0 0 0 -1"/>
+                                </lineset>
+                            </shape>
+                        </transform>
+                        <transform translation="34 0 -1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape linetype="0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="black" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    <lineproperties linetype="0" applied="true"/>
+                                </appearance>
+                                <lineset vertexcount="3" solid="true" ccw="true" usegeocache="true" lit="true">
+                                    <coordinate point="0 0 0 0 0 2 0 0 0 -1"/>
+                                </lineset>
+                            </shape>
+                        </transform>
+                        <shape linetype="0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                            <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                <material emissivecolor="black" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                <lineproperties linetype="0" applied="true"/>
+                            </appearance>
+                            <lineset vertexcount="3" solid="true" ccw="true" usegeocache="true" lit="true">
+                                <coordinate point="0 0 -1 34 0 -1 0 0 -1 -1"/>
+                            </lineset>
+                        </shape>
+                        <shape linetype="0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                            <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                <material emissivecolor="#e83300" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                <lineproperties linetype="0" applied="true"/>
+                            </appearance>
+                            <lineset vertexcount="3" solid="true" ccw="true" usegeocache="true" lit="true">
+                                <coordinate point="0 0 0 34 0 0 0 0 0 -1"/>
+                            </lineset>
+                        </shape>
+                        <shape linetype="0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                            <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                <material emissivecolor="#003392" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                <lineproperties linetype="0" applied="true"/>
+                            </appearance>
+                            <lineset vertexcount="3" solid="true" ccw="true" usegeocache="true" lit="true">
+                                <coordinate point="0 0 1 34 0 1 0 0 1 -1"/>
+                            </lineset>
+                        </shape>
+                    </collision>
+                    <transform translation="17 0 0" scale="1 0 0" class="orbit-plane" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scaleorientation="0,0,0,0">
+                        <transform rotation="0 1 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" translation="0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="black" transparency="0.6" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <box size="1 1 1" solid="true" ccw="true" usegeocache="true" lit="true"/>
+                            </shape>
+                        </transform>
+                    </transform>
+                    <transform translation="0 0 -1" id="identity.e.0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                        <shape tooltip="{&quot;id&quot;:0,&quot;coord&quot;:[0,0],&quot;euclideanRadiance&quot;:26,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:0,&quot;di&quot;:0,&quot;conjugateId&quot;:34,&quot;jump&quot;:0,&quot;radiant&quot;:34,&quot;orbitId&quot;:1},{&quot;id&quot;:0,&quot;di&quot;:0,&quot;conjugateId&quot;:34,&quot;jump&quot;:0,&quot;radiant&quot;:34,&quot;orbitId&quot;:1},{&quot;id&quot;:0,&quot;di&quot;:0,&quot;conjugateId&quot;:34,&quot;jump&quot;:0,&quot;radiant&quot;:34,&quot;orbitId&quot;:1},{&quot;id&quot;:0,&quot;di&quot;:0,&quot;conjugateId&quot;:34,&quot;jump&quot;:0,&quot;radiant&quot;:34,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                            <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                <material emissivecolor="red" transparency="0.3" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                            </appearance>
+                            <sphere id="point-0-0" radius="0.17" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                        </shape>
+                        <transform rotation="0 1 0 1.5707963" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" translation="0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape class="identity-line" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="yellow" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <torus innerradius="0.05" outerradius="0" angle="6.2831852" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                            </shape>
+                        </transform>
+                    </transform>
+                    <transform translation="17 0 -1" id="identity.e.17" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                        <shape tooltip="{&quot;id&quot;:17,&quot;coord&quot;:[3,2],&quot;euclideanRadiance&quot;:0,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:17,&quot;di&quot;:17,&quot;conjugateId&quot;:17,&quot;jump&quot;:0,&quot;radiant&quot;:0,&quot;orbitId&quot;:1},{&quot;id&quot;:17,&quot;di&quot;:17,&quot;conjugateId&quot;:17,&quot;jump&quot;:0,&quot;radiant&quot;:0,&quot;orbitId&quot;:1},{&quot;id&quot;:17,&quot;di&quot;:17,&quot;conjugateId&quot;:17,&quot;jump&quot;:0,&quot;radiant&quot;:0,&quot;orbitId&quot;:3},{&quot;id&quot;:17,&quot;di&quot;:17,&quot;conjugateId&quot;:17,&quot;jump&quot;:0,&quot;radiant&quot;:0,&quot;orbitId&quot;:3}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                            <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                <material emissivecolor="red" transparency="0.3" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                            </appearance>
+                            <sphere id="point-3-2" radius="0.17" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                        </shape>
+                        <transform rotation="0 1 0 1.5707963" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" translation="0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape class="identity-line" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="yellow" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <torus innerradius="0.05" outerradius="0" angle="6.2831852" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                            </shape>
+                        </transform>
+                    </transform>
+                    <transform translation="34 0 -1" id="identity.e.34" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                        <shape tooltip="{&quot;id&quot;:34,&quot;coord&quot;:[6,4],&quot;euclideanRadiance&quot;:26,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:34,&quot;di&quot;:34,&quot;conjugateId&quot;:0,&quot;jump&quot;:0,&quot;radiant&quot;:-34,&quot;orbitId&quot;:1},{&quot;id&quot;:34,&quot;di&quot;:34,&quot;conjugateId&quot;:0,&quot;jump&quot;:0,&quot;radiant&quot;:-34,&quot;orbitId&quot;:1},{&quot;id&quot;:34,&quot;di&quot;:34,&quot;conjugateId&quot;:0,&quot;jump&quot;:0,&quot;radiant&quot;:-34,&quot;orbitId&quot;:1},{&quot;id&quot;:34,&quot;di&quot;:34,&quot;conjugateId&quot;:0,&quot;jump&quot;:0,&quot;radiant&quot;:-34,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                            <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                <material emissivecolor="red" transparency="0.3" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                            </appearance>
+                            <sphere id="point-6-4" radius="0.17" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                        </shape>
+                        <transform rotation="0 1 0 1.5707963" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" translation="0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape class="identity-line" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="yellow" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <torus innerradius="0.05" outerradius="0" angle="6.2831852" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                            </shape>
+                        </transform>
+                    </transform>
+                    <transform translation="0 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                        <transform translation="1 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:5,&quot;coord&quot;:[1,0],&quot;euclideanRadiance&quot;:16,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:1,&quot;di&quot;:1,&quot;conjugateId&quot;:33,&quot;jump&quot;:0,&quot;radiant&quot;:32,&quot;orbitId&quot;:1},{&quot;id&quot;:5,&quot;di&quot;:5,&quot;conjugateId&quot;:29,&quot;jump&quot;:0,&quot;radiant&quot;:24,&quot;orbitId&quot;:1},{&quot;id&quot;:5,&quot;di&quot;:1,&quot;conjugateId&quot;:29,&quot;jump&quot;:-4,&quot;radiant&quot;:24,&quot;orbitId&quot;:1},{&quot;id&quot;:1,&quot;di&quot;:5,&quot;conjugateId&quot;:33,&quot;jump&quot;:4,&quot;radiant&quot;:32,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-1-0" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="2 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="2" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="5 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:25,&quot;coord&quot;:[5,0],&quot;euclideanRadiance&quot;:16,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:5,&quot;di&quot;:5,&quot;conjugateId&quot;:29,&quot;jump&quot;:0,&quot;radiant&quot;:24,&quot;orbitId&quot;:1},{&quot;id&quot;:25,&quot;di&quot;:25,&quot;conjugateId&quot;:9,&quot;jump&quot;:0,&quot;radiant&quot;:-16,&quot;orbitId&quot;:1},{&quot;id&quot;:25,&quot;di&quot;:5,&quot;conjugateId&quot;:9,&quot;jump&quot;:-20,&quot;radiant&quot;:-16,&quot;orbitId&quot;:1},{&quot;id&quot;:5,&quot;di&quot;:25,&quot;conjugateId&quot;:29,&quot;jump&quot;:20,&quot;radiant&quot;:24,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-5-0" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="10 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="10" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="25 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:23,&quot;coord&quot;:[4,3],&quot;euclideanRadiance&quot;:4,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:25,&quot;di&quot;:25,&quot;conjugateId&quot;:9,&quot;jump&quot;:0,&quot;radiant&quot;:-16,&quot;orbitId&quot;:1},{&quot;id&quot;:23,&quot;di&quot;:23,&quot;conjugateId&quot;:11,&quot;jump&quot;:0,&quot;radiant&quot;:-12,&quot;orbitId&quot;:1},{&quot;id&quot;:23,&quot;di&quot;:25,&quot;conjugateId&quot;:11,&quot;jump&quot;:2,&quot;radiant&quot;:-12,&quot;orbitId&quot;:1},{&quot;id&quot;:25,&quot;di&quot;:23,&quot;conjugateId&quot;:9,&quot;jump&quot;:-2,&quot;radiant&quot;:-16,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-4-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-1 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-1" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="23 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:13,&quot;coord&quot;:[2,3],&quot;euclideanRadiance&quot;:4,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:23,&quot;di&quot;:23,&quot;conjugateId&quot;:11,&quot;jump&quot;:0,&quot;radiant&quot;:-12,&quot;orbitId&quot;:1},{&quot;id&quot;:13,&quot;di&quot;:13,&quot;conjugateId&quot;:21,&quot;jump&quot;:0,&quot;radiant&quot;:8,&quot;orbitId&quot;:1},{&quot;id&quot;:13,&quot;di&quot;:23,&quot;conjugateId&quot;:21,&quot;jump&quot;:10,&quot;radiant&quot;:8,&quot;orbitId&quot;:1},{&quot;id&quot;:23,&quot;di&quot;:13,&quot;conjugateId&quot;:11,&quot;jump&quot;:-10,&quot;radiant&quot;:-12,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-2-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-5 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-5" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="13 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:31,&quot;coord&quot;:[6,1],&quot;euclideanRadiance&quot;:20,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:13,&quot;di&quot;:13,&quot;conjugateId&quot;:21,&quot;jump&quot;:0,&quot;radiant&quot;:8,&quot;orbitId&quot;:1},{&quot;id&quot;:31,&quot;di&quot;:31,&quot;conjugateId&quot;:3,&quot;jump&quot;:0,&quot;radiant&quot;:-28,&quot;orbitId&quot;:1},{&quot;id&quot;:31,&quot;di&quot;:13,&quot;conjugateId&quot;:3,&quot;jump&quot;:-18,&quot;radiant&quot;:-28,&quot;orbitId&quot;:1},{&quot;id&quot;:13,&quot;di&quot;:31,&quot;conjugateId&quot;:21,&quot;jump&quot;:18,&quot;radiant&quot;:8,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-6-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="9 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="9" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="31 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:19,&quot;coord&quot;:[3,4],&quot;euclideanRadiance&quot;:8,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:31,&quot;di&quot;:31,&quot;conjugateId&quot;:3,&quot;jump&quot;:0,&quot;radiant&quot;:-28,&quot;orbitId&quot;:1},{&quot;id&quot;:19,&quot;di&quot;:19,&quot;conjugateId&quot;:15,&quot;jump&quot;:0,&quot;radiant&quot;:-4,&quot;orbitId&quot;:1},{&quot;id&quot;:19,&quot;di&quot;:31,&quot;conjugateId&quot;:15,&quot;jump&quot;:12,&quot;radiant&quot;:-4,&quot;orbitId&quot;:1},{&quot;id&quot;:31,&quot;di&quot;:19,&quot;conjugateId&quot;:3,&quot;jump&quot;:-12,&quot;radiant&quot;:-28,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-3-4" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-6 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-6" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="19 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:27,&quot;coord&quot;:[5,2],&quot;euclideanRadiance&quot;:8,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:19,&quot;di&quot;:19,&quot;conjugateId&quot;:15,&quot;jump&quot;:0,&quot;radiant&quot;:-4,&quot;orbitId&quot;:1},{&quot;id&quot;:27,&quot;di&quot;:27,&quot;conjugateId&quot;:7,&quot;jump&quot;:0,&quot;radiant&quot;:-20,&quot;orbitId&quot;:1},{&quot;id&quot;:27,&quot;di&quot;:19,&quot;conjugateId&quot;:7,&quot;jump&quot;:-8,&quot;radiant&quot;:-20,&quot;orbitId&quot;:1},{&quot;id&quot;:19,&quot;di&quot;:27,&quot;conjugateId&quot;:15,&quot;jump&quot;:8,&quot;radiant&quot;:-4,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-5-2" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="4 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="4" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="27 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:33,&quot;coord&quot;:[6,3],&quot;euclideanRadiance&quot;:20,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:27,&quot;di&quot;:27,&quot;conjugateId&quot;:7,&quot;jump&quot;:0,&quot;radiant&quot;:-20,&quot;orbitId&quot;:1},{&quot;id&quot;:33,&quot;di&quot;:33,&quot;conjugateId&quot;:1,&quot;jump&quot;:0,&quot;radiant&quot;:-32,&quot;orbitId&quot;:1},{&quot;id&quot;:33,&quot;di&quot;:27,&quot;conjugateId&quot;:1,&quot;jump&quot;:-6,&quot;radiant&quot;:-32,&quot;orbitId&quot;:1},{&quot;id&quot;:27,&quot;di&quot;:33,&quot;conjugateId&quot;:7,&quot;jump&quot;:6,&quot;radiant&quot;:-20,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-6-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="3 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="3" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="33 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:29,&quot;coord&quot;:[5,4],&quot;euclideanRadiance&quot;:16,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:33,&quot;di&quot;:33,&quot;conjugateId&quot;:1,&quot;jump&quot;:0,&quot;radiant&quot;:-32,&quot;orbitId&quot;:1},{&quot;id&quot;:29,&quot;di&quot;:29,&quot;conjugateId&quot;:5,&quot;jump&quot;:0,&quot;radiant&quot;:-24,&quot;orbitId&quot;:1},{&quot;id&quot;:29,&quot;di&quot;:33,&quot;conjugateId&quot;:5,&quot;jump&quot;:4,&quot;radiant&quot;:-24,&quot;orbitId&quot;:1},{&quot;id&quot;:33,&quot;di&quot;:29,&quot;conjugateId&quot;:1,&quot;jump&quot;:-4,&quot;radiant&quot;:-32,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-5-4" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-2 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-2" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="29 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:9,&quot;coord&quot;:[1,4],&quot;euclideanRadiance&quot;:16,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:29,&quot;di&quot;:29,&quot;conjugateId&quot;:5,&quot;jump&quot;:0,&quot;radiant&quot;:-24,&quot;orbitId&quot;:1},{&quot;id&quot;:9,&quot;di&quot;:9,&quot;conjugateId&quot;:25,&quot;jump&quot;:0,&quot;radiant&quot;:16,&quot;orbitId&quot;:1},{&quot;id&quot;:9,&quot;di&quot;:29,&quot;conjugateId&quot;:25,&quot;jump&quot;:20,&quot;radiant&quot;:16,&quot;orbitId&quot;:1},{&quot;id&quot;:29,&quot;di&quot;:9,&quot;conjugateId&quot;:5,&quot;jump&quot;:-20,&quot;radiant&quot;:-24,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-1-4" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-10 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-10" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="9 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:11,&quot;coord&quot;:[2,1],&quot;euclideanRadiance&quot;:4,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:9,&quot;di&quot;:9,&quot;conjugateId&quot;:25,&quot;jump&quot;:0,&quot;radiant&quot;:16,&quot;orbitId&quot;:1},{&quot;id&quot;:11,&quot;di&quot;:11,&quot;conjugateId&quot;:23,&quot;jump&quot;:0,&quot;radiant&quot;:12,&quot;orbitId&quot;:1},{&quot;id&quot;:11,&quot;di&quot;:9,&quot;conjugateId&quot;:23,&quot;jump&quot;:-2,&quot;radiant&quot;:12,&quot;orbitId&quot;:1},{&quot;id&quot;:9,&quot;di&quot;:11,&quot;conjugateId&quot;:25,&quot;jump&quot;:2,&quot;radiant&quot;:16,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-2-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="1 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="1" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="11 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:21,&quot;coord&quot;:[4,1],&quot;euclideanRadiance&quot;:4,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:11,&quot;di&quot;:11,&quot;conjugateId&quot;:23,&quot;jump&quot;:0,&quot;radiant&quot;:12,&quot;orbitId&quot;:1},{&quot;id&quot;:21,&quot;di&quot;:21,&quot;conjugateId&quot;:13,&quot;jump&quot;:0,&quot;radiant&quot;:-8,&quot;orbitId&quot;:1},{&quot;id&quot;:21,&quot;di&quot;:11,&quot;conjugateId&quot;:13,&quot;jump&quot;:-10,&quot;radiant&quot;:-8,&quot;orbitId&quot;:1},{&quot;id&quot;:11,&quot;di&quot;:21,&quot;conjugateId&quot;:23,&quot;jump&quot;:10,&quot;radiant&quot;:12,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-4-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="5 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="5" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="21 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:3,&quot;coord&quot;:[0,3],&quot;euclideanRadiance&quot;:20,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:21,&quot;di&quot;:21,&quot;conjugateId&quot;:13,&quot;jump&quot;:0,&quot;radiant&quot;:-8,&quot;orbitId&quot;:1},{&quot;id&quot;:3,&quot;di&quot;:3,&quot;conjugateId&quot;:31,&quot;jump&quot;:0,&quot;radiant&quot;:28,&quot;orbitId&quot;:1},{&quot;id&quot;:3,&quot;di&quot;:21,&quot;conjugateId&quot;:31,&quot;jump&quot;:18,&quot;radiant&quot;:28,&quot;orbitId&quot;:1},{&quot;id&quot;:21,&quot;di&quot;:3,&quot;conjugateId&quot;:13,&quot;jump&quot;:-18,&quot;radiant&quot;:-8,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-0-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-9 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-9" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="3 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:15,&quot;coord&quot;:[3,0],&quot;euclideanRadiance&quot;:8,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:3,&quot;di&quot;:3,&quot;conjugateId&quot;:31,&quot;jump&quot;:0,&quot;radiant&quot;:28,&quot;orbitId&quot;:1},{&quot;id&quot;:15,&quot;di&quot;:15,&quot;conjugateId&quot;:19,&quot;jump&quot;:0,&quot;radiant&quot;:4,&quot;orbitId&quot;:1},{&quot;id&quot;:15,&quot;di&quot;:3,&quot;conjugateId&quot;:19,&quot;jump&quot;:-12,&quot;radiant&quot;:4,&quot;orbitId&quot;:1},{&quot;id&quot;:3,&quot;di&quot;:15,&quot;conjugateId&quot;:31,&quot;jump&quot;:12,&quot;radiant&quot;:28,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-3-0" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="6 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="6" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="15 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:7,&quot;coord&quot;:[1,2],&quot;euclideanRadiance&quot;:8,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:15,&quot;di&quot;:15,&quot;conjugateId&quot;:19,&quot;jump&quot;:0,&quot;radiant&quot;:4,&quot;orbitId&quot;:1},{&quot;id&quot;:7,&quot;di&quot;:7,&quot;conjugateId&quot;:27,&quot;jump&quot;:0,&quot;radiant&quot;:20,&quot;orbitId&quot;:1},{&quot;id&quot;:7,&quot;di&quot;:15,&quot;conjugateId&quot;:27,&quot;jump&quot;:8,&quot;radiant&quot;:20,&quot;orbitId&quot;:1},{&quot;id&quot;:15,&quot;di&quot;:7,&quot;conjugateId&quot;:19,&quot;jump&quot;:-8,&quot;radiant&quot;:4,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-1-2" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-4 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-4" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="7 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:1,&quot;coord&quot;:[0,1],&quot;euclideanRadiance&quot;:20,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:7,&quot;di&quot;:7,&quot;conjugateId&quot;:27,&quot;jump&quot;:0,&quot;radiant&quot;:20,&quot;orbitId&quot;:1},{&quot;id&quot;:1,&quot;di&quot;:1,&quot;conjugateId&quot;:33,&quot;jump&quot;:0,&quot;radiant&quot;:32,&quot;orbitId&quot;:1},{&quot;id&quot;:1,&quot;di&quot;:7,&quot;conjugateId&quot;:33,&quot;jump&quot;:6,&quot;radiant&quot;:32,&quot;orbitId&quot;:1},{&quot;id&quot;:7,&quot;di&quot;:1,&quot;conjugateId&quot;:27,&quot;jump&quot;:-6,&quot;radiant&quot;:20,&quot;orbitId&quot;:1}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-0-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-3 0 0" class="orbit-line" id="orbit.1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#e83300" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-3" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                    </transform>
+                    <transform translation="0 0 1" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                        <transform translation="2 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:10,&quot;coord&quot;:[2,0],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:2,&quot;di&quot;:2,&quot;conjugateId&quot;:32,&quot;jump&quot;:0,&quot;radiant&quot;:30,&quot;orbitId&quot;:1},{&quot;id&quot;:10,&quot;di&quot;:10,&quot;conjugateId&quot;:24,&quot;jump&quot;:0,&quot;radiant&quot;:14,&quot;orbitId&quot;:1},{&quot;id&quot;:10,&quot;di&quot;:2,&quot;conjugateId&quot;:24,&quot;jump&quot;:-8,&quot;radiant&quot;:14,&quot;orbitId&quot;:2},{&quot;id&quot;:2,&quot;di&quot;:10,&quot;conjugateId&quot;:32,&quot;jump&quot;:8,&quot;radiant&quot;:30,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-2-0" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="4 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="4" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="10 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:16,&quot;coord&quot;:[3,1],&quot;euclideanRadiance&quot;:2,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:10,&quot;di&quot;:10,&quot;conjugateId&quot;:24,&quot;jump&quot;:0,&quot;radiant&quot;:14,&quot;orbitId&quot;:1},{&quot;id&quot;:16,&quot;di&quot;:16,&quot;conjugateId&quot;:18,&quot;jump&quot;:0,&quot;radiant&quot;:2,&quot;orbitId&quot;:1},{&quot;id&quot;:16,&quot;di&quot;:10,&quot;conjugateId&quot;:18,&quot;jump&quot;:-6,&quot;radiant&quot;:2,&quot;orbitId&quot;:2},{&quot;id&quot;:10,&quot;di&quot;:16,&quot;conjugateId&quot;:24,&quot;jump&quot;:6,&quot;radiant&quot;:14,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-3-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="3 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="3" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="16 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:12,&quot;coord&quot;:[2,2],&quot;euclideanRadiance&quot;:2,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:16,&quot;di&quot;:16,&quot;conjugateId&quot;:18,&quot;jump&quot;:0,&quot;radiant&quot;:2,&quot;orbitId&quot;:1},{&quot;id&quot;:12,&quot;di&quot;:12,&quot;conjugateId&quot;:22,&quot;jump&quot;:0,&quot;radiant&quot;:10,&quot;orbitId&quot;:1},{&quot;id&quot;:12,&quot;di&quot;:16,&quot;conjugateId&quot;:22,&quot;jump&quot;:4,&quot;radiant&quot;:10,&quot;orbitId&quot;:2},{&quot;id&quot;:16,&quot;di&quot;:12,&quot;conjugateId&quot;:18,&quot;jump&quot;:-4,&quot;radiant&quot;:2,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-2-2" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-2 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-2" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="12 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:26,&quot;coord&quot;:[5,1],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:12,&quot;di&quot;:12,&quot;conjugateId&quot;:22,&quot;jump&quot;:0,&quot;radiant&quot;:10,&quot;orbitId&quot;:1},{&quot;id&quot;:26,&quot;di&quot;:26,&quot;conjugateId&quot;:8,&quot;jump&quot;:0,&quot;radiant&quot;:-18,&quot;orbitId&quot;:1},{&quot;id&quot;:26,&quot;di&quot;:12,&quot;conjugateId&quot;:8,&quot;jump&quot;:-14,&quot;radiant&quot;:-18,&quot;orbitId&quot;:2},{&quot;id&quot;:12,&quot;di&quot;:26,&quot;conjugateId&quot;:22,&quot;jump&quot;:14,&quot;radiant&quot;:10,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-5-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="7 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="7" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="26 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:28,&quot;coord&quot;:[5,3],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:26,&quot;di&quot;:26,&quot;conjugateId&quot;:8,&quot;jump&quot;:0,&quot;radiant&quot;:-18,&quot;orbitId&quot;:1},{&quot;id&quot;:28,&quot;di&quot;:28,&quot;conjugateId&quot;:6,&quot;jump&quot;:0,&quot;radiant&quot;:-22,&quot;orbitId&quot;:1},{&quot;id&quot;:28,&quot;di&quot;:26,&quot;conjugateId&quot;:6,&quot;jump&quot;:-2,&quot;radiant&quot;:-22,&quot;orbitId&quot;:2},{&quot;id&quot;:26,&quot;di&quot;:28,&quot;conjugateId&quot;:8,&quot;jump&quot;:2,&quot;radiant&quot;:-18,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-5-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="1 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="1" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="28 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:4,&quot;coord&quot;:[0,4],&quot;euclideanRadiance&quot;:26,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:28,&quot;di&quot;:28,&quot;conjugateId&quot;:6,&quot;jump&quot;:0,&quot;radiant&quot;:-22,&quot;orbitId&quot;:1},{&quot;id&quot;:4,&quot;di&quot;:4,&quot;conjugateId&quot;:30,&quot;jump&quot;:0,&quot;radiant&quot;:26,&quot;orbitId&quot;:1},{&quot;id&quot;:4,&quot;di&quot;:28,&quot;conjugateId&quot;:30,&quot;jump&quot;:24,&quot;radiant&quot;:26,&quot;orbitId&quot;:2},{&quot;id&quot;:28,&quot;di&quot;:4,&quot;conjugateId&quot;:6,&quot;jump&quot;:-24,&quot;radiant&quot;:-22,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-0-4" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-12 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-12" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="4 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:20,&quot;coord&quot;:[4,0],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:4,&quot;di&quot;:4,&quot;conjugateId&quot;:30,&quot;jump&quot;:0,&quot;radiant&quot;:26,&quot;orbitId&quot;:1},{&quot;id&quot;:20,&quot;di&quot;:20,&quot;conjugateId&quot;:14,&quot;jump&quot;:0,&quot;radiant&quot;:-6,&quot;orbitId&quot;:1},{&quot;id&quot;:20,&quot;di&quot;:4,&quot;conjugateId&quot;:14,&quot;jump&quot;:-16,&quot;radiant&quot;:-6,&quot;orbitId&quot;:2},{&quot;id&quot;:4,&quot;di&quot;:20,&quot;conjugateId&quot;:30,&quot;jump&quot;:16,&quot;radiant&quot;:26,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-4-0" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="8 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="8" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="20 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:32,&quot;coord&quot;:[6,2],&quot;euclideanRadiance&quot;:18,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:20,&quot;di&quot;:20,&quot;conjugateId&quot;:14,&quot;jump&quot;:0,&quot;radiant&quot;:-6,&quot;orbitId&quot;:1},{&quot;id&quot;:32,&quot;di&quot;:32,&quot;conjugateId&quot;:2,&quot;jump&quot;:0,&quot;radiant&quot;:-30,&quot;orbitId&quot;:1},{&quot;id&quot;:32,&quot;di&quot;:20,&quot;conjugateId&quot;:2,&quot;jump&quot;:-12,&quot;radiant&quot;:-30,&quot;orbitId&quot;:2},{&quot;id&quot;:20,&quot;di&quot;:32,&quot;conjugateId&quot;:14,&quot;jump&quot;:12,&quot;radiant&quot;:-6,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-6-2" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="6 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="6" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="32 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:24,&quot;coord&quot;:[4,4],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:32,&quot;di&quot;:32,&quot;conjugateId&quot;:2,&quot;jump&quot;:0,&quot;radiant&quot;:-30,&quot;orbitId&quot;:1},{&quot;id&quot;:24,&quot;di&quot;:24,&quot;conjugateId&quot;:10,&quot;jump&quot;:0,&quot;radiant&quot;:-14,&quot;orbitId&quot;:1},{&quot;id&quot;:24,&quot;di&quot;:32,&quot;conjugateId&quot;:10,&quot;jump&quot;:8,&quot;radiant&quot;:-14,&quot;orbitId&quot;:2},{&quot;id&quot;:32,&quot;di&quot;:24,&quot;conjugateId&quot;:2,&quot;jump&quot;:-8,&quot;radiant&quot;:-30,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-4-4" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-4 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-4" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="24 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:18,&quot;coord&quot;:[3,3],&quot;euclideanRadiance&quot;:2,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:24,&quot;di&quot;:24,&quot;conjugateId&quot;:10,&quot;jump&quot;:0,&quot;radiant&quot;:-14,&quot;orbitId&quot;:1},{&quot;id&quot;:18,&quot;di&quot;:18,&quot;conjugateId&quot;:16,&quot;jump&quot;:0,&quot;radiant&quot;:-2,&quot;orbitId&quot;:1},{&quot;id&quot;:18,&quot;di&quot;:24,&quot;conjugateId&quot;:16,&quot;jump&quot;:6,&quot;radiant&quot;:-2,&quot;orbitId&quot;:2},{&quot;id&quot;:24,&quot;di&quot;:18,&quot;conjugateId&quot;:10,&quot;jump&quot;:-6,&quot;radiant&quot;:-14,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-3-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-3 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-3" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="18 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:22,&quot;coord&quot;:[4,2],&quot;euclideanRadiance&quot;:2,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:18,&quot;di&quot;:18,&quot;conjugateId&quot;:16,&quot;jump&quot;:0,&quot;radiant&quot;:-2,&quot;orbitId&quot;:1},{&quot;id&quot;:22,&quot;di&quot;:22,&quot;conjugateId&quot;:12,&quot;jump&quot;:0,&quot;radiant&quot;:-10,&quot;orbitId&quot;:1},{&quot;id&quot;:22,&quot;di&quot;:18,&quot;conjugateId&quot;:12,&quot;jump&quot;:-4,&quot;radiant&quot;:-10,&quot;orbitId&quot;:2},{&quot;id&quot;:18,&quot;di&quot;:22,&quot;conjugateId&quot;:16,&quot;jump&quot;:4,&quot;radiant&quot;:-2,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-4-2" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="2 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="2" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="22 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:8,&quot;coord&quot;:[1,3],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:22,&quot;di&quot;:22,&quot;conjugateId&quot;:12,&quot;jump&quot;:0,&quot;radiant&quot;:-10,&quot;orbitId&quot;:1},{&quot;id&quot;:8,&quot;di&quot;:8,&quot;conjugateId&quot;:26,&quot;jump&quot;:0,&quot;radiant&quot;:18,&quot;orbitId&quot;:1},{&quot;id&quot;:8,&quot;di&quot;:22,&quot;conjugateId&quot;:26,&quot;jump&quot;:14,&quot;radiant&quot;:18,&quot;orbitId&quot;:2},{&quot;id&quot;:22,&quot;di&quot;:8,&quot;conjugateId&quot;:12,&quot;jump&quot;:-14,&quot;radiant&quot;:-10,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-1-3" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-7 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-7" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="8 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:6,&quot;coord&quot;:[1,1],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:8,&quot;di&quot;:8,&quot;conjugateId&quot;:26,&quot;jump&quot;:0,&quot;radiant&quot;:18,&quot;orbitId&quot;:1},{&quot;id&quot;:6,&quot;di&quot;:6,&quot;conjugateId&quot;:28,&quot;jump&quot;:0,&quot;radiant&quot;:22,&quot;orbitId&quot;:1},{&quot;id&quot;:6,&quot;di&quot;:8,&quot;conjugateId&quot;:28,&quot;jump&quot;:2,&quot;radiant&quot;:22,&quot;orbitId&quot;:2},{&quot;id&quot;:8,&quot;di&quot;:6,&quot;conjugateId&quot;:26,&quot;jump&quot;:-2,&quot;radiant&quot;:18,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-1-1" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-1 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-1" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="6 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:30,&quot;coord&quot;:[6,0],&quot;euclideanRadiance&quot;:26,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:6,&quot;di&quot;:6,&quot;conjugateId&quot;:28,&quot;jump&quot;:0,&quot;radiant&quot;:22,&quot;orbitId&quot;:1},{&quot;id&quot;:30,&quot;di&quot;:30,&quot;conjugateId&quot;:4,&quot;jump&quot;:0,&quot;radiant&quot;:-26,&quot;orbitId&quot;:1},{&quot;id&quot;:30,&quot;di&quot;:6,&quot;conjugateId&quot;:4,&quot;jump&quot;:-24,&quot;radiant&quot;:-26,&quot;orbitId&quot;:2},{&quot;id&quot;:6,&quot;di&quot;:30,&quot;conjugateId&quot;:28,&quot;jump&quot;:24,&quot;radiant&quot;:22,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-6-0" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="12 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="12" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="30 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:14,&quot;coord&quot;:[2,4],&quot;euclideanRadiance&quot;:10,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:30,&quot;di&quot;:30,&quot;conjugateId&quot;:4,&quot;jump&quot;:0,&quot;radiant&quot;:-26,&quot;orbitId&quot;:1},{&quot;id&quot;:14,&quot;di&quot;:14,&quot;conjugateId&quot;:20,&quot;jump&quot;:0,&quot;radiant&quot;:6,&quot;orbitId&quot;:1},{&quot;id&quot;:14,&quot;di&quot;:30,&quot;conjugateId&quot;:20,&quot;jump&quot;:16,&quot;radiant&quot;:6,&quot;orbitId&quot;:2},{&quot;id&quot;:30,&quot;di&quot;:14,&quot;conjugateId&quot;:4,&quot;jump&quot;:-16,&quot;radiant&quot;:-26,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-2-4" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-8 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-8" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                        <transform translation="14 0 0" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                            <shape tooltip="{&quot;id&quot;:2,&quot;coord&quot;:[0,2],&quot;euclideanRadiance&quot;:18,&quot;indexes&quot;:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{&quot;id&quot;:14,&quot;di&quot;:14,&quot;conjugateId&quot;:20,&quot;jump&quot;:0,&quot;radiant&quot;:6,&quot;orbitId&quot;:1},{&quot;id&quot;:2,&quot;di&quot;:2,&quot;conjugateId&quot;:32,&quot;jump&quot;:0,&quot;radiant&quot;:30,&quot;orbitId&quot;:1},{&quot;id&quot;:2,&quot;di&quot;:14,&quot;conjugateId&quot;:32,&quot;jump&quot;:12,&quot;radiant&quot;:30,&quot;orbitId&quot;:2},{&quot;id&quot;:14,&quot;di&quot;:2,&quot;conjugateId&quot;:20,&quot;jump&quot;:-12,&quot;radiant&quot;:6,&quot;orbitId&quot;:2}]}" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                    <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                </appearance>
+                                <sphere id="point-0-2" radius="0.3" lit="true" solid="true" ccw="true" usegeocache="true" subdivision="24,24"/>
+                            </shape>
+                            <transform translation="-6 0 0" class="orbit-line" id="orbit.2" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" center="0,0,0" rotation="0,0,0,0" scale="1,1,1" scaleorientation="0,0,0,0">
+                                <shape class="orbitation" render="true" visible="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true">
+                                    <appearance sorttype="auto" alphaclipthreshold="0.1">
+                                        <material emissivecolor="#003392" transparency="0" ambientintensity="0.2" diffusecolor="0.8,0.8,0.8" shininess="0.2" specularcolor="0,0,0"/>
+                                    </appearance>
+                                    <torus innerradius="0.1" outerradius="-6" angle="3.1415926" subdivision="48,48" lit="false" solid="true" ccw="true" usegeocache="true" caps="true"/>
+                                </shape>
+                            </transform>
+                        </transform>
+                    </transform>
+                </transform>
+            </transform>
+        </collision>
+    </scene>
+</x3d>

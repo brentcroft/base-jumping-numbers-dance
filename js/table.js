@@ -218,7 +218,7 @@ function drawBasePlaneTable( tableArgs ) {
 
     chainsText += "<tr>";
     chainsText += `<th align="center"><code>e</code></th>`;
-    chainsText += `<th colspan='4' class='midi' style='display: ${midi?"":"none"};'></th>`;
+    //chainsText += `<th colspan='4' class='midi' style='display: ${midi?"":"none"};'></th>`;
 
     if ( jumps ) {
         chainsText += `<td align="center">[ ${ basePlane.identities.map( p => p.getJumps() ).join( C_SEP ) } ]</td>`;
@@ -641,12 +641,17 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
         }
     };
 
+
     var totalRows = 0;
 
     dataHtml += indexedBox
         .indexPlanes
-        .filter( actionElement => actionElement instanceof CompositeAction || filterLayers.length == 0 || filterLayers.includes( actionElement.pair.layer ) )
-        .filter( actionElement => actionElement instanceof CompositeAction || !monomialFilter || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
+        .filter( actionElement => !( actionElement instanceof PlaceValuesAction )
+                                    || filterLayers.length == 0
+                                    || filterLayers.includes( actionElement.pair.layer ) )
+        .filter( actionElement => !( actionElement instanceof PlaceValuesAction )
+                                    || !monomialFilter
+                                    || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
         .map( actionElement => {
 
             totalRows++;

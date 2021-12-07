@@ -1,0 +1,57 @@
+<h3>Conjugate Points and Radiance</h3>
+
+Two points are conjugate when they are symmetrically opposite each other, with respect to the centre of the box.
+<br/>
+<br/>
+Consider an object that travels back and forth between a point and its conjugate.
+<ul>
+    <li><i>per completed cycle</i>, the object has energy proportional to the square of the euclidean distance travelled</li>
+    <li>the square of the euclidean distance from a point to its conjugate is the radiance of the point</li>
+    <li>the sum of the radiance of every point in the box is the box radiance</li>
+    <li>the radiance is a maximal value</li>
+</ul>
+<br/>
+<br/>
+The radiance can be represented in a euclidean diagram,
+or in a radiance diagram where all the points are stretched out in a single line
+in index order.
+<br/>
+<br/>
+<div class="grid-container">
+    <div>
+        <i>Euclidean Radiance</i><br/>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-0.5 -0.5 0" scale="1 1 1">
+                    <inline url="x3d/grid-7x5x3.rad.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+    <div>
+        <i>Index Radiance</i><br/>
+        <x3d showStat="false" width="350" height="350">
+            <scene>
+                <transform translation="0 0.2 0" scale="0.5 0.5 0.5">
+                    <inline url="x3d/grid-7x5x3.euc.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+</div>
+
+The euclidean radiance is a function of the bases of the box
+whereas the index radiance is a function of the volume only.
+<br/>
+<br/>
+
+The radiance can be considered as an operator that swaps each point with its conjugate.
+<br/>
+<br/>
+Applying the radiance operator twice returns each point to its starting place - equivalent to the identity operator.
+<br/>
+<br/>
+Symbolically: <span class="box-text">e = r<sup>2</sup></span>
+<br/>
+<br/>
+

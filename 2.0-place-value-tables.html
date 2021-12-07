@@ -1,0 +1,239 @@
+<h3>Place Value Tables</h3>
+
+A place value table is familiar in base 10 as representing
+the sum of completed powers of 10;
+a fragment of the table for the box <span class="box-text">10 x 10 x 10</span> is shown below:
+<br/>
+<br/>
+<table class="place-values-table">
+    <tr>
+        <th class="places-left">100's</th>
+        <th class="places-left">10's</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+    </tr>
+    <tr>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+    </tr>
+    <tr>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">10</th>
+    </tr>
+    <tr>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">100</th>
+    </tr>
+    <tr>
+        <th class="places-left">9</th>
+        <th class="places-left">9</th>
+        <th class="places-left">9</th>
+        <th class="tally-value">(10<sup>3</sup> - 1)</th>
+    </tr>
+</table>
+<br/>
+Every point occurs as one row in the table
+and each row provides a coordinate for one point.
+<br/>
+<br/>
+For an arbitrary box in 3 dimensions, say <span class="box-text">a x b x c</span>,
+six distinct place value tables can be constructed:
+<br/>
+<br/>
+<table class="place-values-table">
+    <tr>
+        <th class="places-left">(a x b)</th>
+        <th class="places-left">a</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(b x c)</th>
+        <th class="places-left">b</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(c x a)</th>
+        <th class="places-left">c</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+    </tr>
+    <tr>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+    </tr>
+    <tr>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">a</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">b</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">c</th>
+    </tr>
+    <tr>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">(a x b)</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">(b x c)</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">(c x a)</th>
+    </tr>
+    <tr>
+        <th class="places-left">(c - 1)</th>
+        <th class="places-left">(b - 1)</th>
+        <th class="places-left">(a - 1)</th>
+        <th class="tally-value">(a x b x c) - 1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(a - 1)</th>
+        <th class="places-left">(c - 1)</th>
+        <th class="places-left">(b - 1)</th>
+        <th class="tally-value">(a x b x c) - 1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(b - 1)</th>
+        <th class="places-left">(a - 1)</th>
+        <th class="places-left">(c - 1)</th>
+        <th class="tally-value">(a x b x c) - 1</th>
+    </tr>
+</table>
+<br/>
+<br/>
+<table class="place-values-table">
+    <tr>
+        <th class="places-left">(a x b)</th>
+        <th class="places-left">b</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(b x c)</th>
+        <th class="places-left">c</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(c x a)</th>
+        <th class="places-left">a</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">value</th>
+    </tr>
+    <tr>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="tally-value">1</th>
+    </tr>
+    <tr>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">b</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">c</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">0</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">a</th>
+    </tr>
+    <tr>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">(a x b)</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">(b x c)</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">1</th>
+        <th class="places-left">0</th>
+        <th class="places-left">0</th>
+        <th class="tally-value">(c x a)</th>
+    </tr>
+    <tr>
+        <th class="places-left">(c - 1)</th>
+        <th class="places-left">(a - 1)</th>
+        <th class="places-left">(b - 1)</th>
+        <th class="tally-value">(a x b x c) - 1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(a - 1)</th>
+        <th class="places-left">(b - 1)</th>
+        <th class="places-left">(c - 1)</th>
+        <th class="tally-value">(a x b x c) - 1</th>
+        <th>&nbsp;&nbsp;&nbsp;</th>
+        <th class="places-left">(b - 1)</th>
+        <th class="places-left">(c - 1)</th>
+        <th class="places-left">(a - 1)</th>
+        <th class="tally-value">(a x b x c) - 1</th>
+    </tr>
+</table>
+<br/>
+<br/>
+The number of place tables for a box is the factorial of the dimension of the box
+and each place value table header is constructed by one permutation of the bases.
+<br/>
+<br/>
+For the three dimensional box <span class="box-text">a x b x c</span>,
+the permutations and their place table headers can be identified and labelled as follows:
+<br/>
+<br/>
+<table class="chain-details summary sortable">
+    <tr><th>Label</th><th>Bases Permutation</th><th>Place Values Table Header</th></tr>
+    <tr><td>α🠅</td><td>[ 2, 1, 0 ]</td><td>[ b x c, c, 1 ]</td></tr>
+    <tr><td>α🠇</td><td>[ 0, 1, 2 ]</td><td>[ 1, a, a x b ]</td></tr>
+    <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, a x c, c ]</td></tr>
+    <tr><td>β🠇</td><td>[ 1, 2, 0 ]</td><td>[ b x c, 1, b ]</td></tr>
+    <tr><td>γ🠅</td><td>[ 1, 0, 2 ]</td><td>[ b, 1, a x b ]</td></tr>
+    <tr><td>γ🠇</td><td>[ 2, 0, 1 ]</td><td>[ c, a x c, 1 ]</td></tr>
+    <tr><td colspan="3"></td></tr>
+</table>
+<br/>
+<br/>
+Note that the Place Values Table Headers are rotated so that they all share the same coordinate order.
+<br/>
+<br/>

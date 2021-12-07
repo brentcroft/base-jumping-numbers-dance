@@ -1,0 +1,224 @@
+<script type="text/javascript" src="../js/data.js"></script>
+<script type="text/javascript" src="../js/orbits.js"></script>
+<script type="text/javascript" src="../js/index.js"></script>
+<script>
+    function drawBoxItems( bases = [ 3, 5 ] ) {
+
+        const box = new Box( bases );
+        const columns = box
+            .points
+            .map( p => [
+                p.idx[0] == p.idx[1] ? ' class="fixed-point"' : '',
+                p.idx[0],
+                p.idx[1] ] );
+
+        const upRow = columns
+            .map( x => `<td${ x[0] }>${ x[1] }</td>` )
+            .join( "\n" );
+
+        const downRow = columns
+            .map( x => `<td${ x[0] }>${ x[2] }</td>` )
+            .join( "\n" );
+
+        return `<table class="raw-permutation"><tr>${ downRow }</tr><tr>${ upRow }</tr></table>`;
+    }
+</script>
+
+<h2>Two Dimensional Boxes</h2>
+
+There are two ways to unpack the two-dimensional box <span class="box-text">5 x 3</span>;
+either counting 5 lots of 3, or 3 lots of 5.
+Either way must tally to the same volume,
+but each way may assign different tally values to some points.
+This is seen by aligning rows from corresponding place values tables
+(NB: the second place table is reversed to align the coordinates):
+<br/>
+<br/>
+<table class="place-values-table">
+    <tr>
+        <th class="places-left">5's</th>
+        <th class="places-left">units</th>
+        <th class="tally-value">(tally)</th>
+        <th>&nbsp;</th>
+        <th class="tally-value">(tally)</th>
+        <th class="places-right">units</th>
+        <th class="places-right">3's</th>
+    </tr>
+    <tr>
+        <td class="places-left">0</td>
+        <td class="places-left">0</td>
+        <td class="tally-value">0</td>
+        <td>=</td>
+        <td class="tally-value">0</td>
+        <td class="places-right">0</td>
+        <td class="places-right">0</td>
+    </tr>
+    <tr>
+        <td class="places-values-spacer" colspan="2"></td>
+        <td colspan="3"></td>
+        <td class="places-values-spacer" colspan="2"></td>
+    </tr>
+    <tr>
+        <td class="places-left">0</td>
+        <td class="places-left">1</td>
+        <td class="tally-value">1</td>
+        <td>&lt;</td>
+        <td class="tally-value">3</td>
+        <td class="places-right">0</td>
+        <td class="places-right">1</td>
+    </tr>
+    <tr>
+        <td class="places-left">1</td>
+        <td class="places-left">0</td>
+        <td class="tally-value">5</td>
+        <td>&gt;</td>
+        <td class="tally-value">1</td>
+        <td class="places-right">1</td>
+        <td class="places-right">0</td>
+    </tr>
+    <tr>
+        <td class="places-values-spacer" colspan="2"></td>
+        <td colspan="3"></td>
+        <td class="places-values-spacer" colspan="2"></td>
+    </tr>
+    <tr>
+        <td class="places-left">1</td>
+        <td class="places-left">2</td>
+        <td class="tally-value">7</td>
+        <td>=</td>
+        <td class="tally-value">7</td>
+        <td class="places-right">1</td>
+        <td class="places-right">2</td>
+    </tr>
+    <tr>
+        <td class="places-values-spacer" colspan="2"></td>
+        <td colspan="3"></td>
+        <td class="places-values-spacer" colspan="2"></td>
+    </tr>
+    <tr>
+        <td class="places-left">2</td>
+        <td class="places-left">3</td>
+        <td class="tally-value">13</td>
+        <td>&gt;</td>
+        <td class="tally-value">11</td>
+        <td class="places-right">2</td>
+        <td class="places-right">3</td>
+    </tr>
+    <tr>
+        <td class="places-values-spacer" colspan="2"></td>
+        <td colspan="3"></td>
+        <td class="places-values-spacer" colspan="2"></td>
+    </tr>
+    <tr>
+        <td class="places-left">2</td>
+        <td class="places-left">4</td>
+        <td class="tally-value">14</td>
+        <td>=</td>
+        <td class="tally-value">14</td>
+        <td class="places-right">2</td>
+        <td class="places-right">4</td>
+    </tr>
+</table>
+<br/>
+The tally columns together implement a permutation of 15 points,
+which can be considered from two, <b><i>mutually inverse</i></b>, perspectives:
+<br/>
+<br/>
+<table class="raw-permutations">
+    <tr>
+        <td>α🠅</td>
+        <td>
+            <script>document.write( drawBoxItems( [ 5, 3 ] ) );</script>
+        </td>
+    </tr>
+</table>
+<table class="raw-permutations">
+    <tr>
+        <td>α🠇</td>
+        <td>
+            <script>document.write( drawBoxItems( [ 3, 5 ] ) );</script>
+        </td>
+    </tr>
+</table>
+<br/>
+This permutation of 15 points has 3 fixed points and 2 cycles (or orbits) each with 6 member points,
+where the inverse is the same fixed points and cycles in reverse order.
+<br/>
+<br/>
+The fixed points and orbits can be written in <b><i>action tables</i></b>, one of which follows:
+<br/>
+<br/>
+<table class="chain-details summary" data-sort-column="0">
+    <tr>
+        <th>Id</th>
+        <th>Cycle</th>
+        <th>Point Sum</th>
+        <th>Id Sum</th>
+        <th>E-Per<sup>2</sup></th>
+        <th>I-Per</th>
+    </tr>
+    <tr>
+        <th><code>(e)</code></th>
+        <th><code>( 0 ) ( 7 ) ( 14 )</code></th>
+        <th><code>(6,3)</code></th>
+        <th><code>3 * 7</code></th>
+        <th colspan="1"><code>0</code></th>
+        <th colspan="1"><code>0</code></th>
+    </tr>
+    <tr>
+        <td align="center">1</td>
+        <td class="orbit">( 1 5 11 ↘<br>13 9 3 ↖)</td>
+        <td align="center">(12, 6)</td>
+        <td align="center">3 * 14</td>
+        <td align="center">8</td>
+        <td align="center">12</td>
+    </tr>
+    <tr>
+        <td align="center">2</td>
+        <td class="orbit">( 2 10 8 ↘<br>12 4 6 ↖)</td>
+        <td align="center">(12, 6)</td>
+        <td align="center">3 * 14</td>
+        <td align="center">20</td>
+        <td align="center">14</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td colspan="1"></td>
+        <td class="sum-total"><span class="sum-total">( 30, 15 )</span></td>
+        <td class="sum-total"><span class="sum-total">15 * 7</span></td>
+        <td class="sum-total "><span class="sum-total ">7 * 4</span></td>
+        <td class="sum-total "><span class="sum-total ">13 * 2</span></td>
+    </tr>
+</table>
+<br/>
+In this case, both orbits are self-conjugate, the member points accompany, and are opposite to, their conjugates.
+<br/>
+<br/>
+Self-conjugate orbits are indicated (in the table) by splitting the orbit member sequence into two equal parts
+and laying the parts over each other so that each point lies over its conjugate.
+Therefore, a self-conjugate orbit cannot have an odd number of members.
+<br/>
+<br/>
+The action tables are visualized below in euclidean and radiance diagrams:
+
+<div class="grid-container">
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-1 -0.5 0" scale="1.8 1.8 1.8">
+                    <inline url="x3d/box-5x3.euc.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform scale="0.8 0.8 0.8">
+                    <inline url="x3d/box-5x3.rad.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+</div>

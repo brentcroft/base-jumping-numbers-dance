@@ -1,0 +1,46 @@
+
+
+<h2>Tally Ho!</h2>
+
+
+To tally a box means to systematically count the items (or points) inside.
+<br/>
+<br/>
+<div>
+    <x3d showStat="false" width="350" height="250">
+        <scene>
+            <transform translation="-0.5 -0.5 0" scale="1 1 1">
+                <inline url="x3d/grid-7x5x3.x3d"/>
+            </transform>
+        </scene>
+    </x3d>
+</div>
+
+
+The process seems obvious:
+<ol type="I">
+    <li>assign an initial tally value of 0</li>
+    <li>
+        unpack each point (systematically)
+        <ol type="i">
+            <li>assign the current tally value to the current point</li>
+            <li>increase the tally by 1</li>
+        </ol>
+    </li>
+    <li>collect the final tally</li>
+    <li>assert that the final tally is equal to the volume of the box</li>
+</ol>
+
+At the end of the process,
+each point will have been assigned a unique tally value,
+from 0 up to one less than the volume of the box
+- each point is identified by a unique index value in the range.
+<br/>
+<br/>
+This article will consider:
+<ul type="square">
+    <li>different ways to tally/index a box using place value tables</li>
+    <li>resonances between place value tables captured in permutations</li>
+    <li>group actions that manipulate resonances</li>
+    <li>a physical interpretation of resonances as energy quanta</li>
+</ul>

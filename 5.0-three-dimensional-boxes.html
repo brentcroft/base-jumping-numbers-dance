@@ -1,0 +1,214 @@
+<h2>Three dimensional boxes</h2>
+
+There are 6 ways to unpack the three-dimensional box <span class="box-text">7 x 5 x 3</span>
+corresponding with 6 permutations of the 3 bases.
+<br/>
+<br/>
+Selecting one permutation and then rotating the bases provides another two;
+these permutations are labelled "up" using an up arrow 🠅.
+<br/>
+<br/>
+The reversal of each of these then provides the remaining three,
+and these permutations are labelled "down" using an arrow 🠇.
+<br/>
+<br/>
+<table class="chain-details summary sortable">
+    <tr><th>Label</th><th>Bases Permutation</th><th>Place Values Table Header</th></tr>
+    <tr><td>α🠅</td><td>[ 2, 1, 0 ]</td><td>[ 15, 3, 1 ]</td></tr>
+    <tr><td>α🠇</td><td>[ 0, 1, 2 ]</td><td>[ 1, 7, 35 ]</td></tr>
+    <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, 21, 7 ]</td></tr>
+    <tr><td>β🠇</td><td>[ 1, 2, 0 ]</td><td>[ 15, 1, 5 ]</td></tr>
+    <tr><td>γ🠅</td><td>[ 1, 0, 2 ]</td><td>[ 5, 1, 35 ]</td></tr>
+    <tr><td>γ🠇</td><td>[ 2, 0, 1 ]</td><td>[ 3, 21, 1 ]</td></tr>
+    <tr><td colspan="3"></td></tr>
+</table>
+<br/>
+The indexes produced by each way of unpacking (place values table) can be compared with every other one (including themselves)
+to create 36 permutations of 105 points (the box volume).
+<br/>
+<br/>
+There are four cases to consider:
+<br/>
+<br/>
+<table class="three-dimensional-cases">
+    <tr>
+        <td>1</td>
+        <td>Indexes compared with the same labels and the same arrows</td>
+        <td>α🠅α🠅, α🠇α🠇, β🠅β🠅, β🠇β🠇, γ🠅γ🠅, γ🠇γ🠇</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>Indexes compared with different labels and different arrows</td>
+        <td>α🠅β🠇, β🠅α🠇, β🠇α🠅, α🠇β🠅, γ🠅α🠇, α🠅γ🠇, α🠇γ🠅, γ🠇α🠅, β🠅γ🠇, γ🠅β🠇, γ🠇β🠅, β🠇γ🠅</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>Indexes compared with different labels and the same arrows</td>
+        <td>α🠇β🠇, β🠇α🠇, α🠅β🠅, β🠅α🠅, γ🠇α🠇, α🠇γ🠇, γ🠅α🠅, α🠅γ🠅, β🠇γ🠇, γ🠇β🠇, β🠅γ🠅, γ🠅β🠅</td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>Indexes compared with the same labels and different arrows</td>
+        <td>α🠅α🠇, α🠇α🠅, β🠅β🠇, β🠇β🠅, γ🠅γ🠇, γ🠇γ🠅</td>
+    </tr>
+</table>
+
+<h3>Case 1 - Indexes compared with the same labels and the same arrows</h3>
+
+Obviously, comparing an index with itself must produce an identity permutation.
+<br/>
+<br/>
+<table class="place-values-table">
+    <tr><th>Label</th><th>Symbolic</th><th>Fixed Points</th><th>Orbits</th><th>Order</th><th>E-Per2</th><th>I-Per</th></tr>
+    <tr><td>e_0</td><td>α🠇α🠇</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>e_0i</td><td>α🠅α🠅</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>e_1</td><td>β🠇β🠇</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>e_1i</td><td>β🠅β🠅</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>e_2</td><td>γ🠇γ🠇</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>e_2i</td><td>γ🠅γ🠅</td><td>105</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td colspan="7">&nbsp;</td></tr>
+</table>
+
+<h3 class="pagebreak">Case 2 - Indexes compared with different labels and different arrows</h3>
+
+Comparing indexes with different labels and arrows produces 12 permutations
+that separate into 3 subsets where each subset has the same sum of perimeters squared (or energy).
+<br/>
+<br/>
+<table class="place-values-table">
+    <tr><th>Label</th><th>Symbolic</th><th>Fixed Points</th><th>Orbits</th><th>Order</th><th>E-Per2</th><th>I-Per</th><th>Identity Surface</th></tr>
+    <tr><td>a_0</td><td>α🠅β🠇</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 2</td><td align="right">- 0x + 2y - 4z = 0</td></tr>
+    <tr><td>a_0h14</td><td>β🠅α🠇</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 14</td><td align="right">- 0x + 14y - 28z = 0</td></tr>
+    <tr><td>a_0i</td><td>β🠇α🠅</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 2</td><td align="right">- 0x - 2y + 4z = 0</td></tr>
+    <tr><td>a_0h14i</td><td>α🠇β🠅</td><td>21</td><td>14</td><td>6</td><td>196</td><td>91 * 14</td><td align="right">- 0x - 14y + 28z = 0</td></tr>
+    <tr><td>a_1</td><td>γ🠅α🠇</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 2</td><td align="right">4x - 6y - 0z = 0</td></tr>
+    <tr><td>a_1h6</td><td>α🠅γ🠇</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 6</td><td align="right">12x - 18y - 0z = 0</td></tr>
+    <tr><td>a_1i</td><td>α🠇γ🠅</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 2</td><td align="right">- 4x + 6y - 0z = 0</td></tr>
+    <tr><td>a_1h6i</td><td>γ🠇α🠅</td><td>9</td><td>6</td><td>16</td><td>516</td><td>249 * 6</td><td align="right">- 12x + 18y - 0z = 0</td></tr>
+    <tr><td>a_2</td><td>β🠅γ🠇</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 2</td><td align="right">- 2x - 0y + 6z = 0</td></tr>
+    <tr><td>a_2h10</td><td>γ🠅β🠇</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 10</td><td align="right">- 10x - 0y + 30z = 0</td></tr>
+    <tr><td>a_2i</td><td>γ🠇β🠅</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 2</td><td align="right">2x - 0y - 6z = 0</td></tr>
+    <tr><td>a_2h10i</td><td>β🠇γ🠅</td><td>15</td><td>25</td><td>4</td><td>340</td><td>135 * 10</td><td align="right">10x - 0y - 30z = 0</td></tr>
+    <tr><td colspan="7">&nbsp;</td></tr>
+</table>
+
+When two indexes are compared, an <b><i>Identity Surface</i></b> equation can be formed by taking as coefficients the difference between place value table headers.
+<br/>
+<br/>
+The table shows that the index perimeter is factorised by redundant factors in the corresponding identity surface equation.
+<br/>
+<br/>
+Furthermore, the euclidean squared perimeters are multiples of those from the 3 two-dimensional sub boxes seen earlier:
+<br/>
+<table class="place-values-table">
+    <tr><th>Sub Box</th><th>E-Per<sup>2</sup></th><th>Times</th><th>Labels</th></tr>
+    <tr><td>3 x 5</td><td>28</td><td>7</td><td>196</td><td>α, β</td></tr>
+    <tr><td>5 x 7</td><td>68</td><td>5</td><td>340</td><td>β, γ</td></tr>
+    <tr><td>7 x 3</td><td>172</td><td>3</td><td>516</td><td>γ, α</td></tr>
+</table>
+<br/>
+<br/>
+The euclidean and radiance diagrams clearly show copies of the action tables,
+and therefore copies of the orbits and fixed points.
+
+<div class="grid-container">
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-1 -1 0" scale="1.2 1.2 1.2">
+                    <inline url="x3d/box-7x5x3-a1.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform scale="0.7 0.7 0.7">
+                    <inline url="x3d/box-7x5x3-a1.rad.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+</div>
+<div class="grid-container">
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-1 -1 0" scale="1.2 1.2 1.2">
+                    <inline url="x3d/box-7x5x3-a2.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform scale="0.7 0.7 0.7">
+                    <inline url="x3d/box-7x5x3-a2.rad.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+</div>
+
+<div class="grid-container">
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform translation="-1 -1 0" scale="1.2 1.2 1.2">
+                    <inline url="x3d/box-7x5x3-a0.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+    <div>
+        <x3d showStat="false" width="350" height="250">
+            <scene>
+                <transform scale="0.7 0.7 0.7">
+                    <inline url="x3d/box-7x5x3-a0.rad.x3d"/>
+                </transform>
+            </scene>
+        </x3d>
+    </div>
+</div>
+
+
+
+<h3>Case 3 - Indexes compared with different labels and the same arrows</h3>
+
+<table class="place-values-table">
+    <tr><th>Label</th><th>Symbolic</th><th>Fixed Points</th><th>Orbits</th><th>Order</th><th>E-Per2</th><th>I-Per</th></tr>
+    <tr><td>b_0</td><td>α🠇β🠇 = α🠇γ🠅 * β🠅γ🠇</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+    <tr><td>b_0i</td><td>β🠇α🠇 = γ🠇β🠅 * γ🠅α🠇</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+    <tr><td>b_1</td><td>α🠅β🠅 = γ🠅α🠇 * γ🠇β🠅</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+    <tr><td>b_1i</td><td>β🠅α🠅 = β🠅γ🠇 * α🠇γ🠅</td><td>3</td><td>11</td><td>12</td><td>632</td><td>818 * 2</td></tr>
+    <tr><td>b_2</td><td>γ🠇α🠇 = γ🠇β🠅 * α🠅β🠇</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+    <tr><td>b_2i</td><td>α🠇γ🠇 = β🠇α🠅 * β🠅γ🠇</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+    <tr><td>b_3</td><td>γ🠅α🠅 = β🠅γ🠇 * β🠇α🠅</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+    <tr><td>b_3i</td><td>α🠅γ🠅 = α🠅β🠇 * γ🠇β🠅</td><td>3</td><td>23</td><td>6</td><td>488</td><td>748 * 2</td></tr>
+    <tr><td>b_4</td><td>β🠇γ🠇 = β🠇α🠅 * γ🠅α🠇</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+    <tr><td>b_4i</td><td>γ🠇β🠇 = α🠇γ🠅 * α🠅β🠇</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+    <tr><td>b_5</td><td>β🠅γ🠅 = α🠅β🠇 * α🠇γ🠅</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+    <tr><td>b_5i</td><td>γ🠅β🠅 = γ🠅α🠇 * β🠇α🠅</td><td>5</td><td>26</td><td>4</td><td>592</td><td>400 * 4</td></tr>
+    <tr><td colspan="7">&nbsp;</td></tr>
+</table>
+
+In this case, it turns out that each row can be composed with two items from case 2.
+
+<h3>Case 4 - Indexes compared with the same labels and different arrows</h3>
+
+<table class="place-values-table">
+    <tr><th>Label</th><th>Symbolic</th><th>Fixed Points</th><th>Orbits</th><th>Order</th><th>E-Per2</th><th>I-Per</th></tr>
+    <tr><td>z_0</td><td>α🠅α🠇 = γ🠅α🠇 * γ🠇β🠅 * α🠅β🠇</td><td>3</td><td>19</td><td>36</td><td>660</td><td>853 * 2</td></tr>
+    <tr><td>z_0i</td><td>α🠇α🠅 = α🠇γ🠅 * β🠅γ🠇 * β🠇α🠅</td><td>3</td><td>19</td><td>36</td><td>660</td><td>853 * 2</td></tr>
+    <tr><td>z_1</td><td>β🠅β🠇 = α🠅β🠇 * α🠇γ🠅 * β🠅γ🠇</td><td>3</td><td>5</td><td>300</td><td>660</td><td>853 * 2</td></tr>
+    <tr><td>z_1i</td><td>β🠇β🠅 = β🠇α🠅 * γ🠅α🠇 * γ🠇β🠅</td><td>3</td><td>5</td><td>300</td><td>660</td><td>853 * 2</td></tr>
+    <tr><td>z_2</td><td>γ🠅γ🠇 = β🠅γ🠇 * β🠇α🠅 * γ🠅α🠇</td><td>3</td><td>9</td><td>4180</td><td>660</td><td>853 * 2</td></tr>
+    <tr><td>z_2i</td><td>γ🠇γ🠅 = γ🠇β🠅 * α🠅β🠇 * α🠇γ🠅</td><td>3</td><td>9</td><td>4180</td><td>660</td><td>853 * 2</td></tr>
+    <tr><td colspan="7">&nbsp;</td></tr>
+</table>
+
+In this case, it turns out that each row can be composed with three items from case 2.
+Also note that the squared perimeters are equal to each other,
+and the index perimeters are as well.

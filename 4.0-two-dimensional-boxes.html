@@ -1,28 +1,3 @@
-<script type="text/javascript" src="../js/data.js"></script>
-<script type="text/javascript" src="../js/orbits.js"></script>
-<script type="text/javascript" src="../js/index.js"></script>
-<script>
-    function drawBoxItems( bases = [ 3, 5 ] ) {
-
-        const box = new Box( bases );
-        const columns = box
-            .points
-            .map( p => [
-                p.idx[0] == p.idx[1] ? ' class="fixed-point"' : '',
-                p.idx[0],
-                p.idx[1] ] );
-
-        const upRow = columns
-            .map( x => `<td${ x[0] }>${ x[1] }</td>` )
-            .join( "\n" );
-
-        const downRow = columns
-            .map( x => `<td${ x[0] }>${ x[2] }</td>` )
-            .join( "\n" );
-
-        return `<table class="raw-permutation"><tr>${ downRow }</tr><tr>${ upRow }</tr></table>`;
-    }
-</script>
 
 <h2>Two Dimensional Boxes</h2>
 
@@ -125,18 +100,76 @@ which can be considered from two, <b><i>mutually inverse</i></b>, perspectives:
 <br/>
 <br/>
 <table class="raw-permutations">
-    <tr>
+    <tbody><tr>
         <td>α🠅</td>
         <td>
-            <script>document.write( drawBoxItems( [ 5, 3 ] ) );</script>
+            <table class="raw-permutation">
+                <tr><td class="fixed-point">0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td>4</td>
+            <td>5</td>
+            <td>6</td>
+            <td class="fixed-point">7</td>
+            <td>8</td>
+            <td>9</td>
+            <td>10</td>
+            <td>11</td>
+            <td>12</td>
+            <td>13</td>
+            <td class="fixed-point">14</td></tr><tr><td class="fixed-point">0</td>
+            <td>5</td>
+            <td>10</td>
+            <td>1</td>
+            <td>6</td>
+            <td>11</td>
+            <td>2</td>
+            <td class="fixed-point">7</td>
+            <td>12</td>
+            <td>3</td>
+            <td>8</td>
+            <td>13</td>
+            <td>4</td>
+            <td>9</td>
+            <td class="fixed-point">14</td></tr></table>
         </td>
     </tr>
 </table>
+
 <table class="raw-permutations">
     <tr>
         <td>α🠇</td>
         <td>
-            <script>document.write( drawBoxItems( [ 3, 5 ] ) );</script>
+            <table class="raw-permutation"><tbody><tr><td class="fixed-point">0</td>
+                <td>1</td>
+                <td>2</td>
+                <td>3</td>
+                <td>4</td>
+                <td>5</td>
+                <td>6</td>
+                <td class="fixed-point">7</td>
+                <td>8</td>
+                <td>9</td>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+                <td>13</td>
+                <td class="fixed-point">14</td></tr><tr><td class="fixed-point">0</td>
+                <td>3</td>
+                <td>6</td>
+                <td>9</td>
+                <td>12</td>
+                <td>1</td>
+                <td>4</td>
+                <td class="fixed-point">7</td>
+                <td>10</td>
+                <td>13</td>
+                <td>2</td>
+                <td>5</td>
+                <td>8</td>
+                <td>11</td>
+                <td class="fixed-point">14</td></tr></tbody></table>
         </td>
     </tr>
 </table>

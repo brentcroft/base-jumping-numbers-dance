@@ -20,23 +20,11 @@ in index order.
 <div class="grid-container">
     <div>
         <i>Euclidean Radiance</i><br/>
-        <x3d showStat="false" width="350" height="250">
-            <scene>
-                <transform translation="-0.5 -0.5 0" scale="1 1 1">
-                    <inline url="x3d/grid-7x5x3.rad.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
+        <img src="png/box-7x5x3.r.euc.png"/>
     </div>
     <div>
         <i>Index Radiance</i><br/>
-        <x3d showStat="false" width="350" height="350">
-            <scene>
-                <transform translation="0 0.2 0" scale="0.5 0.5 0.5">
-                    <inline url="x3d/grid-7x5x3.euc.x3d"/>
-                </transform>
-            </scene>
-        </x3d>
+        <img src="png/box-7x5x3.r.rad.png"/>
     </div>
 </div>
 
@@ -51,7 +39,5 @@ The radiance can be considered as an operator that swaps each point with its con
 Applying the radiance operator twice returns each point to its starting place - equivalent to the identity operator.
 <br/>
 <br/>
-Symbolically: <span class="box-text">e = r<sup>2</sup></span>
-<br/>
-<br/>
+
 

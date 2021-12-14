@@ -23,7 +23,7 @@ toggleKeys = {
     coords: 0,
     minCols: 1,
     maxCols: 0,
-    fixedRad: 0,
+    fixedRad: 1,
     colours: 0,
 
     inverses: 1,

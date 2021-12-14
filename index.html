@@ -10,38 +10,56 @@
     <script type="text/javascript" src="js/x3dom.js"></script>
 
     <script>
-        function includePage( element ) {
-            element.insertAdjacentHTML( "afterend", ( element.contentDocument.body || element.contentDocument ).innerHTML );
-            element.remove();
+        const pages = {
+            'page-1-0': '1.0-tally-ho.html',
+            'page-2-0': '2.0-place-value-tables.html',
+            'page-3-0': '3.0-conjugate-points-radiance.html',
+            'page-4-0': '4.0-two-dimensional-boxes.html',
+            'page-4-1': '4.1-two-more-boxes.html',
+            'page-5-0': '5.0-three-dimensional-boxes.html'
+        };
+
+        function includePages() {
+            Object
+                .entries( pages )
+                .forEach( entry => {
+                    const [ id, src ] = entry;
+                    const request = new XMLHttpRequest();
+
+                    const includer = () => {
+                        const element = document.getElementById( id );
+                        if ( element ) {
+                            element.innerHTML = request.responseText;
+
+                            x3dom.reload();
+                        }
+                    };
+
+                    request.addEventListener( "load", includer );
+                    request.open( "GET", src );
+                    request.send();
+                } );
         }
     </script>
 </head>
-<body>
+<body onload="includePages()">
     <h1>Thinking inside the Box</h1>
-
     <div>
-        <iframe src="1.0-tally-ho.html" onload="includePage( this )"></iframe>
+        Alaric Dobson, 2012-12-09<br/>
+        alaric@brentcroft.com
     </div>
 
-    <div class="pagebreak">
-        <iframe src="2.0-place-value-tables.html" onload="includePage( this )"></iframe>
-    </div>
+    <div id="page-1-0"></div>
 
-    <div class="pagebreak">
-        <iframe src="3.0-conjugate-points-radiance.html" onload="includePage( this )"></iframe>
-    </div>
+    <div id="page-2-0" class="pagebreak"></div>
 
-    <div class="pagebreak">
-        <iframe src="4.0-two-dimensional-boxes.html" onload="includePage( this )"></iframe>
-    </div>
+    <div id="page-3-0" class="pagebreak"></div>
 
-    <div class="pagebreak">
-        <iframe src="4.1-two-more-boxes.html" onload="includePage( this )"></iframe>
-    </div>
+    <div id="page-4-0" class="pagebreak"></div>
 
-    <div class="pagebreak">
-        <iframe src="5.0-three-dimensional-boxes.html" onload="includePage( this )"></iframe>
-    </div>
+    <div id="page-4-1" class="pagebreak"></div>
+
+    <div id="page-5-0" class="pagebreak"></div>
 
 </body>
 </html>

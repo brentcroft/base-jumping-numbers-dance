@@ -21,6 +21,105 @@
  * MIT license, see LICENSE file
  */
 
+
+/*
+    Inversion rules:
+        1. The inverse of a group action has the pair of permutations swapped over
+*/
+function inversion( boxAction, boxGroup ) {
+    return ( boxAction instanceof PlaceValuesAction )
+        ? boxGroup.findActionByPermPair( [ boxAction.pair.permPair[1], boxAction.pair.permPair[0] ] )
+        : null;
+}
+/*
+    Composition rules:
+        1. A DU or UD group action is isomorphic to its rotation - albeit a different index harmonic
+        2. Immediately adjacent symbols in a composition that form an identity can be removed
+*/
+function composition( left, right, boxGroup ) {
+
+    function addSymbols( left, right, boxAction ) {
+        const symbolic = `${ left.symbols[0] } * ${ right.symbols[0] }`;
+        if ( !boxAction.symbols.includes( symbolic ) ) {
+            // consoleLog( `Symbolic: ${ boxAction } = ${ symbolic }` );
+            boxAction.symbols.push( symbolic );
+        }
+    }
+
+    if ( left instanceof PlaceValuesAction && right instanceof PlaceValuesAction ) {
+
+        const [
+            leftState, leftPermPair,
+            rightState, rightPermPair
+        ] = [
+            left.pair.stateType, left.pair.permPair,
+            right.pair.stateType, right.pair.permPair
+        ];
+
+        if ( arrayExactlyEquals( leftPermPair[1], rightPermPair[0] ) ) {
+            const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rightPermPair[1] ] );
+            if ( boxAction ) {
+                addSymbols( left, right, boxAction );
+                return boxAction;
+            }
+        }
+
+        if ( leftState == 'DU' || leftState == 'UD' ) {
+            const [ leftPerm, leftPermRight ] = [ [ ...leftPermPair[0] ].reverse(), [ ...leftPermPair[1] ].reverse() ];
+            if ( arrayExactlyEquals( leftPerm, rightPermPair[0] ) ) {
+                const boxAction = boxGroup.findActionByPermPair( [ leftPermRight, rightPermPair[1] ] );
+                if ( boxAction ) {
+                    addSymbols( left, right, boxAction );
+                    return boxAction;
+                }
+            }
+        }
+
+        if ( rightState == 'UD' || rightState == 'DU' ) {
+            const [ rightPerm, rightPermLeft ] = [ [ ...rightPermPair[1] ].reverse(), [ ...rightPermPair[0] ].reverse() ];
+            if ( arrayExactlyEquals( leftPermPair[1], rightPerm ) ) {
+                const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rightPermLeft ] );
+                if ( boxAction ) {
+                    addSymbols( left, right, boxAction );
+                    return boxAction;
+                }
+            }
+        }
+
+        if ( ( leftState == 'DU' || leftState == 'UD' )
+            && rightState == 'UD' || rightState == 'DU' ) {
+
+            const [ leftPerm, leftPermRight ] = [ [ ...leftPermPair[0] ].reverse(), [ ...leftPermPair[1] ].reverse() ];
+            const [ rightPerm, rightPermLeft ] = [ [ ...rightPermPair[1] ].reverse(), [ ...rightPermPair[0] ].reverse() ];
+
+            if ( arrayExactlyEquals( leftPerm, rightPerm ) ) {
+                const boxAction = boxGroup.findActionByPermPair( [ leftPermRight, rightPermLeft ] );
+                if ( boxAction ) {
+                    addSymbols( left, right, boxAction );
+                    return boxAction;
+                }
+            }
+        }
+
+        if ( ( leftState == 'DD' || leftState == 'UU' )
+            && rightState == 'DD' || rightState == 'UU' ) {
+
+            const [ leftPerm, leftPermRight ] = [ leftPermPair[0], leftPermPair[1] ];
+            const [ rightPerm, rightPermLeft ] = [ rightPermPair[1], rightPermPair[0] ];
+
+            if ( arrayExactlyEquals( leftPerm, rightPerm ) ) {
+                const boxAction = boxGroup.findActionByPermPair( [ rightPermLeft, leftPermRight ] );
+                if ( boxAction ) {
+                    addSymbols( left, right, boxAction );
+                    return boxAction;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+
 class Formula {
     /**
      * Creates a new Formula instance
@@ -34,8 +133,8 @@ class Formula {
      *    - memoization (bool): If true, results are stored and re-used when evaluate() is called with the same parameters
      * @param {Formula} parentFormula Internally used to build a Formula AST
      */
-    constructor( indexedBox, fStr, options = {} ) {
-        this.indexedBox = indexedBox;
+    constructor( boxGroup, fStr, options = {} ) {
+        this.boxGroup = boxGroup;
         this.formulaExpression = null;
         this.options = Object.assign(
             {
@@ -369,6 +468,8 @@ class Formula {
                 expr.exponent = exprCopy[idx + 1];
                 exprCopy[idx - 1] = expr;
                 exprCopy.splice(idx, 2);
+                //
+                expr.boxGroup = this.boxGroup;
             } else {
                 idx++;
             }
@@ -387,6 +488,8 @@ class Formula {
                 expr.right = exprCopy[idx + 1];
                 exprCopy[idx - 1] = expr;
                 exprCopy.splice(idx, 2);
+                //
+                expr.boxGroup = this.boxGroup;
             } else {
                 idx++;
             }
@@ -403,9 +506,7 @@ class Formula {
     }
 
     isOperatorExpr(expr) {
-        return (
-            expr instanceof OperatorExpression || expr instanceof PowerExpression
-        );
+        return expr instanceof OperatorExpression || expr instanceof PowerExpression;
     }
 
     registerVariable(varName) {
@@ -443,58 +544,73 @@ class Formula {
             if (res !== null) {
                 return res;
             } else {
-                res = expr.evaluate({ ...this.indexedBox.getIndexMap(), ...valueObj });
+                res = expr.evaluate({ ...this.boxGroup.getIndexMap(), ...valueObj });
                 this.storeInMemory(valueObj, res);
                 return res;
             }
         }
 
-        return expr.evaluate({ ...this.indexedBox.getIndexMap(), ...valueObj });
+        return expr.evaluate({ ...this.boxGroup.getIndexMap(), ...valueObj });
     }
 
-    // todo: externalize work on indexedBox
+    // todo: externalize work on boxGroup
     evaluate(valueObj) {
+
         const r = this._evaluate(valueObj);
+
+        function updateAlias( r, aliasText ) {
+            if ( !r ) {
+                //
+            } else if ( r.alias ) {
+                if ( !r.alias.includes( aliasText ) ) {
+                    r.alias.push( aliasText );
+                }
+            } else {
+                r.alias = [ aliasText ];
+            }
+        }
+
+        function updateSymbols( existingIndex, r ) {
+            if ( existingIndex.symbols ) {
+                r
+                    .symbols
+                    .filter( symbol => !existingIndex.symbols.includes( symbol ) )
+                    .forEach( symbol => existingIndex.symbols.push( symbol ) );
+            } else {
+                existingIndex.symbols = [ ...r.symbols ];
+            }
+        }
+
+        const aliasText = this.getExpressionString();
 
         if ( r instanceof CompositeAction ) {
 
-            r.id = indexedBox.indexPlanes.length;
+            r.id = this.boxGroup.indexPlanes.length;
             r.indexPoints();
             r.initialise();
 
-            const existingIndexes = this.indexedBox.findMatchingIndexes( r );
+            const existingIndexes = this.boxGroup.findMatchingIndexes( r );
 
             if ( existingIndexes.length == 0 ) {
-                r.label = this.getExpressionString();
+                r.label = aliasText;
                 r.alias = [];
-                this.indexedBox.indexPlanes.push( r );
+                this.boxGroup.indexPlanes.push( r );
                 return r;
+            } else {
+                existingIndexes
+                    .forEach( existingIndex => {
+                        if ( `e * ${ existingIndex }` == aliasText ) {
+                            //
+                        } else {
+                            updateAlias( r, aliasText );
+                        }
+                        updateSymbols( existingIndex, r );
+                    } );
+
+                return existingIndexes[0];
             }
-
-            const aliasText = this.getExpressionString();
-
-            existingIndexes.forEach( existingIndex => {
-
-                if ( `e * ${ existingIndex }` == aliasText ) {
-                } else if ( existingIndex.alias ) {
-                    if ( !existingIndex.alias.includes( aliasText ) ) {
-                        existingIndex.alias.push( aliasText );
-                    }
-                } else {
-                    existingIndex.alias = [ aliasText ];
-                }
-
-                if ( existingIndex.symbols ) {
-                    r.symbols
-                        .filter( symbol => !existingIndex.symbols.includes( symbol ) )
-                        .forEach( symbol => existingIndex.symbols.push( symbol ) );
-                } else {
-                    existingIndex.symbols = [ ...r.symbols ];
-                }
-            } );
-
-            return existingIndexes[0];
         } else {
+            updateAlias( r, aliasText );
             return r;
         }
     }
@@ -536,12 +652,12 @@ class Formula {
 }
 
 class Expression {
-    static createOperatorExpression(operator, left = null, right = null) {
+    static createOperatorExpression(operator, left, right, boxGroup) {
         if (operator === '^') {
             return new PowerExpression(operator, left, right);
         }
         if (operator === '*') {
-            return new OperatorExpression(operator, left, right);
+            return new OperatorExpression( operator, left, right );
         }
         throw new Error(`Unknown operator: ${operator}`);
     }
@@ -601,37 +717,54 @@ class StringExpression extends Expression {
 }
 
 class OperatorExpression extends Expression {
-    constructor(operator, left = null, right = null) {
+    constructor( operator, left, right, boxGroup ) {
         super();
-        if (!['*'].includes(operator)) {
+        if (![ '*' ].includes( operator ) ) {
             throw new Error(`Operator not implemented: ${ this.left } * ${ this.right }`);
         }
         this.operator = operator;
         this.left = left;
         this.right = right;
+        this.boxGroup = boxGroup;
     }
 
-    evaluate(params = {}) {
+    evaluate( params = {} ) {
         const leftAction = this.left.evaluate(params);
         const rightAction = this.right.evaluate(params);
 
-        const label = CompositeAction.compositeLabel( leftAction, rightAction )
+        var boxAction = composition( leftAction, rightAction, this.boxGroup );
+        if ( !this.boxGroup.composeAll && boxAction ) {
+            return boxAction;
+        }
 
-        return label in params
-            ? params[label]
-            : new CompositeAction(
-                leftAction.box,
-                Math.round( Math.random() * 10000 + 1),
-                leftAction,
-                rightAction,
-                true
-            );
+        const alias = CompositeAction.compositeLabel( leftAction, rightAction );
+
+        boxAction = this.boxGroup.findActionByAlias( alias );
+        if ( boxAction ) {
+            return boxAction;
+        }
+
+        if ( alias in params ) {
+            return params[alias];
+        }
+
+        boxAction = new CompositeAction(
+            leftAction.box,
+            Math.round( Math.random() * 10000 + 1),
+            leftAction,
+            rightAction,
+            true );
+
+        this.boxGroup.registerCompositeAction( alias, boxAction );
+
+        return boxAction;
     }
 
     toString() {
         return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
     }
 }
+
 
 class PowerExpression extends Expression {
     constructor(base = null, exponent = null) {
@@ -646,7 +779,6 @@ class PowerExpression extends Expression {
         var locus = start;
 
         if ( exp == 0 ) {
-            // return identity
             locus = params['e'] || params['e_0'];
             if ( ! locus ) {
                 throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
@@ -655,19 +787,30 @@ class PowerExpression extends Expression {
             //
         } else if ( exp > 0 ) {
             for ( var i = 1; i < exp; i++ ) {
-                locus = new CompositeAction(
-                            locus.box,
-                            Math.round( Math.random() * 10000 + 1),
-                            locus, start,
-                            true
-                        );
+                const alias = CompositeAction.compositeLabel( locus, start );
+                const boxAction = this.boxGroup.findActionByAlias( alias );
+
+                if ( boxAction ) {
+                    locus = boxAction;
+                } else {
+                    locus = new CompositeAction(
+                        locus.box,
+                        Math.round( Math.random() * 10000 + 1),
+                        locus, start,
+                        true
+                    );
+                    this.boxGroup.registerCompositeAction( alias, locus );
+                }
             }
         } else if ( exp < 0 ) {
-            locus = params['e'] || params['e_0'];
-            if ( ! locus ) {
-                throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
-            }
-            for ( var i = 0; i > exp; i-- ) {
+
+            if ( !this.boxGroup.composeAll && start instanceof PlaceValuesAction ) {
+                locus = inversion( start, this.boxGroup );
+            } else {
+                locus = params['e'] || params['e_0'];
+                if ( ! locus ) {
+                    throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
+                }
                 locus = new CompositeAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
@@ -675,6 +818,25 @@ class PowerExpression extends Expression {
                             true,
                             true
                         );
+                this.boxGroup.registerCompositeAction( locus.label, locus );
+            }
+
+            for ( var i = -1; i > exp; i-- ) {
+                const alias = CompositeAction.compositeLabel( locus, start );
+                const boxAction = this.boxGroup.findActionByAlias( alias );
+
+                if ( boxAction ) {
+                    locus = boxAction;
+                } else {
+                    locus = new CompositeAction(
+                            locus.box,
+                            Math.round( Math.random() * 10000 + 1),
+                            locus, start,
+                            true,
+                            true
+                        );
+                    this.boxGroup.registerCompositeAction( alias, locus );
+                }
             }
         }
         return locus;

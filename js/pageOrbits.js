@@ -364,7 +364,7 @@ function isToggle( toggle ) {
 
 function updateJson() {
 
-    consoleLog( `updateJson: id=${ basePlane.key }` );
+    //consoleLog( `updateJson: id=${ basePlane.key }` );
 
     document
         .getElementById( "sample_cs_b_10_m_2_riffler" )
@@ -405,7 +405,7 @@ function selectBoxAction() {
     const param = getControlValues();
     const actionIndex = param.actionIndex % indexedBox.indexPlanes.length;
 
-    consoleLog( `selectBoxAction: id=${ actionIndex }` );
+    //consoleLog( `selectBoxAction: id=${ actionIndex }` );
     basePlane = indexedBox.indexPlanes[ actionIndex ];
 
     if ( basePlane ) {
@@ -554,7 +554,7 @@ function updatePage() {
     const param = getControlValues();
 
     // TODO: global access
-    indexedBox = new IndexedBox( param.bases, param );
+    indexedBox = new BoxGroup( param.bases, param );
 
     document
             .getElementById( "basesVolume" )
@@ -639,7 +639,7 @@ function initPage( urlParam = true ) {
         if ( event.data ) {
             var data = event.data;
 
-            consoleLog( `event.data: ${ JSON.stringify( data ) }` );
+            //consoleLog( `event.data: ${ JSON.stringify( data ) }` );
 
             if ( data.basis ) {
                 if ( "point" == data.basis ) {

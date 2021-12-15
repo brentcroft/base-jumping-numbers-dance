@@ -251,8 +251,8 @@ var arrayCompare = (a, b) => {
 };
 
 var arrayExactlyEquals = (a, b) => a.filter( (x,i) => x == b[i] ).length == a.length;
-var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
 var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v => a.includes( v ) );
+var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;
 
 // @:see: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 var cartesian         = ( ...a ) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));

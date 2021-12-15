@@ -50,7 +50,7 @@ class RadiantAction extends BoxAction {
             id: id,
             di: di,
             conjugateId: conjugateId,
-            jump: this.getJump( id, di ),
+            jump: ( di - id ),
             radiant: ( conjugateId - id )
         };
 
@@ -101,7 +101,7 @@ class PlaceValuesAction extends BoxAction {
             id: id,
             di: di,
             conjugateId: conjugateId,
-            jump: this.getJump( id, di ),
+            jump: ( di - id ),
             radiant: ( conjugateId - id )
         };
 
@@ -157,6 +157,8 @@ class CompositeAction extends BoxAction {
         } else {
             this.unindexed = true;
         }
+
+        consoleLog( `Created CompositeAction: ${ this.label }${ this.reverse ? '; (inverse)' : '' }` );
     }
 
     indexPoints() {
@@ -183,7 +185,7 @@ class CompositeAction extends BoxAction {
            id: id,
            di: di,
            conjugateId: conjugateId,
-           jump: this.getJump( id, di ),
+           jump: ( di - id ),
            radiant: ( conjugateId - id )
         };
 
@@ -209,24 +211,27 @@ class CompositeAction extends BoxAction {
 }
 
 
-class IndexedBox {
+class BoxGroup {
 
     constructor( bases = [], param = {} ) {
 
         const toggles = param.toggles || [];
         const actionLayers = param.actionLayers || [];
 
-        const [ identities, inverses, harmonics, degenerates ] = [
+        this.compositeActions = [];
+
+        const [ identities, inverses, harmonics, degenerates, composeAll ] = [
             toggles.includes( "identities" ),
             toggles.includes( "inverses" ),
             toggles.includes( "harmonics" ),
-            toggles.includes( "degenerates" )
+            toggles.includes( "degenerates" ),
+            toggles.includes( "composeAll" )
         ];
 
-        const globalise = toggles.includes( "globalise" );
+        this.composeAll = composeAll;
 
         this.box = new Box( bases );
-        this.key = "box-" + this.box.bases.join( "." );
+        this.key = "box-group" + this.box.bases.join( "." );
 
         if (toggles.includes( "radiance" )) {
 
@@ -243,10 +248,10 @@ class IndexedBox {
         if ( bases.length > 1 ) {
 
             const [ DD, DU, UD, UU ] = [
-                [ 0, 0 ],
-                [ 0, 1 ],
-                [ 1, 0 ],
-                [ 1, 1 ]
+                [ 0, 0, 'DD' ],
+                [ 0, 1, 'DU' ],
+                [ 1, 0, 'UD' ],
+                [ 1, 1, 'UU' ]
             ];
 
             const indexors = [];
@@ -264,6 +269,7 @@ class IndexedBox {
                     indexors.push( palindrome );
 
                     if ( inverses ) {
+                        // same pair id
                         indexors.push( new PlaceValuesPermutationPair( identity.id, bases, pvp, pvp, UU, identity ) );
                         indexors.push( new PlaceValuesPermutationPair( palindrome.id, bases, pvp, pvp, DU, palindrome ) );
                     }
@@ -314,9 +320,7 @@ class IndexedBox {
                     uppers += 2;
                 } );
 
-            const indexorSorter = ( p1, p2 ) => p1.compareTo( p2 );
-
-            //indexors.sort( indexorSorter );
+            //indexors.sort( ( p1, p2 ) => p1.compareTo( p2 ) );
 
             // capture all labels
             this.layerLabels = [];
@@ -354,7 +358,7 @@ class IndexedBox {
                   .forEach( indexer => indexer.indexPoint( point ) ) );
 
         if (toggles.includes( "radiance" )) {
-            // unity is composite so not auto-indexed
+            // unity is composite so has not yet been indexed
             this.box.unity.indexPoints();
         }
 
@@ -369,7 +373,28 @@ class IndexedBox {
 
     findMatchingIndexes( index ) {
         const matches = this.indexPlanes.filter( p => p.equals( index ) );
-        matches.sort( IndexedBox.indexSorter  );
+        //matches.sort( BoxGroup.indexSorter );
         return matches;
+    }
+
+    findActionByPermPair( permPair ) {
+        const matches = this
+            .indexPlanes
+            .filter( p => p instanceof PlaceValuesAction )
+            .filter( p => arrayExactlyEquals( p.pair.permPair[0], permPair[0] ) && arrayExactlyEquals( p.pair.permPair[1], permPair[1] ) );
+        return matches.length > 0 ? matches[0] : null;
+    }
+
+    registerCompositeAction( alias, compositeAction ) {
+        this.compositeActions[alias] = compositeAction;
+        //consoleLog( `registered composite action: ${ alias }`);
+    }
+
+    findActionByAlias( alias ) {
+        if ( alias in this.compositeActions ) {
+            //consoleLog( `found composite action: ${ alias }`);
+            return this.compositeActions[ alias ];
+        }
+        return null;
     }
 }

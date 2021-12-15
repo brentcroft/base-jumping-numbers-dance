@@ -17,11 +17,10 @@ toggleKeys = {
 
     scale3d: 0,
 
-    globalise: 0,
     globalIds: 0,
     conj: 1,
     coords: 0,
-    minCols: 1,
+    minCols: 0,
     maxCols: 0,
     fixedRad: 1,
     colours: 0,
@@ -30,8 +29,10 @@ toggleKeys = {
     harmonics: 1,
     degenerates: 1,
     radiance: 0,
+
     autoCompose: 1,
-    indexComposer: 0,
+    indexComposer: 1,
+    composeAll: 0,
     monomialFilter: 1,
 
     products: 0,

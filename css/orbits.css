@@ -1,0 +1,167 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 100%;
+    padding-left: 20pt;
+    padding-right: 20pt;
+}
+
+.full-width {
+    clear: both;
+}
+
+textarea.formulaPanel {
+    width: 100%;
+}
+
+a.symbolic-composition-control {
+    border: dotted 1px;
+    padding: 2px;
+    margin: 2px;
+    background: LemonChiffon;
+    #font-weight: bold;
+}
+
+.caption {
+    float: left;
+    overflow: hidden;
+    display: inline-block;
+    text-align: left;
+}
+
+.toolbar {
+    float: right;
+    overflow: hidden;
+    display: inline-block;
+    text-align: right;
+    font-size: 70%;
+}
+
+.summaryLeft {
+    font-size: 70%;
+    text-align: left;
+    font-style: bold;
+}
+
+.summaryRight {
+    font-size: 70%;
+    text-align: right;
+}
+
+.orbit {}
+
+.plot_frame {
+    width: 100%;
+    height: 80%;
+    resize: both;
+    overflow: auto;
+}
+
+.difference {
+    color: red;
+}
+
+.minuend {
+    color: blue;
+}
+
+.small {
+    font: italic 40% sans-serif;
+}
+
+table > caption {
+    text-align: left;
+    font-style: bold;
+}
+
+th {
+    vertical-align: bottom;
+}
+
+.chain-details-legend {
+    text-align: center;
+    font-style: italic;
+}
+
+.grid-controls-container {
+    width: 100%;
+    text-align: right;
+    font-size: 90%;
+}
+
+.grid-controls {
+    display: inline;
+}
+.control {
+    display: inline;
+}
+
+.resizable {
+    resize: both;
+    overflow: auto;
+}
+
+.legend {
+    text-align: center;
+    font-style: italic;
+}
+
+.selected { background: Pink; }
+
+th { padding-left: 2pt; padding-right: 2pt; }
+
+.sort-asc::after { content: " \2193"; font-face: bold; }
+.sort-desc::after { content: " \2191"; font-face: bold;  }
+
+td.orbit { vertical-align: middle; }
+
+td.sum-total { text-align: center; }
+span.sum-total { border-top: 1px solid;}
+
+td.product-total { text-align: center; }
+span.product-total { border-top: 2px dotted red;}
+
+.chain-details { width: 100%; font-size: 80%; border-top: solid 1px black }
+.chain-details tr { vertical-align: top; }
+.chain-details tr:nth-child(even) { background: Ivory; }
+.chain-details tr:nth-child(odd) { background: WhiteSmoke; }
+
+.pagebreak {
+    min-height: 1px;
+    page-break-before: always;
+}
+
+.equation {
+    background: WhiteSmoke;
+    font-weight: bold;
+}
+.monomial { background: Ivory; }
+
+.equation-list { list-style-type: none; }
+.equation-list li { padding: 6pt; }
+
+input[type=number] {
+    width: 40pt;
+    text-align: right;
+}
+input.colourField {
+    font-size: 80%;
+    width: 30pt;
+}
+textarea.colourField {
+    font-size: 80%;
+    width: 200pt;
+}
+input[type=button] {
+    font-size: 80%;
+}
+
+input[type=checkbox] {
+    font-style: italic;
+}
+input[type=range] {
+    width: 100%;
+}
+textarea.index-products {
+    width: 100%;
+    height: 100%;
+}

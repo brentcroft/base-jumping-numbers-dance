@@ -1,200 +1,25 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 100%;
-            padding-left: 20pt;
-            padding-right: 20pt;
-        }
+    <link rel="stylesheet" href="css/orbits.css">
 
-        .full-width {
-            clear: both;
-        }
-
-        textarea.formulaPanel {
-            width: 100%;
-        }
-
-        a.symbolic-composition-control {
-            border: dotted 1px;
-            padding: 2px;
-            margin: 2px;
-            background: LemonChiffon;
-            #font-weight: bold;
-        }
-
-        .caption {
-            float: left;
-            overflow: hidden;
-            display: inline-block;
-            text-align: left;
-        }
-
-        .toolbar {
-            float: right;
-            overflow: hidden;
-            display: inline-block;
-            text-align: right;
-            font-size: 70%;
-        }
-
-        .summaryLeft {
-            font-size: 70%;
-            text-align: left;
-            font-style: bold;
-        }
-
-        .summaryRight {
-            font-size: 70%;
-            text-align: right;
-        }
-
-        .orbit {}
-
-        .plot_frame {
-            width: 100%;
-            height: 80%;
-            resize: both;
-            overflow: auto;
-        }
-
-        .difference {
-            color: red;
-        }
-
-        .minuend {
-            color: blue;
-        }
-
-        .small {
-            font: italic 40% sans-serif;
-        }
-
-        table > caption {
-            text-align: left;
-            font-style: bold;
-        }
-
-        th {
-            vertical-align: bottom;
-        }
-
-        .chain-details-legend {
-            text-align: center;
-            font-style: italic;
-        }
-
-        .grid-controls-container {
-            width: 100%;
-            text-align: right;
-            font-size: 90%;
-        }
-
-        .grid-controls {
-            display: inline;
-        }
-        .control {
-            display: inline;
-        }
-
-        .resizable {
-            resize: both;
-            overflow: auto;
-        }
-
-        .legend {
-            text-align: center;
-            font-style: italic;
-        }
-
-        .selected { background: Pink; }
-
-        th { padding-left: 2pt; padding-right: 2pt; }
-
-        .sort-asc::after { content: " \2193"; font-face: bold; }
-        .sort-desc::after { content: " \2191"; font-face: bold;  }
-
-        td.orbit { vertical-align: middle; }
-
-        td.sum-total { text-align: center; }
-        span.sum-total { border-top: 1px solid;}
-
-        td.product-total { text-align: center; }
-        span.product-total { border-top: 2px dotted red;}
-
-        .chain-details { width: 100%; font-size: 80%; border-top: solid 1px black }
-        .chain-details tr { vertical-align: top; }
-        .chain-details tr:nth-child(even) { background: Ivory; }
-        .chain-details tr:nth-child(odd) { background: WhiteSmoke; }
-
-        .pagebreak {
-            min-height: 1px;
-            page-break-before: always;
-        }
-
-        .equation {
-            background: WhiteSmoke;
-            font-weight: bold;
-        }
-        .monomial { background: Ivory; }
-
-        .equation-list { list-style-type: none; }
-        .equation-list li { padding: 6pt; }
-
-        input[type=number] {
-            width: 40pt;
-            text-align: right;
-        }
-        input.colourField {
-            font-size: 80%;
-            width: 30pt;
-        }
-        textarea.colourField {
-            font-size: 80%;
-            width: 200pt;
-        }
-        input[type=button] {
-            font-size: 80%;
-        }
-
-        input[type=checkbox] {
-            font-style: italic;
-        }
-        input[type=range] {
-            width: 100%;
-        }
-        textarea.index-products {
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-
-    <script type="text/javascript" src="js/x3dom.js"></script>
-    <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
-
-
-
+    <!-- model -->
     <script type="text/javascript" src="js/toggles.js"></script>
-
     <script type="text/javascript" src="js/data.js"></script>
     <script type="text/javascript" src="js/orbits.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
-    <script type="text/javascript" src="js/jbnd.js"></script>
+    <script type="text/javascript" src="js/group.js"></script>
+    <script type="text/javascript" src="js/expression.js"></script>
 
-
+    <!-- ui -->
     <script type="text/javascript" src="js/factors.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/table.js"></script>
     <script type="text/javascript" src="js/3d.js"></script>
 
-
-    <script type="text/javascript" src="js/pageOrbits.js"></script>
-
-    <script type="text/javascript" src="js/expression.js"></script>
-
+    <!-- page -->
     <script type="text/javascript" src="js/compositions.js"></script>
+    <script type="text/javascript" src="js/pageOrbits.js"></script>
 
 </head>
 <body id="testContainer001" onload="initPage()">
@@ -231,7 +56,7 @@
 
             <div id="more-options" style="display: none">
                 <hr/>
-                <label title="globalise all ids">globalise <input type="checkbox" id="globaliseToggle" onchange="updatePage()"/></label> |
+                <label title="always create composite actions">compose all <input type="checkbox" id="composeAllToggle" onchange="updatePage()"/></label> |
                 <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
@@ -331,7 +156,20 @@
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="3"># 3d-canonical;
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4">
+b_4i * b_2i; b_2i * b_4i; b_4 * b_2; b_2 * b_4;
+b_5i * b_3i; b_3i * b_5i; b_5 * b_3; b_3 * b_5;
+b_4 * b_0; b_0 * b_4; b_4i * b_0i; b_0i * b_4i;
+b_1 * b_3; b_3 * b_1; b_1i * b_3i; b_3i * b_1i;
+b_1i * b_5i; b_5i * b_1i; b_1 * b_5; b_5 * b_1;
+b_2i * b_0i; b_0i * b_2i; b_2 * b_0; b_0 * b_2;
+
+z_0 * b_0; b_1 * z_1;
+z_2 * b_2;
+z_1 * b_4;
+
+
+# 3d-canonical;
 # b constructions;
 a_1 * a_2i; a_2 * a_1i; a_1i * a_2; a_2i * a_1;
 a_0 * a_1i; a_1 * a_0i; a_0i * a_1; a_1i * a_0;

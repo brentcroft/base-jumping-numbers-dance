@@ -1,14 +1,12 @@
+/*
 
-var nonTrivialIndexJump = 0;
-var nonTrivialPerimeterJump = 0.0;
 
+*/
 var indexMap = {};
-
-
-const pvppIndex = [0];
 const PERMUTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
 /*
-    A seed permutation
+    Extract a permutation (and reverse anti-permutation) of the bases
+    and provide corresponding place value functions.
 */
 class PlaceValuesPermutation {
     constructor( id, perm = [], bases, volume, forwardFrom = 0 ) {
@@ -23,12 +21,21 @@ class PlaceValuesPermutation {
         this.dix = new Array( volume ).fill( -1 );
         this.symbol = PERMUTATION_KEYS[this.id];
     }
+
     indexOf( coord ) {
-        return this.placeValues.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
+        return this
+            .placeValues
+            .map( (b,i) => b * coord[i] )
+            .reduce( (a,c) => a + c, this.forwardFrom );
     }
+
     antiIndexOf( coord ) {
-        return this.antiPlaceValues.map( (b,i) => b * coord[i] ).reduce( (a,c) => a + c, this.forwardFrom );
+        return this
+            .antiPlaceValues
+            .map( (b,i) => b * coord[i] )
+            .reduce( (a,c) => a + c, this.forwardFrom );
     }
+
     indexPoint( point ) {
         const indexValue = this.indexOf( point.coord );
         const antiIndexValue = this.antiIndexOf( point.coord );
@@ -40,7 +47,6 @@ class PlaceValuesPermutation {
         this.dix[ antiIndexValue ] = point;
     }
 }
-
 
 
 class Box {
@@ -81,8 +87,6 @@ class Box {
 
             default:
         }
-
-        //this.placeValuePermutations.sort( (a,b) => numericArraySorter( a.perm,b.perm ));
 
         this.permCount = this.placeValuePermutations.length;
         this.pairCount = this.permCount  * (this.permCount - 1);
@@ -185,65 +189,51 @@ class PlaceValuesPermutationPair {
         const [ leftState, rightState ] = state;
         const [ left, right ] = placeValuePerms;
 
-        var members = [];
-
-        if ( leftState && rightState ) {
-            // bad
-            members = [
-                state,
+        return ( leftState && rightState )
+            ? [ state,
                 [ left.key + 1, right.key + 1 ],
                 [ left.dix, right.dix ],
                 [ left.antiPerm, right.antiPerm ],
-                [ left.antiPlaceValues, right.antiPlaceValues ] ];
-        } else if (!leftState && rightState) {
-            // ok
-            members = [
-                state,
-                [ left.key, right.key + 1 ],
-                [ left.idx, right.dix ],
-                [ left.perm, right.antiPerm ],
-                [ left.placeValues, right.antiPlaceValues ] ];
-
-        } else if (leftState && !rightState) {
-            // bad
-            members = [
-                state,
-                [ left.key + 1, right.key ],
-                [ left.dix, right.idx ],
-                [ left.antiPerm, right.perm ],
-                [ left.antiPlaceValues, right.placeValues ] ];
-
-        } else {
-            // ok
-            members = [
-                state,
-                [ left.key, right.key ],
-                [ left.idx, right.idx ],
-                [ left.perm, right.perm ],
-                [ left.placeValues, right.placeValues ] ];
-        }
-        return members;
+                [ left.antiPlaceValues, right.antiPlaceValues ] ]
+            : (!leftState && rightState)
+                ? [ state,
+                    [ left.key, right.key + 1 ],
+                    [ left.idx, right.dix ],
+                    [ left.perm, right.antiPerm ],
+                    [ left.placeValues, right.antiPlaceValues ] ]
+                : (leftState && !rightState)
+                    ? [ state,
+                        [ left.key + 1, right.key ],
+                        [ left.dix, right.idx ],
+                        [ left.antiPerm, right.perm ],
+                        [ left.antiPlaceValues, right.placeValues ] ]
+                    : [ state,
+                        [ left.key, right.key ],
+                        [ left.idx, right.idx ],
+                        [ left.perm, right.perm ],
+                        [ left.placeValues, right.placeValues ] ];
     };
 
     toString() {
         return "[" + this.permPair.map( p => p.join(", ") ).join( "], [" ) + "]";
     }
 
-    constructor( id, bases = [ 1 ], left, right, state = [ false, false ], inversePair, harmonic ) {
-        this.key = pvppIndex[0]++;
+    constructor( id, bases = [ 1 ], left, right, state = [ false, false, '' ], inversePair, harmonic = false ) {
         this.id = id;
         this.bases = bases;
         this.inversePair = inversePair;
         this.inverse = (inversePair != null);
+        this.harmonic = harmonic;
 
-        const members = PlaceValuesPermutationPair.extractMembers( state, [ left, right ] );
         [
-            [ this.leftState, this.rightState ],
+            [ this.leftState, this.rightState, this.stateType ],
             [ this.leftId, this.rightId ],
             [ this.idx, this.dix ],
             this.permPair,
             [ this.leftPlaceValues, this.rightPlaceValues ]
-        ] = members;
+        ] = PlaceValuesPermutationPair.extractMembers( state, [ left, right ] );
+
+        this.mixed =
 
         this.symbol = `${ left.symbol }${ this.leftState ? '🠅' : '🠇' }${ right.symbol }${ this.rightState ? '🠅' : '🠇' }`;
 
@@ -274,15 +264,6 @@ class PlaceValuesPermutationPair {
              }
         }
 
-//        if ( !this.degenerate && this.rank > 2 ) {
-//            const maxOnes = this.rank - 2;
-//            const countOnes = ( x ) => x.reduce( (a,c) => c == 1 ? a + 1 : a, 0 );
-//            const indicatesIdentity = ( pair ) => countOnes( left.placeValues ) > maxOnes || countOnes( right.placeValues ) > maxOnes;
-//            this.degenerate = indicatesIdentity( this );
-//        }
-
-        this.harmonic = harmonic;
-
         var report = "";
         report += `(${ this.palindrome ? 'p' : this.alignedPlaces.length }) `;
         report += `${ this.leftState ? 'u' : 'd' }${ this.rightState ? 'u' : 'd' } `;
@@ -297,6 +278,7 @@ class PlaceValuesPermutationPair {
         if ( this.inversePair ) {
             throw new Error( `Pair already has an inverse: [${ this.left.perm }] [${ this.right.perm }].` );
         }
+        // todo: why is "not passing this.harmonic" not causing a failure???
         this.inversePair = new PlaceValuesPermutationPair( this.bases, this.right, this.left, this );
         return this.inversePair;
     }
@@ -356,14 +338,6 @@ class BoxAction {
 
     getIdentityPoint() {
         return this.identities[0].points[0];
-    }
-
-    getJump( id, di ) {
-        if (this.isNonTrivialIndexIdentity( id, di ) ) {
-            return nonTrivialIndexJump;
-        } else {
-            return ( di - id );
-        }
     }
 
     getPointFromIdx( id ) {
@@ -758,9 +732,7 @@ class BoxAction {
     }
 
     grossEuclideanRadiance() {
-        //return this.box.euclideanRadiance;
         return this.identityEuclideanRadiance() + this.orbitEuclideanRadiance();
-        //return this.identityEuclideanRadiance() + this.totalEuclideanRadiance;
     }
 
 
@@ -770,7 +742,7 @@ class BoxAction {
             .identities
             .map( orbit => orbit.points[0] )
             .map( p => p.at(this.key) )
-            .map( p => this.isNonTrivialIndexIdentity( p.id, p.di ) ? nonTrivialPerimeterJump : 0 )
+            .map( p => 0 )
             .reduce( (a,r) => a + r, 0);
     }
 
@@ -782,7 +754,6 @@ class BoxAction {
     }
 
     grossEuclideanPerimeter() {
-        //return this.identityEuclideanPerimeter() + this.totalEuclideanPerimeter;
         return this.identityEuclideanPerimeter() + this.orbitEuclideanPerimeter();
     }
 

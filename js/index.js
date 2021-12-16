@@ -287,17 +287,15 @@ class PlaceValuesPermutationPair {
 
 
 
-
-const aeElementId = [ 0 ];
+// unique key for each action
+const boxActionKeyCounter = [ 0 ];
 
 class BoxAction {
 
     constructor( box, id = 0 ) {
         this.box = box;
         this.id = id;
-
-        // todo: who is using this
-        this.key = aeElementId[0]++;
+        this.key = boxActionKeyCounter[0]++;
 
         this.cycleIndexMonomial = [];
 
@@ -376,8 +374,11 @@ class BoxAction {
                     }
                 }
                 if ( offset > 0 ) {
-                    //consoleLog( `offset > 0: ${ offset }; \n${ orbit.toString() }\n${ otherOrbit.toString() }`);
-                    return true;
+                    if ( this.ignoreOrbitOffsets ) {
+                        //consoleLog( `ignoring orbit offset: ${ offset }/${ orbit.order }; ${ this } == ${ other }`);
+                    } else {
+                        return false;
+                    }
                 }
 
                 return true;

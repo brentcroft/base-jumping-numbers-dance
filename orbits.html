@@ -56,11 +56,15 @@
 
             <div id="more-options" style="display: none">
                 <hr/>
-                <label title="always create composite actions">compose all <input type="checkbox" id="composeAllToggle" onchange="updatePage()"/></label> |
+                <label title="use composition rules instead of Composite Actions">composition-rules<input type="checkbox" id="compositionRulesToggle" onchange="updatePage()"/></label> |
+                <label title="ignore orbit offsets when matching actions">ignore-offsets<input type="checkbox" id="ignoreOrbitOffsetsToggle" onchange="updatePage()"/></label> |
+
+
                 <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
                 <label title="minimal columns">min-cols<input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
+                <label title="composition and symbolic columns">med-cols<input type="checkbox" id="medColsToggle" onchange="updatePage()"/></label> |
                 <label title="maximal columns">max-cols<input type="checkbox" id="maxColsToggle" onchange="updatePage()"/></label> |
                 <label title="radiance excludes terminal fixed points">fixed-rad<input type="checkbox" id="fixedRadToggle" onchange="updatePage()"/></label> |
                 <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
@@ -144,7 +148,7 @@
                 <input type="text" id="monomialFilter" style="display: none"/>
             </label>
             <span id="boxLayerFilterSelectors">
-                <input id="box-layer-filter.0" type="checkbox" class="box-layer-control-filter" value="0" checked="checked"/>
+<!--                <input id="box-layer-filter.0" type="checkbox" class="box-layer-control-filter" value="0" checked="checked"/>-->
                 <input id="box-layer-filter.1" type="checkbox" class="box-layer-control-filter" value="1" checked="checked"/>
                 <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>
                 <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>
@@ -157,16 +161,13 @@
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
                 <textarea id="compositionFormulas" class="formulaPanel" rows="4">
-b_4i * b_2i; b_2i * b_4i; b_4 * b_2; b_2 * b_4;
-b_5i * b_3i; b_3i * b_5i; b_5 * b_3; b_3 * b_5;
-b_4 * b_0; b_0 * b_4; b_4i * b_0i; b_0i * b_4i;
-b_1 * b_3; b_3 * b_1; b_1i * b_3i; b_3i * b_1i;
-b_1i * b_5i; b_5i * b_1i; b_1 * b_5; b_5 * b_1;
-b_2i * b_0i; b_0i * b_2i; b_2 * b_0; b_0 * b_2;
-
-z_0 * b_0; b_1 * z_1;
+z_0 * b_0;
+b_1 * z_1;
 z_2 * b_2;
 z_1 * b_4;
+b_5i * z_1;
+b_3i * a_2h10;
+a_1h6 * b_4i;
 
 
 # 3d-canonical;
@@ -177,8 +178,53 @@ a_2 * a_0i; a_0 * a_2i; a_2i * a_0; a_0i * a_2;
 # z constructions;
 a_1i * a_2 * a_0i; a_1 * a_2i * a_0;
 a_0i * a_1 * a_2i; a_0 * a_1i * a_2;
-a_2i * a_0 * a_1i; a_2 * a_0i * a_1; </textarea>
-                <label>Results: <textarea id="summaryEditorResult" class="formulaPanel" rows="3" disabled="disabled"></textarea></label>
+a_2i * a_0 * a_1i; a_2 * a_0i * a_1;
+
+
+# commuters;
+b_4i * b_2i; b_2i * b_4i; b_4 * b_2; b_2 * b_4;
+b_5i * b_3i; b_3i * b_5i; b_5 * b_3; b_3 * b_5;
+b_4 * b_0; b_0 * b_4; b_4i * b_0i; b_0i * b_4i;
+b_1 * b_3; b_3 * b_1; b_1i * b_3i; b_3i * b_1i;
+b_1i * b_5i; b_5i * b_1i; b_1 * b_5; b_5 * b_1;
+b_2i * b_0i; b_0i * b_2i; b_2 * b_0; b_0 * b_2;
+
+z_0 * b_0;
+b_1 * z_1;
+z_2 * b_2;
+z_1 * b_4;
+b_5i * z_1;
+b_3i * a_2h10;
+a_1h6 * b_4i;
+
+
+# 3d-canonical;
+# b constructions;
+a_1 * a_2i; a_2 * a_1i; a_1i * a_2; a_2i * a_1;
+a_0 * a_1i; a_1 * a_0i; a_0i * a_1; a_1i * a_0;
+a_2 * a_0i; a_0 * a_2i; a_2i * a_0; a_0i * a_2;
+# z constructions;
+a_1i * a_2 * a_0i; a_1 * a_2i * a_0;
+a_0i * a_1 * a_2i; a_0 * a_1i * a_2;
+a_2i * a_0 * a_1i; a_2 * a_0i * a_1;
+
+
+# commuters;
+b_4i * b_2i; b_2i * b_4i; b_4 * b_2; b_2 * b_4;
+b_5i * b_3i; b_3i * b_5i; b_5 * b_3; b_3 * b_5;
+b_4 * b_0; b_0 * b_4; b_4i * b_0i; b_0i * b_4i;
+b_1 * b_3; b_3 * b_1; b_1i * b_3i; b_3i * b_1i;
+b_1i * b_5i; b_5i * b_1i; b_1 * b_5; b_5 * b_1;
+b_2i * b_0i; b_0i * b_2i; b_2 * b_0; b_0 * b_2;
+
+# a constructions;
+a_2 * b_2; b_2i * a_2i;
+a_0 * b_4; b_4i * a_0i;
+a_1 * b_0; b_0i * a_1i;
+
+</textarea>
+                <label>Results: <br/>
+                    <textarea id="summaryEditorResult" class="formulaPanel" rows="3" disabled="disabled"></textarea></label>
             </form>
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>

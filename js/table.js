@@ -587,11 +587,18 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
-    const optionalColumns = [ "monomial", "identity-equation", "composition" ];
+    const optionalColumns = [ "stats", "monomial", "identity-equation", "composition" ];
 
     if ( toggles.includes( "minCols" ) ) {
         optionalColumns.pop();
         optionalColumns.pop();
+    }
+    if ( toggles.includes( "medCols" ) ) {
+        optionalColumns.pop();
+        optionalColumns.pop();
+        optionalColumns.pop();
+        optionalColumns.pop();
+        optionalColumns.push( "composition" );
     }
     if ( toggles.includes( "maxCols" ) ) {
         optionalColumns.push( "permutation-pair", "place-values-pair" );
@@ -624,12 +631,18 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     if ( optionalColumns.includes( "monomial" ) ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Cycle Monomial</th>`;
     }
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Fixed Points</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Per<sup>2</sup></th>`;
-    dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Per</th>`;
-    dataHtml += "</tr><tr>";
+
+    if ( optionalColumns.includes(  "stats" ) ) {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Fixed Points</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Orbits</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Order</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>E-Per<sup>2</sup></th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>I-Per</th>`;
+    } else {
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Stats</th>`;
+    }
+
+    dataHtml += "</tr>\n<tr>";
 
     const monomialFilterMatches = ( m1, m2 ) => {
         const k1 = Object.keys( m1 );
@@ -643,14 +656,14 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
 
     var totalRows = 0;
+    const allComposites = false;
 
     dataHtml += indexedBox
         .indexPlanes
         .filter( actionElement => !( actionElement instanceof PlaceValuesAction )
                                     || filterLayers.length == 0
                                     || filterLayers.includes( actionElement.pair.layer ) )
-        .filter( actionElement => !( actionElement instanceof PlaceValuesAction )
-                                    || !monomialFilter
+        .filter( actionElement => !monomialFilter
                                     || monomialFilterMatches( actionElement.cycleIndexMonomial, monomialFilter ) )
         .map( actionElement => {
 
@@ -698,22 +711,27 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             if ( optionalColumns.includes( "monomial" ) ) {
                 rowHtml += `<td align='center' ${clickAttr}>${ getCycleIndexMonomialHtml( actionElement ) }</td>`;
             }
-            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.identities.length }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.orbits.length }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.fundamental }</td>`;
-            rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() }</td>`;
 
-            const gip = actionElement.grossIndexPerimeter();
-            const gipGcd = actionElement.pair
-                ? gcd( actionElement.pair.echo, actionElement.grossIndexPerimeter() )
-                : 1;
+            if ( optionalColumns.includes(  "stats" ) ) {
 
-            if ( gipGcd > 1 ) {
-                rowHtml += `<td align='center' ${clickAttr}>${ gip / actionElement.pair.echo } * ${ gipGcd }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.identities.length }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.orbits.length }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.fundamental }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() }</td>`;
+
+                const gip = actionElement.grossIndexPerimeter();
+                const gipGcd = actionElement.pair
+                    ? gcd( actionElement.pair.echo, actionElement.grossIndexPerimeter() )
+                    : 1;
+
+                if ( gipGcd > 1 ) {
+                    rowHtml += `<td align='center' ${clickAttr}>${ gip / actionElement.pair.echo } * ${ gipGcd }</td>`;
+                } else {
+                    rowHtml += `<td align='center' ${clickAttr}>${ gip }</td>`;
+                }
             } else {
-                rowHtml += `<td align='center' ${clickAttr}>${ gip }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() } ( ${ actionElement.grossIndexPerimeter() } )</td>`;
             }
-
             return rowHtml;
         } )
         .join( "</tr><tr>" );

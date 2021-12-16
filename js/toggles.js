@@ -6,21 +6,11 @@ toggleKeys = {
     chart: 0,
     more: 0,
 
-    chart3d: 0,
-
-    centres: 1,
-    lines: 1,
-    plane: 1,
-    grid: 1,
-    jumps: 0,
-
-
-    scale3d: 0,
-
     globalIds: 0,
     conj: 1,
     coords: 0,
     minCols: 0,
+    medCols: 1,
     maxCols: 0,
     fixedRad: 1,
     colours: 0,
@@ -32,8 +22,20 @@ toggleKeys = {
 
     autoCompose: 1,
     indexComposer: 1,
-    composeAll: 0,
+    compositionRules: 1,
+    ignoreOrbitOffsets: 1,
     monomialFilter: 1,
+
+
+    chart3d: 0,
+
+    centres: 1,
+    lines: 1,
+    plane: 1,
+    grid: 1,
+    jumps: 0,
+
+    scale3d: 0,
 
     products: 0,
     productByOrbits: 1,

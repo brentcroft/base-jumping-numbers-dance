@@ -220,15 +220,21 @@ class BoxGroup {
 
         this.compositeActions = [];
 
-        const [ identities, inverses, harmonics, degenerates, composeAll ] = [
+        [
+            this.compositionRules,
+            this.ignoreOrbitOffsets
+        ] = [
+            toggles.includes( "compositionRules" ),
+            toggles.includes( "ignoreOrbitOffsets" )
+        ];
+
+        const [ identities, inverses, harmonics, degenerates, compositionRules, ignoreOrbitOffsets ] = [
             toggles.includes( "identities" ),
             toggles.includes( "inverses" ),
             toggles.includes( "harmonics" ),
-            toggles.includes( "degenerates" ),
-            toggles.includes( "composeAll" )
+            toggles.includes( "degenerates" )
         ];
 
-        this.composeAll = composeAll;
 
         this.box = new Box( bases );
         this.key = "box-group" + this.box.bases.join( "." );
@@ -361,6 +367,8 @@ class BoxGroup {
             // unity is composite so has not yet been indexed
             this.box.unity.indexPoints();
         }
+
+        this.indexPlanes.forEach( plane => plane.ignoreOrbitOffsets = this.ignoreOrbitOffsets );
 
         this.indexPlanes.forEach( plane => plane.initialise() );
     }

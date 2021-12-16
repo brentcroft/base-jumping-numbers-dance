@@ -35,13 +35,14 @@ function inversion( boxAction, boxGroup ) {
     Composition rules:
         1. A DU or UD group action is isomorphic to its rotation - albeit a different index harmonic
         2. Immediately adjacent symbols in a composition that form an identity can be removed
+        3. Outside edge symbols in a composition that form an identity can be removed - and the inside reversed
 */
 function composition( left, right, boxGroup ) {
 
-    function addSymbols( left, right, boxAction ) {
+    function updateSymbols( left, right, boxAction ) {
         const symbolic = `${ left.symbols[0] } * ${ right.symbols[0] }`;
         if ( !boxAction.symbols.includes( symbolic ) ) {
-            // consoleLog( `Symbolic: ${ boxAction } = ${ symbolic }` );
+            //consoleLog( `Symbolic: ${ boxAction } = ${ symbolic }` );
             boxAction.symbols.push( symbolic );
         }
     }
@@ -59,60 +60,8 @@ function composition( left, right, boxGroup ) {
         if ( arrayExactlyEquals( leftPermPair[1], rightPermPair[0] ) ) {
             const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rightPermPair[1] ] );
             if ( boxAction ) {
-                addSymbols( left, right, boxAction );
+                updateSymbols( left, right, boxAction );
                 return boxAction;
-            }
-        }
-
-        if ( leftState == 'DU' || leftState == 'UD' ) {
-            const [ leftPerm, leftPermRight ] = [ [ ...leftPermPair[0] ].reverse(), [ ...leftPermPair[1] ].reverse() ];
-            if ( arrayExactlyEquals( leftPerm, rightPermPair[0] ) ) {
-                const boxAction = boxGroup.findActionByPermPair( [ leftPermRight, rightPermPair[1] ] );
-                if ( boxAction ) {
-                    addSymbols( left, right, boxAction );
-                    return boxAction;
-                }
-            }
-        }
-
-        if ( rightState == 'UD' || rightState == 'DU' ) {
-            const [ rightPerm, rightPermLeft ] = [ [ ...rightPermPair[1] ].reverse(), [ ...rightPermPair[0] ].reverse() ];
-            if ( arrayExactlyEquals( leftPermPair[1], rightPerm ) ) {
-                const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rightPermLeft ] );
-                if ( boxAction ) {
-                    addSymbols( left, right, boxAction );
-                    return boxAction;
-                }
-            }
-        }
-
-        if ( ( leftState == 'DU' || leftState == 'UD' )
-            && rightState == 'UD' || rightState == 'DU' ) {
-
-            const [ leftPerm, leftPermRight ] = [ [ ...leftPermPair[0] ].reverse(), [ ...leftPermPair[1] ].reverse() ];
-            const [ rightPerm, rightPermLeft ] = [ [ ...rightPermPair[1] ].reverse(), [ ...rightPermPair[0] ].reverse() ];
-
-            if ( arrayExactlyEquals( leftPerm, rightPerm ) ) {
-                const boxAction = boxGroup.findActionByPermPair( [ leftPermRight, rightPermLeft ] );
-                if ( boxAction ) {
-                    addSymbols( left, right, boxAction );
-                    return boxAction;
-                }
-            }
-        }
-
-        if ( ( leftState == 'DD' || leftState == 'UU' )
-            && rightState == 'DD' || rightState == 'UU' ) {
-
-            const [ leftPerm, leftPermRight ] = [ leftPermPair[0], leftPermPair[1] ];
-            const [ rightPerm, rightPermLeft ] = [ rightPermPair[1], rightPermPair[0] ];
-
-            if ( arrayExactlyEquals( leftPerm, rightPerm ) ) {
-                const boxAction = boxGroup.findActionByPermPair( [ rightPermLeft, leftPermRight ] );
-                if ( boxAction ) {
-                    addSymbols( left, right, boxAction );
-                    return boxAction;
-                }
             }
         }
     }
@@ -570,7 +519,7 @@ class Formula {
             }
         }
 
-        function updateSymbols( existingIndex, r ) {
+        function copySymbols( existingIndex, r ) {
             if ( existingIndex.symbols ) {
                 r
                     .symbols
@@ -585,15 +534,19 @@ class Formula {
 
         if ( r instanceof CompositeAction ) {
 
+            // reset id
             r.id = this.boxGroup.indexPlanes.length;
+            r.label = aliasText;
+            r.alias = [];
             r.indexPoints();
             r.initialise();
+
+            // promote results
+            const promoteResults = false;
 
             const existingIndexes = this.boxGroup.findMatchingIndexes( r );
 
             if ( existingIndexes.length == 0 ) {
-                r.label = aliasText;
-                r.alias = [];
                 this.boxGroup.indexPlanes.push( r );
                 return r;
             } else {
@@ -602,12 +555,17 @@ class Formula {
                         if ( `e * ${ existingIndex }` == aliasText ) {
                             //
                         } else {
-                            updateAlias( r, aliasText );
+                            updateAlias( existingIndex, aliasText );
                         }
-                        updateSymbols( existingIndex, r );
+                        copySymbols( existingIndex, r );
                     } );
 
-                return existingIndexes[0];
+                if ( promoteResults ) {
+                    this.boxGroup.indexPlanes.push( r );
+                    return r;
+                } else {
+                    return existingIndexes[0];
+                }
             }
         } else {
             updateAlias( r, aliasText );
@@ -732,14 +690,16 @@ class OperatorExpression extends Expression {
         const leftAction = this.left.evaluate(params);
         const rightAction = this.right.evaluate(params);
 
-        var boxAction = composition( leftAction, rightAction, this.boxGroup );
-        if ( !this.boxGroup.composeAll && boxAction ) {
-            return boxAction;
+        if ( this.boxGroup.compositionRules ) {
+            const boxAction = composition( leftAction, rightAction, this.boxGroup );
+            if ( boxAction ) {
+                return boxAction;
+            }
         }
 
         const alias = CompositeAction.compositeLabel( leftAction, rightAction );
 
-        boxAction = this.boxGroup.findActionByAlias( alias );
+        var boxAction = this.boxGroup.findActionByAlias( alias );
         if ( boxAction ) {
             return boxAction;
         }
@@ -748,6 +708,7 @@ class OperatorExpression extends Expression {
             return params[alias];
         }
 
+        // may get replaced by equal box action
         boxAction = new CompositeAction(
             leftAction.box,
             Math.round( Math.random() * 10000 + 1),
@@ -804,7 +765,7 @@ class PowerExpression extends Expression {
             }
         } else if ( exp < 0 ) {
 
-            if ( !this.boxGroup.composeAll && start instanceof PlaceValuesAction ) {
+            if ( this.boxGroup.compositionRules && start instanceof PlaceValuesAction ) {
                 locus = inversion( start, this.boxGroup );
             } else {
                 locus = params['e'] || params['e_0'];

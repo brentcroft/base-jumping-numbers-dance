@@ -81,7 +81,7 @@ class PlaceValuesAction extends BoxAction {
         this.identityPlaneGcd = this.pair.echo;
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
-        this.label = `${ this.pair.label }_${ this.pair.id }${ this.pair.harmonic ? `h${ this.pair.echo }` : '' }${ this.pair.inverse ? 'i' : '' }`;
+        this.label = `${ this.pair.label }_${ this.pair.id }${ this.pair.harmonic ? `h` : '' }${ this.pair.inverse ? 'i' : '' }`;
         this.symbols = [ this.pair.symbol ];
 
         // reference to component indexes
@@ -158,7 +158,7 @@ class CompositeAction extends BoxAction {
             this.unindexed = true;
         }
 
-        consoleLog( `Created CompositeAction: ${ this.label }${ this.reverse ? '; (inverse)' : '' }` );
+        //consoleLog( `Created CompositeAction: ${ this.label }${ this.reverse ? '; (inverse)' : '' }` );
     }
 
     indexPoints() {
@@ -221,11 +221,17 @@ class BoxGroup {
         this.compositeActions = [];
 
         [
+            this.rotatePerms,
             this.compositionRules,
-            this.ignoreOrbitOffsets
+            this.ignoreOrbitOffsets,
+            this.ignoreIndexPerimeters,
+            this.ignoreEuclideanPerimeters
         ] = [
+            toggles.includes( "rotatePerms" ),
             toggles.includes( "compositionRules" ),
-            toggles.includes( "ignoreOrbitOffsets" )
+            toggles.includes( "ignoreOrbitOffsets" ),
+            toggles.includes( "ignoreIndexPerimeters" ),
+            toggles.includes( "ignoreEuclideanPerimeters" )
         ];
 
         const [ identities, inverses, harmonics, degenerates, compositionRules, ignoreOrbitOffsets ] = [
@@ -281,13 +287,14 @@ class BoxGroup {
                     }
                 });
 
+
             var uppers = 0;
 
             pairs( this.box.placeValuePermutations )
                 .forEach( ( p, i ) => {
 
                     // rotate every iteration
-                    const pair = (i % 2) ? [ p[1], p[0] ] : [ p[0], p[1] ];
+                    const pair = this.rotatePerms && (i % 2) ? [ p[1], p[0] ] : [ p[0], p[1] ];
 
                     var dd = null;
                     var uu = null;
@@ -368,7 +375,11 @@ class BoxGroup {
             this.box.unity.indexPoints();
         }
 
-        this.indexPlanes.forEach( plane => plane.ignoreOrbitOffsets = this.ignoreOrbitOffsets );
+        this.indexPlanes.forEach( plane => {
+            plane.ignoreEuclideanPerimeters = this.ignoreEuclideanPerimeters;
+            plane.ignoreIndexPerimeters = this.ignoreIndexPerimeters;
+            plane.ignoreOrbitOffsets = this.ignoreOrbitOffsets;
+        } );
 
         this.indexPlanes.forEach( plane => plane.initialise() );
     }
@@ -379,10 +390,8 @@ class BoxGroup {
         return keys;
     }
 
-    findMatchingIndexes( index ) {
-        const matches = this.indexPlanes.filter( p => p.equals( index ) );
-        //matches.sort( BoxGroup.indexSorter );
-        return matches;
+    findMatchingActions( boxAction ) {
+        return this.indexPlanes.filter( p => p.equals( boxAction ) );
     }
 
     findActionByPermPair( permPair ) {

@@ -674,7 +674,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             const clickAttr = `id="actionElement.${ actionElement.id }" class="box_index" onclick="${ clickAction }" ${selectedClass}`;
 
             const actionAlias = ( actionElement.alias && actionElement.alias.length > 0 )
-                ? actionElement.alias.join( " / " )
+                ? actionElement.alias.join( " = " )
                 : "";
 
             var rowHtml = `<td>${ actionElement.id }</td>`;
@@ -730,7 +730,11 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
                     rowHtml += `<td align='center' ${clickAttr}>${ gip }</td>`;
                 }
             } else {
-                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() } ( ${ actionElement.grossIndexPerimeter() } )</td>`;
+                if ( toggles.includes( "ignoreIndexPerimeters" ) ) {
+                    rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() }</td>`;
+                } else {
+                    rowHtml += `<td align='center' ${clickAttr}>${ actionElement.grossEuclideanPerimeter() } ( ${ actionElement.grossIndexPerimeter() } )</td>`;
+                }
             }
             return rowHtml;
         } )

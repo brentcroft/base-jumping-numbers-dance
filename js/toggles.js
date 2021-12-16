@@ -10,22 +10,24 @@ toggleKeys = {
     conj: 1,
     coords: 0,
     minCols: 0,
-    medCols: 1,
+    medCols: 0,
     maxCols: 0,
     fixedRad: 1,
     colours: 0,
 
+    rotatePerms: 0,
     inverses: 1,
     harmonics: 1,
     degenerates: 1,
     radiance: 0,
 
-    autoCompose: 1,
-    indexComposer: 1,
     compositionRules: 1,
+    ignoreEuclideanPerimeters: 0,
+    ignoreIndexPerimeters: 0,
     ignoreOrbitOffsets: 1,
+    indexComposer: 1,
+    autoCompose: 1,
     monomialFilter: 1,
-
 
     chart3d: 0,
 

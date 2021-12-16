@@ -359,6 +359,8 @@ class BoxAction {
             return false;
         }
 
+        const orbitOffsetMessages = {};
+
         const matchedOrbits = [ ...this.identities, ...this.orbits ]
             .filter( orbit => {
                 const otherOrbit = other.getOrbit( orbit.points[0] );
@@ -374,17 +376,43 @@ class BoxAction {
                     }
                 }
                 if ( offset > 0 ) {
-                    if ( this.ignoreOrbitOffsets ) {
-                        //consoleLog( `ignoring orbit offset: ${ offset }/${ orbit.order }; ${ this } == ${ other }`);
-                    } else {
-                        return false;
+                    if ( !this.ignoreOrbitOffsets ) {
+                        const key = `${ offset }/${ orbit.order }`;
+                        orbitOffsetMessages[key] = (key in orbitOffsetMessages)
+                            ? orbitOffsetMessages[key] + 1
+                            : 1;
                     }
                 }
 
                 return true;
             } );
 
-        return matchedOrbits.length == totalOrbits;
+        if ( matchedOrbits.length != totalOrbits ) {
+            return false;
+        }
+
+        if ( !this.ignoreEuclideanPerimeters ) {
+            if ( this.totalEuclideanPerimeter != other.totalEuclideanPerimeter ) {
+                consoleLog( `${ other } != ${ this }; euclidean-perimeter: ${ other.totalEuclideanPerimeter } != ${ this.totalEuclideanPerimeter }`);
+                return false;
+            }
+        }
+
+        if ( !this.ignoreIndexPerimeters ) {
+            if ( this.totalIndexPerimeter != other.totalIndexPerimeter ) {
+                consoleLog( `${ other } != ${ this }; index-perimeter: ${ other.totalIndexPerimeter } != ${ this.totalIndexPerimeter }`);
+                return false;
+            }
+        }
+
+        const orbitOffsetEntries = Object.entries( orbitOffsetMessages );
+        if ( orbitOffsetEntries.length > 0 ) {
+            const msg = orbitOffsetEntries.map( entry => `${ entry[1] }(${ entry[0] })` ).join(", ");
+            consoleLog( `${ other } != ${ this }; offsets: ${ msg };`);
+            return false;
+        }
+
+        return true;
     }
 
     apply( point ) {
@@ -811,8 +839,8 @@ class BoxAction {
     }
 
     grossIndexPerimeter() {
-        //return this.identityIndexPerimeter() + this.totalIndexPerimeter;
-        return this.identityIndexPerimeter() + this.orbitIndexPerimeter();
+        return this.identityIndexPerimeter() + this.totalIndexPerimeter;
+        //return this.identityIndexPerimeter() + this.orbitIndexPerimeter();
     }
 
     // INDEX TORSION

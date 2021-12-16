@@ -544,7 +544,7 @@ class Formula {
             // promote results
             const promoteResults = false;
 
-            const existingIndexes = this.boxGroup.findMatchingIndexes( r );
+            const existingIndexes = this.boxGroup.findMatchingActions( r );
 
             if ( existingIndexes.length == 0 ) {
                 this.boxGroup.indexPlanes.push( r );

@@ -656,10 +656,14 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
 
 
     var totalRows = 0;
-    const allComposites = false;
 
-    dataHtml += indexedBox
-        .indexPlanes
+    const boxActions = [ ...indexedBox.indexPlanes ];
+
+    if ( toggles.includes( "showCompositions" ) ) {
+        boxActions.push( ...Object.values( indexedBox.compositeActions ) );
+    }
+
+    dataHtml += boxActions
         .filter( actionElement => !( actionElement instanceof PlaceValuesAction )
                                     || filterLayers.length == 0
                                     || filterLayers.includes( actionElement.pair.layer ) )

@@ -305,10 +305,6 @@ class BoxAction {
         this.symbols = [];
     }
 
-    toString() {
-        return this.label;
-    }
-
     getLabel() {
         return this.label;
     }

@@ -663,7 +663,20 @@ function initPage( urlParam = true ) {
                 }
             } else if ( data.indexKey ) {
 
-                const nextPlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
+                const key =  Number( data.indexKey );
+                var nextPlane = indexedBox.indexPlanes[ key ];
+
+                if ( !nextPlane ) {
+
+                    // check for composite action
+                    const compositeActions = Object
+                        .values( indexedBox.compositeActions )
+                        .filter( ca => ca.id == key );
+                    if (compositeActions.length > 0 ) {
+                        nextPlane = compositeActions[0];
+                    }
+                }
+
 
                 if ( nextPlane ) {
                     const actionIndexElement = document.getElementById( 'actionIndex' );
@@ -671,7 +684,7 @@ function initPage( urlParam = true ) {
 
                     // swap global basePlane and register
                     // so child frames can access it.
-                    basePlane = indexedBox.indexPlanes[ Number( data.indexKey ) ];
+                    basePlane = nextPlane;
                     putBasePlane( basePlane.key, basePlane );
 
                     document.getElementById( 'monomialFilter' ).value = JSON.stringify( basePlane.cycleIndexMonomial );

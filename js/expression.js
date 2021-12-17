@@ -33,11 +33,10 @@ function inversion( boxAction, boxGroup ) {
 }
 /*
     Composition rules:
-        1. A DU or UD group action is isomorphic to its rotation - albeit a different index harmonic
-        2. Immediately adjacent symbols in a composition that form an identity can be removed
+        1. Immediately adjacent and equal symbols in a composition that form an identity can be removed.
         3. Outside edge symbols in a composition that form an identity can be removed - and the inside reversed
 */
-function composition( left, right, boxGroup ) {
+function composition( left, right, boxGroup, rules = { "outer": 0, "rotations": 1 } ) {
 
     function updateSymbols( left, right, boxAction ) {
         const symbolic = `${ left.symbols[0] } * ${ right.symbols[0] }`;
@@ -57,11 +56,58 @@ function composition( left, right, boxGroup ) {
             right.pair.stateType, right.pair.permPair
         ];
 
+        // inner match
         if ( arrayExactlyEquals( leftPermPair[1], rightPermPair[0] ) ) {
             const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rightPermPair[1] ] );
             if ( boxAction ) {
                 updateSymbols( left, right, boxAction );
                 return boxAction;
+            }
+        }
+
+        // outer match
+        if ( rules["outer"] ) {
+            if ( arrayExactlyEquals( leftPermPair[0], rightPermPair[1] ) ) {
+                const boxAction = boxGroup.findActionByPermPair( [ rightPermPair[0], leftPermPair[1] ] );
+                if ( boxAction ) {
+                    updateSymbols( left, right, boxAction );
+                    return boxAction;
+                }
+            }
+        }
+        // outer match
+        if ( rules["rotations"] ) {
+
+            if ( leftState == 'DU' || leftState == 'UD' ) {
+
+                const rotatedLeft = [
+                    [ ...leftPermPair[1] ].reverse(),
+                    [ ...leftPermPair[0] ].reverse()
+                ];
+
+                if ( arrayExactlyEquals( rotatedLeft[1], rightPermPair[0] ) ) {
+                    const boxAction = boxGroup.findActionByPermPair( [ rotatedLeft[0], rightPermPair[1] ] );
+                    if ( boxAction ) {
+                        updateSymbols( left, right, boxAction );
+                        return boxAction;
+                    }
+                }
+            }
+
+            if ( rightState == 'DU' || rightState == 'UD' ) {
+
+                const rotatedRight = [
+                    [ ...rightPermPair[1] ].reverse(),
+                    [ ...rightPermPair[0] ].reverse()
+                ];
+
+                if ( arrayExactlyEquals( leftPermPair[1], rotatedRight[0] ) ) {
+                    const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rotatedRight[1] ] );
+                    if ( boxAction ) {
+                        updateSymbols( left, right, boxAction );
+                        return boxAction;
+                    }
+                }
             }
         }
     }
@@ -535,7 +581,7 @@ class Formula {
         if ( r instanceof CompositeAction ) {
 
             // reset id
-            r.id = this.boxGroup.indexPlanes.length;
+            //r.id = this.boxGroup.indexPlanes.length;
             r.label = aliasText;
             r.alias = [];
             r.indexPoints();
@@ -708,7 +754,7 @@ class OperatorExpression extends Expression {
             return params[alias];
         }
 
-        // may get replaced by equal box action
+        // may get replaced by equivalent box action
         boxAction = new CompositeAction(
             leftAction.box,
             Math.round( Math.random() * 10000 + 1),

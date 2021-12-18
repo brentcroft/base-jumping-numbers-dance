@@ -36,7 +36,7 @@ function inversion( boxAction, boxGroup ) {
         1. Immediately adjacent and equal symbols in a composition that form an identity can be removed.
         3. Outside edge symbols in a composition that form an identity can be removed - and the inside reversed
 */
-function composition( left, right, boxGroup, rules = { "outer": 0, "rotations": 1 } ) {
+function composition( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
 
     function updateSymbols( left, right, boxAction ) {
         const symbolic = `${ left.symbols[0] } * ${ right.symbols[0] }`;
@@ -60,6 +60,9 @@ function composition( left, right, boxGroup, rules = { "outer": 0, "rotations": 
         if ( arrayExactlyEquals( leftPermPair[1], rightPermPair[0] ) ) {
             const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rightPermPair[1] ] );
             if ( boxAction ) {
+
+                //consoleLog( `inner: ${leftState}/${rightState}; ${ boxAction }` );
+
                 updateSymbols( left, right, boxAction );
                 return boxAction;
             }
@@ -67,20 +70,27 @@ function composition( left, right, boxGroup, rules = { "outer": 0, "rotations": 
 
         // outer match
         if ( rules["outer"] ) {
-            if ( arrayExactlyEquals( leftPermPair[0], rightPermPair[1] ) ) {
-                const boxAction = boxGroup.findActionByPermPair( [ rightPermPair[0], leftPermPair[1] ] );
-                if ( boxAction ) {
-                    updateSymbols( left, right, boxAction );
-                    return boxAction;
+            if ( leftState == 'DD' || leftState == 'UU' ) {
+                if ( arrayExactlyEquals( leftPermPair[0], rightPermPair[1] ) ) {
+                    const boxAction = boxGroup.findActionByPermPair( [ rightPermPair[0], leftPermPair[1] ] );
+                    if ( boxAction ) {
+
+                        //consoleLog( `outer: ${leftState}/${rightState}; ${ boxAction }` );
+
+                        updateSymbols( left, right, boxAction );
+                        return boxAction;
+                    }
                 }
             }
         }
-        // outer match
+
         if ( rules["rotations"] ) {
+
+            var rotatedLeft;
 
             if ( leftState == 'DU' || leftState == 'UD' ) {
 
-                const rotatedLeft = [
+                rotatedLeft = [
                     [ ...leftPermPair[1] ].reverse(),
                     [ ...leftPermPair[0] ].reverse()
                 ];
@@ -88,6 +98,9 @@ function composition( left, right, boxGroup, rules = { "outer": 0, "rotations": 
                 if ( arrayExactlyEquals( rotatedLeft[1], rightPermPair[0] ) ) {
                     const boxAction = boxGroup.findActionByPermPair( [ rotatedLeft[0], rightPermPair[1] ] );
                     if ( boxAction ) {
+
+                        //consoleLog( `single: ${leftState}/${rightState}; ${ boxAction }` );
+
                         updateSymbols( left, right, boxAction );
                         return boxAction;
                     }
@@ -104,11 +117,30 @@ function composition( left, right, boxGroup, rules = { "outer": 0, "rotations": 
                 if ( arrayExactlyEquals( leftPermPair[1], rotatedRight[0] ) ) {
                     const boxAction = boxGroup.findActionByPermPair( [ leftPermPair[0], rotatedRight[1] ] );
                     if ( boxAction ) {
+
+                        //consoleLog( `single: ${leftState}/${rightState}; ${ boxAction }` );
+
                         updateSymbols( left, right, boxAction );
                         return boxAction;
                     }
                 }
+
+                if ( rotatedLeft ) {
+
+                    if ( arrayExactlyEquals( rotatedLeft[1], rotatedRight[0] ) ) {
+                        const boxAction = boxGroup.findActionByPermPair( [ rotatedLeft[0], rotatedRight[1]] );
+                        if ( boxAction ) {
+
+                            //consoleLog( `double: ${leftState}/${rightState}; ${ boxAction }` );
+
+                            updateSymbols( left, right, boxAction );
+                            return boxAction;
+                        }
+                    }
+
+                }
             }
+
         }
     }
     return null;

@@ -560,6 +560,18 @@ function updatePage() {
             .getElementById( "basesVolume" )
             .value = indexedBox.box.volume;
 
+    const symbology = "symbols: " + indexedBox
+                .box
+                .placeValuePermutations
+                .map( p => `<b>${ p.symbol }🠇</b>=${ p.perm.join("") }` )
+                .join( ", ");
+
+    document
+            .getElementById( "permutation-roots" )
+            .innerHTML = symbology;
+
+
+
     buildBoxLayersSelectors( indexedBox, param );
     buildBoxLayersSelectors( indexedBox, param, "boxLayerFilterSelectors", true );
 

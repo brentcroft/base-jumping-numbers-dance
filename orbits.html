@@ -43,9 +43,7 @@
             <input type="number" id="basesVolume" title="the volume of the box" disabled="disabled"/> |
 
             <label title="change the selected box action"> action-id: <input type="number" min="0" id="actionIndex" value="1" onchange="selectBoxAction()"/></label>
-
-            <span id="captionTex" class="summaryLeft"></span>
-            <br/>
+            | <span id="permutation-roots" class="summaryLeft"></span>
         </div>
 
         <div id="toolbar" class="toolbar">
@@ -56,16 +54,6 @@
 
             <div id="more-options" style="display: none">
                 <hr/>
-                <label title="use composition rules instead of Composite Actions">composition-rules<input type="checkbox" id="compositionRulesToggle" onchange="updatePage()"/></label> |
-                <label title="show compositions">show-compositions<input type="checkbox" id="showCompositionsToggle" onchange="updatePage()"/></label> |
-                [ ignore:
-                <label title="ignore euclidean perimeters when matching actions">e-per2<input type="checkbox" id="ignoreEuclideanPerimetersToggle" onchange="updatePage()"/></label> |
-                <label title="ignore index perimeters when matching actions">i-per<input type="checkbox" id="ignoreIndexPerimetersToggle" onchange="updatePage()"/></label> |
-                <label title="ignore orbit offsets when matching actions">offsets<input type="checkbox" id="ignoreOrbitOffsetsToggle" onchange="updatePage()"/></label>
-                ]
-                <label title="rotate perms on each iteration when building actions">rotate-perms<input type="checkbox" id="rotatePermsToggle" onchange="updatePage()"/></label> |
-
-
                 <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
@@ -158,54 +146,47 @@
                 <input id="box-layer-filter.1" type="checkbox" class="box-layer-control-filter" value="1" checked="checked"/>
                 <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>
                 <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>
-<!--                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>-->
+                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>
             </span>
         </div>
 
         <div id="indexComposer" style="display: none" class="summaryLeft">
+            <label title="use composition rules instead of Composite Actions">composition-rules<input type="checkbox" id="compositionRulesToggle" onchange="updatePage()"/></label> |
+            <label title="show compositions">show-compositions<input type="checkbox" id="showCompositionsToggle" onchange="updatePage()"/></label> |
+            <label title="ignore euclidean perimeters when matching actions">e-per2<input type="checkbox" id="ignoreEuclideanPerimetersToggle" onchange="updatePage()"/></label> |
+            <label title="ignore index perimeters when matching actions">i-per<input type="checkbox" id="ignoreIndexPerimetersToggle" onchange="updatePage()"/></label> |
+            <label title="ignore orbit offsets when matching actions">offsets<input type="checkbox" id="ignoreOrbitOffsetsToggle" onchange="updatePage()"/></label> |
+            <label title="alternate perms on each iteration when building actions">alternate-perms<input type="checkbox" id="alternatePermsToggle" onchange="updatePage()"/></label>
+            <br/>
+            <br/>
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
+            <br/>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4"># a-constructions;
-# a_0;
-a_1h * b_4i; b_3 * a_2;
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4"># ;
+# 3d-canonical;
+# a-constructions;
+a_2 * b_2i; b_2 * a_2i;
+a_0 * b_4; b_4i * a_0i;
+a_1 * b_0; b_0i * a_1i;
 
-# a_0ih;
-a_2h * b_2i; b_5 * a_1;
+# b constructions;
+a_1 * a_2i; a_2i * a_1; ; a_1i * a_2; a_2 * a_1i;
+a_0 * a_1i; a_1 * a_0i; a_0i * a_1; a_1i * a_0;
+a_2 * a_0i; a_0 * a_2i; a_2i * a_0; a_0i * a_2;
 
-# a_0i;
-a_2i * b_3i; b_4 * a_1hi;
-
-# a_0hi;
-a_1i * b_5i; b_2 * a_2hi;
-
-# a_1;
-a_0h * b_4; b_1 * a_2h;
-
-# a_1h;
-a_2 * b_0i; b_5i * a_0;
-
-# a_1i;
-a_2hi * b_1i; b_4i * a_0hi;
-
-# a_1hi;
-a_0i * b_5; b_0 * a_2i;
-
-# a_2;
-a_0 * b_2; b_1i * a_1h;
-
-# a_2h;
-a_1 * b_0; b_3i * a_0h;
-
-# a_2i;
-a_1hi * b_1; b_2i * a_0i;
-
-# a_2hi;
-a_0hi * b_3; b_0i * a_1i;
-
-</textarea>
-                <label>Results: <br/>
-                    <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea></label>
+# z constructions;
+a_1 * a_2i * a_0;
+a_1i * a_2 * a_0i;
+a_2 * a_1i * a_0;
+a_2i * a_1 * a_0i;
+a_2 * a_0i * a_1;
+a_2i * a_0 * a_1i;
+                </textarea>
+                <label>
+                    Results: <br/>
+                    <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>
+                </label>
             </form>
             <div id="compositionMessages" class="formulaPanel"></div>
             <div id="summaryEditorErrorMessage" class="difference"></div>

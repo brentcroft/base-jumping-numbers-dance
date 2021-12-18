@@ -33,12 +33,14 @@ a.symbolic-composition-control {
     overflow: hidden;
     display: inline-block;
     text-align: right;
+    vertical-align: top;
     font-size: 70%;
 }
 
 .summaryLeft {
     font-size: 70%;
     text-align: left;
+    #vertical-align: top;
     font-style: bold;
 }
 

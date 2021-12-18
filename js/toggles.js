@@ -4,7 +4,7 @@ toggleKeys = {
     actions: 1,
     cycles: 0,
     chart: 0,
-    more: 1,
+    more: 0,
 
     globalIds: 0,
     conj: 1,
@@ -15,20 +15,23 @@ toggleKeys = {
     fixedRad: 1,
     colours: 0,
 
-    rotatePerms: 0,
+    monomialFilter: 1,
+
     inverses: 1,
     harmonics: 1,
     degenerates: 1,
     radiance: 0,
 
-    compositionRules: 1,
-    showCompositions: 0,
-    ignoreEuclideanPerimeters: 0,
-    ignoreIndexPerimeters: 0,
-    ignoreOrbitOffsets: 1,
     indexComposer: 1,
     autoCompose: 1,
-    monomialFilter: 1,
+
+    compositionRules: 0,
+    showCompositions: 0,
+    ignoreEuclideanPerimeters: 0,
+    ignoreIndexPerimeters: 1,
+    ignoreOrbitOffsets: 1,
+    alternatePerms: 0,
+
 
     chart3d: 0,
 

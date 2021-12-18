@@ -221,13 +221,13 @@ class BoxGroup {
         this.compositeActions = [];
 
         [
-            this.rotatePerms,
+            this.alternatePerms,
             this.compositionRules,
             this.ignoreOrbitOffsets,
             this.ignoreIndexPerimeters,
             this.ignoreEuclideanPerimeters
         ] = [
-            toggles.includes( "rotatePerms" ),
+            toggles.includes( "alternatePerms" ),
             toggles.includes( "compositionRules" ),
             toggles.includes( "ignoreOrbitOffsets" ),
             toggles.includes( "ignoreIndexPerimeters" ),
@@ -294,7 +294,7 @@ class BoxGroup {
                 .forEach( ( p, i ) => {
 
                     // rotate every iteration
-                    const pair = this.rotatePerms && (i % 2) ? [ p[1], p[0] ] : [ p[0], p[1] ];
+                    const pair = this.alternatePerms && (i % 2) ? [ p[1], p[0] ] : [ p[0], p[1] ];
 
                     var dd = null;
                     var uu = null;

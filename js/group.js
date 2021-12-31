@@ -115,10 +115,87 @@ class PlaceValuesAction extends BoxAction {
     }
 }
 
+class FlatAction extends BoxAction {
+    constructor( index, label ) {
+        super( index.box, Math.round( Math.random() * 10000 + 1) );
+        this.index = index;
+        this.boxGroup = this.index.boxGroup;
+
+        this.idx = new Array( this.box.volume );
+        this.dix = new Array( this.box.volume );
+
+        // todo: no identity plane
+        this.identityPlane = [ -1, -1, 1 ];
+        this.identityPlaneGcd = 1;
+        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+
+        //
+        this.label = label
+            ? label
+            : this.index instanceof PlaceValuesAction
+                ? `${ this.index.label }f`
+                : `(${ this.index.label })f`;
+        this.symbols = [ ...this.index.symbols ];
+        this.alias = this.index.alias;
+
+        this.indexPoints();
+
+        this.initialise();
+
+        this.index.boxGroup.registerCompositeAction( this.label, this );
+    }
+
+    indexPoints() {
+        const boxVolume = this.box.volume;
+        var di = 0;
+
+        const orbits = [ ...this.index.orbits, ...this.index.identities ];
+
+        while ( orbits.length > 0 ) {
+            // remove and capture
+            const [ orbit ] = orbits.splice( 0, 1 );
+
+            var id = di + orbit.points.length - 1;
+
+            orbit
+                .points
+                .forEach( (point, i) => {
+
+                    //const conjugateId = point.conjugate.id;
+                    const conjugateId = ( this.box.volume - id - 1 );
+
+                    const pointIndexData = {
+                       id: id,
+                       di: di,
+                       conjugateId: conjugateId,
+                       jump: ( di - id ),
+                       radiant: ( conjugateId - id )
+                    };
+
+                    point.indexes[this.key] = pointIndexData;
+
+                    this.idx[ id ] = point;
+                    this.dix[ di ] = point;
+
+                    id = di;
+                    di++;
+                });
+        }
+    }
+
+    getType() {
+        return 'flat';
+    }
+
+    getPlaneEquationTx() {
+        return this.alias.join(" / ");
+    }
+}
+
 class CompositeAction extends BoxAction {
 
     static compositeLabel( leftAction, rightAction ) {
-        return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
+        return `${ leftAction.getLabel() } + ${ rightAction.getLabel() }`;
     }
 
     static compositeSymbol( leftAction, rightAction ) {
@@ -128,7 +205,7 @@ class CompositeAction extends BoxAction {
                 ? rightAction.symbols[0]
                 : rightAction.symbols[0] == one
                     ? leftAction.symbols[0]
-                    : `${ leftAction.symbols[0] } * ${ rightAction.symbols[0] }`
+                    : `${ leftAction.symbols[0] } + ${ rightAction.symbols[0] }`
             : one;
     }
 
@@ -137,6 +214,7 @@ class CompositeAction extends BoxAction {
 
         this.leftAction = leftAction;
         this.rightAction = rightAction;
+        this.boxGroup = this.leftAction.boxGroup;
         this.reverse = reverse;
 
         this.idx = new Array( this.box.volume );
@@ -154,6 +232,7 @@ class CompositeAction extends BoxAction {
 
         if ( autoInit ) {
             this.indexPoints();
+            this.initialise();
         } else {
             this.unindexed = true;
         }
@@ -173,9 +252,13 @@ class CompositeAction extends BoxAction {
             : this.rightAction.apply( point );
         var endPoint = this.leftAction.apply( wayPoint );
 
-        // global ids
-        const id = point.id;
-        const di = endPoint.id;
+//      using global point ids
+//        const id = point.id;
+//        const di = endPoint.id;
+
+        // using local ids
+        const id = point.at( this.rightAction.key ).id;
+        const di = endPoint.at( this.leftAction.key ).id;
 
         this.box.validateIds( [ id, di ] );
 
@@ -251,9 +334,9 @@ class BoxGroup {
             this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance );
             this.box.unity.label = 'e';
 
-            this.indexPlanes = [ this.box.radiance, this.box.unity ];
+            this.boxActions = [ this.box.radiance, this.box.unity ];
         } else {
-            this.indexPlanes = [];
+            this.boxActions = [];
         }
 
 
@@ -359,14 +442,14 @@ class BoxGroup {
                 .forEach( layer => {
                     var actionIndex = 0;
                     layer
-                        .forEach( (pair , i) => this.indexPlanes
-                            .push( new PlaceValuesAction( this.box, this.indexPlanes.length, pair, pair.id ) )
+                        .forEach( (pair , i) => this.boxActions
+                            .push( new PlaceValuesAction( this.box, this.boxActions.length, pair, pair.id ) )
                         );
                 } );
         }
 
         this.box.points
-            .forEach( point => this.indexPlanes
+            .forEach( point => this.boxActions
                   .filter( i => !( i instanceof CompositeAction ) )
                   .forEach( indexer => indexer.indexPoint( point ) ) );
 
@@ -375,43 +458,66 @@ class BoxGroup {
             this.box.unity.indexPoints();
         }
 
-        this.indexPlanes.forEach( plane => {
+        this.boxActions.forEach( plane => {
             plane.ignoreEuclideanPerimeters = this.ignoreEuclideanPerimeters;
             plane.ignoreIndexPerimeters = this.ignoreIndexPerimeters;
             plane.ignoreOrbitOffsets = this.ignoreOrbitOffsets;
+            plane.boxGroup = this;
         } );
 
-        this.indexPlanes.forEach( plane => plane.initialise() );
+        this.boxActions.forEach( plane => plane.initialise() );
     }
 
-    getIndexMap( label ) {
+    getIndexMap() {
         const keys = {};
-        this.indexPlanes.forEach( p => keys[ p.getLabel() ] = p );
+        this.boxActions.forEach( p => keys[ p.label ] = p );
+        this.compositeActions.forEach( p => keys[ p.label ] = p );
         return keys;
     }
 
     findMatchingActions( boxAction ) {
-        return this.indexPlanes.filter( p => p.equals( boxAction ) );
+        return this.boxActions.filter( p => p.equals( boxAction ) );
+    }
+
+    removeEqualCompositeAction( boxAction ) {
+        const equalCompositeActions = this.compositeActions.filter( p => p.equals( boxAction ) );
+        equalCompositeActions
+            .forEach( eca => this.compositeActions.splice( this.compositeActions.indexOf( eca ), 1 ) );
     }
 
     findActionByPermPair( permPair ) {
         const matches = this
-            .indexPlanes
+            .boxActions
             .filter( p => p instanceof PlaceValuesAction )
             .filter( p => arrayExactlyEquals( p.pair.permPair[0], permPair[0] ) && arrayExactlyEquals( p.pair.permPair[1], permPair[1] ) );
         return matches.length > 0 ? matches[0] : null;
     }
 
     registerCompositeAction( alias, compositeAction ) {
-        this.compositeActions[alias] = compositeAction;
+        if ( !this.findActionByAlias( alias ) ) {
+            this.compositeActions.push( compositeAction );
+        }
         //consoleLog( `registered composite action: ${ alias }`);
     }
 
     findActionByAlias( alias ) {
-        if ( alias in this.compositeActions ) {
-            //consoleLog( `found composite action: ${ alias }`);
-            return this.compositeActions[ alias ];
+
+        const matchingCompositeAlias = this.compositeActions
+            .filter( a => a.alias.includes( alias ) );
+
+        if ( matchingCompositeAlias.length > 0 ) {
+            //consoleLog( `found matching composite alias: ${ matchingCompositeAlias }`);
+            return matchingCompositeAlias[0];
         }
+
+        const matchingAlias = this.boxActions
+            .filter( a => a.alias.includes( alias ) );
+
+        if ( matchingAlias.length > 0 ) {
+            //consoleLog( `found matching alias: ${ matchingAlias }`);
+            return matchingAlias[0];
+        }
+
         return null;
     }
 }

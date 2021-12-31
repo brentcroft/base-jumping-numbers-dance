@@ -19,14 +19,11 @@ function getParam( defaultValues ) {
     const actionIndex = ( indexParam ) ? Number( indexParam ): defaultValues.actionIndex;
 
     const toggleParam = urlParams.get('toggles');
-    if ( toggleParam ) {
-        Object
-            .keys( toggles )
-            .forEach( k => toggles[k] = 0 );
-        toggleParam
+    toggles == ( toggleParam )
+        ? toggleParam
             .split(',')
-            .forEach( x => toggles[x] = 1 );
-    }
+            .map( x => x.trim() )
+        : defaultValues.toggles;
 
     var layers = defaultValues.actionLayers;
     const layerParam = urlParams.get('layers');
@@ -150,13 +147,10 @@ function distributeMessages( containerId, messages = [] ) {
 }
 
 function getSelectedOrbitIds( tableId  ) {
-
     const tableCells = document
         .getElementById( tableId )
         .querySelectorAll( "td.orbit" );
-
     const selectedOrbitIds = [];
-
     tableCells.forEach( tableCell => {
         const [ _, ...oIds ] = tableCell.id.split( "." );
         if ( tableCell.classList.contains( "selected" ) ) {
@@ -164,7 +158,6 @@ function getSelectedOrbitIds( tableId  ) {
                 .forEach( oId => selectedOrbitIds.push( oId ) );
         }
     } )
-
     return selectedOrbitIds;
 }
 
@@ -197,13 +190,10 @@ function showAllOrbits( containerId, basePlane ) {
     showOrbit( containerId, basePlane, "." );
 }
 
-function showIndex( containerId, senderId  ) {
+function showIndex( containerId, senderId, param = { toggles:[]}  ) {
     const table = document.getElementById( containerId + "_table" )
-
     const tableCells = table.querySelectorAll( "td.box_index" );
-
     const [ sourceId, ...oids ] = senderId.split( "." );
-
     tableCells.forEach( tableCell => {
         const [ cId, ...oId ] = tableCell.id.split( "." );
         if ( !arrayContains( oId, oids ) ) {
@@ -214,6 +204,39 @@ function showIndex( containerId, senderId  ) {
             tableCell.classList.add("selected");
         }
     } );
+
+    const sceneRoot = document.getElementById( "box_action_vectors" );
+
+    if ( sceneRoot ) {
+
+
+        const [ bottomRadius, height ] = [ 0.1, 0.16 ];
+        const [ selectedBottomRadius, selectedHeight ] = [ 0.2, 0.32 ];
+
+        const boxActionLines = sceneRoot.querySelectorAll( ".box-action-line" );
+
+        boxActionLines
+            .forEach( boxActionLine => {
+                const [ cId, ...oId ] = boxActionLine.id.split( "." );
+                const cones = boxActionLine.querySelectorAll( "cone" );
+                cones.forEach( cone => {
+
+                    if ( arrayContains( oId, oids ) ) {
+
+
+                        //cone.setAttribute( "bottomRadius", selectedBottomRadius );
+                        //cone.setAttribute( "height", selectedHeight );
+
+                        if ( sourceId != "box-action-line" && param.toggles.includes( "boxActionZoom" ) ) {
+                            sceneRoot.runtime.showObject( cone );
+                        }
+                    } else {
+                            //cone.setAttribute( "bottomRadius", bottomRadius );
+                            //cone.setAttribute( "height", height );
+                    }
+                });
+        } );
+    }
 }
 
 function toggleSelected( item ) {
@@ -275,9 +298,9 @@ function initialiseControls( param ) {
     initialiseBases( param.bases );
 
     Object
-        .entries(param.toggles)
-        .forEach( ([key, value]) => {
-            initialiseCheckBox( `${ key }Toggle`, Boolean( value ) );
+        .keys( toggleKeys )
+        .forEach( key => {
+            initialiseCheckBox( `${ key }Toggle`, param.toggles.includes( key ) );
         } );
 
     function setNumberField( id, value ) {
@@ -328,11 +351,15 @@ function processFormula( compositionFormulasText ) {
                 return index;
             }
 
+            function flat( index, label ) {
+                return new FlatAction( index );
+            }
+
             const results = compositionFormulaLines
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
-                        return [ f, f.evaluate( { dump: dump, label: label } ) ];
+                        return [ f, f.evaluate( { flat: flat, dump: dump, label: label } ) ];
                     } catch ( e ) {
                         consoleLog( e );
                         return [ f, e ];
@@ -368,7 +395,7 @@ function updateJson() {
 
     document
         .getElementById( "sample_cs_b_10_m_2_riffler" )
-        .setAttribute( "max", `${ basePlane.orbits.length }` );
+        .setAttribute( "max", `${ basePlane.orbits ? basePlane.orbits.length : 0 }` );
 
     document
             .getElementById("orbit-system-data-text-area")
@@ -389,7 +416,8 @@ function updateJson() {
         globalIds: isToggle('globalIds'),
         jumps: isToggle('jumps'),
         perms: !isToggle('coords'),
-        minCols: isToggle('minCols')
+        minCols: isToggle('minCols'),
+        maxCols: isToggle('maxCols')
     };
 
     drawBasePlaneTable( tableArgs );
@@ -403,17 +431,17 @@ function updateJson() {
 function selectBoxAction() {
 
     const param = getControlValues();
-    const actionIndex = param.actionIndex % indexedBox.indexPlanes.length;
+    const actionIndex = param.actionIndex % indexedBox.boxActions.length;
 
     //consoleLog( `selectBoxAction: id=${ actionIndex }` );
-    basePlane = indexedBox.indexPlanes[ actionIndex ];
+    basePlane = indexedBox.boxActions[ actionIndex ];
 
     if ( basePlane ) {
         putBasePlane( basePlane.key, basePlane );
 
         drawProductTable( basePlane, param.toggles );
 
-        showIndex( "indexSummary", "action."+ actionIndex );
+        showIndex( "indexSummary", "action."+ actionIndex, param );
 
         updateJson();
     }
@@ -423,7 +451,7 @@ function rebuildIndexedBoxSummary( indexedBox, param ) {
 
     document
             .getElementById( "actionIndex" )
-            .max = indexedBox.indexPlanes.length - 1;
+            .max = indexedBox.boxActions.length - 1;
 
     document
             .getElementById( "actionsTable" )
@@ -548,6 +576,27 @@ function buildCompositionSelectors( indexedBox, param ) {
         } );
 }
 
+function buildOctahedralNavigator( boxGroup, param ) {
+    var x3domContainerId =  'box_action_vectors';
+    const container = document.getElementById( x3domContainerId );
+    const sceneRootId = `${ x3domContainerId }_scene_root`;
+    const sceneRoot = document.getElementById( sceneRootId );
+
+    if ( !sceneRoot ) {
+        throw new Error( `No such scene root: ${ sceneRootId }` );
+
+    }
+    //
+    while (sceneRoot.firstChild ) {
+        sceneRoot.removeChild( sceneRoot.lastChild );
+    }
+
+    if ( param.toggles.includes( "boxActionNavigator" ) ) {
+        sceneRoot.appendChild( getOctahedralItems( boxGroup, param ) );
+        x3dom.reload();
+    }
+}
+
 
 function updatePage() {
 
@@ -571,6 +620,7 @@ function updatePage() {
             .innerHTML = symbology;
 
 
+    buildOctahedralNavigator( indexedBox, param );
 
     buildBoxLayersSelectors( indexedBox, param );
     buildBoxLayersSelectors( indexedBox, param, "boxLayerFilterSelectors", true );
@@ -591,14 +641,8 @@ function initPage( urlParam = true ) {
     const cv = getControlValues();
 
     if ( urlParam ) {
-        cv.toggles = { ...toggleKeys };
+        cv.toggles = Object.entries( toggleKeys ).filter( entry => entry[1] ).map( entry => entry[0] );
         cv.actionLayers = [ 1 ];
-    } else {
-        const toggles = cv.toggles;
-        cv.toggles = {};
-        Object
-            .keys( toggleKeys )
-            .forEach( k => cv.toggles[k] = toggles.includes( k ) ? 1 : 0 );
     }
 
     const param = urlParam
@@ -617,31 +661,35 @@ function initPage( urlParam = true ) {
         return;
     }
 
-    if ( param.toggles.actions ) {
+    if ( param.toggles.includes( 'actions' ) ) {
         showHideAll( [ 'selectedPoint', 'actionsTable', 'actionControls' ] );
     }
-    if ( param.toggles.cycles ) {
+    if ( param.toggles.includes( 'cycles' ) ) {
         showHideAll(['cyclesControls','sample_cs_b_10_m_2_table']);
     }
-    if ( param.toggles.monomialFilter ) {
+    if ( param.toggles.includes( 'monomialFilter' ) ) {
         showHideAll( [ 'monomialFilterControls' ] );
     }
-    if ( param.toggles.indexComposer ) {
+    if ( param.toggles.includes( 'boxActionNavigator' ) ) {
+        showHideAll( [ 'boxActionNavigator' ] );
+    }
+
+    if ( param.toggles.includes( 'indexComposer' ) ) {
         showHideAll( [ 'indexComposer' ] );
     }
-    if ( param.toggles.chart ) {
+    if ( param.toggles.includes( 'chart' ) ) {
         showHideAll(['chartControls','sample_cs_b_10_m_2_plot','sample_cs_b_10_m_2_plot_legend','sample_cs_b_10_m_2_riffler']);
     }
-    if ( param.toggles.more ) {
+    if ( param.toggles.includes( 'more' ) ) {
         showHideAll( ['more-options'] );
     }
-    if ( param.toggles.orbitEditor ) {
+    if ( param.toggles.includes( 'orbitEditor' ) ) {
         showHideAll( ['orbitEditor'] );
     }
-    if ( param.toggles.colours ) {
+    if ( param.toggles.includes( 'colours' ) ) {
         showHideAll( ['colours'] );
     }
-    if ( param.toggles.products ) {
+    if ( param.toggles.includes( 'products' ) ) {
         showHideAll( ['productsTable'] );
     }
 
@@ -676,14 +724,23 @@ function initPage( urlParam = true ) {
             } else if ( data.indexKey ) {
 
                 const key =  Number( data.indexKey );
-                var nextPlane = indexedBox.indexPlanes[ key ];
+                var nextPlane = indexedBox.boxActions[ key ];
 
                 if ( !nextPlane ) {
+                    // check for  action
+                    const boxActions = Object
+                        .values( indexedBox.boxActions )
+                        .filter( ca => ca.id == key );
+
+                    if (boxActions.length > 0 ) {
+                        nextPlane = boxActions[0];
+                    }
 
                     // check for composite action
                     const compositeActions = Object
                         .values( indexedBox.compositeActions )
                         .filter( ca => ca.id == key );
+
                     if (compositeActions.length > 0 ) {
                         nextPlane = compositeActions[0];
                     }
@@ -702,7 +759,9 @@ function initPage( urlParam = true ) {
                     document.getElementById( 'monomialFilter' ).value = JSON.stringify( basePlane.cycleIndexMonomial );
                     document.getElementById( 'monomialFilterDisplay' ).innerHTML = getCycleIndexMonomialHtml( basePlane );
 
-                    showIndex( "indexSummary", data.sender );
+                    const param = getControlValues();
+
+                    showIndex( "indexSummary", data.sender, param );
                     updateJson();
                 } else {
                     consoleLog( `Select BoxAction: No such index: ${ data.indexKey }` );

@@ -16,7 +16,7 @@ class ColorBasePlane  {
 //        this.colorOrbitIndex = colorOrbitIndex;
 //        this.minPixel = minPixel;
 //        this.maxPixel = maxPixel;
-//        const orbits = this.indexPlanes[ this.colorPlaneIndex % this.indexPlanes.length ].orbits;
+//        const orbits = this.boxActions[ this.colorPlaneIndex % this.boxActions.length ].orbits;
 //        const orbit = orbits[ this.colorOrbitIndex % orbits.length ];
 //        this.colorPoints = orbit.getCoordArray();
 //    }

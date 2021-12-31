@@ -36,6 +36,10 @@ class Point {
         return this.idx[id];
     }
 
+    getDi( id ) {
+        return this.dix[id];
+    }
+
 
     at( indexId ) {
         return this.indexes[ indexId ];

@@ -9,8 +9,8 @@ body {
     clear: both;
 }
 
-textarea.formulaPanel {
-    width: 100%;
+.formulaPanel {
+    width: 50%;
 }
 
 a.symbolic-composition-control {
@@ -37,6 +37,16 @@ a.symbolic-composition-control {
     font-size: 70%;
 }
 
+.toolbar_support {
+    float: right;
+    overflow: hidden;
+    display: inline-block;
+    text-align: right;
+    vertical-align: top;
+    width: 40%;
+    height: 30%;
+}
+
 .summaryLeft {
     font-size: 70%;
     text-align: left;
@@ -50,6 +60,13 @@ a.symbolic-composition-control {
 }
 
 .orbit {}
+
+.x3d-inline {
+    width: 30%;
+    height: 30%;
+    resize: both;
+    overflow: auto;
+}
 
 .plot_frame {
     width: 100%;
@@ -74,6 +91,7 @@ table > caption {
     text-align: left;
     font-style: bold;
 }
+
 
 th {
     vertical-align: bottom;

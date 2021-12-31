@@ -2,8 +2,8 @@
 toggleKeys = {
 
     actions: 1,
-    cycles: 0,
-    chart: 0,
+    cycles: 1,
+    chart: 1,
     more: 0,
 
     globalIds: 0,
@@ -16,6 +16,8 @@ toggleKeys = {
     colours: 0,
 
     monomialFilter: 1,
+    boxActionNavigator: 1,
+    boxActionZoom: 0,
 
     inverses: 1,
     harmonics: 1,
@@ -25,10 +27,10 @@ toggleKeys = {
     indexComposer: 1,
     autoCompose: 1,
 
-    compositionRules: 0,
-    showCompositions: 0,
+    compositionRules: 1,
+    showCompositions: 1,
     ignoreEuclideanPerimeters: 0,
-    ignoreIndexPerimeters: 1,
+    ignoreIndexPerimeters: 0,
     ignoreOrbitOffsets: 1,
     alternatePerms: 0,
 

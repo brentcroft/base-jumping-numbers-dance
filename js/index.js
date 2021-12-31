@@ -4,6 +4,7 @@
 */
 var indexMap = {};
 const PERMUTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
+
 /*
     Extract a permutation (and reverse anti-permutation) of the bases
     and provide corresponding place value functions.
@@ -233,9 +234,20 @@ class PlaceValuesPermutationPair {
             [ this.leftPlaceValues, this.rightPlaceValues ]
         ] = PlaceValuesPermutationPair.extractMembers( state, [ left, right ] );
 
-        this.mixed =
 
-        this.symbol = `${ left.symbol }${ this.leftState ? '🠅' : '🠇' }${ right.symbol }${ this.rightState ? '🠅' : '🠇' }`;
+        //
+        this.location = [ new Array(bases.length).fill(0), new Array(bases.length).fill(0) ];
+        this.location[0][left.id] = this.leftState ? 1 : -1;
+        this.location[1][right.id] = this.rightState ? 1 : -1;
+
+        this.color = [
+              ( ( this.leftState ? 1 : -1 ) * ( left.id == 0 ? 63 : -63 ) ) + ( this.rightState ? -1 : 1 ) * ( right.id == 0 ? -63 : 63 ),
+              ( ( this.leftState ? 1 : -1 ) * ( left.id == 1 ? 63 : -63 ) ) + ( this.rightState ? -1 : 1 ) * ( right.id == 1 ? -63 : 63 ),
+              ( ( this.leftState ? 1 : -1 ) * ( left.id == 2 ? 63 : -63 ) ) + ( this.rightState ? -1 : 1 ) * ( right.id == 2 ? -63 : 63 )
+          ]
+          .map( i => i + 127 );
+
+        this.symbol = `(${ left.symbol }${ this.leftState ? '🠅' : '🠇' }-${ right.symbol }${ this.rightState ? '🠅' : '🠇' })`;
 
         this.rank = this.permPair[0].length;
 
@@ -303,6 +315,10 @@ class BoxAction {
         this.reverseFrom = 0;
         this.label = 'xxx';
         this.symbols = [];
+        this.alias = [];
+
+        this.identities = [];
+        this.orbits = [];
     }
 
     getLabel() {
@@ -475,7 +491,21 @@ class BoxAction {
 
         function extractOrbitCoordsAndTally( orbitId, startIndex, idx, tally ) {
             var point = idx[ startIndex ];
-            point.at(indexId).orbitId = orbitId;
+
+            if (!point) {
+                throw new Error( `Bad orbit: No start point: ${ indexId }/${ orbitId };${ startIndex }` );
+            }
+
+            try {
+                const indexedPoint = point.at(indexId);
+                indexedPoint.orbitId = orbitId;
+            } catch ( e ) {
+                const msg = `Bad orbit point: ${ indexId }/${ orbitId }; ${ startIndex }; ${ e }`;
+                consoleLog( msg );
+                //
+                //break;
+                throw new Error( msg, { cause: e } );
+            }
 
             tally[ startIndex ] = -1;
             const points = [ point ];
@@ -486,9 +516,9 @@ class BoxAction {
 
             while ( di != startIndex ) {
                 try {
-                    if ( !di ) {
-                        throw new Error("No id: " + di );
-                    }
+//                    if ( !di ) {
+//                        throw new Error("No id: " + di );
+//                    }
 
 
                     tally[ di ] = -1;
@@ -517,12 +547,15 @@ class BoxAction {
                 } catch ( e ) {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
                     consoleLog( msg );
+                    //
                     //break;
                     throw new Error( msg, { cause: e } );
                 }
             }
             return points;
         }
+
+        const doConjugateShortcut = false;
 
         for ( var i = 0; i < this.idx.length; i++) {
             if ( tally[ i ]!= -1 ) {
@@ -534,6 +567,10 @@ class BoxAction {
                     this.identities.push( orbit );
                 } else {
                     this.orbits.push( orbit );
+                }
+
+                if ( !doConjugateShortcut ) {
+                    continue;
                 }
 
                 const point = this.idx[ i ];
@@ -715,8 +752,8 @@ class BoxAction {
             box: this.box.getJson(),
 
             cycles: {
-                fixed: this.identities.length,
-                orbits: this.orbits.length,
+                fixed: this.identities ? this.identities.length : 0,
+                orbits: this.orbits ? this.orbits.length : 0,
                 order: this.fundamental
             },
 
@@ -743,17 +780,21 @@ class BoxAction {
 
     // EUCLIDEAN RADIANCE
     identityEuclideanRadiance() {
-        return this
-            .identities
-            .map( p => p.euclideanRadiance() )
-            .reduce( (a,r) => a + r, 0);
+        return this.identities
+            ? this
+                .identities
+                .map( p => p.euclideanRadiance() )
+                .reduce( (a,r) => a + r, 0)
+            : '-';
     }
 
     orbitEuclideanRadiance() {
-        return this
-            .orbits
-            .map( p => p.euclideanRadiance() )
-            .reduce( (a,r) => a + r, 0);
+        return this.orbits
+            ? this
+                .orbits
+                .map( p => p.euclideanRadiance() )
+                .reduce( (a,r) => a + r, 0)
+            : '-';
     }
 
     grossEuclideanRadiance() {
@@ -763,19 +804,23 @@ class BoxAction {
 
     // EUCLIDEAN PERIMETER
     identityEuclideanPerimeter() {
-        return this
+        return this.identities
+           ? this
             .identities
             .map( orbit => orbit.points[0] )
             .map( p => p.at(this.key) )
             .map( p => 0 )
-            .reduce( (a,r) => a + r, 0);
+            .reduce( (a,r) => a + r, 0)
+           : '-';
     }
 
     orbitEuclideanPerimeter() {
-        return this
-            .orbits
-            .map( p => p.euclideanPerimeter() )
-            .reduce( (a,r) => a + r, 0);
+        return this.orbits
+            ? this
+                .orbits
+                .map( p => p.euclideanPerimeter() )
+                .reduce( (a,r) => a + r, 0)
+            : '-';
     }
 
     grossEuclideanPerimeter() {
@@ -795,23 +840,27 @@ class BoxAction {
 
     // INDEX RADIANCE
     identityIndexRadiance() {
-        return this
-            .identities
-            .map( x => x
-                .points
-                .map( p => Math.abs( p.at(this.key).radiant ) )
-                .reduce( (a,c) => a + c, 0 ) )
-            .reduce( (a, c) => a + c, 0 ) / 2;
+        return this.identities
+            ? this
+                .identities
+                .map( x => x
+                    .points
+                    .map( p => Math.abs( p.at(this.key).radiant ) )
+                    .reduce( (a,c) => a + c, 0 ) )
+                .reduce( (a, c) => a + c, 0 ) / 2
+            : '-';
     }
 
     orbitIndexRadiance() {
-        return this
-            .orbits
-            .map( x => x
-                .points
-                .map( p => Math.abs( p.at(this.id).radiant ) )
-                .reduce( (a,c) => a + c, 0 ) )
-            .reduce( (a, c) => a + c, 0 ) / 2;
+        return this.orbits
+            ? this
+                .orbits
+                .map( x => x
+                    .points
+                    .map( p => Math.abs( p.at(this.id).radiant ) )
+                    .reduce( (a,c) => a + c, 0 ) )
+                .reduce( (a, c) => a + c, 0 ) / 2
+            : '-';
     }
 
     grossIndexRadiance() {
@@ -822,10 +871,12 @@ class BoxAction {
     // INDEX PERIMETER
     identityIndexPerimeter() {
         return this.identities
-            .map( identityOrbit => identityOrbit.points[0] )
-            .map( indexedIdentity => indexedIdentity.at(this.key) )
-            .map( identity => identity.jump )
-            .reduce( (a,c) => a + c, 0 );
+            ? this.identities
+                .map( identityOrbit => identityOrbit.points[0] )
+                .map( indexedIdentity => indexedIdentity.at(this.key) )
+                .map( identity => identity.jump )
+                .reduce( (a,c) => a + c, 0 )
+            : '-';
     }
 
     orbitIndexPerimeter() {

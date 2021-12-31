@@ -1,6 +1,10 @@
 <html>
 <head>
     <meta charset="utf-8"/>
+
+    <script type="text/javascript" src="js/x3dom.js"></script>
+    <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
+
     <link rel="stylesheet" href="css/orbits.css">
 
     <!-- model -->
@@ -27,16 +31,16 @@
         <div id="caption" class="caption">
             <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="2" onchange="initPage( false )"/></label>
 
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
             <a onclick="reopenWithRightRotatedArgs()" title="reopen with right-rotated base values in url">&#8594;</a>
 
             <span id="baseValues">
-                <input type="number" min="1" id="b0" value="7"/>x
-                <input type="number" min="1" id="b1" value="5"/>x
-                <input type="number" min="1" id="b2" value="3"/>x
+                <input type="number" min="1" id="b0" value="5"/>x
+                <input type="number" min="1" id="b1" value="3"/>x
+                <input type="number" min="1" id="b2" value="2"/>x
                 <input type="number" min="1" id="b3" value="2"/>
             </span> |
 
@@ -45,7 +49,6 @@
             <label title="change the selected box action"> action-id: <input type="number" min="0" id="actionIndex" value="1" onchange="selectBoxAction()"/></label>
             | <span id="permutation-roots" class="summaryLeft"></span>
         </div>
-
         <div id="toolbar" class="toolbar">
             <label title="toggle actions table">actions<input type="checkbox" id="actionsToggle" onchange="showHideAll(['actionControls','actionsTable'], this )"/></label> |
             <label title="toggle cycles table">cycles<input type="checkbox" id="cyclesToggle" onchange="showHideAll(['cyclesControls','sample_cs_b_10_m_2_table'], this)" title="display a table of identities and orbits"/></label> |
@@ -54,6 +57,8 @@
 
             <div id="more-options" style="display: none">
                 <hr/>
+                <label title="show x3dom navigator">box-action-navigator<input type="checkbox" id="boxActionNavigatorToggle" onchange="showHideAll( [ 'boxActionNavigator' ] ); updatePage()"/></label> |
+
                 <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
                 <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
                 <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
@@ -156,32 +161,28 @@
             <label title="ignore euclidean perimeters when matching actions">e-per2<input type="checkbox" id="ignoreEuclideanPerimetersToggle" onchange="updatePage()"/></label> |
             <label title="ignore index perimeters when matching actions">i-per<input type="checkbox" id="ignoreIndexPerimetersToggle" onchange="updatePage()"/></label> |
             <label title="ignore orbit offsets when matching actions">offsets<input type="checkbox" id="ignoreOrbitOffsetsToggle" onchange="updatePage()"/></label> |
-            <label title="alternate perms on each iteration when building actions">alternate-perms<input type="checkbox" id="alternatePermsToggle" onchange="updatePage()"/></label>
-            <br/>
+            <label title="alternate perms on each iteration when building actions">alternate-perms<input type="checkbox" id="alternatePermsToggle" onchange="updatePage()"/></label> |
+
+            <div id="boxActionNavigator" class="toolbar_support" style="display: none;">
+                <label title="zoom x3dom navigator">auto-zoom<input type="checkbox" id="boxActionZoomToggle" onchange="updatePage()"/></label>
+
+                <x3d id="box_action_vectors" showStat="false" width="100%" height="92%">
+                    <scene id="box_action_vectors_scene_root">
+                    </scene>
+                </x3d>
+            </div>
+
             <br/>
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <br/>
             <form name="compositionFormulas">
                 <textarea id="compositionFormulas" class="formulaPanel" rows="4"># ;
-# 3d-canonical;
-# a-constructions;
-a_2 * b_2i; b_2 * a_2i;
-a_0 * b_4; b_4i * a_0i;
-a_1 * b_0; b_0i * a_1i;
-
-# b constructions;
-a_1 * a_2i; a_2i * a_1; ; a_1i * a_2; a_2 * a_1i;
-a_0 * a_1i; a_1 * a_0i; a_0i * a_1; a_1i * a_0;
-a_2 * a_0i; a_0 * a_2i; a_2i * a_0; a_0i * a_2;
-
-# z constructions;
-a_1 * a_2i * a_0;
-a_1i * a_2 * a_0i;
-a_2 * a_1i * a_0;
-a_2i * a_1 * a_0i;
-a_2 * a_0i * a_1;
-a_2i * a_0 * a_1i;
+flat( z_0 );
+z_0^2;
+flat( z_0^2 );
+z_0f^2;
+flat( z_0f^2 );
                 </textarea>
                 <label>
                     Results: <br/>

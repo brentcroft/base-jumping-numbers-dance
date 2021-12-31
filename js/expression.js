@@ -22,6 +22,8 @@
  */
 
 
+const OPERATIONS = [ '+', '*' ];
+
 /*
     Inversion rules:
         1. The inverse of a group action has the pair of permutations swapped over
@@ -39,9 +41,8 @@ function inversion( boxAction, boxGroup ) {
 function composition( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
 
     function updateSymbols( left, right, boxAction ) {
-        const symbolic = `${ left.symbols[0] } * ${ right.symbols[0] }`;
+        const symbolic = `${ left.symbols[0] } ${ OPERATIONS[0] } ${ right.symbols[0] }`;
         if ( !boxAction.symbols.includes( symbolic ) ) {
-            //consoleLog( `Symbolic: ${ boxAction } = ${ symbolic }` );
             boxAction.symbols.push( symbolic );
         }
     }
@@ -342,7 +343,7 @@ class Formula {
                                 expressions.length > 0 &&
                                 expressions[expressions.length - 1] instanceof ValueExpression
                             ) {
-                                expressions.push(Expression.createOperatorExpression('*'));
+                                expressions.push(Expression.createOperatorExpression( OPERATIONS[0] ));
                             }
                             expressions.push(new VariableExpression(char));
                             this.registerVariable(char);
@@ -529,7 +530,7 @@ class Formula {
     }
 
     isOperator(char) {
-        return typeof char === 'string' && char.match(/[\*\^]/);
+        return typeof char === 'string' && char.match(/[\*\+\^]/);
     }
 
     isOperatorExpr(expr) {
@@ -592,7 +593,7 @@ class Formula {
                 if ( !r.alias.includes( aliasText ) ) {
                     r.alias.push( aliasText );
                 }
-            } else {
+            } else if ( r instanceof BoxAction ){
                 r.alias = [ aliasText ];
             }
         }
@@ -613,7 +614,7 @@ class Formula {
         if ( r instanceof CompositeAction ) {
 
             // reset id
-            //r.id = this.boxGroup.indexPlanes.length;
+            //r.id = this.boxGroup.boxActions.length;
             r.label = aliasText;
             r.alias = [];
             r.indexPoints();
@@ -625,12 +626,13 @@ class Formula {
             const existingIndexes = this.boxGroup.findMatchingActions( r );
 
             if ( existingIndexes.length == 0 ) {
-                this.boxGroup.indexPlanes.push( r );
+                this.boxGroup.removeEqualCompositeAction( r );
+                this.boxGroup.boxActions.push( r );
                 return r;
             } else {
                 existingIndexes
                     .forEach( existingIndex => {
-                        if ( `e * ${ existingIndex }` == aliasText ) {
+                        if ( `e ${ OPERATIONS[0] } ${ existingIndex }` == aliasText ) {
                             //
                         } else {
                             updateAlias( existingIndex, aliasText );
@@ -639,7 +641,7 @@ class Formula {
                     } );
 
                 if ( promoteResults ) {
-                    this.boxGroup.indexPlanes.push( r );
+                    this.boxGroup.boxActions.push( r );
                     return r;
                 } else {
                     return existingIndexes[0];
@@ -685,6 +687,15 @@ class Formula {
         valueObj = valueObj || {};
         return new Formula(formula, options).evaluate(valueObj);
     }
+
+    //this.formulaObject, paramValues
+    registerAction( index, label ) {
+        const boxAction = new FlatAction( index );
+        if ( label ) {
+            boxAction.label = label;
+        }
+        return boxAction;
+    }
 }
 
 class Expression {
@@ -692,7 +703,7 @@ class Expression {
         if (operator === '^') {
             return new PowerExpression(operator, left, right);
         }
-        if (operator === '*') {
+        if (operator === OPERATIONS[0]) {
             return new OperatorExpression( operator, left, right );
         }
         throw new Error(`Unknown operator: ${operator}`);
@@ -755,8 +766,8 @@ class StringExpression extends Expression {
 class OperatorExpression extends Expression {
     constructor( operator, left, right, boxGroup ) {
         super();
-        if (![ '*' ].includes( operator ) ) {
-            throw new Error(`Operator not implemented: ${ this.left } * ${ this.right }`);
+        if (!OPERATIONS.includes( operator ) ) {
+            throw new Error( `Operator not implemented: ${ this.left } "${operator}" ${ this.right }`);
         }
         this.operator = operator;
         this.left = left;
@@ -795,6 +806,9 @@ class OperatorExpression extends Expression {
             true );
 
         this.boxGroup.registerCompositeAction( alias, boxAction );
+
+        // make immediately available by label
+        params[ boxAction.label ] = boxAction;
 
         return boxAction;
     }
@@ -839,6 +853,9 @@ class PowerExpression extends Expression {
                         true
                     );
                     this.boxGroup.registerCompositeAction( alias, locus );
+
+                    // make immediately available by label
+                    params[ locus.label ] = locus;
                 }
             }
         } else if ( exp < 0 ) {
@@ -858,6 +875,9 @@ class PowerExpression extends Expression {
                             true
                         );
                 this.boxGroup.registerCompositeAction( locus.label, locus );
+
+                // make immediately available by label
+                params[ locus.label ] = locus;
             }
 
             for ( var i = -1; i > exp; i-- ) {
@@ -875,6 +895,8 @@ class PowerExpression extends Expression {
                             true
                         );
                     this.boxGroup.registerCompositeAction( alias, locus );
+                    // make immediately available by label
+                    params[ locus.label ] = locus;
                 }
             }
         }

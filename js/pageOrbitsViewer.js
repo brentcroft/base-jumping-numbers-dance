@@ -510,6 +510,11 @@ function getBasePlaneCycles( basePlane, toggles ) {
 
 
 
+
+
+
+
+
 function plotData( duration ) {
     const param = getParam();
     const basePlane = window.parent.window.getBasePlane( param.id );

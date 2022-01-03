@@ -15,11 +15,16 @@
     <script type="text/javascript" src="js/group.js"></script>
     <script type="text/javascript" src="js/expression.js"></script>
 
+    <script type="text/javascript" src="js/orbitation.js"></script>
+
+
     <!-- ui -->
     <script type="text/javascript" src="js/factors.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/table.js"></script>
     <script type="text/javascript" src="js/3d.js"></script>
+
+
 
     <!-- page -->
     <script type="text/javascript" src="js/compositions.js"></script>
@@ -31,7 +36,7 @@
         <div id="caption" class="caption">
             <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <label title="change the order of the box"><input type="number" min="1" id="bases" value="2" onchange="initPage( false )"/></label>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
 
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
@@ -114,9 +119,9 @@
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             layers: <span id="boxLayerSelectors">
-                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>
-                <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
-                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
+<!--                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>-->
+<!--                <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>-->
+<!--                <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>-->
                 <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
             </span> |
 
@@ -179,10 +184,13 @@
             <form name="compositionFormulas">
                 <textarea id="compositionFormulas" class="formulaPanel" rows="4"># ;
 flat( z_0 );
-z_0^2;
-flat( z_0^2 );
-z_0f^2;
-flat( z_0f^2 );
+z_0f^4;
+z_0f^8;
+z_0f^12;
+z_0f^16;
+z_0f^20;
+z_0f^24;
+z_0f^28;
                 </textarea>
                 <label>
                     Results: <br/>

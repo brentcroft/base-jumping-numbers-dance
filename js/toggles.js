@@ -28,7 +28,7 @@ toggleKeys = {
     autoCompose: 1,
 
     compositionRules: 1,
-    showCompositions: 1,
+    showCompositions: 0,
     ignoreEuclideanPerimeters: 0,
     ignoreIndexPerimeters: 0,
     ignoreOrbitOffsets: 1,

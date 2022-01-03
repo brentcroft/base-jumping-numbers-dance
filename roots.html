@@ -1,0 +1,127 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+
+    <script type="text/javascript" src="js/x3dom.js"></script>
+    <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
+
+    <link rel="stylesheet" href="css/orbits.css">
+
+    <!-- model -->
+    <script type="text/javascript" src="js/toggles.js"></script>
+    <script type="text/javascript" src="js/data.js"></script>
+    <script type="text/javascript" src="js/orbits.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" src="js/group.js"></script>
+    <script type="text/javascript" src="js/expression.js"></script>
+
+    <script type="text/javascript" src="js/orbitation.js"></script>
+
+
+    <!-- ui -->
+    <script type="text/javascript" src="js/factors.js"></script>
+    <script type="text/javascript" src="js/colors.js"></script>
+    <script type="text/javascript" src="js/table.js"></script>
+    <script type="text/javascript" src="js/3d.js"></script>
+
+    <!-- page -->
+    <script type="text/javascript">
+        var instance = 0;
+        function sendResult( result, sourceElement ) {
+            if ( !result ) {
+                return;
+            }
+            var tag = null;
+
+            if ( Array.isArray( result ) ) {
+                rows = Math.min( 10, result.length );
+                result = result.map( r => r.map( a => String( a ).padStart( 2, ' ' ) ).join( ', ' ) ).join( '\n' );
+                tag = "textarea";
+            } else {
+                result = `${ result }`;
+                rows = Math.min( 10, result.split(/\r\n|\r|\n/).length );
+                tag = "div";
+            }
+
+            const targetElement = reify(
+                tag,
+                {
+                    class: 'scriptPanelResult',
+                    disabled: 'disabled',
+                    rows: rows
+                } );
+            if ( tag == "textarea" ) {
+                targetElement.value = result;
+            } else {
+                targetElement.innerHTML = result;
+            }
+            //sourceElement.parentNode.insertBefore( targetElement, sourceElement.nextSibling );
+            sourceElement.parentNode.appendChild( targetElement );
+        }
+
+        function calculate( script, sourceElement ) {
+            const result = eval( script );
+            show( result );
+        }
+
+        function show( result ) {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+            sendResult( result, sourceElement );
+        }
+
+        function clearResults() {
+            document
+                .querySelectorAll( '.scriptPanelResult' )
+                .forEach( element => element.parentNode.removeChild( element ) );
+        }
+        function calculateNow() {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+
+            calculate( sourceElement.value, 'calculationResult' );
+        }
+    </script>
+
+    <style>
+        .scriptPanel {
+            width: 100%;
+        }
+        .scriptPanelResult {
+            width: 100%;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: scroll;
+        }
+    </style>
+
+</head>
+<body id="testContainer001" onload="calculateNow()">
+    <input type="button" value="eval" onclick="calculateNow()"/>
+    <input type="button" value="clear" onclick="clearResults()"/>
+    <br/>
+    <textarea id="calculationScript" class="scriptPanel" rows="10">//
+//show( rootsOf( 7, 2 ) );
+/*
+const bases = [ 4, 10 ];
+const area = bases.reduce( ( a, c ) => a * c, 1 );
+const terminal = area - 1;
+show( rootsOf( terminal, bases[0] ) );
+*/
+const bases = [ 3, 5, 7 ];
+const area = bases.reduce( ( a, c ) => a * c, 1 );
+const terminal = area - 1;
+
+show( "singles" );
+show( rootsOf( terminal, bases[0] ) );
+show( rootsOf( terminal, bases[1] ) );
+show( rootsOf( terminal, bases[2] ) );
+
+        show( "pairs" );
+show( rootsOf( terminal, bases[0] * bases[1] ) );
+show( rootsOf( terminal, bases[1] * bases[2] ) );
+show( rootsOf( terminal, bases[2] * bases[0] ) );
+
+</textarea>
+</body>
+</html>

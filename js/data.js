@@ -65,6 +65,8 @@ function canonicalize( m, sep = C_SEP, bra = BRA ) {
 var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys;
 
 var arrayIndexes = ( b ) => b.map( (x,i) => i );
+var arrayOfIndexes = ( n ) => new Array( n ).fill( 0 ).map( (x,i) => i );
+
 
 var numericArraySorter =  (a,b) => {
     for ( var i = 0; i < a.length; i++ ) {

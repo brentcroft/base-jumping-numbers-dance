@@ -1,12 +1,26 @@
 
 var MAXLIMIT = Math.pow( 10, 250 );
 
+// https://stackoverflow.com/questions/39899072/how-can-i-find-the-prime-factors-of-an-integer-in-javascript
+function primeFactors(n) {
+  const factors = [];
+  let divisor = 2;
+  while (n >= 2) {
+    if (n % divisor == 0) {
+      factors.push(divisor);
+      n = n / divisor;
+    } else {
+      divisor++;
+    }
+  }
+  return factors;
+}
 
 
 /*
     Calculate the prime factors of v.
 */
-function primeFactors( v ) {
+function primeFactorsHtml( v ) {
     if (v >= 2 & v < MAXLIMIT) {
         var k = 2;
         var f = 0;

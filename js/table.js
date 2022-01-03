@@ -308,18 +308,19 @@ function drawBasePlaneTable( tableArgs ) {
                 } else if ( orbit.isFirstConjugate() && conj ) {
                     var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
                     var conjOrbitIdSum = 0
-                    try {
+                    if ( conjOrbit ) {
                         conjOrbitIdSum = conjOrbit.getIdSum();
-                    } catch ( e ) {
-                        throw e;
+                    } else {
+                        consoleLog( `Conjugate orbit not found: ${ orbit }` );
+                        conjOrbitIdSum = 0;
                     }
 
                     var conjOrbitSpaceGcd = gcd( maxIndex, conjOrbitIdSum );
                     if ( jumps ) {
                         chainsText += `<td align="center">[ ${ orbit.getJumps().join( C_SEP ) } ]<br/>[ ${ conjOrbit.getJumps().join( C_SEP ) } ]</td>`;
                     }
-                    chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit.index }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( gid ).join( ' ' ) } )<br/>( ${ conjOrbit.points.map( gid ).join( ' ' ) } )</td>`;
-                    chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })<br/>(${ conjOrbit.sum.join( C_SEP ) })</td>`;
+                    chainsText += `<td id="${ tableId }.${ orbit.index }.${ conjOrbit ? conjOrbit.index : 0 }" class='orbit' align='center' onclick="${ cellClick }">( ${ orbit.points.map( gid ).join( ' ' ) } )<br/>( ${ conjOrbit ? conjOrbit.points.map( gid ).join( ' ' ) : -1 } )</td>`;
+                    chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })<br/>(${ conjOrbit ? conjOrbit.sum.join( C_SEP ) : -1 })</td>`;
                     chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }<br/>${ conjOrbitIdSum / conjOrbitSpaceGcd } * ${ conjOrbitSpaceGcd }</td>`;
                 } else {
                     if ( jumps ) {

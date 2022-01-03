@@ -145,6 +145,21 @@ class FlatAction extends BoxAction {
         this.index.boxGroup.registerCompositeAction( this.label, this );
     }
 
+    indexPoint( point, id, di, conjugateId ) {
+        if ( this.key in point.indexes ) {
+            return;
+        }
+        point.indexes[ this.key ] = {
+           id: id,
+           di: di,
+           conjugateId: conjugateId,
+           jump: ( di - id ),
+           radiant: ( conjugateId - id )
+        };
+        this.idx[ id ] = point;
+        this.dix[ di ] = point;
+    }
+
     indexPoints() {
         const boxVolume = this.box.volume;
         var di = 0;
@@ -152,34 +167,42 @@ class FlatAction extends BoxAction {
         const orbits = [ ...this.index.orbits, ...this.index.identities ];
 
         while ( orbits.length > 0 ) {
-            // remove and capture
+            // remove and capture the orbit(s)
             const [ orbit ] = orbits.splice( 0, 1 );
+            const [ conjOrbit ] = orbit.isSelfConjugate()
+                ? [ null ]
+                : orbits.splice( orbits.indexOf( orbit.conjugate ), 1 );
 
-            var id = di + orbit.points.length - 1;
+            var id = di + orbit.order - 1;
 
             orbit
                 .points
                 .forEach( (point, i) => {
 
-                    //const conjugateId = point.conjugate.id;
-                    const conjugateId = ( this.box.volume - id - 1 );
+                    const conjugateId = conjOrbit
+                        ? (conjOrbit.order - id - 1)
+                        : ( this.box.volume - id - 1 );
 
-                    const pointIndexData = {
-                       id: id,
-                       di: di,
-                       conjugateId: conjugateId,
-                       jump: ( di - id ),
-                       radiant: ( conjugateId - id )
-                    };
-
-                    point.indexes[this.key] = pointIndexData;
-
-                    this.idx[ id ] = point;
-                    this.dix[ di ] = point;
+                    this.indexPoint( point, id, di, conjugateId );
 
                     id = di;
                     di++;
                 });
+
+            if ( conjOrbit ) {
+                 conjOrbit
+                     .points
+                     .forEach( (point, i) => {
+
+                         const conjugateId = ( conjOrbit.order - id - 1 );
+
+                         this.indexPoint( point, id, di, conjugateId );
+
+                         id = di;
+                         di++;
+                     });
+            }
+
         }
     }
 

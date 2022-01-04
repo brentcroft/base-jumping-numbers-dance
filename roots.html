@@ -16,6 +16,8 @@
     <script type="text/javascript" src="js/expression.js"></script>
 
     <script type="text/javascript" src="js/orbitation.js"></script>
+    <script type="text/javascript" src="js/bitmap.js"></script>
+    <script type="text/javascript" src="js/glyphs.js"></script>
 
 
     <!-- ui -->
@@ -32,42 +34,73 @@
                 return;
             }
             var tag = null;
+            var items = 0;
 
-            if ( Array.isArray( result ) ) {
-                rows = Math.min( 10, result.length );
-                result = result.map( r => r.map( a => String( a ).padStart( 2, ' ' ) ).join( ', ' ) ).join( '\n' );
-                tag = "textarea";
-            } else {
-                result = `${ result }`;
-                rows = Math.min( 10, result.split(/\r\n|\r|\n/).length );
-                tag = "div";
+            function decomposeValue( label, value ) {
+                return reify(
+                    "div",
+                    { class: 'summaryLeft' },
+                    [],
+                    [ d => d.innerHTML = `${ label ? label + ': ' : '' }${ value }` ]
+                );
             }
 
-            const targetElement = reify(
-                tag,
-                {
-                    class: 'scriptPanelResult',
-                    disabled: 'disabled',
-                    rows: rows
-                } );
-            if ( tag == "textarea" ) {
-                targetElement.value = result;
-            } else {
-                targetElement.innerHTML = result;
+            function decomposeObject( label, value ) {
+                // do non-arrays first
+                return reify( "div", {}, [
+                    decomposeValue( null, label ),
+                    ...Object
+                        .entries( value )
+                        .filter( ([k,v]) => !Array.isArray( v ) )
+                        .map( ([k,v]) => decomposeValue( k, v ) ),
+                    ...Object
+                        .entries( value )
+                        .filter( ([k,v]) => Array.isArray( v ) )
+                        .map( ([k,v]) => decomposeArray( k, v ) )
+                ] );
             }
-            //sourceElement.parentNode.insertBefore( targetElement, sourceElement.nextSibling );
+            function decomposeArray( key, value ) {
+                return reify(
+                    "textarea", { class: 'scriptPanelTextArea', rows: Math.min( 20, value.length ) }, [], [
+                        d => d.value = value
+                            .map( r => r
+                                .map( a => String( a ).padStart( 2, ' ' ) )
+                                .join( ', ' ) )
+                            .join( '\n' )
+                    ] );
+            }
+
+            function decompose( result ) {
+                const key = `<br/><hr/><b>result:</b> ${ new Date().toISOString() }<br/>`;
+                return Array.isArray( result )
+                    ? decomposeArray( key, result )
+                    : result instanceof Object
+                        ? decomposeObject( key, result )
+                        : decomposeValue( null, result );
+            }
+
+
+            var targetElement = reify(
+                "div",
+                { class: 'scriptPanelResult' },
+                [ decompose( result ) ]
+            );
+
             sourceElement.parentNode.appendChild( targetElement );
-        }
-
-        function calculate( script, sourceElement ) {
-            const result = eval( script );
-            show( result );
         }
 
         function show( result ) {
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
             sendResult( result, sourceElement );
+        }
+
+        function calculate( script, sourceElement ) {
+            try {
+                show( eval( script ) );
+            } catch ( e ) {
+                show( `<font color='red'>${ e }</font>` );
+            }
         }
 
         function clearResults() {
@@ -81,6 +114,13 @@
 
             calculate( sourceElement.value, 'calculationResult' );
         }
+
+        function glyphs( perm, maxBar, width, height ) {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+            writeBarGlyphs( sourceElement, perm, maxBar, width, height );
+        }
+
     </script>
 
     <style>
@@ -88,6 +128,8 @@
             width: 100%;
         }
         .scriptPanelResult {
+        }
+        .scriptPanelTextArea {
             width: 100%;
             white-space: pre;
             overflow-wrap: normal;
@@ -101,27 +143,36 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="10">//
-//show( rootsOf( 7, 2 ) );
+const bases = [ 10, 4 ];
+const volume = bases.reduce( ( a, c ) => a * c, 1 );
+const terminal = volume - 1;
+
+const r = rootsOf( terminal, bases[0] );
+show( r );
+r[ 'roots' ].forEach( x => glyphs( x, null, 1, terminal ) );
+
+//show( rootsOf( 7, 2 )['roots'][3] );
 /*
-const bases = [ 4, 10 ];
+const bases = [ 10, 4 ];
 const area = bases.reduce( ( a, c ) => a * c, 1 );
 const terminal = area - 1;
 show( rootsOf( terminal, bases[0] ) );
 */
-const bases = [ 3, 5, 7 ];
+/*
+const bases = [ 5, 3 ];
 const area = bases.reduce( ( a, c ) => a * c, 1 );
 const terminal = area - 1;
 
 show( "singles" );
 show( rootsOf( terminal, bases[0] ) );
 show( rootsOf( terminal, bases[1] ) );
-show( rootsOf( terminal, bases[2] ) );
+//show( rootsOf( terminal, bases[2] ) );
 
-        show( "pairs" );
-show( rootsOf( terminal, bases[0] * bases[1] ) );
-show( rootsOf( terminal, bases[1] * bases[2] ) );
-show( rootsOf( terminal, bases[2] * bases[0] ) );
-
+//show( "pairs" );
+//show( rootsOf( terminal, bases[0] * bases[1] ) );
+//show( rootsOf( terminal, bases[1] * bases[2] ) );
+//show( rootsOf( terminal, bases[2] * bases[0] ) );
+*/
 </textarea>
 </body>
 </html>

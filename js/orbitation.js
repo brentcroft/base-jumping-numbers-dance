@@ -89,5 +89,6 @@ function orbitation( index ) {
 }
 
 function rootsOf( base, stride ) {
-    return roots( arrayOfIndexes( base ), stride )
+    const r = roots( arrayOfIndexes( base ), stride );
+    return { roots: r, size: r.length, stride: stride };
 }

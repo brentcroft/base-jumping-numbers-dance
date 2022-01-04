@@ -555,7 +555,7 @@ class BoxAction {
             return points;
         }
 
-        const doConjugateShortcut = false;
+        const doConjugateShortcut = true;
 
         for ( var i = 0; i < this.idx.length; i++) {
             if ( tally[ i ]!= -1 ) {

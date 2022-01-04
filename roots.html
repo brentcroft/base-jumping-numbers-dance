@@ -143,13 +143,30 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="10">//
+const [ w, h ] = [ 20, 16 ];
+/*
 const bases = [ 10, 4 ];
 const volume = bases.reduce( ( a, c ) => a * c, 1 );
 const terminal = volume - 1;
 
 const r = rootsOf( terminal, bases[0] );
 show( r );
-r[ 'roots' ].forEach( x => glyphs( x, null, 1, terminal ) );
+r[ 'roots' ].forEach( x => glyphs( x, null, w, terminal ) );
+*/
+const v = 17;
+aoi( v )
+   .splice( 2 )
+   .forEach( i => {
+      try {
+         const r = rootsOf( v, i )
+         show( r );
+         r[ 'roots' ].forEach( x => glyphs( x, null, w, h) );
+      } catch ( e ) {
+         show( `error: ${ e }` );
+
+      }
+   } );
+
 
 //show( rootsOf( 7, 2 )['roots'][3] );
 /*

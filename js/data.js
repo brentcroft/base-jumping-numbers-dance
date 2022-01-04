@@ -66,6 +66,7 @@ var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys
 
 var arrayIndexes = ( b ) => b.map( (x,i) => i );
 var arrayOfIndexes = ( n ) => new Array( n ).fill( 0 ).map( (x,i) => i );
+var aoi = arrayOfIndexes;
 
 
 var numericArraySorter =  (a,b) => {

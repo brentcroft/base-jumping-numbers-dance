@@ -79,7 +79,6 @@
                         : decomposeValue( null, result );
             }
 
-
             var targetElement = reify(
                 "div",
                 { class: 'scriptPanelResult' },
@@ -96,6 +95,9 @@
         }
 
         function calculate( script, sourceElement ) {
+            if ( document.getElementById( 'clearOnCalculate' ).checked ) {
+                clearResults();
+            }
             try {
                 show( eval( script ) );
             } catch ( e ) {
@@ -138,9 +140,10 @@
     </style>
 
 </head>
-<body id="testContainer001" onload="calculateNow()">
+<body onload="calculateNow()">
     <input type="button" value="eval" onclick="calculateNow()"/>
     <input type="button" value="clear" onclick="clearResults()"/>
+    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="10">//
 const [ w, h ] = [ 20, 16 ];

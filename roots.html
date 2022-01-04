@@ -146,17 +146,9 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="10">//
-const [ w, h ] = [ 20, 16 ];
-/*
-const bases = [ 10, 4 ];
-const volume = bases.reduce( ( a, c ) => a * c, 1 );
-const terminal = volume - 1;
-
-const r = rootsOf( terminal, bases[0] );
-show( r );
-r[ 'roots' ].forEach( x => glyphs( x, null, w, terminal ) );
-*/
 const v = 17;
+const [ w, h ] = [ 20, v ];
+
 aoi( v )
    .splice( 2 )
    .forEach( i => {
@@ -170,6 +162,15 @@ aoi( v )
       }
    } );
 
+/*
+const bases = [ 10, 4 ];
+const volume = bases.reduce( ( a, c ) => a * c, 1 );
+const terminal = volume - 1;
+
+const r = rootsOf( terminal, bases[0] );
+show( r );
+r[ 'roots' ].forEach( x => glyphs( x, null, w, terminal ) );
+*/
 
 //show( rootsOf( 7, 2 )['roots'][3] );
 /*

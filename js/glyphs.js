@@ -8,12 +8,12 @@ function getBarGlyphBitmap( perm, maxBar, width = 2, height = 50 ) {
     perm
         .forEach( (p,i) => {
             const offset = i * width;
-            for ( var x = 0; x < width; x++ ) {
+            for ( var x = 0; x < width; x = x + 4 ) {
                 bmp.pixel[ x + offset ][ height - 1 ] = [ 255, 0, 0, 255 ];
             }
             const barOffset = Math.floor( ( 1 - ( p / maxBar ) ) * height );
             for ( var x = 0; x < width; x++ ) {
-                bmp.pixel[ x + offset ][ barOffset ] = [ 0, 0, 0, 255 ];
+                bmp.pixel[ x + offset ][ barOffset - 1 ] = [ 0, 0, 0, 255 ];
             }
         } );
 

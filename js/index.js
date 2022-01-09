@@ -112,7 +112,15 @@ class Box {
 
         this.points
             .forEach( point => {
-                point.conjugate = this.points[ this.volume - point.id - 1];
+                // every point has a partner
+                // except the extremities (and any centre point)
+//                point.partner = ( point.id == 0 || point.id == ( this.volume - 1 ) )
+//                    ? point
+//                    : this.points[ this.volume - point.id - 1 ];
+
+                point.partner = this.points[ this.volume - point.id - 1 ];
+
+
                 this.placeValuePermutations
                     .forEach( perm => perm.indexPoint( point ) );
             } );
@@ -574,33 +582,43 @@ class BoxAction {
                 }
 
                 const point = this.idx[ i ];
-                var antipodesCoord = this.idx[ point.at(indexId).conjugateId ];
+                //const antipodesCoord = this.idx[ point.at(indexId).partnerId ];
+                const partnerPoint = point.partner;
 
-                if ( !antipodesCoord ) {
-                    const msg = `Bad point no conjugate: ${ point }`;
+                if ( !partnerPoint ) {
+                    const msg = `Bad point no partner: ${ point }`;
                     consoleLog( msg );
                     throw new Error( msg );
                 }
 
-                if (tally[ antipodesCoord.at(indexId).di ] == -1) {
-                    // orbit is conjugate to self
-                    orbit.conjugate = orbit;
+                const partnerData = partnerPoint.at( indexId );
+
+                if ( !partnerData ) {
+                    const msg = `Bad point ${ point } partner ${ partnerPoint }; no data for index: ${ indexId }`;
+                    consoleLog( msg );
+                    throw new Error( msg );
+                }
+
+
+                if (tally[ partnerData.di ] == -1) {
+                    // orbit is partner to self
+                    orbit.partner = orbit;
 
                 } else {
                     const orbitId = this.orbits.length + 1;
 
-                    const conjugateOrbit = new Orbit(
+                    const partnerOrbit = new Orbit(
                         this,
                         orbitId,
-                        extractOrbitCoordsAndTally( orbitId, antipodesCoord.at(indexId).id, this.idx, tally ) );
+                        extractOrbitCoordsAndTally( orbitId, partnerData.id, this.idx, tally ) );
 
-                    conjugateOrbit.conjugate = orbit;
-                    orbit.conjugate = conjugateOrbit;
+                    partnerOrbit.partner = orbit;
+                    orbit.partner = partnerOrbit;
 
-                    if ( conjugateOrbit.order == 1 ) {
-                        this.identities.push( conjugateOrbit );
+                    if ( partnerOrbit.order == 1 ) {
+                        this.identities.push( partnerOrbit );
                     } else {
-                        this.orbits.push( conjugateOrbit );
+                        this.orbits.push( partnerOrbit );
                     }
                 }
             }
@@ -625,12 +643,12 @@ class BoxAction {
             var orbit = this.orbits[i];
 
             totalOrderSpace *= orbit.order;
-            totalNetOrderSpace *= orbit.isSelfConjugate()
+            totalNetOrderSpace *= orbit.isSelfPartner()
                 ? ( orbit.order / 2 )
                 : orbit.isFirstConjugate()
                     ? orbit.order
                     : 1;
-            totalNet2Space += orbit.isSelfConjugate() || orbit.isFirstConjugate()
+            totalNet2Space += orbit.isSelfPartner() || orbit.isFirstConjugate()
                 ? 1
                 : 0;
 

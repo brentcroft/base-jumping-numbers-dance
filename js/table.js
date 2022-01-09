@@ -273,13 +273,13 @@ function drawBasePlaneTable( tableArgs ) {
 
             var orbit = orbits[ i ];
 
-            // ignore later conjugate
-            if ( !orbit.isSelfConjugate() && !orbit.isFirstConjugate() && conj) {
+            // ignore later partner
+            if ( !orbit.isSelfPartner() && !orbit.isFirstConjugate() && conj) {
                 continue;
             }
 
 
-            var orbitSpace = (orbit.isSelfConjugate() && conj)
+            var orbitSpace = (orbit.isSelfPartner() && conj)
                 ? maxIndex * orbit.order / 2
                 : maxIndex * orbit.order;
 
@@ -287,10 +287,10 @@ function drawBasePlaneTable( tableArgs ) {
             var orbitSpaceGcd = gcd( maxIndex, orbitIdSum );
 
             chainsText += `<tr>`;
-            chainsText += `<td align="center">${ orbit.isSelfConjugate() ? orbit.index : orbit.isFirstConjugate() ? orbit.index : "<sup>(" + orbit.index + ")</sup>" }</td>`;
+            chainsText += `<td align="center">${ orbit.isSelfPartner() ? orbit.index : orbit.isFirstConjugate() ? orbit.index : "<sup>(" + orbit.index + ")</sup>" }</td>`;
 
             if ( perms ) {
-                if ( orbit.isSelfConjugate() && conj ) {
+                if ( orbit.isSelfPartner() && conj ) {
                     // self-conjugates pair off so must have even order
                     const orbitJumps = orbit.getJumps();
 
@@ -306,12 +306,12 @@ function drawBasePlaneTable( tableArgs ) {
                     chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                     chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
                 } else if ( orbit.isFirstConjugate() && conj ) {
-                    var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
+                    var conjOrbit = orbits[ orbit.partner.index - 1 ];
                     var conjOrbitIdSum = 0
                     if ( conjOrbit ) {
                         conjOrbitIdSum = conjOrbit.getIdSum();
                     } else {
-                        consoleLog( `Conjugate orbit not found: ${ orbit }` );
+                        consoleLog( `partner orbit not found: ${ orbit }` );
                         conjOrbitIdSum = 0;
                     }
 
@@ -331,7 +331,7 @@ function drawBasePlaneTable( tableArgs ) {
                     chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
                 }
             } else {
-                if ( orbit.isSelfConjugate() && conj ) {
+                if ( orbit.isSelfPartner() && conj ) {
                     // self-conjugates pair off so must have even order
                     const orbitJumps = orbit.getJumps();;
                     var scValenceFirst = orbitJumps.slice( 0, Math.ceil( orbitJumps.length / 2 ) );
@@ -347,7 +347,7 @@ function drawBasePlaneTable( tableArgs ) {
                     chainsText += `<td align="center">(${ orbit.sum.join( C_SEP ) })</td>`;
                     chainsText += `<td align="center">${ orbitIdSum / orbitSpaceGcd } * ${ orbitSpaceGcd }</td>`;
                 } else if ( orbit.isFirstConjugate() && conj ) {
-                    var conjOrbit = orbits[ orbit.conjugate.index - 1 ];
+                    var conjOrbit = orbits[ orbit.partner.index - 1 ];
                     var conjOrbitIdSum = conjOrbit.getIdSum();
                     var conjOrbitSpaceGcd = gcd( maxIndex, conjOrbitIdSum );
 
@@ -367,7 +367,7 @@ function drawBasePlaneTable( tableArgs ) {
                 }
             }
 
-            if ( orbit.isSelfConjugate() && conj ) {
+            if ( orbit.isSelfPartner() && conj ) {
                 chainsText += `<td align="center">${ orbit.order / 2 } * 2</td>`;
             } else if ( orbit.isFirstConjugate() && conj ) {
                 chainsText += `<td align="center">${ orbit.order } * 2</td>`;

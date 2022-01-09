@@ -3,15 +3,18 @@ function getBarGlyphBitmap( perm, maxBar, width = 2, height = 50 ) {
 
     const bmp = new Bitmap( perm.length * width, height );
 
-    maxBar = maxBar | perm.reduce( (a,c) => Math.max( a,c ), 0 );
+    //
+    const top = 1 + ( maxBar | perm.reduce( (a,c) => Math.max( a,c ), 0 ) );
 
     perm
         .forEach( (p,i) => {
             const offset = i * width;
             for ( var x = 0; x < width; x = x + 4 ) {
-                bmp.pixel[ x + offset ][ height - 1 ] = [ 255, 0, 0, 255 ];
+                //bmp.pixel[ x + offset ][ height - 1 ] = [ 255, 0, 0, 255 ];
+                bmp.pixel[ x + offset ][ 0 ] = [ 255, 0, 0, 255 ];
             }
-            const barOffset = Math.floor( ( 1 - ( p / maxBar ) ) * height );
+            const barOffset = Math.floor( ( 1 - ( p / top ) ) * height );
+            //const barOffset = Math.floor( ( p / top ) * height );
             for ( var x = 0; x < width; x++ ) {
                 bmp.pixel[ x + offset ][ barOffset - 1 ] = [ 0, 0, 0, 255 ];
             }

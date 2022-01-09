@@ -44,14 +44,14 @@ class RadiantAction extends BoxAction {
 
         this.box.validateIds( [ id, di ] );
 
-        const conjugateId = ( boxVolume - id - 1 );
+        const partnerId = ( boxVolume - id - 1 );
 
         const pointIndexData = {
             id: id,
             di: di,
-            conjugateId: conjugateId,
+            partnerId: partnerId,
             jump: ( di - id ),
-            radiant: ( conjugateId - id )
+            radiant: ( partnerId - id )
         };
 
         const existingPointIndexData = point.indexes[ this.key ];
@@ -95,14 +95,14 @@ class PlaceValuesAction extends BoxAction {
         const id = point.getId( this.pair.leftId );
         const di = point.getId( this.pair.rightId );
 
-        const conjugateId = ( boxVolume - id - 1 );
+        const partnerId = ( boxVolume - id - 1 );
 
         const pointIndexData = {
             id: id,
             di: di,
-            conjugateId: conjugateId,
+            partnerId: partnerId,
             jump: ( di - id ),
-            radiant: ( conjugateId - id )
+            radiant: ( partnerId - id )
         };
 
         const existingPointIndexData = point.indexes[ this.key ];
@@ -145,16 +145,16 @@ class FlatAction extends BoxAction {
         this.index.boxGroup.registerCompositeAction( this.label, this );
     }
 
-    indexPoint( point, id, di, conjugateId ) {
+    indexPoint( point, id, di, partnerId ) {
         if ( this.key in point.indexes ) {
             return;
         }
         point.indexes[ this.key ] = {
            id: id,
            di: di,
-           conjugateId: conjugateId,
+           partnerId: partnerId,
            jump: ( di - id ),
-           radiant: ( conjugateId - id )
+           radiant: ( partnerId - id )
         };
         this.idx[ id ] = point;
         this.dix[ di ] = point;
@@ -166,43 +166,56 @@ class FlatAction extends BoxAction {
 
         const orbits = [ ...this.index.orbits, ...this.index.identities ];
 
-        while ( orbits.length > 0 ) {
-            // remove and capture the orbit(s)
-            const [ orbit ] = orbits.splice( 0, 1 );
-            const [ conjOrbit ] = orbit.isSelfConjugate()
-                ? [ null ]
-                : orbits.splice( orbits.indexOf( orbit.conjugate ), 1 );
-
-            var id = di + orbit.order - 1;
-
-            orbit
-                .points
-                .forEach( (point, i) => {
-
-                    const conjugateId = conjOrbit
-                        ? (conjOrbit.order - id - 1)
-                        : ( this.box.volume - id - 1 );
-
-                    this.indexPoint( point, id, di, conjugateId );
-
-                    id = di;
+        function indexPartnerPoints( index, points, context ) {
+            const [ p1, p2 ] = points;
+            var [ idA, diB, idB ] = context;
+            p1.forEach( ( pA, i ) => {
+                    index.indexPoint( pA, idA, di, 0 );
+                    index.indexPoint( p2[ i ], idB, diB, 0 );
+                    idA = di;
+                    idB = diB;
                     di++;
+                    diB--;
                 });
+        }
 
-            if ( conjOrbit ) {
-                 conjOrbit
-                     .points
-                     .forEach( (point, i) => {
+        while ( orbits.length > 0 ) {
+            // remove and capture the orbit
+            const [ orbit ] = orbits.splice( 0, 1 );
 
-                         const conjugateId = ( conjOrbit.order - id - 1 );
+            if ( orbit.order == 1 ) {
+                orbit
+                    .points
+                    .forEach( (point, i) => {
+                        this.indexPoint( point, di, di, 0 );
+                        di++;
+                    });
 
-                         this.indexPoint( point, id, di, conjugateId );
+            } else if ( orbit.isSelfPartner() ) {
 
-                         id = di;
-                         di++;
-                     });
+                // split orbit into two parts
+                const halfLength = orbit.order / 2;
+
+                indexPartnerPoints(
+                    this,
+                    [ orbit.points.slice( 0, halfLength ), orbit.points.slice( halfLength ) ],
+                    [ di + halfLength, di + orbit.order - 1, di + halfLength - 1 ] );
+
+                di += halfLength;
+
+            } else {
+
+                // capture and extract partner orbit
+                const [ partnerOrbit ] = orbits.splice( orbits.indexOf( orbit.partner ), 1 );
+                const halfLength = orbit.order;
+
+                indexPartnerPoints(
+                    this,
+                    [ orbit.points, partnerOrbit.points ],
+                    [ di + halfLength - 1, di + ( orbit.order * 2 ) - 1, di + halfLength ] );
+
+                di += halfLength;
             }
-
         }
     }
 
@@ -285,14 +298,14 @@ class CompositeAction extends BoxAction {
 
         this.box.validateIds( [ id, di ] );
 
-        const conjugateId = ( this.box.volume - id - 1 );
+        const partnerId = ( this.box.volume - id - 1 );
 
         const pointIndexData = {
            id: id,
            di: di,
-           conjugateId: conjugateId,
+           partnerId: partnerId,
            jump: ( di - id ),
-           radiant: ( conjugateId - id )
+           radiant: ( partnerId - id )
         };
 
         const existingPointIndexData = point.indexes[ this.key ];

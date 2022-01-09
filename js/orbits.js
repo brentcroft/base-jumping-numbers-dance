@@ -91,8 +91,8 @@ class Orbit {
         this.gcd = this.sum.reduce( gcd );
         this.lcm = this.sum.reduce( lcm );
 
-        // starts out as self-conjugate
-        this.conjugate = this;
+        // starts out as self-partner
+        this.partner = this;
     }
 
     toString() {
@@ -118,9 +118,9 @@ class Orbit {
     }
 
     conjugateCoords() {
-        return this.isSelfConjugate()
+        return this.isSelfPartner()
             ? [ this.points.slice( 0, this.order / 2 ), this.points.slice( this.order / 2 )  ]
-            : [ this.points, this.conjugate.points ];
+            : [ this.points, this.partner.points ];
     }
 
 
@@ -167,12 +167,12 @@ class Orbit {
         return ( this.euclideanRadiance() - this.euclideanPerimeter() );
     }
 
-    isSelfConjugate() {
-        return this.index == this.conjugate.index;
+    isSelfPartner() {
+        return this.index == this.partner.index;
     }
 
     isFirstConjugate() {
-        return this.index < this.conjugate.index;
+        return this.index < this.partner.index;
     }
 
     getCoordArray() {

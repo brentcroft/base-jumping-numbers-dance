@@ -17,7 +17,7 @@ toggleKeys = {
 
     monomialFilter: 1,
     boxActionNavigator: 1,
-    boxActionZoom: 0,
+    boxActionZoom: 1,
 
     inverses: 1,
     harmonics: 1,

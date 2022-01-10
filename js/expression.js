@@ -611,14 +611,16 @@ class Formula {
 
         const aliasText = this.getExpressionString();
 
-        if ( r instanceof CompositeAction ) {
+        if ( r instanceof CompositeAction || r instanceof FlatAction ) {
 
             // reset id
             //r.id = this.boxGroup.boxActions.length;
-            r.label = aliasText;
-            r.alias = [];
-            r.indexPoints();
-            r.initialise();
+            if ( r instanceof CompositeAction ) {
+                r.label = aliasText;
+                r.alias = [];
+                r.indexPoints();
+                r.initialise();
+            }
 
             // promote results
             const promoteResults = false;

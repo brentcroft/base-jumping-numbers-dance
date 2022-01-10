@@ -8,6 +8,13 @@ var SYMBOLIC_COMPOSITIONS = [
             "z_0i^-1; ",
             "z_0 + z_0i; ",
             "z_0i + z_0; "
+        ],
+        "flat-z_0": [
+            "flat( z_0 );",
+            "z_0f^2;",
+            "z_0f^3;",
+            "z_0f^4;",
+            "z_0f^5;"
         ]
     },
     {
@@ -137,6 +144,15 @@ var SYMBOLIC_COMPOSITIONS = [
             "# a_2hi; ",
             "a_0hi + b_3; b_0i + a_1i;"
         ],
+
+        "flat-z_0": [
+            "flat( z_0 );",
+            "z_0f^2;",
+            "z_0f^3;",
+            "z_0f^4;",
+            "z_0f^5;"
+        ],
+
         "specials": [
             "# specials; ",
             "z_0 + b_0; ",

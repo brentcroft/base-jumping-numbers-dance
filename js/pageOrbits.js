@@ -508,7 +508,6 @@ function buildBoxLayersSelectors( indexedBox, param, containerId = "boxLayerSele
     }
 
     if ( indexedBox.layerLabels ) {
-        container.append( " | " );
         const actionLayers = param.actionLayers || [];
         const filterLayers = param.filterLayers || [];
         indexedBox.layerLabels.forEach( ( layerLabel, i ) => {

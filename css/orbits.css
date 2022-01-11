@@ -26,6 +26,7 @@ a.symbolic-composition-control {
     overflow: hidden;
     display: inline-block;
     text-align: left;
+    margin-bottom: 10px;
 }
 
 .toolbar {
@@ -52,6 +53,7 @@ a.symbolic-composition-control {
     text-align: left;
     #vertical-align: top;
     font-style: bold;
+    margin-bottom: 5px;
 }
 
 .summaryRight {
@@ -154,7 +156,12 @@ span.product-total { border-top: 2px dotted red;}
     background: WhiteSmoke;
     font-weight: bold;
 }
-.monomial { background: Ivory; }
+.monomial {
+    background: WhiteSmoke;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border: dotted 1px;
+}
 
 .equation-list { list-style-type: none; }
 .equation-list li { padding: 6pt; }

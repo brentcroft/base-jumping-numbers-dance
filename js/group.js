@@ -205,7 +205,7 @@ class FlatAction extends BoxAction {
 
             } else {
 
-                // capture and extract partner orbit
+                // remove and capture partner orbit
                 const [ partnerOrbit ] = orbits.splice( orbits.indexOf( orbit.partner ), 1 );
                 const halfLength = orbit.order;
 

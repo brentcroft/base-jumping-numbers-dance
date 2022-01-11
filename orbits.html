@@ -63,10 +63,6 @@
             <div id="more-options" style="display: none">
                 <hr/>
                 <label title="show x3dom navigator">box-action-navigator<input type="checkbox" id="boxActionNavigatorToggle" onchange="showHideAll( [ 'boxActionNavigator' ] ); updatePage()"/></label> |
-
-                <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
-                <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
-                <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label> |
                 <label title="minimal columns">min-cols<input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
                 <label title="composition and symbolic columns">med-cols<input type="checkbox" id="medColsToggle" onchange="updatePage()"/></label> |
                 <label title="maximal columns">max-cols<input type="checkbox" id="maxColsToggle" onchange="updatePage()"/></label> |
@@ -118,7 +114,7 @@
     <div class="full-width">
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
-            layers: <span id="boxLayerSelectors">
+            Layers: <span id="boxLayerSelectors">
 <!--                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>-->
                 <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
                 <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
@@ -130,15 +126,21 @@
             <label title="generate degenerates">degenerates<input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
             <label title="generate radiance">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
             <label title="display filter controls">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
-            <label title="display compose controls">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
-            <label title="auto compose">auto compose<input type="checkbox" id="autoComposeToggle" onchange="updatePage()"/></label>
+            <label title="display compose controls">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label>
         </div>
 
         <div id="monomialFilterControls" style="display: none" class="summaryLeft">
             Filter:
+            <span id="boxLayerFilterSelectors">
+<!--                <input id="box-layer-filter.0" type="checkbox" class="box-layer-control-filter" value="0" checked="checked"/>-->
+                <input id="box-layer-filter.1" type="checkbox" class="box-layer-control-filter" value="1" checked="checked"/>
+                <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>
+                <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>
+                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>
+            </span> |
             <label title="Filter actions by monomial">
                 monomial<input type="checkbox" id="monomialFilterEnabled" onchange="disableCheckBoxIfNoFilterElseUpdatePage( this )" value=""/>
-                <span id="monomialFilterDisplay"><font color="red"><i>(no monomial selected)</i></font></span>
+                <span id="monomialFilterDisplay" class="monomial"><font color="red"><i>(no monomial selected)</i></font></span>
                 <script>
                     function disableCheckBoxIfNoFilterElseUpdatePage( control ) {
                         const filterText = document.getElementById( "monomialFilter" ).value;
@@ -151,22 +153,17 @@
                 </script>
                 <input type="text" id="monomialFilter" style="display: none"/>
             </label>
-            <span id="boxLayerFilterSelectors">
-<!--                <input id="box-layer-filter.0" type="checkbox" class="box-layer-control-filter" value="0" checked="checked"/>-->
-                <input id="box-layer-filter.1" type="checkbox" class="box-layer-control-filter" value="1" checked="checked"/>
-                <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>
-                <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>
-                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>
-            </span>
         </div>
 
         <div id="indexComposer" style="display: none" class="summaryLeft">
-            <label title="use composition rules instead of Composite Actions">composition-rules<input type="checkbox" id="compositionRulesToggle" onchange="updatePage()"/></label> |
-            <label title="show compositions">show-compositions<input type="checkbox" id="showCompositionsToggle" onchange="updatePage()"/></label> |
+            Composer:
+            <label title="use composition rules instead of Composite Actions">rules<input type="checkbox" id="compositionRulesToggle" onchange="updatePage()"/></label> |
             <label title="ignore euclidean perimeters when matching actions">e-per2<input type="checkbox" id="ignoreEuclideanPerimetersToggle" onchange="updatePage()"/></label> |
             <label title="ignore index perimeters when matching actions">i-per<input type="checkbox" id="ignoreIndexPerimetersToggle" onchange="updatePage()"/></label> |
             <label title="ignore orbit offsets when matching actions">offsets<input type="checkbox" id="ignoreOrbitOffsetsToggle" onchange="updatePage()"/></label> |
             <label title="alternate perms on each iteration when building actions">alternate-perms<input type="checkbox" id="alternatePermsToggle" onchange="updatePage()"/></label> |
+            <label title="show compositions">show composite actions<input type="checkbox" id="showCompositionsToggle" onchange="updatePage()"/></label> |
+            <label title="auto compose">auto compose<input type="checkbox" id="autoComposeToggle" onchange="updatePage()"/></label>
 
             <div id="boxActionNavigator" class="toolbar_support" style="display: none;">
                 <label title="zoom x3dom navigator">auto-zoom<input type="checkbox" id="boxActionZoomToggle" onchange="updatePage()"/></label>
@@ -177,14 +174,11 @@
                 </x3d>
             </div>
 
-            <br/>
+            <br/><br/>
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
-            <br/>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4"># ;
-flat( z_1 );
-                </textarea>
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4"></textarea>
                 <label>
                     Results: <br/>
                     <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>
@@ -202,7 +196,10 @@ flat( z_1 );
             <hr/>
             <label title="show product table">products<input type="checkbox" id="productsToggle" onchange="showHideAll(['productsControls','productsTable'], this ); selectBoxAction();"/></label> |
             <label title="allow multi selection of orbits">multi<input type="checkbox" id="multiToggle"/></label> |
-            <label title="display jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label>
+            <label title="display jump patterns">jumps<input type="checkbox" id="jumpsToggle" onchange="updateJson()"/></label> |
+            <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
+            <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
+            <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label>
         </div>
         <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
     </div>

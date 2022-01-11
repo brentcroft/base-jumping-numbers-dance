@@ -14,7 +14,7 @@ function roots( index, stride ) {
         for ( var i = 0; i < base; i++ ) {
             const j = ( i * stride ) % base;
             if (tally[ j ] ) {
-                throw new Error( `Common Factor: Index length ${ base } repeats [${ sink}] length ${ sink.length }` );
+                throw new Error( `Common Factor: Index length ${ base } at stride ${ stride } repeats with length ${ sink.length }; [${ sink }]  ` );
             }
             tally[ j ] = 1;
             sink.push( sequence[ j ] );
@@ -31,18 +31,19 @@ function roots( index, stride ) {
     return currentRoots;
 }
 
-function countWinding( sequence ) {
-    return sequence
+function winding( sequence ) {
+    const w = sequence
         .reduce(
             (a,c) => [ a[0] + (c < a[1] ? 1 : 0 ), c ],
             [ 1, 0 ]
         );
+    return w[0];
 }
 
 function rootsInfo( base, stride ) {
     const r = roots( arrayOfIndexes( base ), stride );
-    const w = r.map( sequence => countWinding( sequence ) );
-    return { roots: r, windings: w, size: r.length, stride: stride };
+    const w = r.map( sequence => winding( sequence ) );
+    return { base: base, stride: stride, size: r.length, windings: w, roots: r  };
 }
 
 

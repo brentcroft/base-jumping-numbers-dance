@@ -62,13 +62,19 @@
                 ] );
             }
             function decomposeArray( key, value ) {
+                const firstElement = value[ 0 ];
+                const isNested = Array.isArray( firstElement );
                 return reify(
-                    "textarea", { class: 'scriptPanelTextArea', rows: Math.min( 20, 1 + value.length ), disabled: 'disabled' }, [], [
-                        d => d.value = key + ":\n" + value
-                            .map( r => r
-                                .map( a => String( a ).padStart( 2, ' ' ) )
-                                .join( ', ' ) )
-                            .join( '\n' )
+                    "textarea", { class: 'scriptPanelTextArea', rows: isNested ? Math.min( 20, 1 + value.length ) : 2, disabled: 'disabled' }, [], [
+                        d => d.value = key + ":\n" +
+                           ( isNested
+                                ? value
+                                    .map( r => r
+                                        .map( a => String( a ).padStart( 2, ' ' ) )
+                                        .join( ', ' ) )
+                                    .join( '\n' )
+                                : value
+                                    .join( ', ' ) )
                     ] );
             }
 
@@ -125,6 +131,26 @@
             writeBarGlyphs( sourceElement, perm, maxBar, width, height + 25 );
         }
 
+        function oneRoots( base, stride, w, h, param = {} ) {
+            try {
+                const r = rootsInfo( base, stride )
+                show( r, param.excludes );
+                r[ 'roots' ].forEach( x => glyphs( x, base, w, h ) );
+            } catch ( e ) {
+                show( param.stack
+                    ? { base: base, stride: stride, '!': e.stack.replaceAll( '\n', '<br/>' ) }
+                    : { base: base, stride: stride, '!': e } );
+            }
+        }
+
+        function allRoots( base, w, h, param = {} ) {
+            aoi( base )
+                // drop strides 0, 1
+               .splice( 2 )
+               .forEach( stride => oneRoots( base, stride, w, h, param ) );
+        }
+
+
     </script>
 
     <style>
@@ -147,33 +173,17 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="10">const bases = [ 10, 4 ];
+    <textarea id="calculationScript" class="scriptPanel" rows="10">
+const width = 10;
+const param = { excludes: [ 'roots' ], stack: 0 };
+const bases = [ 5, 3 ];
 const volume = bases.reduce( ( a, c ) => a * c, 1 );
 const terminal = volume - 1;
 
-const info = rootsInfo( terminal, bases[0] );
-// suppress listing roots
-show( info, [ 'roots' ] );
-
-info[ 'roots' ].forEach( root => glyphs( root, terminal, 10, volume ) );
-
-/*
-const v = 17;
-const [ w, h ] = [ 20, v ];
-aoi( v )
-   .splice( 2 )
-   .forEach( i => {
-      try {
-         const r = rootsOf( v, i )
-         show( r );
-         r[ 'roots' ].forEach( x => glyphs( x, null, w, h) );
-      } catch ( e ) {
-         show( `error: ${ e }` );
-
-      }
-   } );
-
-*/
+//allRoots( bases[0], width, bases[0] + 1, param );
+//allRoots( bases[1], width, bases[1] + 1, param );
+//oneRoots( terminal, bases[0], width, bases[0] + 1, param );
+allRoots( terminal, width, volume, param );
 </textarea>
 </body>
 </html>

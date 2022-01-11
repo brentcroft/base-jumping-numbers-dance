@@ -155,6 +155,14 @@ var SYMBOLIC_COMPOSITIONS = [
             "a_0hi + b_3; b_0i + a_1i;"
         ],
 
+
+        "z_0": [
+            "z_0^2;",
+            "z_0^3;",
+            "z_0^4;",
+            "z_0^5;"
+        ],
+
         "flat-z_0": [
             "flat( z_0 );",
             "z_0f^2;",

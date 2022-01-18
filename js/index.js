@@ -339,7 +339,9 @@ class BoxAction {
 
     initialise() {
         this.buildOrbits();
-        this.findFundamental();
+        this.order = this.orbits.length > 0
+            ? lcma( this.orbits.map( (x,i) => x.order ) )
+            : 1;
         this.buildCentreLines();
         this.analyzeOrbits();
     }
@@ -524,22 +526,17 @@ class BoxAction {
 
             while ( di != startIndex ) {
                 try {
-//                    if ( !di ) {
-//                        throw new Error("No id: " + di );
-//                    }
-
-
                     tally[ di ] = -1;
                     point = idx[ di ];
 
                     if ( !point ) {
-                        throw new Error("No point for id: " + di );
+                        throw new Error( "No point for id: " + di );
                     }
 
-                    const pointData = point.at(indexId);
+                    const pointData = point.at( indexId );
 
                     if ( !pointData ) {
-                        throw new Error("No point data for point: " + point );
+                        throw new Error( "No point data for point: " + point );
                     }
 
                     pointData.orbitId = orbitId;
@@ -555,8 +552,6 @@ class BoxAction {
                 } catch ( e ) {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
                     consoleLog( msg );
-                    //
-                    //break;
                     throw new Error( msg, { cause: e } );
                 }
             }
@@ -571,18 +566,40 @@ class BoxAction {
 
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
 
-                if ( orbit.order == 1 ) {
+                var identitiesTransposition = false;
+
+                // check for identities transposition
+                if ( orbit.order == 2 ) {
+                    const fixedIds = [ 0, tally.length - 1 ];
+                    identitiesTransposition = orbit
+                        .points
+                        .filter( p => fixedIds.includes( p.at( indexId ).id ) )
+                        .length;
+
+                }
+
+                if ( identitiesTransposition ) {
+                    orbit
+                        .points
+                        .forEach( p => {
+                            const pI = p.at( indexId );
+                            pI.di = pI.id;
+                            pI.jump = 0;
+                            pI.radiant = 0;
+                            this.identities.push( new Orbit( this, orbitId, [ p ] ) );
+                        } );
+
+                } else if ( orbit.order == 1 ) {
                     this.identities.push( orbit );
                 } else {
                     this.orbits.push( orbit );
                 }
 
-                if ( !doConjugateShortcut ) {
-                    continue;
-                }
+//                if ( !doConjugateShortcut ) {
+//                    continue;
+//                }
 
                 const point = this.idx[ i ];
-                //const antipodesCoord = this.idx[ point.at(indexId).partnerId ];
                 const partnerPoint = point.partner;
 
                 if ( !partnerPoint ) {
@@ -633,8 +650,8 @@ class BoxAction {
         var totalIndexPerimeter = 0;
         var totalTension = 0;
 
-        var totalOrderSpace = 0;
-        var totalNetOrderSpace = 0;
+        var totalOrderSpace = 1;
+        var totalNetOrderSpace = 1;
         var totalNet2Space = 0;
 
         const cycleIndexMonomial  = {};
@@ -772,7 +789,7 @@ class BoxAction {
             cycles: {
                 fixed: this.identities ? this.identities.length : 0,
                 orbits: this.orbits ? this.orbits.length : 0,
-                order: this.fundamental
+                order: this.order
             },
 
             euclidean: {
@@ -788,13 +805,6 @@ class BoxAction {
             }
         };
     }
-
-    findFundamental() {
-        this.fundamental = this.orbits.length > 0
-            ? lcma( this.orbits.map( (x,i) => x.order ) )
-            : 1;
-    }
-
 
     // EUCLIDEAN RADIANCE
     identityEuclideanRadiance() {

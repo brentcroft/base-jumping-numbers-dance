@@ -64,7 +64,7 @@ function toggleBySelector( containerId, cssSelector, translator = (x) => x ) {
 }
 
 
-function showLocus( containerId, basePlane, locusPoints, multi ) {
+function showLocus( containerId, currentAction, locusPoints, multi ) {
     const locusGroup = document
         .getElementById( containerId )
         .querySelector( "group.orbit-system-locus" );
@@ -73,14 +73,14 @@ function showLocus( containerId, basePlane, locusPoints, multi ) {
         locusGroup.removeChild( locusGroup.lastChild );
     }
 
-    locusGroup.appendChild( createLineSet( basePlane.getLocusPoints( locusPoints ) ) );
+    locusGroup.appendChild( createLineSet( currentAction.getLocusPoints( locusPoints ) ) );
 }
 
 
 
 
 
-function showOrbit( containerId, basePlane, senderId, multi ) {
+function showOrbit( containerId, currentAction, senderId, multi ) {
     const [ tableId, ...orbitIds ] = senderId.split( "." );
     const orbits = document
         .getElementById( containerId )
@@ -104,7 +104,7 @@ function showOrbit( containerId, basePlane, senderId, multi ) {
         });
 }
 
-function showAllOrbits( containerId, basePlane ) {
+function showAllOrbits( containerId, currentAction ) {
     const orbits = document
         .getElementById( containerId )
         .querySelectorAll( ".orbit-line" )
@@ -115,26 +115,26 @@ function showAllOrbits( containerId, basePlane ) {
 }
 
 
-function getBasePlaneItems( basePlane, toggles ) {
+function getBasePlaneItems( currentAction, toggles ) {
 
-    const orbits = basePlane.orbits;
+    const orbits = currentAction.orbits;
     const fixedPointTransparency = 0.2;
     const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
 
-    const [ p1, p2 ] = basePlane.box.diagonal.map( p => to3D(p) );
-    const maxBase = basePlane.box.bases.reduce( (a,c) => c > a ? c : a, 0 );
+    const [ p1, p2 ] = currentAction.box.diagonal.map( p => to3D(p) );
+    const maxBase = currentAction.box.bases.reduce( (a,c) => c > a ? c : a, 0 );
 
     const scaleUnit = toggles.scale3d ? scale( unitDisplacement( p1, p2 ), 2 ) : [ .8, .8, .8 ];
 
     // move origin to system centre and scale by scaleUnit
     const root = reify(
         "transform", {
-            "translation": scale( to3D( basePlane.box.centre ), -1 ).join( ' ' ),
+            "translation": scale( to3D( currentAction.box.centre ), -1 ).join( ' ' ),
             "scale": scaleUnit.map( x => x==0 ? 1 : 1/x ).join( ' ' )
         } );
 
     function appendGridChildren( grid ) {
-        const [ b0, b1, b2 ] = basePlane.box.bases;
+        const [ b0, b1, b2 ] = currentAction.box.bases;
         const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
         const gridPointRadius = 0.05;
 
@@ -183,12 +183,12 @@ function getBasePlaneItems( basePlane, toggles ) {
     var planeTransparency = 0.95;
 
     var planeItem = createPlaneItemWithNormal( {
-            centre: to3D( basePlane.box.centre ),
-            planeNormal: to3D( basePlane.identityPlaneNormal ),
+            centre: to3D( currentAction.box.centre ),
+            planeNormal: to3D( currentAction.identityPlaneNormal ),
             scaleUnit: [1,1,1],
             currentDirection: [0,1,0],
             origin: [0,0,0],
-            size: [ basePlane.box.bases[0], 0, basePlane.box.bases[basePlane.box.bases.length-1] ],
+            size: [ currentAction.box.bases[0], 0, currentAction.box.bases[currentAction.box.bases.length-1] ],
             planeColor: planeColor,
             planeTransparency: planeTransparency
         } );
@@ -198,7 +198,7 @@ function getBasePlaneItems( basePlane, toggles ) {
 
 
     // CENTRE LINES
-    const centrePoints = basePlane
+    const centrePoints = currentAction
         .centrePoints
         .map( x => reify(
                         "transform",
@@ -206,10 +206,10 @@ function getBasePlaneItems( basePlane, toggles ) {
                             "translation": to3D( x.point ).join( ' ' ),
                             "scale": scaleUnit.join( ' ' )
                         },
-                        [ createSphereShape( null, 0.1, "yellow", 0 ) ]
+                        [ createSphereShape( null, 0.1, "yellow", 0, `centre-${ x.point }` ) ]
                     ) );
 
-    const centreLines = basePlane
+    const centreLines = currentAction
         .centreLines
         .map( centreLine => createLineSetFromPoints( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), maxBase / 2 ), "gray", "3" ) );
 
@@ -223,7 +223,7 @@ function getBasePlaneItems( basePlane, toggles ) {
     root.appendChild( centreItems );
 
     // FIXED POINTS
-    basePlane
+    currentAction
         .identities
         .forEach(
             orbit => orbit
@@ -294,7 +294,7 @@ function getBasePlaneItems( basePlane, toggles ) {
 
 
 
-function setSelectedPoints( containerId, selectedPoints, basePlane ) {
+function setSelectedPoints( containerId, selectedPoints, currentAction ) {
     const existingSelectedPoints = [ ...document
         .getElementById( containerId )
         .querySelectorAll( "sphere.selected" ) ];
@@ -324,7 +324,7 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
         } );
 
     const selectedPointsInfo = selectedPoints
-        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + point.id + " " + JSON.stringify( point.indexes[basePlane.key] ) )
+        .map( ( point, i ) => ( i + 1 ) + ": " + JSON.stringify( point.coord ) + " " + point.id + " " + JSON.stringify( point.indexes[currentAction.key] ) )
         .join( "\n" );
 
     document
@@ -333,18 +333,18 @@ function setSelectedPoints( containerId, selectedPoints, basePlane ) {
 }
 
 
-function getBasePlaneCycles( basePlane, toggles ) {
+function getBasePlaneCycles( currentAction, toggles ) {
 
-    const indexId = basePlane.key;
-    const orbits = basePlane.orbits;
+    const indexId = currentAction.key;
+    const orbits = currentAction.orbits;
     const fixedPointTransparency = 0.1;
     const colorBasePlane = window.parent.window.getBasePlane( "COLOR_ORBITS" );
-    const indexCentre = basePlane.box.indexCentre;
+    const indexCentre = currentAction.box.indexCentre;
 
     const zOff = 1;
-    const scaleUnit = scale( [ 1, 1, 1 ], 15 / basePlane.box.volume );
+    const scaleUnit = scale( [ 1, 1, 1 ], 15 / currentAction.box.volume );
 
-    const root = reify( "transform", { "translation": `${ -1 * basePlane.box.volume / 2 } 0 0` } );
+    const root = reify( "transform", { "translation": `${ -1 * currentAction.box.volume / 2 } 0 0` } );
 
     const gid = ( point ) => point.at( indexId ).id;
     const gidJump = ( point ) => point.at( indexId ).jump;
@@ -362,7 +362,7 @@ function getBasePlaneCycles( basePlane, toggles ) {
                     "render": toggles.grid == 1
                 },
                 [
-                    ...basePlane
+                    ...currentAction
                         .identities
                         .map( identity => reify(
                                 "transform",
@@ -376,15 +376,15 @@ function getBasePlaneCycles( basePlane, toggles ) {
                         ),
 
                     createLineSet(
-                                [ new Point( -1, [ 0, 0, zOff * ( -1 ) ] ), new Point( -1, [ basePlane.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
+                                [ new Point( -1, [ 0, 0, zOff * ( -1 ) ] ), new Point( -1, [ currentAction.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
                                 "black",
                                 attr
                             ),
 
-                    ...basePlane
+                    ...currentAction
                         .orbits
                         .map( ( orbit, i ) => createLineSet(
-                                [ new Point( -1, [ 0, 0, zOff * ( i ) ] ), new Point( -1, [ basePlane.box.volume - 1, 0, zOff * ( i ) ] ) ],
+                                [ new Point( -1, [ 0, 0, zOff * ( i ) ] ), new Point( -1, [ currentAction.box.volume - 1, 0, zOff * ( i ) ] ) ],
                                 colorBasePlane.colorForIndex( orbit.index ),
                                 attr
                             )
@@ -413,13 +413,13 @@ function getBasePlaneCycles( basePlane, toggles ) {
 
 
     // ORBITS
-    basePlane
+    currentAction
         .identities
         .map( identityOrbit => identityOrbit.points[0] )
         .map( identityPoint => {
             return {
                 "id": gid( identityPoint ),
-                "report": identityPoint.report(),
+                "report": identityPoint.report( currentAction.id ),
                 "json": identityPoint.getJson(),
                 "coord": identityPoint.coord,
                 "jump": gidJump( identityPoint )
@@ -517,19 +517,19 @@ function getBasePlaneCycles( basePlane, toggles ) {
 
 function plotData( duration ) {
     const param = getParam();
-    const basePlane = window.parent.window.getBasePlane( param.id );
+    const currentAction = window.parent.window.getBasePlane( param.id );
 }
 
 
-function plotBasePlane( basePlane, param ) {
+function plotBasePlane( currentAction, param ) {
 
     var x3domContainerId =  'testContainer001_plot';
     const sceneRootId = `${ x3domContainerId }_scene_root`;
     const sceneRoot = document.getElementById( sceneRootId );
 
     var osi = (param.toggles.chart3d == 1 )
-        ? getBasePlaneItems( basePlane, param.toggles )
-        : getBasePlaneCycles( basePlane, param.toggles );
+        ? getBasePlaneItems( currentAction, param.toggles )
+        : getBasePlaneCycles( currentAction, param.toggles );
 
     sceneRoot.appendChild( osi );
 
@@ -574,9 +574,9 @@ function screenshot() {
 function initPage() {
 
     const param = getParam();
-    basePlane = window.parent.window.getBasePlane( param.id );
+    currentAction = window.parent.window.getBasePlane( param.id );
 
-    plotBasePlane( basePlane, param );
+    plotBasePlane( currentAction, param );
 
     // set events
     const spheres = [ ...document
@@ -592,7 +592,7 @@ function initPage() {
                     const tooltipData = s.getAttribute( "tooltip" );
                     const point = JSON.parse( tooltipData );
 
-                    consoleLog( `selected point: [${ point.coord }] ${ point.id }; index-${basePlane.id}: ${ JSON.stringify( point.indexes[basePlane.key] ) }` );
+                    consoleLog( `selected point: [${ point.coord }] ${ point.id }; index-${currentAction.id}: ${ JSON.stringify( point.indexes[currentAction.key] ) }` );
 
                     distributeMessage( {
                         basis: "point",
@@ -611,17 +611,17 @@ function initPage() {
             if ( data.basis ) {
 
                 if ( "selected-points" == data.basis ) {
-                    setSelectedPoints( "testContainer001", data.points, basePlane );
+                    setSelectedPoints( "testContainer001", data.points, currentAction );
                 }
 
-            } else if ( data.basePlaneKey ) {
-                const basePlane = window.parent.window.getBasePlane( data.basePlaneKey );
+            } else if ( data.actionKey ) {
+                const currentAction = window.parent.window.getBasePlane( data.actionKey );
                 if ( data.sender ) {
-                    showOrbit( "testContainer001", basePlane, data.sender, data.multi );
+                    showOrbit( "testContainer001", currentAction, data.sender, data.multi );
                 } else if ( data.locus ) {
-                    showLocus( "testContainer001", basePlane, data.locus, data.multi );
+                    showLocus( "testContainer001", currentAction, data.locus, data.multi );
                 } else {
-                    showAllOrbits( "testContainer001", basePlane );
+                    showAllOrbits( "testContainer001", currentAction );
                 }
             } else if ( data.toggleGrid ) {
                 toggleGrid( "testContainer001" );

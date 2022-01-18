@@ -153,7 +153,7 @@ function createSphereShape( id, radius = "0.1", emissiveColor = "blue", transpar
         "shape", { },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency} ) ] ),
-            reify( "sphere", { "id": id, "radius": radius, "lit": lit  } )
+            reify( "sphere", { "id": id, "radius": radius, "lit": lit, "tooltip": tooltip  } )
         ],
         [
             s => {
@@ -348,15 +348,14 @@ function createBoxActionShape( left, right, emissiveColor = "red", selected, tex
 
     shape.appendChild( reify( "cylinder", { "height": height, "radius": 0.015, "lit": false }, [] ) );
 
-    const textShape = createTextShape( textLabel, { "size": 0.12, "solid": "false", "lit": true } );
+    //const textShape = createTextShape( textLabel, { "size": 0.12, "solid": "false", "lit": true } );
 
     const cone = createConeShape(
         selected ? 0.1 : 0.05,
         selected ? 0.16 : 0.08,
         emissiveColor );
 
-    const sphere = createSphereShape( ``, 0.1, emissiveColor, 0 );
-
+    //const sphere = createSphereShape( ``, 0.1, emissiveColor, 0, textLabel );
     //shapes.push( reify( "transform", { "translation": '0.1 0 0' }, [ textShape ] ) );
 
     const cones = [];
@@ -434,7 +433,7 @@ function getOctahedralItems( boxGroup, param ) {
                                             0.08,
                                             color,
                                             0,
-                                            "",
+                                            boxAction.symbols[0],
                                             false
                                         ),
                                         reify(
@@ -492,7 +491,7 @@ function getOctahedralCellItems( boxGroup, selectedBoxAction ) {
                 .appendChild(
                     reify(
                         "transform", { "translation": `${ leftCoord.join(' ') }` },
-                        [ createSphereShape( `action-grid-point-${ leftCoord.join("-") }`, 0.1, color, 0 ) ]
+                        [ createSphereShape( `action-grid-point-${ leftCoord.join("-") }`, 0.1, color, 0, boxAction.symbols[0] ) ]
                     ) );
         }
     } );

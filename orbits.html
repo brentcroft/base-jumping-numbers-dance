@@ -36,7 +36,7 @@
         <div id="caption" class="caption">
             <a onclick="reopenWithArgs()"  title="click to reopen with current values in url"><b>Box: </b></a>
 
-            <label title="change the order of the box"><input type="number" min="1" id="bases" value="3" onchange="initPage( false )"/></label>
+            <label title="change the order of the box"><input type="number" min="1" id="bases" value="2" onchange="initPage( false )"/></label>
 
             <a onclick="reopenWithReversedArgs()" title="reopen with reversed base values in url">&#8597;</a>
             <a onclick="reopenWithLeftRotatedArgs()" title="reopen with left-rotated base values in url">&#8592;</a>
@@ -44,7 +44,7 @@
 
             <span id="baseValues">
                 <input type="number" min="1" id="b0" value="7"/>x
-                <input type="number" min="1" id="b1" value="5"/>x
+                <input type="number" min="1" id="b1" value="3"/>x
                 <input type="number" min="1" id="b2" value="3"/>x
                 <input type="number" min="1" id="b3" value="2"/>
             </span> |
@@ -121,12 +121,12 @@
                 <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
             </span> |
 
-            <label title="generate inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
-            <label title="generate harmonics">harmonics<input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
-            <label title="generate degenerates">degenerates<input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
-            <label title="generate radiance">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
-            <label title="display filter controls">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
-            <label title="display compose controls">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label>
+            <label title="include inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
+            <label title="include harmonics">harmonics<input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
+            <label title="include degenerates">degenerates<input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
+            <label title="generate radiance index">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
+            <label title="display filter panel">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
+            <label title="display composer panel">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label>
         </div>
 
         <div id="monomialFilterControls" style="display: none" class="summaryLeft">
@@ -178,7 +178,15 @@
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4"></textarea>
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4">
+root( z_0, 2 );
+z_0r2^2;
+root( z_0r2, 3 );
+root( z_0, 3 );
+z_0r3^3;
+root( z_0r3, 2 );
+
+</textarea>
                 <label>
                     Results: <br/>
                     <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>

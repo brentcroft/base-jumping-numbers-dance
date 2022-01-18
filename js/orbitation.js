@@ -1,3 +1,20 @@
+
+
+function twist( sequence, stride = 2 ) {
+    const base = sequence.length;
+    const tally = new Array( base ).fill( 0 );
+    const sink = [];
+    for ( var i = 0; i < base; i++ ) {
+        const j = ( i * stride ) % base;
+        if (tally[ j ] ) {
+            throw new Error( `Common Factor: Index length ${ base } at stride ${ stride } repeats with length ${ sink.length }; [${ sink }]  ` );
+        }
+        tally[ j ] = 1;
+        sink.push( sequence[ j ] );
+    }
+    return sink
+}
+
 function roots( index, stride ) {
     const source = [...index];
     const base = source.length;
@@ -5,21 +22,6 @@ function roots( index, stride ) {
     // no twists below three
     if ( base <= 2 ) {
         return [ source ];
-    }
-
-    function twist( sequence, stride = 2 ) {
-        const base = sequence.length;
-        const tally = new Array( base ).fill( 0 );
-        const sink = [];
-        for ( var i = 0; i < base; i++ ) {
-            const j = ( i * stride ) % base;
-            if (tally[ j ] ) {
-                throw new Error( `Common Factor: Index length ${ base } at stride ${ stride } repeats with length ${ sink.length }; [${ sink }]  ` );
-            }
-            tally[ j ] = 1;
-            sink.push( sequence[ j ] );
-        }
-        return sink
     }
 
     const currentRoots = [ index ];

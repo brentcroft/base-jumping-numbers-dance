@@ -180,10 +180,13 @@ const bases = [ 5, 3 ];
 const volume = bases.reduce( ( a, c ) => a * c, 1 );
 const terminal = volume - 1;
 
+allRoots( bases[0] - 1, width, bases[0], param );
+
+
 //allRoots( bases[0], width, bases[0] + 1, param );
 //allRoots( bases[1], width, bases[1] + 1, param );
 //oneRoots( terminal, bases[0], width, bases[0] + 1, param );
-allRoots( terminal, width, volume, param );
+//allRoots( terminal, width, volume, param );
 </textarea>
 </body>
 </html>

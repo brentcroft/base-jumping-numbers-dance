@@ -64,6 +64,31 @@ function canonicalize( m, sep = C_SEP, bra = BRA ) {
 
 var interleave = ( [ x, ...xs ], ys ) => x ? [ x, ...interleave( ys, xs ) ] : ys;
 
+function interleaveArrays() {
+    function lengths (arr) {
+      return arr.length
+    }
+    function index (idx) {
+      return function getIndex (arr) {
+        return arr[idx]
+      }
+    }
+
+    var arrays = [].slice.call(arguments)
+    var length = Math.min.apply(Math, arrays.map(lengths))
+    var result = []
+
+    for (var idx = 0; idx < length; ++idx) {
+        result = result.concat(arrays.map(index(idx)))
+    }
+
+    return result
+}
+
+
+
+
+
 var arrayIndexes = ( b ) => b.map( (x,i) => i );
 var arrayOfIndexes = ( n ) => new Array( n ).fill( 0 ).map( (x,i) => i );
 var aoi = arrayOfIndexes;

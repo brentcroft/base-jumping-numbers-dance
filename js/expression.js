@@ -611,7 +611,7 @@ class Formula {
 
         const aliasText = this.getExpressionString();
 
-        if ( r instanceof CompositeAction || r instanceof FlatAction ) {
+        if ( r instanceof CompositeAction || r instanceof FlatAction || r instanceof RootAction ) {
 
             // reset id
             //r.id = this.boxGroup.boxActions.length;

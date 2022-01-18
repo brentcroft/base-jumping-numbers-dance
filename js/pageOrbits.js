@@ -85,7 +85,7 @@ function getControlValues() {
     };
 }
 
-function getCurrentQueryString( basePlaneKey, bases, actionIndex ) {
+function getCurrentQueryString( actionKey, bases, actionIndex ) {
     const values = getControlValues();
 
     if ( !bases ) {
@@ -95,7 +95,7 @@ function getCurrentQueryString( basePlaneKey, bases, actionIndex ) {
         actionIndex = values.actionIndex;
     }
 
-    return `id=${ basePlaneKey }&bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&layers=${ values.actionLayers }&toggles=${ values.toggles.join( ',' ) }`;
+    return `id=${ actionKey }&bases=${ bases.join(',') }&actionIndex=${ values.actionIndex }&layers=${ values.actionLayers }&toggles=${ values.toggles.join( ',' ) }`;
 }
 
 function reopenWithArgs() {
@@ -161,7 +161,7 @@ function getSelectedOrbitIds( tableId  ) {
     return selectedOrbitIds;
 }
 
-function showOrbit( containerId, basePlane, senderId, multi  ) {
+function showOrbit( containerId, currentAction, senderId, multi  ) {
     const tableCells = document
         .getElementById( containerId + "_table" )
         .querySelectorAll( "td.orbit" );
@@ -186,8 +186,8 @@ function showOrbit( containerId, basePlane, senderId, multi  ) {
         .value = oids[0];
 }
 
-function showAllOrbits( containerId, basePlane ) {
-    showOrbit( containerId, basePlane, "." );
+function showAllOrbits( containerId, currentAction ) {
+    showOrbit( containerId, currentAction, "." );
 }
 
 function showIndex( containerId, senderId, param = { toggles:[]}  ) {
@@ -321,8 +321,8 @@ function initialiseControls( param ) {
 }
 
 function openPlot() {
-    const basePlane = getBasePlane( basePlaneKey );
-    openX3DomFrame( 'sample_cs_b_10_m_2', basePlane );
+    const currentAction = getBasePlane( actionKey );
+    openX3DomFrame( 'sample_cs_b_10_m_2', currentAction );
 }
 
 
@@ -355,11 +355,15 @@ function processFormula( compositionFormulasText ) {
                 return new FlatAction( index );
             }
 
+            function root( index, factor ) {
+                return new RootAction( index, factor );
+            }
+
             const results = compositionFormulaLines
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
-                        return [ f, f.evaluate( { flat: flat, dump: dump, label: label } ) ];
+                        return [ f, f.evaluate( { root: root, flat: flat, dump: dump, label: label } ) ];
                     } catch ( e ) {
                         consoleLog( e );
                         return [ f, e ];
@@ -391,41 +395,41 @@ function isToggle( toggle ) {
 
 function updateJson() {
 
-    //consoleLog( `updateJson: id=${ basePlane.key }` );
+    //consoleLog( `updateJson: id=${ currentAction.key }` );
 
     document
         .getElementById( "sample_cs_b_10_m_2_riffler" )
-        .setAttribute( "max", `${ basePlane.orbits ? basePlane.orbits.length : 0 }` );
+        .setAttribute( "max", `${ currentAction.orbits ? currentAction.orbits.length : 0 }` );
 
     document
             .getElementById("orbit-system-data-text-area")
-            .innerHTML = JSON.stringify( basePlane.getJson(), null, 2 );
+            .innerHTML = JSON.stringify( currentAction.getJson(), null, 2 );
 
-    var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': isToggle('multi'), 'sender': this.id } ] )";
-    var clearClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key, 'multi': false, 'sender': this.id } ] )";
-    var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'basePlaneKey': basePlane.key } ] )";
+    var cellClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'actionKey': String( currentAction.key ), 'multi': isToggle('multi'), 'sender': String( this.id ) } ] )";
+    var clearClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'actionKey': String( currentAction.key ), 'multi': false, 'sender': String( this.id ) } ] )";
+    var totalClick = "distributeMessages( 'sample_cs_b_10_m_2', [ { 'actionKey': String( currentAction.key ) } ] )";
 
     const tableArgs = {
         containerId: "sample_cs_b_10_m_2",
-        basePlane: basePlane,
+        currentAction: currentAction,
         cellClick: cellClick,
         clearClick: clearClick,
         totalClick: totalClick,
-        //midi: isToggle('midi'),
         conj: isToggle('conj'),
         globalIds: isToggle('globalIds'),
         jumps: isToggle('jumps'),
         perms: !isToggle('coords'),
         minCols: isToggle('minCols'),
-        maxCols: isToggle('maxCols')
+        maxCols: isToggle('maxCols'),
+        medCols: isToggle('medCols')
     };
 
-    drawBasePlaneTable( tableArgs );
+    renderCurrentActionTable( tableArgs );
 
     insertX3DomFrame(
         'sample_cs_b_10_m_2',
-        basePlane,
-        framePage = "orbitsViewer.html?" + getCurrentQueryString( basePlane.key ) );
+        currentAction,
+        framePage = "orbitsViewer.html?" + getCurrentQueryString( currentAction.key ) );
 }
 
 function selectBoxAction() {
@@ -434,12 +438,12 @@ function selectBoxAction() {
     const actionIndex = param.actionIndex % indexedBox.boxActions.length;
 
     //consoleLog( `selectBoxAction: id=${ actionIndex }` );
-    basePlane = indexedBox.boxActions[ actionIndex ];
+    currentAction = indexedBox.boxActions[ actionIndex ];
 
-    if ( basePlane ) {
-        putBasePlane( basePlane.key, basePlane );
+    if ( currentAction ) {
+        putBasePlane( currentAction.key, currentAction );
 
-        drawProductTable( basePlane, param.toggles );
+        drawProductTable( currentAction, param.toggles );
 
         showIndex( "indexSummary", "action."+ actionIndex, param );
 
@@ -713,7 +717,9 @@ function initPage( urlParam = true ) {
                     }
 
                     const selectedPointIds = document.getElementById( "selectedPointIds" );
-                    selectedPointIds.value = selectedPoints.map( p => p.indexes[basePlane.key].id ).join( ", ");
+                    if ( selectedPointIds ) {
+                        selectedPointIds.value = selectedPoints.map( p => p.indexes[currentAction.key].id ).join( ", ");
+                    }
 
                     distributeMessages(
                         'sample_cs_b_10_m_2', [
@@ -750,13 +756,13 @@ function initPage( urlParam = true ) {
                     const actionIndexElement = document.getElementById( 'actionIndex' );
                     actionIndexElement.value = data.indexKey;
 
-                    // swap global basePlane and register
+                    // swap global currentAction and register
                     // so child frames can access it.
-                    basePlane = nextPlane;
-                    putBasePlane( basePlane.key, basePlane );
+                    currentAction = nextPlane;
+                    putBasePlane( currentAction.key, currentAction );
 
-                    document.getElementById( 'monomialFilter' ).value = JSON.stringify( basePlane.cycleIndexMonomial );
-                    document.getElementById( 'monomialFilterDisplay' ).innerHTML = getCycleIndexMonomialHtml( basePlane );
+                    document.getElementById( 'monomialFilter' ).value = JSON.stringify( currentAction.cycleIndexMonomial );
+                    document.getElementById( 'monomialFilterDisplay' ).innerHTML = getCycleIndexMonomialHtml( currentAction );
 
                     const param = getControlValues();
 
@@ -766,12 +772,12 @@ function initPage( urlParam = true ) {
                     consoleLog( `Select BoxAction: No such index: ${ data.indexKey }` );
                 }
 
-            } else if ( data.basePlaneKey ) {
-                const basePlane = getBasePlane( data.basePlaneKey );
+            } else if ( data.actionKey ) {
+                const currentAction = getBasePlane( data.actionKey );
                 if ( data.sender ) {
-                    showOrbit( "sample_cs_b_10_m_2", basePlane, data.sender, data.multi );
+                    showOrbit( "sample_cs_b_10_m_2", currentAction, data.sender, data.multi );
                 } else {
-                    showAllOrbits( "sample_cs_b_10_m_2", basePlane );
+                    showAllOrbits( "sample_cs_b_10_m_2", currentAction );
                 }
             } else if ( data.colors ) {
 

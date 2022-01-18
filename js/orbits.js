@@ -5,8 +5,8 @@ function getBasePlane( key ) {
     return basePlanes["plane:" + key];
 }
 
-function putBasePlane( key, basePlane ) {
-    basePlanes[ "plane:" + key] = basePlane;
+function putBasePlane( key, currentAction ) {
+    basePlanes[ "plane:" + key] = currentAction;
 }
 
 function truncate( value, places = 100 ){
@@ -19,7 +19,7 @@ class Point {
         this.id = id;
         this.coord = [ ...coord ];
         this.euclideanRadiance = centre ? 2 * distance2( this.coord, centre ) : 0;
-        this.indexes = [];
+        this.indexes = {};
         this.idx = [];
     }
 
@@ -42,7 +42,12 @@ class Point {
 
 
     at( indexId ) {
-        return this.indexes[ indexId ];
+        const entry = this.indexes[ indexId ];
+        if ( !entry ) {
+            //throw new Error( `Point ${ this } has no entry for index: ${ indexId }` );
+            return {};
+        }
+        return entry;
     }
 
     report() {
@@ -96,7 +101,7 @@ class Orbit {
     }
 
     toString() {
-        return `(${ this.parent.label }/)orbit: ${ this.index }`;
+        return `[${ this.parent.label }] orbit: ${ this.index }`;
     }
 
 

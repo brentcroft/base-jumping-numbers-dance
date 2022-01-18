@@ -9,17 +9,19 @@ toggleKeys = {
     globalIds: 0,
     conj: 1,
     coords: 0,
+    fixedRad: 1,
+    colours: 0,
+
     minCols: 0,
     medCols: 0,
     maxCols: 0,
-    fixedRad: 1,
-    colours: 0,
+
 
     monomialFilter: 1,
     boxActionNavigator: 1,
     boxActionZoom: 1,
 
-    inverses: 1,
+    inverses: 0,
     harmonics: 1,
     degenerates: 1,
     radiance: 0,

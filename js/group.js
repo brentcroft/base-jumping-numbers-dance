@@ -71,6 +71,54 @@ class RadiantAction extends BoxAction {
     }
 }
 
+
+class LiteralAction extends BoxAction {
+    constructor( box, id = 0 ) {
+        super( box, id );
+
+        // establish identity plane
+        this.identityPlane = [ 1, 0, 0 ];
+        this.identityPlaneGcd = 1;
+        this.identityPlaneNormal = [ 0, 1, 0 ];
+        this.label = 'l';
+        this.symbols = [];
+        this.alias = [];
+        this.idx = [];
+        this.dix = [];
+    }
+
+    indexPoint( point ) {
+        const boxVolume = this.box.volume;
+        const di = point.coord[ 0 ];
+        const id = ( di + 1 ) % boxVolume;
+
+        const partnerId = ( boxVolume - id - 1 );
+
+        const pointIndexData = {
+            id: id,
+            di: di,
+            partnerId: partnerId,
+            jump: ( di - id ),
+            radiant: ( partnerId - id )
+        };
+
+        const existingPointIndexData = point.indexes[ this.key ];
+
+        if ( existingPointIndexData ) {
+            consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
+        }
+
+        point.indexes[this.key] = pointIndexData;
+
+        this.idx[ id ] = point;
+        this.dix[ di ] = point;
+    }
+
+    getType() {
+        return 'lit';
+    }
+}
+
 const pvaIndex = [0];
 
 class PlaceValuesAction extends BoxAction {
@@ -284,12 +332,16 @@ class RootAction extends BoxAction {
         const orbits = [ ...this.index.orbits, ...this.index.identities ];
         const sourceKey = this.index.key;
 
-        function mergeAndIndexPartnerPoints( index, orbits ) {
+        function mergeAndIndexPartnerPoints( index, orbits, parity ) {
             const [ p1, p2 ] = [ [ ...orbits[ 0 ] ], [ ...orbits[ 1 ] ] ];
 
             // assuming orbits are aligned
             // to maintain alignment after interleaving
-            rotateArray( p2, ( Math.ceil( p2.length / 2 ) ) );
+            if ( parity ) {
+                rotateArray( p2, p2.length / 2 );
+            } else {
+                rotateArray( p2, ( Math.ceil( p2.length / 2 ) ) );
+            }
 
             const pids = interleaveArrays(
                 p1.map( p => p.at( sourceKey ) ),
@@ -307,9 +359,7 @@ class RootAction extends BoxAction {
                     ] = [
                         pids[ ( 2 * i ) ],
                         pids[ ( 2 * i ) + 1 ],
-                        ( ( i + 1 ) < p1.length )
-                            ? pids[ ( 2 * i ) + 2 ]
-                            :  pids[ 0 ]
+                        ( i + 1 ) < p1.length ? pids[ ( 2 * i ) + 2 ] :  pids[ 0 ]
                     ];
 
                     index.indexPoint( pA, pidA.id, pidB.id, 0 );
@@ -401,12 +451,16 @@ class RootAction extends BoxAction {
                 const po00 = orbit;
                 const [ po01 ] = orbits.splice( orbits.indexOf( po00.partner ), 1 );
 
-                if ( orbit.order % 2 ) {
+                // is the order even
+                const parity = !( orbit.order % 2 );
+
+                if ( parity ) {
                     // odd order means interleave with partner
-                   mergeAndIndexPartnerPoints( this, [ po00.points, po01.points ] );
+                   mergeAndIndexPartnerPoints( this, [ po00.points, po01.points ], parity );
                 } else if ( true ) {
                     // even order means interleave with partner
-                   mergeAndIndexPartnerPoints( this, [ po00.points, po01.points ] );
+                   mergeAndIndexPartnerPoints( this, [ po00.points, po01.points ], parity );
+                   //appendPartnerPoints( this, [ po00.points, po01.points ] );
                 } else if ( false ) {
                     // even order means interleave with another pair of partners
                     const partnerOrbits = orbits
@@ -695,7 +749,7 @@ class BoxGroup {
         ];
 
 
-        this.box = new Box( bases );
+        this.box = new PermBox( bases );
         this.key = "box-group" + this.box.bases.join( "." );
 
         if (toggles.includes( "radiance" )) {
@@ -709,8 +763,10 @@ class BoxGroup {
             this.boxActions = [];
         }
 
+        if ( bases.length == 1 ) {
+            this.boxActions.push( new LiteralAction( this.box, this.boxActions.length ) );
 
-        if ( bases.length > 1 ) {
+        } else if ( bases.length > 1 ) {
 
             const [ DD, DU, UD, UU ] = [
                 [ 0, 0, 'DD' ],

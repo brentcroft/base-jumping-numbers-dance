@@ -49,9 +49,9 @@ function primeFactorsHtml( v ) {
                     }
                 } else {
                     if (h > 1) {
-                        a += b + "<sup>" + h + "</sup>" + ", "
+                        a += b + "<sup>" + h + "</sup>" + " * "
                     } else {
-                        a += b + ", "
+                        a += b + " * "
                     }
                 }
                 h = 0

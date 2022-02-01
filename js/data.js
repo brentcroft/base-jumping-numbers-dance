@@ -109,19 +109,6 @@ function isPalindrome( arrayPair ) {
     return a.filter( (x,i) => x == b[ d - i - 1 ]).length == d;
 }
 
-function isOrthogonal( arrayPair, degree = 1 ) {
-    const [ a, b ] = arrayPair;
-    const d = b.length;
-    var atIndex = -1;
-    a.filter( (x,i) => {
-        if (x == b[i]){
-            atIndex = i;
-            return true;
-        }
-        return false;
-    });
-    return atIndex + 1;
-}
 
 function alignedPlaces( arrayPair ) {
     const [ a, b ] = arrayPair;
@@ -141,53 +128,6 @@ function alignedPlaces( arrayPair ) {
     return [ [ aligned, alignedWeights ], [ unalignedLeft, unalignedRight ] ];
 }
 
-
-
-function leftAlignment( arrayPair ) {
-    const [ a, b ] = arrayPair;
-    for ( var i = 0; i < b.length; i++ ) {
-        if (a[i] != b[i] ) {
-            return i;
-        }
-    }
-    return b.length;
-}
-
-function rightAlignment( arrayPair ) {
-    const [ a, b ] = arrayPair;
-    for ( var i = 0; i < b.length; i++ ) {
-        const ix = b.length - 1 - i;
-        if (a[ix] != b[ix] ) {
-            return i;
-        }
-    }
-    return b.length;
-}
-
-
-function isLeftAligned( arrayPair, degree = 1 ) {
-    const [ a, b ] = arrayPair;
-    const maxDegree = b.length - 1
-    for ( var i = 0; i <= maxDegree; i++ ) {
-        if (a[i] != b[i] ) {
-            return degree == i;
-        }
-    }
-    return degree == maxDegree;
-}
-
-function isRightAligned( arrayPair, degree = 1 ) {
-    const [ a, b ] = arrayPair;
-    const maxDegree = b.length - 1
-    for ( var i = 0; i <= maxDegree; i++ ) {
-        const ix = maxDegree - i;
-        if (a[ix] != b[ix] ) {
-            return degree == i;
-        }
-    }
-    return degree == maxDegree;
-}
-
 function isRisingFrom( a, from ) {
     for ( var i = from + 1; i < a.length; i++ ) {
         if (a[i-1] >= a[i] ) {
@@ -197,41 +137,6 @@ function isRisingFrom( a, from ) {
     return true;
 }
 
-function isReverseFallingFromValue( a, value ) {
-    var v = value;
-    for ( var i = (a.length - 1); i >= 0; i-- ) {
-        if (a[i] != v ) {
-            return false;
-        }
-        v--;
-    }
-    return true;
-}
-
-
-function isFallingTo( a, to ) {
-    for ( var i = 1; i < to; i++ ) {
-        if (a[i-1] <= a[i] ) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function isRisingTo( a, to ) {
-    for ( var i = 0; i < to; i++ ) {
-        if (a[i-1] >= a[i] ) {
-            return false;
-        }
-    }
-    return true;
-}
-
-
-
-function middleSum( a ) {
-    return a.slice( 1, a.length - 1 ).reduce( (a,c) => a + c, 0 );
-}
 
 
 // @see: https://stackoverflow.com/questions/44474864/compute-determinant-of-a-matrix

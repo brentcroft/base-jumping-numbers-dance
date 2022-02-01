@@ -1,0 +1,269 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+            MathJax = {
+              tex: {
+                tags: 'ams'
+              }
+            };
+        </script>
+    <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                width: 80%;
+                font-size: 80%;
+            }
+            .chain-details { font-size: 80%; }
+            .chain-details tr { vertical-align: top; }
+            .chain-details tr:nth-child(even) {background: Ivory;}
+            .chain-details tr:nth-child(odd) {background: WhiteSmoke;}
+
+            .pagebreak {
+                min-height: 1px;
+                page-break-before: always;
+            }
+
+            .equation-list {list-style-type: none;}
+            .equation-list li { padding: 8pt;}
+        </style>
+</head>
+<body>
+<div>
+    <h2>Box Algebra</h2>
+
+    Given two natural numbers: \( m, b > 1 \) and \( m \neq b \),
+    then a clockface can be constructed with \( (mb−1) \) places,
+    labelled from \( 0 \) to \( (mb−2) \).
+    <br/>
+    <br/>
+    By construction, starting from place \( 0 \),
+    taking \( (mb−1) \) steps of stride \( 1 \) will return to the starting place,
+    having visited every other place once only; an identity clockface: "e".
+
+    Starting with the identity clockface from place \( 0 \),
+    taking \( (mb−1) \) steps of stride \( b \) will return to the starting place,
+    having visited every other place once only.
+    <br/>
+    <br/>
+</div>
+<div>
+    Each place \( l \) on the identity clockface can also be uniquely identified by a coordinate \( ( i, j ) \),
+    where \( 0 \le i < m \), \( 0 \le j < b \) and \( l = bi + j \) (or indeed \( l = i + mj \)).
+    <br/>
+    <br/>
+    On each clockface, each place may occur in a different position,
+    but after traversing \( p \) clockfaces the identity clockface is achieved.
+    <br/>
+    <br/>
+</div>
+<div>
+    A circular system of \( p \) equations,
+    where \( p < (mb - 1) \),
+    can be constructed starting from <b>any</b> coordinate \((i_0, j_0)\)
+    and applying \( twist \) successively \( p \) times
+    until the starting coordinate recurs,
+    i.e. \( (i_0, j_0) = (i_p, j_p) \):
+    <br/>
+
+    \begin{align*}
+    bi_1+j_1 &= i_{0}+mj_{0}\\
+    bi_2+j_2 &= i_{1}+mj_{1}\\
+    & ... \\
+    bi_{p-1}+j_{p-1} &= i_{p-2}+mj_{p-2}\\
+    bi_0+j_0 &= i_{p-1}+mj_{p-1}
+    \end{align*}
+    <br/>
+</div>
+<div>
+    Construct identity ladder resolving for j:
+    <br/><br/>
+
+    \begin{align*}
+    j_1 &= i_0 - bi_1 + mj_0 \\
+    j_2 &= i_1 - bi_2 + mj_1 \\
+    j_3 &= i_2 - bi_3 + mj_2 \\
+    j_4 &= i_3 - bi_4 + mj_3 \\
+    &... \\
+    j_{p-1} &= i_{p-2} - bi_{p-1} + mj_{p-2} \\
+    j_0 &= i_{p-1} - bi_0 + mj_{p-1}
+    \end{align*}
+</div>
+<hr class="pagebreak"/>
+<div>
+    Build out 1:
+    <br/><br/>
+
+    \begin{align*}
+    j_1 &= i_{0} - bi_1 + mj_{0} \\
+    \end{align*}
+
+    <br/><br/>
+</div>
+<div>
+    Build out 2:
+    <br/><br/>
+
+    \begin{align*}
+    j_2 &= i_1 - bi_2 + mj_1 \\
+    j_2 &= i_1 - bi_2 + m(i_0 - bi_1 + mj_0) \\
+    j_2 &= i_1 - bi_2 + mi_0 - mbi_1 + m^2j_0 \\
+    j_2 &= (1-mb)i_1 - bi_2 + mi_0 + m^2j_0
+    \end{align*}
+
+    <br/><br/>
+</div>
+<div>
+    Build out 3:
+    <br/><br/>
+
+    \begin{align*}
+    j_3 &= i_2 - bi_3 + mj_2 \\
+    j_3 &= i_2 - bi_3 + m((1-mb)i_1 - bi_2 + mi_0 + m^2j_0) \\
+    j_3 &= i_2 - bi_3 + m(1-mb)i_1 - mbi_2 + m^2i_0 + m^3j_0 \\
+    j_3 &= (1-mb)i_2 + m(1-mb)i_1 - bi_3 + m^2i_0 + m^3j_0
+    \end{align*}
+
+    <br/><br/>
+</div>
+<div>
+    Build out 4:
+    <br/><br/>
+
+    \begin{align*}
+    j_4 &= i_3 - bi_4 + mj_3 \\
+    j_4 &= i_3 - bi_4 + m((1-mb)i_2 + m(1-mb)i_1 - bi_3 + m^2i_0 + m^3j_0) \\
+    j_4 &= i_3 - bi_4 + m(1-mb)i_2 + m^2(1-mb)i_1 - mbi_3 + m^3i_0 + m^4j_0 \\
+    j_4 &= (1-mb)i_3  + m(1-mb)i_2 + m^2(1-mb)i_1 -bi_4 + m^3i_0 + m^4j_0
+    \end{align*}
+
+    <br/><br/>
+</div>
+<div>
+    Build out 5:
+    <br/><br/>
+
+    \begin{align*}
+    j_5 &= i_4 - bi_5 + mj_4 \\
+    j_5 &= i_4 - bi_5 + m((1-mb)i_3  + m(1-mb)i_2 + m^2(1-mb)i_1 - bi_4 + m^3i_0 + m^4j_0) \\
+    j_5 &= i_4 - bi_5 + m(1-mb)i_3  + m^2(1-mb)i_2 + m^3(1-mb)i_1 - mbi_4 + m^4i_0 + m^5j_0) \\
+    j_5 &= (1 - mb)i_4 + m(1-mb)i_3  + m^2(1-mb)i_2 + m^3(1-mb)i_1 - bi_5 + m^4i_0 + m^5j_0) \\
+    j_5 &= (1 - mb)\sum_{k=0}^{5-2} m^{5-k-1}i_k - bi_5 + m^4i_0 + m^5j_0 \\
+    \end{align*}
+
+    <br/><br/>
+</div>
+<hr class="pagebreak"/>
+<div>
+    Generalize for <code>n</code> and substitute for <code>j<sub>0</sub></code>, then re-assemble:
+
+    \begin{align*}
+    j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^nj_0 \\
+    j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^n(i_{n-1} - bi_0 + mj_{n-1}) \\
+    j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}i_0 + m^ni_{n-1} - m^nbi_0 + m^{n+1}j_{n-1} \\
+    j_n &= (1-mb)\sum_{k=0}^{n-2} m^{n-k-1}i_k - bi_n + m^{n-1}(1 - mb)i_0 + m^n(i_{n-1} + mj_{n-1}) \\
+    \end{align*}
+
+    \begin{align*}
+    (mb-1)\sum_{k=0}^{n-2} m^{n-k-1}i_k - (mb - 1)m^{n-1}i_0 &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
+    (mb-1)\sum_{k=0}^{n-1} m^{n-k-1}i_k &= m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \\
+    \end{align*}
+
+    \begin{align}
+    \sum_{k=0}^{n-1} m^{n-k-1}i_k &= { m^n(i_{n-1} + mj_{n-1}) - (bi_n + j_n) \over (mb-1) }
+    \end{align}
+</div>
+<hr/>
+<div>
+    Complete the chain: set <code>n = p</code>,
+    and then substitute
+    for <code>i<sub>p-1</sub> + mj<sub>p-1</sub></code>
+    and <code>bi<sub>p</sub> + j<sub>p</sub></code>:
+
+    \begin{align*}
+    \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(i_{p-1} + mj_{p-1}) - (bi_p + j_p) \over (mb-1) } \\
+    \sum_{k=0}^{p-1} m^{p-k-1}i_k &= { m^p(bi_0 + j_0) - (bi_0 + j_0) \over (mb-1) } \\
+    \end{align*}
+</div>
+<hr/>
+<div>
+    Since the choice of <code>(i<sub>0</sub>, j<sub>0</sub>)</code> is arbitrary,
+    this is true for any choice:
+
+    \begin{align}
+    \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi_0 + j_0){ (m^p - 1) \over (mb-1) } \\
+    \end{align}
+</div>
+<hr class="pagebreak"/>
+<div>
+    Identify two characteristic constants:
+    \begin{align}
+    C &= { (m^p - 1) \over (mb-1) },& D &= { (b^p - 1) \over (mb-1) } \\
+    \end{align}
+
+    <br/>
+
+    <b>Rotation right:</b>
+    choose any <code>(i, j)</code>,
+    follow the chain for <code>p</code> steps,
+    collect the <code>i</code> values in sequence.<br/>
+
+    <br/>
+
+    \begin{align}
+    \sum_{k=0}^{p-1} m^{p-k-1}i_k &= (bi + j)C \\
+    \end{align}
+
+    <br/>
+
+    <b>Rotation left:</b>
+    choose any <code>(i, j)</code>,
+    follow the chain in reverse for <code>p</code> steps,
+    collect the <code>j</code> values in sequence.<br/>
+
+    <br/>
+
+    \begin{align}
+    \sum_{k=0}^{p-1} b^kj_{p-k-1} &= (i + mj)D \\
+    \end{align}
+</div>
+<hr/>
+<div>
+    For all b,m the chain from <code>(0,1)</code> has:
+
+    \begin{align*}
+    i_0 &= 0,& j_0 &= 1 \\
+    i_{p-1} &= 1,& j_{p-1} &= 0 \\
+    \end{align*}
+
+    The sequence of <code>i</code> values, from (0,1), interpreted as a number in base <code>m</code>
+    is equal to <code>C</code>.
+
+    \begin{align}
+    1 + \sum_{k=1}^{p-2} m^{p-k-2}i_k &= { m^p - 1 \over mb - 1 } &= C \\
+    \end{align}
+    <br/>
+
+    The sequence of <code>j</code> values, in reverse from (1,0), interpreted as a number in base <code>b</code>
+    is equal to <code>D</code>:
+
+    \begin{align}
+    1 + \sum_{k=1}^{p-2} b^{k-1}j_{p-k-2} &= { b^p - 1 \over mb - 1 } &= D \\
+    \end{align}
+</div>
+<hr/>
+<div>
+    For all b & m, chain <code>(m-1,b-1)</code>, as expected, has:
+
+    \begin{align*}
+    i &= m-1  \\
+    j &= b-1 \\
+    \sum_{k=0}^{p-1} m^k(m-1) &= (mb - 1 )C \\
+    \sum_{k=0}^{p-1} m^k(m-1) &= m^p - 1 \\
+    \end{align*}
+</div>
+
+</body>
+</html>

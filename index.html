@@ -20,6 +20,7 @@
         };
 
         function includePages() {
+            const tally = Object.keys( pages );
             Object
                 .entries( pages )
                 .forEach( entry => {
@@ -27,11 +28,16 @@
                     const request = new XMLHttpRequest();
 
                     const includer = () => {
-                        const element = document.getElementById( id );
-                        if ( element ) {
-                            element.innerHTML = request.responseText;
-
-                            x3dom.reload();
+                        try {
+                            const element = document.getElementById( id );
+                            if ( element ) {
+                                element.innerHTML = request.responseText;
+                            }
+                        } finally {
+                            tally.pop();
+                            if ( tally.length == 0 ) {
+                                x3dom.reload();
+                            }
                         }
                     };
 

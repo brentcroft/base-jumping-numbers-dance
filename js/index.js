@@ -49,48 +49,39 @@ class PlaceValuesPermutation {
     }
 }
 
+class LiteralPermutation {
+    constructor( id, volume ) {
+        this.id = id;
+        this.volume = volume;
+        this.key =  2 * id;
+        this.idx = new Array( volume ).fill( -1 );
+        this.dix = new Array( volume ).fill( -1 );
+        this.perm = [ 0 ];
+        this.symbol = "#";
+    }
+
+    indexPoint( point ) {
+        const indexValue = point.coord[0];
+        const antiIndexValue = ( indexValue + 1 ) % this.volume;
+
+        point.idx[ this.key ] = indexValue;
+        point.idx[ this.key + 1 ] = antiIndexValue;
+
+        this.idx[ indexValue ] = point;
+        this.dix[ antiIndexValue ] = point;
+    }
+}
+
 
 class Box {
     constructor( bases ) {
         this.bases = [...bases];
+        this.init();
+    }
+
+    init() {
         this.rank = this.bases.length;
         this.volume = getVolume( this.bases );
-
-
-        const perm = arrayIndexes( this.bases );
-        const seedPerms = [ perm ];
-
-        switch( this.rank ) {
-
-            case 1:
-            case 2:
-                this.placeValuePermutations = seedPerms
-                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
-                break;
-
-            case 3:
-                this.placeValuePermutations = seedPerms
-                    .flatMap( seedPerm => seedPerm
-                        .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] ) )
-                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
-
-                break;
-
-            case 4:
-                seedPerms.push( [ perm[0], perm[2], perm[1], perm[3] ] );
-
-                this.placeValuePermutations = seedPerms
-                    .flatMap( seedPerm => seedPerm
-                        .map( (s,i) => [...rotateArray( [...seedPerm], i ) ] ) )
-                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
-
-                break;
-
-            default:
-        }
-
-        this.permCount = this.placeValuePermutations.length;
-        this.pairCount = this.permCount  * (this.permCount - 1);
 
         this.indexRadiance = getIndexRadiance( this.volume );
         this.euclideanRadiance = getEuclideanRadiance( this.bases );
@@ -107,24 +98,124 @@ class Box {
         this.terminal = this.bases.map( x => x - 1 );
         this.diagonal = [ this.origin, this.terminal ];
 
+        // only a point if every base is odd
         this.centre = this.bases.map( b => ( b - 1 ) / 2 );
+    }
+
+    postProcessPoints( extraProcessing ) {
+        this.points.forEach( point => {
+            point.partner = this.points[ this.volume - point.id - 1 ];
+            if ( extraProcessing ) {
+                extraProcessing( point );
+            }
+        } );
+    }
+
+    getJson() {
+        return {
+            bases: [...this.bases],
+            coordSum: this.sum,
+            idSum: this.indexSum
+        };
+    }
+
+    toString() {
+        return JSON.stringify( this.getJson(), null, 4 );
+    }
+
+    validateIds( ids ) {
+        const invalidIds = ids.filter( id => id < 0 || id >= this.volume )
+        if ( invalidIds.length > 0 ) {
+            throw new Error( `id out of range: ${ invalidIds }; box.volume=${ this.volume }` );
+        }
+    }
+}
+
+class Boxes extends Box {
+    constructor( boxes ) {
+        super( boxes.flatMap( box => box.bases.filter( b => b > 1 ) ) );
+        this.boxes = boxes;
+        this.points = this.buildPoints();
+    }
+
+    buildPoints() {
+        var coords = [ [ ] ];
+        const points = [];
+        const boxStack = [...this.boxes];
+        while ( boxStack.length > 0 ) {
+            const box = boxStack.pop();
+
+            // check for empty bases
+            // and filter out corresponding coord values
+
+            const mask = box.bases.map( (b,i) => b > 1 ? true : false );
+
+            coords = coords
+                .flatMap( coord => box
+                    .points
+                    .map( b => [ ...coord, ...b.coord.filter( (c,i) => mask[ i ] ) ] ) )
+        }
+
+        return coords.map( ( coord, i ) => new Point( i, coord, this.centre ) );
+    }
+}
+
+function testIt() {
+    const b4 = new PermBox( [ 4, 1 ] );
+    const b10 = new PermBox( [ 10, 1 ] );
+    const b4x10 = new Boxes( [ b10, b4 ] );
+
+    return b4x10;
+}
+
+
+class PermBox extends Box {
+    constructor( bases ) {
+        super( bases );
+
         this.points = this.buildPoints();
 
-        this.points
-            .forEach( point => {
-                // every point has a partner
-                // except the extremities (and any centre point)
-//                point.partner = ( point.id == 0 || point.id == ( this.volume - 1 ) )
-//                    ? point
-//                    : this.points[ this.volume - point.id - 1 ];
+        const perm = arrayIndexes( this.bases );
+        const seedPerms = [ perm ];
 
-                point.partner = this.points[ this.volume - point.id - 1 ];
+        switch( this.rank ) {
 
+            case 1:
+                this.placeValuePermutations = [ new LiteralPermutation( 0, this.volume ) ];
+                break;
 
-                this.placeValuePermutations
-                    .forEach( perm => perm.indexPoint( point ) );
-            } );
+            case 2:
+                this.placeValuePermutations = seedPerms
+                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+                break;
+
+            case 3:
+                this.placeValuePermutations = seedPerms
+                    .flatMap( seedPerm => seedPerm.map( (_,i) => rotateArray( [...seedPerm], i ) ) )
+                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+
+                break;
+
+            case 4:
+                seedPerms.push( [ perm[0], perm[2], perm[1], perm[3] ] );
+
+                this.placeValuePermutations = seedPerms
+                    .flatMap( seedPerm => seedPerm.map( (_,i) => [...rotateArray( [...seedPerm], i ) ] ) )
+                    .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
+
+                break;
+
+            default:
+        }
+
+        this.permCount = this.placeValuePermutations.length;
+        this.pairCount = this.permCount  * (this.permCount - 1);
+
+        this.postProcessPoints( point => {
+            this.placeValuePermutations.forEach( perm => perm.indexPoint( point ) );
+        } );
     }
+
 
     buildPoints( place = 0, locusStack = [], points = [] ) {
         if ( place == this.rank ) {
@@ -134,26 +225,20 @@ class Box {
             for ( var i = 0; i < this.bases[place]; i++) {
                 locusStack.push( i );
                 this.buildPoints( place + 1, locusStack, points );
-                locusStack.pop( i );
+                locusStack.pop();
             }
         }
         return points;
     }
 
-    validateIds( ids ) {
-        const invalidIds = ids.filter( id => id < 0 || id >= this.volume )
-        if ( invalidIds.length > 0 ) {
-            throw new Error( `id out of range: ${ invalidIds }; box.volume=${ this.volume }` );
-        }
-    }
-
     getJson() {
         return {
-           coordSum: this.sum,
-           idSum: this.indexSum,
-           perms: this.permCount,
-           pairs: this.pairCount
-       };
+            bases: [...this.bases],
+            coordSum: this.sum,
+            idSum: this.indexSum,
+            perms: this.permCount,
+            pairs: this.pairCount
+        };
     }
 
     toString() {

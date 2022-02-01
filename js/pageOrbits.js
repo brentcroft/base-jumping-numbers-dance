@@ -619,6 +619,10 @@ function updatePage() {
                 .join( ", ");
 
     document
+            .getElementById( "terminal-factors" )
+            .innerHTML = "1 + ( " + primeFactorsHtml( indexedBox.box.volume - 1 ) + " )";
+
+    document
             .getElementById( "permutation-roots" )
             .innerHTML = symbology;
 

@@ -131,6 +131,16 @@
             writeBarGlyphs( sourceElement, perm, maxBar, width, height + 25 );
         }
 
+        function rootSummary( base, stride, w, h, param = {} ) {
+            try {
+                return rootsInfo( base, stride ).windings;
+            } catch ( e ) {
+                show( param.stack
+                    ? { base: base, stride: stride, '!': e.stack.replaceAll( '\n', '<br/>' ) }
+                    : { base: base, stride: stride, '!': e } );
+            }
+        }
+
         function oneRoots( base, stride, w, h, param = {} ) {
             try {
                 const r = rootsInfo( base, stride )
@@ -175,18 +185,30 @@
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="10">
 const width = 10;
-const param = { excludes: [ 'roots' ], stack: 0 };
-const bases = [ 5, 3 ];
+const param = { excludes: [ 'xroots' ], stack: 0 };
+const bases = [ 4, 10 ];
 const volume = bases.reduce( ( a, c ) => a * c, 1 );
 const terminal = volume - 1;
 
-allRoots( bases[0] - 1, width, bases[0], param );
+const cpf = coPrimeFactors( terminal );
 
+//oneRoots( terminal, bases[0], width, bases[0] + 1, param );
+//oneRoots( terminal, bases[1], width, bases[1] + 1, param );
 
 //allRoots( bases[0], width, bases[0] + 1, param );
 //allRoots( bases[1], width, bases[1] + 1, param );
-//oneRoots( terminal, bases[0], width, bases[0] + 1, param );
+
+show( {
+        "terminal": terminal,
+        "size": cpf.length,
+        "coprimes": cpf
+} );
+
+
 //allRoots( terminal, width, volume, param );
+
+x = { terminal: terminal, info: cpf.map( p => rootSummary( terminal, p, width, terminal + 1, param ) ) };
+
 </textarea>
 </body>
 </html>

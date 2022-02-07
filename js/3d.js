@@ -499,6 +499,43 @@ function getOctahedralCellItems( boxGroup, selectedBoxAction ) {
     return reify( "collision", { "enabled": false }, [ root ] );
 }
 
+function getCylinderData( point, linkPoint, attr = {} ) {
+    const {
+        origin = [0,0,0],
+        currentDirection = [0,1,0],
+        scaleUnit = [1,1,1]
+    } = attr;
+
+    const height = Math.sqrt( distance2( to3D( linkPoint.coord ), to3D( point.coord ) ) );
+    const diff = subtraction( to3D( linkPoint.coord ), to3D( point.coord ) );
+    const centre = scale( diff, 0.5 );
+
+    const unitNormal = normalize( diff );
+    var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );
+    var rotationAngle = Math.acos( dotProduct( currentDirection, unitNormal ) );
+    return [ centre, rotationAxis, rotationAngle, height ];
+}
+
+function createCylinder( point, linkPoint, emissiveColor = "red", attr = {} ) {
+
+    const [ centre, rotationAxis, rotationAngle, height ] = getCylinderData( point, linkPoint, attr );
+
+    const cylinder = reify( "cylinder", { "height": height, "radius": 0.01, "lit": false }, [] );
+    const shape = createShape( emissiveColor, "1" );
+    shape.appendChild( cylinder );
+
+    const cylinderShape = reify(
+        "transform",
+        { "rotation": rotationAxis.join( ' ' ) + ' ' + rotationAngle },
+        [ shape ]
+    );
+
+    return [
+        reify( "transform", { "translation": centre.join( ' ' ) }, [ cylinderShape ] ),
+        cylinderShape,
+        cylinder
+    ];
+}
 
 
 

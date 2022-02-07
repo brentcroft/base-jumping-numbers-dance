@@ -22,7 +22,7 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
             if ( value === null || value === "") {
                 // do nothing
             } else if ( "class" == key ) {
-                value.split(",").forEach( c => e.classList.add( c ) );
+                value.split( /\s*,\s*/ ).forEach( c => e.classList.add( c ) );
             } else if ( "type" == key ) {
                 e.type = value;
             } else {

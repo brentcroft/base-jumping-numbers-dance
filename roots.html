@@ -23,7 +23,7 @@
     <!-- ui -->
     <script type="text/javascript" src="js/factors.js"></script>
     <script type="text/javascript" src="js/colors.js"></script>
-    <script type="text/javascript" src="js/table.js"></script>
+    <script type="text/javascript" src="js/htmltable.js"></script>
     <script type="text/javascript" src="js/3d.js"></script>
 
     <!-- page -->
@@ -73,8 +73,9 @@
                                         .map( a => String( a ).padStart( 2, ' ' ) )
                                         .join( ', ' ) )
                                     .join( '\n' )
-                                : value
-                                    .join( ', ' ) )
+                                : Number.isInteger( firstElement )
+                                    ? value.join( ', ' )
+                                    : value.join( '\n' ))
                     ] );
             }
 
@@ -110,6 +111,7 @@
                 show( eval( script ) );
             } catch ( e ) {
                 show( `<font color='red'>${ e }</font>` );
+                throw e;
             }
         }
 
@@ -118,6 +120,7 @@
                 .querySelectorAll( '.scriptPanelResult' )
                 .forEach( element => element.parentNode.removeChild( element ) );
         }
+
         function calculateNow() {
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
@@ -131,9 +134,13 @@
             writeBarGlyphs( sourceElement, perm, maxBar, width, height + 25 );
         }
 
-        function rootSummary( base, stride, w, h, param = {} ) {
+        function rootSummary( base, stride, param = {} ) {
             try {
-                return rootsInfo( base, stride ).windings;
+                const clockfaces = getClockfaces(  base, stride );
+                return [ stride, getOrbits( clockfaces )
+                    .filter( o => o.length > 1 )
+                    .map( o => `( ${ o.join( ' ' ) } )` )
+                    .join('') ];
             } catch ( e ) {
                 show( param.stack
                     ? { base: base, stride: stride, '!': e.stack.replaceAll( '\n', '<br/>' ) }
@@ -145,7 +152,9 @@
             try {
                 const r = rootsInfo( base, stride )
                 show( r, param.excludes );
-                r[ 'roots' ].forEach( x => glyphs( x, base, w, h ) );
+                if ( param.glyphs ) {
+                    r[ 'roots' ].forEach( x => glyphs( x, base, w, h ) );
+                }
             } catch ( e ) {
                 show( param.stack
                     ? { base: base, stride: stride, '!': e.stack.replaceAll( '\n', '<br/>' ) }
@@ -161,6 +170,123 @@
         }
 
 
+        function plot( points, iterations = 100, tickTime = 100 ) {
+
+            const x3dRoot = reify(
+                "x3d",
+                { "width": "600", "height": "600" },
+                [
+                    reify(
+                        "scene",
+                        { "id": "testContainer001_plot_scene_root" },
+                        [
+                            reify(
+                                "collision",
+                                { "enabled": "false", "isactive": "true" },
+                                points.map( p => p.shape )
+                            )
+                        ]
+                    )
+                ]
+            );
+
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+
+            sourceElement.parentNode.appendChild( reify( "div", { "class": "scriptPanelResult, resizable" }, [ x3dRoot ] ) );
+
+            x3dom.reload();
+
+            const force = ( link, point ) => {
+                const d = displacement( link[0].coord, point.coord );
+
+                const r2 = euclideanDistance2( d );
+                const r = Math.sqrt( r2 );
+                const u = d.map( x => x / r );
+
+                const q = 1 / r;
+
+                const inverseRodLength = 8;
+                const squareRodLength = 2;
+                const cubeRodLength = 1;
+
+                var delta = 0;
+
+                switch( link[1] ) {
+                    case -1:
+                        delta = 0.1 * ( inverseRodLength - r );
+                        break;
+                    case 1:
+                        delta = -0.0001 * q;
+                        break;
+                    case 2:
+                        delta = 0.02 * ( squareRodLength - r );
+                        break;
+                    case 3:
+                        delta = 0.03 * ( cubeRodLength - r );
+                        break;
+                    default:
+                        throw new Error( `Unexpected link exponent: ${ link[ 1 ] }` );
+                }
+
+                return scale( u, delta );
+            };
+
+
+            const origin = {
+                coord: [ 0, 0, 0 ]
+            };
+
+            const tick = ( iteration ) => {
+
+                points.forEach( p => p.netForce = [ 0, 0, 0 ] );
+
+                points
+                    .forEach( p => {
+                        const forceToOrigin = force( [ origin, 1 ], p );
+                        p.netForce = [
+                            p.netForce,
+                            forceToOrigin,
+                            ...p.links
+                                .map( link => {
+                                    const localForce = force( link, p );
+                                    // equal and opposite
+                                    link[0].netForce = subtraction( link[0].netForce, localForce );
+                                    return localForce;
+                                } )
+                        ].reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] )
+                    } );
+                points
+                    .forEach( p => {
+                        const nextCoord = addition( p.netForce, p.coord );
+                        p.coord = nextCoord;
+                        p.shape.setAttribute( "translation", nextCoord.join( ' ' ) );
+                    } );
+
+                points
+                    .forEach( p => {
+                        p.shapeLinks
+                            .forEach( shapeLink => {
+                                const [ linkPoint, exp, transformTranslation, transformRotation, cylinder ] = shapeLink;
+                                const [ centre, rotationAxis, rotationAngle, height ] = getCylinderData( p, linkPoint );
+
+                                transformTranslation.setAttribute( "translation", centre.join( ' ' ) );
+                                transformRotation.setAttribute( "rotation", rotationAxis.join( ' ' ) + ' ' + rotationAngle );
+                                cylinder.setAttribute( "height", String( height) );
+                            } );
+
+
+                    } );
+
+                if ( iteration > 0 ) {
+                    setTimeout( tick, tickTime, iteration - 1 );
+                }
+            };
+
+            if ( iterations > 0 ) {
+                setTimeout( tick, tickTime, iterations );
+            }
+        }
     </script>
 
     <style>
@@ -175,6 +301,23 @@
             overflow-wrap: normal;
             overflow-x: scroll;
         }
+        .symbol-details { font-size: 90%; border-top: solid 1px black; border-bottom: solid 1px black }
+        .symbol-details tr { vertical-align: top; }
+        .symbol-details tr:nth-child(even) { background: Ivory; }
+        .symbol-details tr:nth-child(odd) { background: WhiteSmoke; }
+        .symbol-details tr > td { border-top: 1px black dotted; }
+
+        .resizable {
+            overflow-wrap: normal;
+            overflow-x: scroll;
+        }
+        .leftFlow {
+           float: left;
+        }
+        .rightFlow {
+           float: right;
+        }
+
     </style>
 
 </head>
@@ -183,32 +326,11 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="10">
-const width = 10;
-const param = { excludes: [ 'xroots' ], stack: 0 };
-const bases = [ 4, 10 ];
-const volume = bases.reduce( ( a, c ) => a * c, 1 );
-const terminal = volume - 1;
-
-const cpf = coPrimeFactors( terminal );
-
-//oneRoots( terminal, bases[0], width, bases[0] + 1, param );
-//oneRoots( terminal, bases[1], width, bases[1] + 1, param );
-
-//allRoots( bases[0], width, bases[0] + 1, param );
-//allRoots( bases[1], width, bases[1] + 1, param );
-
-show( {
-        "terminal": terminal,
-        "size": cpf.length,
-        "coprimes": cpf
-} );
-
-
-//allRoots( terminal, width, volume, param );
-
-x = { terminal: terminal, info: cpf.map( p => rootSummary( terminal, p, width, terminal + 1, param ) ) };
-
-</textarea>
+    <textarea id="calculationScript" class="scriptPanel" rows="6">const orb = new Orbitation( [ 2, 2, 2, 3 ] );
+show( orb.fragmentsBlock() );
+show( orb.htmlTable() );
+show( "<hr class='pagebreak' />" );
+show( orb.symbolsTable() );
+plot( orb.x3domGroup(), 10000, 0 );</textarea>
 </body>
 </html>

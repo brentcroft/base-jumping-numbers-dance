@@ -1,4 +1,6 @@
 
+
+
 function minAbs( maxDelta, value ) {
     return value < 0
         ? Math.max( -1 * maxDelta, value )
@@ -88,6 +90,8 @@ function applyForces( points, param, onIteration ) {
         pairFactor = 1
     } = param;
 
+    param.running = true;
+
     const origin = { coord: [ 0, 0, 0 ] };
     const tick = ( iteration ) => {
 
@@ -104,7 +108,10 @@ function applyForces( points, param, onIteration ) {
         }
 
         if ( forces.includes( 'pair' ) ) {
-            const linkedPoints = points.filter( p => p.links.length > 0 );
+            // only points with non-inverse links feel the pair force
+            const linkedPoints = points
+                .filter( p => p.links
+                    .filter( ( [ linkPoint, exp ] ) => exp != -1  ).length > 0 );
             const pointPairs = pairs( linkedPoints );
             const pointFactor = 1 / ( 1 + pointPairs.length );
             pointPairs.forEach( ( [ p1, p2 ] ) => {
@@ -134,32 +141,23 @@ function applyForces( points, param, onIteration ) {
         points
             .forEach( p => {
                 const nextCoord = addition( p.netForce, p.coord );
-                p.coord = nextCoord;
-                p.shape.setAttribute( "translation", nextCoord.join( ' ' ) );
+                if ( !arrayAlmostEqual( p.coord, nextCoord, minDist ) ) {
+                    p.coord = nextCoord;
+                    p.shape.setAttribute( "translation", nextCoord.join( ' ' ) );
+
+                    p.moveLinks();
+                }
             } );
 
-        // re-orient cylinders
-        points
-            .forEach( p => {
-                p.shapeLinks
-                    .forEach( shapeLink => {
-                        const [ linkPoint, exp, transformTranslation, transformRotation, cylinder ] = shapeLink;
-                        const [ centre, rotationAxis, rotationAngle, height ] = getCylinderData( p, linkPoint );
 
-                        transformTranslation.setAttribute( "translation", centre.join( ' ' ) );
-                        transformRotation.setAttribute( "rotation", rotationAxis.join( ' ' ) + ' ' + rotationAngle );
-                        cylinder.setAttribute( "height", String( height) );
-                    } );
-            } );
-
-        if ( iteration > 0 ) {
+        if ( iteration > 0 && param.running ) {
             setTimeout( tick, tickTime, iteration - 1 );
         }
         if ( onIteration ) {
             onIteration( iteration );
         }
     };
-    if ( iterations > 0 ) {
+    if ( iterations > 0 && param.running ) {
         setTimeout( tick, tickTime, iterations );
     }
 }

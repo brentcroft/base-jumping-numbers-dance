@@ -516,11 +516,11 @@ function getCylinderData( point, linkPoint, attr = {} ) {
     return [ centre, rotationAxis, rotationAngle, height ];
 }
 
-function createCylinder( point, linkPoint, emissiveColor = "red", attr = {} ) {
+function createCylinder( point, linkPoint, emissiveColor = "red", radius = 0.01, attr = {} ) {
 
     const [ centre, rotationAxis, rotationAngle, height ] = getCylinderData( point, linkPoint, attr );
 
-    const cylinder = reify( "cylinder", { "height": height, "radius": 0.01, "lit": false }, [] );
+    const cylinder = reify( "cylinder", { "height": height, "radius": radius, "lit": false }, [] );
     const shape = createShape( emissiveColor, "1" );
     shape.appendChild( cylinder );
 

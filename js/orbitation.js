@@ -131,7 +131,7 @@ function cyclesExponential( cycles, exponent ) {
 
 
 class Orbitation {
-    constructor( bases ) {
+    constructor( bases, linkExponents = [ -1, 2, 3 ] ) {
         this.bases = bases;
         this.volume = bases.reduce( ( a, c ) => a * c, 1 );
         this.terminal = this.volume - 1;
@@ -203,7 +203,7 @@ class Orbitation {
 
                 const cycles = Object.values( monomial ).flatMap( c => c );
 
-                const expMatches = [ -1, 2, 3 ]
+                const expMatches = linkExponents
                     .map( exponent => {
                         const expCycles = cyclesExponential( cycles, exponent );
 
@@ -217,7 +217,12 @@ class Orbitation {
                         }
                     } );
 
-                return expMatches;
+                const inverses = expMatches
+                    .filter( ( [ coprime, exponent, expCoPrime ] ) => exponent == -1 )
+                    .map( ( [ coprime, exponent, expCoPrime ] ) => expCoPrime );
+
+                return expMatches
+                    .filter( ( [ coprime, exponent, expCoPrime ] ) => exponent == -1 || !inverses.includes( expCoPrime ) );
             } )
             .filter( x => x.length > 0  )
             .reduce( ( a, [ coprime, exponent, expCoPrime ] ) => {
@@ -300,13 +305,26 @@ class Orbitation {
             .map( ( [ coprime, refs ] ) => [ coprime, refs.map( ref => `${ ref[ 0 ] }<sup>${ ref[ 1 ] }</sup>` ).join( ', ' ) ] );
 
         const coord = () => 2 * ( 0.5 - Math.random() );
+
+        function randomSpherePoint( origin, radius ) {
+           const [ x0, y0, z0 ] = origin;
+           var u = Math.random();
+           var v = Math.random();
+           var theta = 2 * Math.PI * u;
+           var phi = Math.acos(2 * v - 1);
+           var x = x0 + (radius * Math.sin(phi) * Math.cos(theta));
+           var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
+           var z = z0 + (radius * Math.cos(phi));
+           return [ x, y, z ];
+        }
+
         const points = [];
         this
             .roots
             .map( root => points.push( {
                 'coprime': root[0],
                 'monomial': monomialHtml( root[1] ),
-                'coord': [ coord(), coord(), coord() ]
+                'coord': randomSpherePoint( [ 0, 0, 0 ], 1 )
             } ) );
 
         // build links between points
@@ -315,29 +333,47 @@ class Orbitation {
         points.forEach( point => {
             point.links = this
                 .symbols[ point.coprime ]
-                .map( ( [ c, exp ] ) => [ getPoint( c ), exp ] );
+                .map( ( [ c, exp ] ) => [ getPoint( c ), exp ] )
+                // exclude self-references
+                .filter( ( [ p, exp ] ) => p != point );
         } );
 
         const linkColor = ( exp ) => ( exp == -1 )
-            ? "black"
+            ? "gray"
             : ( exp == 2 )
                 ? "blue"
                 : ( exp == 3 )
                     ? "green"
                     : "red";
 
+        const linkRadius = ( exp ) => ( exp == -1 )
+            ? 0.001
+            : 0.01;
+
+        const moveLinks = ( point ) => {
+            point
+                .shapeLinks
+                .forEach( shapeLink => {
+                        const [ linkPoint, exp, transformTranslation, transformRotation, cylinder ] = shapeLink;
+                        const [ centre, rotationAxis, rotationAngle, height ] = getCylinderData( point, linkPoint );
+
+                        transformTranslation.setAttribute( "translation", centre.join( ' ' ) );
+                        transformRotation.setAttribute( "rotation", rotationAxis.join( ' ' ) + ' ' + rotationAngle );
+                        cylinder.setAttribute( "height", String( height) );
+                    } );
+        };
+
 
         // build x3dom shapes and links
         points
             .forEach( p => {
 
-                // [ linkPoint, exp, transform@translation, transform@rotation, cylinder@height  ]
+                const radius = 0.01;
                 p.shapeLinks = p.links
                     .map( ( [ linkPoint, exp ] ) => [
                         linkPoint,
                         exp,
-                        // returns [ transform@translation, transform@rotation, cylinder@height  ]
-                        ...createCylinder( p, linkPoint, linkColor( exp ) ) ] );
+                        ...createCylinder( p, linkPoint, linkColor( exp ), linkRadius( exp ) ) ] );
 
                 p.shape = reify(
                     "transform",
@@ -345,7 +381,9 @@ class Orbitation {
                     [
                         createSphereShape( `coprime-${ p.coprime }`, "0.1", "red", 0, `${ p.coprime } | ${ p.monomial }`, true ),
                         ...p.shapeLinks.map( sl => sl[2] )
-                    ] )
+                    ] );
+
+                p.moveLinks = () => moveLinks( p );
             } );
 
         return points;

@@ -19,6 +19,7 @@
     <script type="text/javascript" src="js/bitmap.js"></script>
     <script type="text/javascript" src="js/glyphs.js"></script>
 
+    <script type="text/javascript" src="js/forces.js"></script>
 
     <!-- ui -->
     <script type="text/javascript" src="js/factors.js"></script>
@@ -29,12 +30,13 @@
     <!-- page -->
     <script type="text/javascript">
         var instance = 0;
-        function sendResult( result, sourceElement, excludes = [] ) {
+        function sendResult( result, sourceElement, param = {} ) {
             if ( !result ) {
                 return;
             }
             var tag = null;
             var items = 0;
+            const excludes = param.excludes | [];
 
             function decomposeValue( label, value ) {
                 return reify(
@@ -88,19 +90,35 @@
                         : decomposeValue( null, result );
             }
 
+            const css = ( param.css || [] );
+            if ( !css.includes( 'rightFlow' ) ) {
+                css.push( 'leftFlow' );
+            }
+
+            const cssClasses = [ 'scriptPanelResult', ...css ];
+
             var targetElement = reify(
                 "div",
-                { class: 'scriptPanelResult' },
+                { class: cssClasses.join( ',' ) },
                 [ decompose( result ) ]
             );
 
             sourceElement.parentNode.appendChild( targetElement );
         }
 
-        function show( result, excludes ) {
+        function pagebreak() {
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
-            sendResult( result, sourceElement, excludes );
+
+            var targetElement = reify( "div", { class: 'pagebreak' }, [] );
+
+            sourceElement.parentNode.appendChild( targetElement );
+        }
+
+        function show( result, param ) {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+            sendResult( result, sourceElement, param );
         }
 
         function calculate( script, sourceElement ) {
@@ -108,7 +126,8 @@
                 clearResults();
             }
             try {
-                show( eval( script ) );
+                const result = eval( script );
+                show( result );
             } catch ( e ) {
                 show( `<font color='red'>${ e }</font>` );
                 throw e;
@@ -151,7 +170,7 @@
         function oneRoots( base, stride, w, h, param = {} ) {
             try {
                 const r = rootsInfo( base, stride )
-                show( r, param.excludes );
+                show( r, param );
                 if ( param.glyphs ) {
                     r[ 'roots' ].forEach( x => glyphs( x, base, w, h ) );
                 }
@@ -170,22 +189,17 @@
         }
 
 
-        function plot( points, iterations = 100, tickTime = 100 ) {
+        function plot( points, param = {} ) {
+            const { css = [] } = param;
 
             const x3dRoot = reify(
                 "x3d",
-                { "width": "600", "height": "600" },
+                { "width": "100%", "height": "100%" },
                 [
                     reify(
                         "scene",
-                        { "id": "testContainer001_plot_scene_root" },
-                        [
-                            reify(
-                                "collision",
-                                { "enabled": "false", "isactive": "true" },
-                                points.map( p => p.shape )
-                            )
-                        ]
+                        { "id": "plot_scene_root" },
+                        points.map( p => p.shape )
                     )
                 ]
             );
@@ -193,107 +207,64 @@
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
 
-            sourceElement.parentNode.appendChild( reify( "div", { "class": "scriptPanelResult, resizable" }, [ x3dRoot ] ) );
+            if ( !css.includes( 'rightFlow' ) ) {
+                css.push( 'leftFlow' );
+            }
+
+
+            const runButton = reify(
+                "input",
+                { "type": "button", "value": "run" },
+                []
+            );
+            runButton.disabled = false;
+            runButtonAction = ( iteration ) => {
+                if ( iteration == 0 ) {
+                    runButton.disabled = false;
+                    runButton.value = 'forces';
+                } else {
+                    if ( !runButton.disabled ) {
+                        runButton.disabled = false;
+                    }
+                    runButton.value = iteration;
+                };
+            };
+            runButton.onclick = () => applyForces( points, param, runButtonAction );
+
+            sourceElement
+                .parentNode
+                .appendChild(
+                    reify(
+                        "div",
+                        { "class": [ 'scriptPanelResult', ...css ].join( "," ) },
+                        [ runButton, x3dRoot ] ) );
 
             x3dom.reload();
 
-            const force = ( link, point ) => {
-                const d = displacement( link[0].coord, point.coord );
+            points.forEach( p => {
+                new x3dom.Moveable(
+                    x3dRoot,
+                    p.shape,
+                    ( shape, position ) => {
+                         p.coord = [ position.x, position.y, position.z ];
+                         p.moveLinks();
+                    },
+                    0 );
+            } );
 
-                const r2 = euclideanDistance2( d );
-                const r = Math.sqrt( r2 );
-                const u = d.map( x => x / r );
-
-                const q = 1 / r;
-
-                const inverseRodLength = 8;
-                const squareRodLength = 2;
-                const cubeRodLength = 1;
-
-                var delta = 0;
-
-                switch( link[1] ) {
-                    case -1:
-                        delta = 0.1 * ( inverseRodLength - r );
-                        break;
-                    case 1:
-                        delta = -0.0001 * q;
-                        break;
-                    case 2:
-                        delta = 0.02 * ( squareRodLength - r );
-                        break;
-                    case 3:
-                        delta = 0.03 * ( cubeRodLength - r );
-                        break;
-                    default:
-                        throw new Error( `Unexpected link exponent: ${ link[ 1 ] }` );
-                }
-
-                return scale( u, delta );
-            };
-
-
-            const origin = {
-                coord: [ 0, 0, 0 ]
-            };
-
-            const tick = ( iteration ) => {
-
-                points.forEach( p => p.netForce = [ 0, 0, 0 ] );
-
-                points
-                    .forEach( p => {
-                        const forceToOrigin = force( [ origin, 1 ], p );
-                        p.netForce = [
-                            p.netForce,
-                            forceToOrigin,
-                            ...p.links
-                                .map( link => {
-                                    const localForce = force( link, p );
-                                    // equal and opposite
-                                    link[0].netForce = subtraction( link[0].netForce, localForce );
-                                    return localForce;
-                                } )
-                        ].reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] )
-                    } );
-                points
-                    .forEach( p => {
-                        const nextCoord = addition( p.netForce, p.coord );
-                        p.coord = nextCoord;
-                        p.shape.setAttribute( "translation", nextCoord.join( ' ' ) );
-                    } );
-
-                points
-                    .forEach( p => {
-                        p.shapeLinks
-                            .forEach( shapeLink => {
-                                const [ linkPoint, exp, transformTranslation, transformRotation, cylinder ] = shapeLink;
-                                const [ centre, rotationAxis, rotationAngle, height ] = getCylinderData( p, linkPoint );
-
-                                transformTranslation.setAttribute( "translation", centre.join( ' ' ) );
-                                transformRotation.setAttribute( "rotation", rotationAxis.join( ' ' ) + ' ' + rotationAngle );
-                                cylinder.setAttribute( "height", String( height) );
-                            } );
-
-
-                    } );
-
-                if ( iteration > 0 ) {
-                    setTimeout( tick, tickTime, iteration - 1 );
-                }
-            };
-
-            if ( iterations > 0 ) {
-                setTimeout( tick, tickTime, iterations );
-            }
+            applyForces( points, param, runButtonAction );
         }
     </script>
+
+
+
 
     <style>
         .scriptPanel {
             width: 100%;
         }
         .scriptPanelResult {
+            margin: 10px;
         }
         .scriptPanelTextArea {
             width: 100%;
@@ -326,11 +297,25 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="6">const orb = new Orbitation( [ 2, 2, 2, 3 ] );
+    <textarea id="calculationScript" class="scriptPanel" rows="6">const orb = new Orbitation( [ 2, 2, 2, 5 ] );
+const param = {
+    forces: [ 'origin', 'link', 'pair' ],
+    originFactor: -0.001,
+    pairFactor: 0.001,
+    minDist: 0.0001,
+    minDelta: 0.00000001,
+    maxDelta: 5,
+    rods: {
+        '-1': [ 100, -0.01 ],
+        '2': [  5 , 1 ],
+        '3': [  1, 2 ]
+    }
+};
+plot( orb.x3domGroup(), { css: [ 'resizable' ], iterations: 5000, tickTime: 2, ...param } );
+show( orb.symbolsTable(), { css: [ 'rightFlow' ] } );
+pagebreak();
 show( orb.fragmentsBlock() );
 show( orb.htmlTable() );
-show( "<hr class='pagebreak' />" );
-show( orb.symbolsTable() );
-plot( orb.x3domGroup(), 10000, 0 );</textarea>
+</textarea>
 </body>
 </html>

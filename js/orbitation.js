@@ -150,6 +150,7 @@ function cyclesExponential( cycles, exponent ) {
 
 class Orbitation {
     constructor( bases, param = {} ) {
+        this.param = param;
         this.bases = bases;
         this.volume = bases.reduce( ( a, c ) => a * c, 1 );
         this.terminal = this.volume - 1;

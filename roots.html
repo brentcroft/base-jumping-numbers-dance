@@ -238,6 +238,29 @@
                 }
             };
 
+            const originFactorInput = reify( "label", {},
+            [
+                reify( "span",{},[],[ c => c.innerHTML = "origin-factor " ] ),
+                reify( "input", { type: "number", class: "decimal-input", value: orb.param.originFactor },
+                    [], [ c => c.onchange = () =>orb.param.pairFactor = c.value ] )
+            ] );
+
+            const pairFactorInput = reify( "label", {},
+            [
+                reify( "span",{},[],[ c => c.innerHTML = "pair-factor " ] ),
+                reify( "input", { type: "number", class: "decimal-input", value: orb.param.pairFactor },
+                    [], [ c => c.onchange = () =>orb.param.pairFactor = c.value ] )
+            ] );
+
+            sourceElement
+                .parentNode
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [
+                    originFactorInput, pairFactorInput, runButton,
+                    x3dRoot
+                ] ) );
+
+            x3dom.reload();
+
             const linkControlHeaders = [ "exponent", "spring-length", "spring-constant", "spring-color" ];
             const linkControlRows = orb.linkParam
                 .map( ( expData, i ) => reify( "tr", {},
@@ -253,8 +276,7 @@
                                                 [],
                                                 [ c => c.onchange = () => orb.linkParam[ i ][ j ] = c.value ]
                                             )
-                                        ]
-                                )
+                                        ] )
                             ],
                             [
                                 td => td.style.backgroundColor = expData[3]
@@ -272,19 +294,11 @@
 
             sourceElement
                 .parentNode
-                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [
-                    runButton,
-                    x3dRoot
-                ] ) );
-
-            sourceElement
-                .parentNode
                 .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'leftFlow' ].join( "," ) }, [
                     linkControls
                 ] ) );
 
 
-            x3dom.reload();
 
             orb.points.forEach( p => {
                 new x3dom.Moveable(

@@ -213,6 +213,8 @@
                 ]
             );
 
+            orb.x3dRoot = x3dRoot;
+
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
 
@@ -255,7 +257,7 @@
             sourceElement
                 .parentNode
                 .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [
-                    originFactorInput, pairFactorInput, runButton,
+
                     x3dRoot
                 ] ) );
 
@@ -295,6 +297,7 @@
             sourceElement
                 .parentNode
                 .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'leftFlow' ].join( "," ) }, [
+                    originFactorInput, pairFactorInput, runButton,
                     linkControls
                 ] ) );
 
@@ -365,9 +368,12 @@
     pairFactor: -10,
     minDist: 0.000001,
     minDelta: 0.000001,
-    maxDelta: 1
+    maxDelta: 1,
+    burst: 100,
+    rodLengthExp: 1,
+    rodStrengthExp: 1.5
 };
-const orb = new Orbitation( [ 4, 9 ], param );
+const orb = new Orbitation( [ 2, 2, 3 ], param );
 putX3DomNode( orb, { css: [ 'resizable' ], iterations: 10000, tickTime: 10, ...param } );
 putDomNode( orb.symbolsTable(), { css: [ 'rightFlow' ] } );
 pagebreak();

@@ -260,7 +260,7 @@ class Orbitation {
             }, {} );
 
 
-        const points = [];
+        this.points = [];
         this.roots = this
             .roots
             .map( root => {
@@ -271,11 +271,11 @@ class Orbitation {
                 };
 
                 if ( ( this.volume % root.point.coprime ) == 0 ) {
-                    points.push( root.point );
+                    this.points.push( root.point );
                 } else {
                     const coprimeSymbols = this.symbols[ root.point.coprime ];
                     if ( coprimeSymbols && coprimeSymbols.find( ( [ c, _ ] ) => ( this.volume % c ) == 0 ) ) {
-                        points.push( root.point );
+                        this.points.push( root.point );
                     } else {
                         //console.log( `dropped point: ${ JSON.stringify( root.point ) } `);
                         delete this.symbols[ root.point.coprime ];
@@ -287,15 +287,13 @@ class Orbitation {
             .filter( root => root );
 
         // build links between points
-        const getPoint = ( coprime ) => points.filter( p => p.coprime == coprime )[0];
-
         const linkExponents = [];
 
-        points.forEach( point => {
+        this.points.forEach( point => {
             point.links = this
                 .symbols[ point.coprime ]
                 .filter( ( [ c, _ ] ) => ( this.volume % c ) == 0 )
-                .map( ( [ c, exp ] ) => [ getPoint( c ), exp ] )
+                .map( ( [ c, exp ] ) => [ this.getPoint( c ), exp ] )
                 // exclude self-references
                 .filter( ( [ p, exp ] ) => p != point );
 
@@ -304,15 +302,23 @@ class Orbitation {
 
         linkExponents.sort( ( a, b ) => a - b );
 
-        const getRodLength = ( rod, rodPower = 1, inverseRod = 1000 ) => ( rod > 0 ) ? rod**rodPower : inverseRod;
-        const getRodStrength = ( rod, rodPower = 2, inverseRod = 0.000001 ) => ( rod > 0 ) ? ( 1 / rod )**rodPower : inverseRod;
+        const getRodLength = ( rod, rodPower, inverseRod = 1000 ) => ( rod > 0 ) ? rod**rodPower : inverseRod;
+        const getRodStrength = ( rod, rodPower, inverseRod = 0.000001 ) => ( rod > 0 ) ? ( 1 / rod )**rodPower : inverseRod;
 
         this.linkParam = linkExponents
-            .map( le => [ le, getRodLength( le, 1.2 ), getRodStrength( le, 3 ), this.linkColor( le ) ] );
+            .map( le => [
+                le,
+                getRodLength( le, param.rodLengthExp ),
+                getRodStrength( le, param.rodStrengthExp ),
+                this.linkColor( le )
+            ] );
 
-        this.points = points;
 
         this.buildX3domGraph();
+    }
+
+    getPoint( coprime ) {
+        return this.points.filter( p => p.coprime == coprime )[0];
     }
 
     fragmentsBlock() {
@@ -334,7 +340,11 @@ class Orbitation {
 
         const rows = Object
             .entries( this.symbols )
-            .map( ( [ coprime, refs ] ) => [ coprime, refs.map( ref => `${ ref[ 0 ] }<sup>${ ref[ 1 ] }</sup>` ).join( ', ' ) ] );
+            .map( ( [ coprime, refs ] ) => [
+                coprime,
+                refs
+                    .filter( ref => ( ref[ 0 ] in this.symbols ) )
+                    .map( ref => `${ ref[ 0 ] }<sup>${ ref[ 1 ] }</sup>` ).join( ', ' ) ] );
 
         return reify( "table", { "id": tableId, class: "sortable, symbol-details" },
             [
@@ -352,7 +362,7 @@ class Orbitation {
                     row.map( r => reify( "td", {}, [],
                             [
                                 c => c.onclick = () => {
-                                    //sceneRoot.runtime.showObject( cone )
+                                    this.x3dRoot.runtime.showObject( this.getPoint( row[0] ).shape )
                                 },
                                 c => c.innerHTML = r
                             ]

@@ -85,54 +85,59 @@ function applyForces( orb, param, onIteration ) {
         minDist = 0.001,
         maxDelta = 0.001,
         originFactor = 1,
-        pairFactor = 1
+        pairFactor = 1,
+        burst = 100
     } = param;
 
     param.running = true;
 
     const origin = { coord: [ 0, 0, 0 ] };
-    const tick = ( iteration ) => {
+    const tick = ( iteration, burst ) => {
 
-        points.forEach( p => p.netForce = [ 0, 0, 0 ] );
+        for ( var b = 0; b < burst; b++ ) {
 
-        if ( forces.includes( 'origin' ) ) {
-            points
-                // only points that are not self inverse feel the origin force
-                .filter( p => p.links.length == 0 || p.links.filter( ( [ linkPoint, exp ] ) => exp == -1 ).length > 0 )
-                .forEach( p => {
-                    const [ d, r2, u ] = inverseForce( origin, p, orb.param.originFactor, orb.param );
-                    p.netForce = addition( p.netForce, u )
+            points.forEach( p => p.netForce = [ 0, 0, 0 ] );
+
+            if ( forces.includes( 'origin' ) ) {
+                points
+                    // only points that are not self inverse feel the origin force
+                    .filter( p => p.links.length == 0 || p.links.filter( ( [ linkPoint, exp ] ) => exp == -1 ).length > 0 )
+                    .forEach( p => {
+                        const [ d, r2, u ] = inverseForce( origin, p, orb.param.originFactor, orb.param );
+                        p.netForce = addition( p.netForce, u )
+                    } );
+            }
+
+            if ( forces.includes( 'pair' ) ) {
+                // only points with non-inverse links feel the pair force
+                const linkedPoints = points
+                    .filter( p => p.links
+                        .filter( ( [ linkPoint, exp ] ) => exp != -1  ).length > 0 );
+                const pointPairs = pairs( linkedPoints );
+                const pointFactor = 1 / ( 1 + pointPairs.length );
+                pointPairs.forEach( ( [ p1, p2 ] ) => {
+                    const [ d, r2, u ] = inverseSquareForce( p1, p2, orb.param.pairFactor, orb.param );
+                    const upf = scale( u, pointFactor );
+                    p1.netForce = addition( p1.netForce, upf);
+                    p2.netForce = subtraction( p2.netForce, upf );
                 } );
-        }
+            }
 
-        if ( forces.includes( 'pair' ) ) {
-            // only points with non-inverse links feel the pair force
-            const linkedPoints = points
-                .filter( p => p.links
-                    .filter( ( [ linkPoint, exp ] ) => exp != -1  ).length > 0 );
-            const pointPairs = pairs( linkedPoints );
-            const pointFactor = 1 / ( 1 + pointPairs.length );
-            pointPairs.forEach( ( [ p1, p2 ] ) => {
-                const [ d, r2, u ] = inverseSquareForce( p1, p2, orb.param.pairFactor, orb.param );
-                const upf = scale( u, pointFactor );
-                p1.netForce = addition( p1.netForce, upf);
-                p2.netForce = subtraction( p2.netForce, upf );
-            } );
-        }
+            if ( forces.includes( 'link' ) ) {
+                points
+                    .forEach( p => {
+                        const linkSum = p.links
+                            .filter( link => p != link[0] )
+                            .map( link => {
+                                   const [ d, r2, u ] = springForce( p, link[0], link[1], orb.param, linkParam );
+                                   link[0].netForce = addition( link[0].netForce, u );
+                                   return u;
+                               } )
+                            .reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] );
+                        p.netForce = subtraction( p.netForce, linkSum );
+                    } );
+            }
 
-        if ( forces.includes( 'link' ) ) {
-            points
-                .forEach( p => {
-                    const linkSum = p.links
-                        .filter( link => p != link[0] )
-                        .map( link => {
-                               const [ d, r2, u ] = springForce( p, link[0], link[1], orb.param, linkParam );
-                               link[0].netForce = addition( link[0].netForce, u );
-                               return u;
-                           } )
-                        .reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] );
-                    p.netForce = subtraction( p.netForce, linkSum );
-                } );
         }
 
         // move point shapes
@@ -149,13 +154,13 @@ function applyForces( orb, param, onIteration ) {
 
 
         if ( iteration > 0 && param.running ) {
-            setTimeout( tick, tickTime, iteration - 1 );
+            setTimeout( tick, tickTime, iteration - 1, burst );
         }
         if ( onIteration ) {
             onIteration( iteration );
         }
     };
     if ( iterations > 0 && param.running ) {
-        setTimeout( tick, tickTime, iterations );
+        setTimeout( tick, tickTime, iterations, burst );
     }
 }

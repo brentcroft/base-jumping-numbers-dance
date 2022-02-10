@@ -364,16 +364,16 @@
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="1">const param = {
     forces: [ 'origin', 'link', 'pair' ],
-    originFactor: 0.000000,
-    pairFactor: -10,
+    originFactor: 0.01,
+    pairFactor: -8,
     minDist: 0.000001,
     minDelta: 0.000001,
     maxDelta: 1,
     burst: 100,
-    rodLengthExp: 1,
-    rodStrengthExp: 1.5
+    rodLengthExp: 1.2,
+    rodStrengthExp: 2.5
 };
-const orb = new Orbitation( [ 2, 2, 3 ], param );
+const orb = new Orbitation( [ 2, 2, 2, 5 ], param );
 putX3DomNode( orb, { css: [ 'resizable' ], iterations: 10000, tickTime: 10, ...param } );
 putDomNode( orb.symbolsTable(), { css: [ 'rightFlow' ] } );
 pagebreak();

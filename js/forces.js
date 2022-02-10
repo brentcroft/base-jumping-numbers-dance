@@ -47,20 +47,14 @@ function inverseSquareForce( pointA, pointB, factor = 1, param = {} ) {
     return [ d, r2, u ];
 }
 
-function springForce(  pointA, pointB, linkType, factor = 1, param = {} ) {
+function springForce(  pointA, pointB, linkType, param = {}, linkParam = [] ) {
     const {
         minDist = 0.1,
         maxDelta = 0.01,
-        minDelta = 0.001,
-        rods = {
-            '-1': [ 8, 0.01 ],
-            '2': [ 2, 0.02 ],
-            '3': [ 1, 0.03 ]
-        }
+        minDelta = 0.001
     } = param;
 
     const d = displacement( pointA.coord, pointB.coord );
-
     const r2 = euclideanDistance2( d );
     const r = Math.sqrt( r2 );
 
@@ -68,9 +62,11 @@ function springForce(  pointA, pointB, linkType, factor = 1, param = {} ) {
         return [ d, r, [0,0,0] ];
     }
 
-    const rf = ( rods[ linkType ][0] - r );
+    const [ _, springLength, springFactor ] = linkParam.find( lp => lp[0] == linkType );
 
-    const delta = minAbs( maxDelta, rods[ linkType ][1] * rf );
+    const restoringForce = springFactor * ( springLength - r );
+    const delta = minAbs( maxDelta, restoringForce );
+
     const u = normalize( d )
         .map( x => x * delta )
         .map( x => Math.abs( x ) < minDelta ? 0 : x );
@@ -78,7 +74,9 @@ function springForce(  pointA, pointB, linkType, factor = 1, param = {} ) {
     return [ d, r, u ];
 }
 
-function applyForces( points, param, onIteration ) {
+function applyForces( orb, param, onIteration ) {
+
+    const [ points, linkParam ] = [ orb.points, orb.linkParam ];
 
     const {
         forces = [ 'origin', 'link' ],
@@ -128,7 +126,7 @@ function applyForces( points, param, onIteration ) {
                     const linkSum = p.links
                         .filter( link => p != link[0] )
                         .map( link => {
-                               const [ d, r2, u ] = springForce( p, link[0], link[1], param );
+                               const [ d, r2, u ] = springForce( p, link[0], link[1], param, linkParam );
                                link[0].netForce = addition( link[0].netForce, u );
                                return u;
                            } )

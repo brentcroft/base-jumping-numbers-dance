@@ -1,5 +1,23 @@
 
+var colourPointIndexDefault = {
+    bases: [ 11, 5, 7 ],
+    actionIndex: 5,
+    orbitIndex: 5,
+    minPixel: 20,
+    maxPixel: 180,
+    colorPoints: [[10,1,6],[10,1,0],[0,1,4,],[6,1,4],[6,2,5],[8,3,4],[7,1,3],[5,3,1],[2,3,4],[7,0,2],[3,2,2],[3,0,6],[9,3,3],[5,2,6],[10,2,1],[2,2,3],[5,4,2],[4,4,3],[6,3,0],[1,4,0],[1,0,2],[3,1,1],[1,4,6],[10,0,5],[8,0,1],[1,3,5],[8,4,5],[9,2,2],[4,1,0],[0,0,3],[4,0,5],[7,4,6]]
+};
 
+function colorForIndex( index ) {
+    const colorPoints = colourPointIndexDefault.colorPoints;
+    const colorPoint = colorPoints[ index % colorPoints.length ];
+    const picker = (x,i) => colourPointIndexDefault.minPixel + Math.round(
+        ( colourPointIndexDefault.maxPixel - colourPointIndexDefault.minPixel ) * x / colourPointIndexDefault.bases[i] );
+    return colorPoint
+        .map( (x,i) => picker( x, i) )
+        .map( x => x.toString( 16 ).padStart( 2, '0' ) )
+        .reduce( (a,c) => a + c, "#" );
+}
 
 
 // https://codegolf.stackexchange.com/questions/104665/coprimes-up-to-n
@@ -131,7 +149,7 @@ function cyclesExponential( cycles, exponent ) {
 
 
 class Orbitation {
-    constructor( bases, linkExponents = [ -1, 2, 3 ] ) {
+    constructor( bases, param = {} ) {
         this.bases = bases;
         this.volume = bases.reduce( ( a, c ) => a * c, 1 );
         this.terminal = this.volume - 1;
@@ -146,7 +164,6 @@ class Orbitation {
             orbits.sort( ( o1, o2 ) => o1.length - o2.length );
 
             const monomial = {};
-            const conomial = {};
 
             orbits.forEach( orbit => {
 
@@ -172,20 +189,11 @@ class Orbitation {
                     matchingFragments.push( [ keyFragments.length, false, orbit ] );
                     this.fragments[ key ].push( orbit );
                 }
-
-                if ( key in conomial ) {
-                    conomial[ key ].push( matchingFragments.map( mf => mf[0] ) );
-                } else {
-                    conomial[ key ] = [ matchingFragments.map( mf => mf[0] ) ];
-                }
-
             } );
 
-            return [
-                coprime,
-                monomial,
-                conomial
-            ];
+            const order = lcma( orbits.map( o => o.length ));
+
+            return [ coprime, monomial, order ];
         } );
 
         function getMatchingRoots( roots, cycles, coprime ) {
@@ -199,23 +207,38 @@ class Orbitation {
         }
 
         this.symbols = this.roots
-            .flatMap( ( [ coprime, monomial, _ ] ) => {
+            .flatMap( ( [ coprime, monomial, order ] ) => {
 
-                const cycles = Object.values( monomial ).flatMap( c => c );
+                const cycles = Object
+                    .values( monomial )
+                    .flatMap( c => c );
 
-                const expMatches = linkExponents
-                    .map( exponent => {
-                        const expCycles = cyclesExponential( cycles, exponent );
+                var expMatches = [];
 
+                [ -1 ].forEach( exponent => {
+                    const inverseCycles = cyclesExponential( cycles, exponent );
+                    const matchingRoots = getMatchingRoots( this.roots, inverseCycles );
+                    if ( matchingRoots.length > 0 ) {
+                        const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
+                        expMatches.push( [ coprime, exponent, expCoPrime ] );
+                    }
+                } );
+
+                var expCycles = [ ...cycles ];
+                for ( var exponent = 2; exponent < order; exponent++ ) {
+                        expCycles = composePermutations( cycles, expCycles )
                         const matchingRoots = getMatchingRoots( this.roots, expCycles );
-
                         if ( matchingRoots.length > 0 ) {
                             const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
-                            return [ coprime, exponent, expCoPrime ];
-                        } else {
-                            return [];
+                            if ( expCoPrime != coprime || exponent == -1 ) {
+                                expMatches.push( [ coprime, exponent, expCoPrime ] );
+                            }
                         }
-                    } );
+                }
+
+                expMatches = expMatches
+                    .filter( ( [ coprime, exponent, expCoPrime ] ) => expMatches
+                        .filter( em => ( expCoPrime == em[ 2 ] ) && exponent <= em[ 2 ] ) );
 
                 const inverses = expMatches
                     .filter( ( [ coprime, exponent, expCoPrime ] ) => exponent == -1 )
@@ -234,6 +257,61 @@ class Orbitation {
                 }
                 return a;
             }, {} );
+
+
+        const points = [];
+        this.roots = this
+            .roots
+            .map( root => {
+                root.point = {
+                    'coprime': root[0],
+                    'monomial': monomialHtml( root[1] ),
+                    'coord': randomSpherePoint( [ 0, 0, 0 ], 1 )
+                };
+
+                if ( ( this.volume % root.point.coprime ) == 0 ) {
+                    points.push( root.point );
+                } else {
+                    const coprimeSymbols = this.symbols[ root.point.coprime ];
+                    if ( coprimeSymbols && coprimeSymbols.find( ( [ c, _ ] ) => ( this.volume % c ) == 0 ) ) {
+                        points.push( root.point );
+                    } else {
+                        //console.log( `dropped point: ${ JSON.stringify( root.point ) } `);
+                        delete this.symbols[ root.point.coprime ];
+                        return null;
+                    }
+                }
+                return root;
+            } )
+            .filter( root => root );
+
+        // build links between points
+        const getPoint = ( coprime ) => points.filter( p => p.coprime == coprime )[0];
+
+        const linkExponents = [];
+
+        points.forEach( point => {
+            point.links = this
+                .symbols[ point.coprime ]
+                .filter( ( [ c, _ ] ) => ( this.volume % c ) == 0 )
+                .map( ( [ c, exp ] ) => [ getPoint( c ), exp ] )
+                // exclude self-references
+                .filter( ( [ p, exp ] ) => p != point );
+
+            point.links.forEach( ( [ _, exp ] ) => linkExponents.includes( exp ) ? 0 : linkExponents.push( exp ) );
+        } );
+
+        linkExponents.sort( ( a, b ) => a - b );
+
+        const getRodLength = ( rod, rodPower = 1, inverseRod = 1000 ) => ( rod > 0 ) ? rod**rodPower : inverseRod;
+        const getRodStrength = ( rod, rodPower = 2, inverseRod = 0.000001 ) => ( rod > 0 ) ? ( 1 / rod )**rodPower : inverseRod;
+
+        this.linkParam = linkExponents
+            .map( le => [ le, getRodLength( le, 1.2 ), getRodStrength( le, 3 ), this.linkColor( le ) ] );
+
+        this.points = points;
+
+        this.buildX3domGraph();
     }
 
     fragmentsBlock() {
@@ -249,7 +327,7 @@ class Orbitation {
         const tableId = `symbols-${ this.volume }`;
 
         const header = [
-            [ "coprime", 'text' ],
+            [ "coprime", 'number' ],
             [ "match", 'text' ]
         ];
 
@@ -257,11 +335,30 @@ class Orbitation {
             .entries( this.symbols )
             .map( ( [ coprime, refs ] ) => [ coprime, refs.map( ref => `${ ref[ 0 ] }<sup>${ ref[ 1 ] }</sup>` ).join( ', ' ) ] );
 
-        return `<div class="floatLeft"><table id="${ tableId }" class='sortable symbol-details'>`
-            + `<caption>Symbols</caption>`
-            + "<tr>" + header.map( (h,i) => `<th onclick='sortTable( "${ tableId }", ${ i }, "${ h[ 1 ] }" )'>${ h[0] }</th>` ).join( "\n" ) + "</tr>"
-            + rows.map( row => "<tr>" + row.map( r => `<td>${ r }</td>` ).join( "\n" ) + "</tr>" ).join( "\n" )
-            + "</table></div>";
+        return reify( "table", { "id": tableId, class: "sortable, symbol-details" },
+            [
+                reify( "caption", {}, [], [ c => c.innerHTML = "Symbols" ] ),
+                reify( "tr", {},
+                    header.map( ( h, i ) => reify( "th", {}, [],
+                            [
+                                c => c.onclick = () => sortTable( tableId, i, h[ 1 ] ),
+                                c => c.innerHTML = h[0]
+                            ]
+                        )
+                    )
+                ),
+                ...rows.map( row => reify( "tr", {},
+                    row.map( r => reify( "td", {}, [],
+                            [
+                                c => c.onclick = () => {
+                                    //sceneRoot.runtime.showObject( cone )
+                                },
+                                c => c.innerHTML = r
+                            ]
+                        )
+                    ) ) )
+            ]
+        );
     }
 
     htmlTable() {
@@ -271,7 +368,6 @@ class Orbitation {
         const header = [
             ["coprime", 'number' ],
             ["monomial", 'text' ],
-//            ["conomial", 'text' ],
             ["cycles", 'cycles' ]
         ];
 
@@ -298,7 +394,13 @@ class Orbitation {
             + "</table>";
     }
 
-    x3domGroup() {
+    linkColor( exp ) {
+        return ( exp == -1 )
+            ? "gray"
+            : colorForIndex( exp );
+    }
+
+    buildX3domGraph() {
 
         const rows = Object
             .entries( this.symbols )
@@ -306,45 +408,7 @@ class Orbitation {
 
         const coord = () => 2 * ( 0.5 - Math.random() );
 
-        function randomSpherePoint( origin, radius ) {
-           const [ x0, y0, z0 ] = origin;
-           var u = Math.random();
-           var v = Math.random();
-           var theta = 2 * Math.PI * u;
-           var phi = Math.acos(2 * v - 1);
-           var x = x0 + (radius * Math.sin(phi) * Math.cos(theta));
-           var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
-           var z = z0 + (radius * Math.cos(phi));
-           return [ x, y, z ];
-        }
 
-        const points = [];
-        this
-            .roots
-            .map( root => points.push( {
-                'coprime': root[0],
-                'monomial': monomialHtml( root[1] ),
-                'coord': randomSpherePoint( [ 0, 0, 0 ], 1 )
-            } ) );
-
-        // build links between points
-        const getPoint = ( coprime ) => points.filter( p => p.coprime == coprime )[0];
-
-        points.forEach( point => {
-            point.links = this
-                .symbols[ point.coprime ]
-                .map( ( [ c, exp ] ) => [ getPoint( c ), exp ] )
-                // exclude self-references
-                .filter( ( [ p, exp ] ) => p != point );
-        } );
-
-        const linkColor = ( exp ) => ( exp == -1 )
-            ? "gray"
-            : ( exp == 2 )
-                ? "blue"
-                : ( exp == 3 )
-                    ? "green"
-                    : "red";
 
         const linkRadius = ( exp ) => ( exp == -1 )
             ? 0.001
@@ -365,28 +429,28 @@ class Orbitation {
 
 
         // build x3dom shapes and links
-        points
+        this.points
             .forEach( p => {
 
-                const radius = 0.01;
+                const radius = 0.1;
                 p.shapeLinks = p.links
                     .map( ( [ linkPoint, exp ] ) => [
                         linkPoint,
                         exp,
-                        ...createCylinder( p, linkPoint, linkColor( exp ), linkRadius( exp ) ) ] );
+                        ...createCylinder( p, linkPoint, this.linkColor( exp ), linkRadius( exp ) ) ] );
 
                 p.shape = reify(
                     "transform",
                     { "translation": p.coord.join( ' ' ) },
                     [
-                        createSphereShape( `coprime-${ p.coprime }`, "0.1", "red", 0, `${ p.coprime } | ${ p.monomial }`, true ),
+                        createSphereShape( `coprime-${ p.coprime }`, radius, "red", 0, `${ p.coprime } | ${ p.monomial }`, true ),
                         ...p.shapeLinks.map( sl => sl[2] )
                     ] );
 
                 p.moveLinks = () => moveLinks( p );
             } );
 
-        return points;
+        return this.points;
     }
 
 }

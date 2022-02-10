@@ -31,7 +31,12 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
         });
     }
     if ( children ) {
-        children.forEach( x => e.appendChild( x ) );
+        const handledError = new Error( `Bad Child: tag=${ tag }, attr=${ attr }, children=${ children }` );
+        try {
+            children.forEach( x => e.appendChild( x ) );
+        } catch ( e ) {
+            throw handledError;
+        }
     }
     if ( ops ) {
         ops.forEach( x => x( e ) );
@@ -358,6 +363,19 @@ function getEuclideanRadiance( bases ) {
     return ( c - s + t ) / 2;
 }
 
+function randomSpherePoint( origin, radius ) {
+    const [ x0, y0, z0 ] = origin;
+    var u = Math.random();
+    var v = Math.random();
+    var theta = 2 * Math.PI * u;
+    var phi = Math.acos(2 * v - 1);
+    var x = x0 + (radius * Math.sin(phi) * Math.cos(theta));
+    var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
+    var z = z0 + (radius * Math.cos(phi));
+    return [ x, y, z ];
+}
+
+
 
 /*
     calculate array of place values
@@ -439,4 +457,84 @@ function placeValuesPermutation( bases, placePermutation = [] ) {
         acc = acc * bases[place];
     }
     return p;
+}
+
+function composeCyclePair( c0, c1 ) {
+    const [ e00, e10 ] = [ [ ...c0 ], [ ...c1 ] ];
+    const [ l0, l1 ] = [ e00.length, e10.length ];
+
+    const e01 = e00.map( ( _, i ) => e00[ ( i + 1 ) % l0 ] );
+    const e02 = [ ...e01 ];
+
+    e10.forEach( ( p, i ) => {
+        const h = e01.indexOf( p );
+        const q = e10[ ( i + 1 ) % l1 ];
+        if ( h == -1 ) {
+            e00.push( p );
+            e02.push( q );
+        } else {
+            e02[ h ] = q;
+        }
+    } );
+
+    const extractNextLink = ( i ) => [ ...e00.splice( i, 1 ), ...e02.splice( i, 1 ) ];
+    const cycles = [];
+    while ( e00.length > 0 ) {
+        var link = extractNextLink( 0 );
+        if ( link[0] == link[1] ) {
+            cycles.push( [ link[0] ] );
+        } else {
+            const cycle = [ link[ 0 ] ];
+            while ( link[1] != cycle[0] ) {
+                link = extractNextLink( e00.indexOf( link[1] ) );
+                cycle.push( link[0] );
+            }
+            cycles.push( cycle );
+        }
+    }
+    return cycles;
+}
+
+
+function composePermutations( p0, p1 ) {
+    const index0 = [];
+    p0.forEach( c0 => index0.push( ...c0.filter( x => !index0.includes( x ) ) ) );
+    p1.forEach( c0 => index0.push( ...c0.filter( x => !index0.includes( x ) ) ) );
+    index0.sort();
+
+    const index1 = index0.map( i => {
+        var engagedCycle = p1.find( c1 => c1.includes( i ) );
+
+        var stageValue = i;
+
+        if ( engagedCycle ) {
+            const j = engagedCycle.indexOf( i );
+            stageValue = engagedCycle[ ( j + 1 ) % engagedCycle.length ];
+        }
+
+        engagedCycle = p0.find( c0 => c0.includes( stageValue ) );
+
+        if ( engagedCycle ) {
+            const j = engagedCycle.indexOf( stageValue );
+            stageValue = engagedCycle[ ( j + 1 ) % engagedCycle.length ];
+        }
+        return stageValue;
+    } );
+
+    const extractNextLink = ( i ) => [ ...index0.splice( i, 1 ), ...index1.splice( i, 1 ) ];
+    const cycles = [];
+    while ( index0.length > 0 ) {
+        var link = extractNextLink( 0 );
+        if ( link[0] == link[1] ) {
+            cycles.push( [ link[0] ] );
+        } else {
+            const cycle = [ link[ 0 ] ];
+            while ( link[1] != cycle[0] ) {
+                link = extractNextLink( index0.indexOf( link[1] ) );
+                cycle.push( link[0] );
+            }
+            cycles.push( cycle );
+        }
+    }
+    return cycles;
 }

@@ -155,6 +155,7 @@ class Orbitation {
         this.volume = bases.reduce( ( a, c ) => a * c, 1 );
         this.terminal = this.volume - 1;
         this.coprimes = getCoprimesLessThan( this.terminal );
+        this.cofactors = this.coprimes.filter( coprime => ( this.volume % coprime ) == 0 );
 
         this.fragments = {};
 
@@ -208,7 +209,7 @@ class Orbitation {
         }
 
         this.symbols = this.roots
-            .flatMap( ( [ coprime, monomial, order ] ) => {
+            .flatMap( ( [ coprime, monomial, order, point ] ) => {
 
                 const cycles = Object
                     .values( monomial )
@@ -261,44 +262,62 @@ class Orbitation {
 
 
         this.points = [];
-        this.roots = this
-            .roots
-            .map( root => {
-                root.point = {
-                    'coprime': root[0],
-                    'monomial': monomialHtml( root[1] ),
-                    'coord': randomSpherePoint( [ 0, 0, 0 ], 1 )
-                };
-
-                if ( ( this.volume % root.point.coprime ) == 0 ) {
-                    this.points.push( root.point );
-                } else {
-                    const coprimeSymbols = this.symbols[ root.point.coprime ];
-                    if ( coprimeSymbols && coprimeSymbols.find( ( [ c, _ ] ) => ( this.volume % c ) == 0 ) ) {
-                        this.points.push( root.point );
-                    } else {
-                        //console.log( `dropped point: ${ JSON.stringify( root.point ) } `);
-                        delete this.symbols[ root.point.coprime ];
-                        return null;
-                    }
-                }
-                return root;
-            } )
-            .filter( root => root );
+        this.roots.forEach( root => {
+            const point = {
+                'coprime': root[0],
+                'cofactor':  this.cofactors.includes( root[0] ),
+                'monomial': monomialHtml( root[1] ),
+                'coord': randomSpherePoint( [ 0, 0, 0 ], 1 ),
+                'velocity': [ 0, 0, 0 ],
+                'mass': 1.0
+            };
+            root.push( point );
+            this.points.push( point );
+        } );
 
         // build links between points
         const linkExponents = [];
-
         this.points.forEach( point => {
             point.links = this
                 .symbols[ point.coprime ]
-                .filter( ( [ c, _ ] ) => ( this.volume % c ) == 0 )
                 .map( ( [ c, exp ] ) => [ this.getPoint( c ), exp ] )
                 // exclude self-references
-                .filter( ( [ p, exp ] ) => p != point );
-
-            point.links.forEach( ( [ _, exp ] ) => linkExponents.includes( exp ) ? 0 : linkExponents.push( exp ) );
+                //.filter( ( [ p, exp ] ) => p != point )
+                .filter( p => p );
         } );
+
+        const linksStats = {
+            total: 0,
+            removed: 0
+        };
+
+        this.points.forEach( point => {
+            const links = point.links || [];
+            linksStats.total += links.length;
+            links
+                .map( link => {
+                    const [ p, exp ] = link;
+                    const reverseLink = p
+                        .links
+                        .find( ( [ pl, exp ] ) => pl == point && exp > -1 );
+                    if ( reverseLink ) {
+                        if ( exp < reverseLink[1] ) {
+                            p.links.splice( p.links.indexOf( reverseLink ), 1 );
+                        } else {
+                            point.links.splice( point.links.indexOf( link ), 1 );
+                        }
+                        linksStats.removed++;
+                    }
+                } );
+        } );
+
+        this.points.forEach( point => {
+            point.links.forEach( ( [ _, exp ] ) => linkExponents.includes( exp ) ? 0 : linkExponents.push( exp ) );
+            point.mass = 1 + point.links.length;
+        } );
+
+        console.log( `Link stats: ${ JSON.stringify( linksStats ) }`);
+
 
         linkExponents.sort( ( a, b ) => a - b );
 
@@ -372,37 +391,77 @@ class Orbitation {
         );
     }
 
-    htmlTable() {
+    htmlTable( excludes = [ "cycles" ] ) {
 
         const tableId = `system-${ this.volume }`;
 
         const header = [
-            ["coprime", 'number' ],
-            ["monomial", 'text' ],
-            ["cycles", 'cycles' ]
+            [ "coprime", 'number' ],
+            [ "cofactor", "text" ],
+            [ "monomial", 'text' ],
+            [ "links", 'text' ],
+            [ "cycles", 'cycles' ]
         ];
+
+        function coprimeHtml( point ) {
+            return point.cofactor
+                ? point.coprime
+                : `{${ point.coprime }}`;
+        }
+
+        function cofactorHtml( point ) {
+            const inverseCoprime = point
+               .links
+               .filter( ( [ p, exp ] ) => exp == -1 )
+               .map( ( [ p, _ ] ) => p.coprime );
+            return point.cofactor
+                ? inverseCoprime
+                : `{${ inverseCoprime }}`;
+        }
 
         const rows = this
             .roots
-            .map( root => [
-                root[0],
-                monomialHtml( root[1] ),
+            .map(  ( [ coprime, monomial, order, point ] ) => [
+                point,
+                monomial,
+                point.links ? point.links.map( ( [ linkPoint, linkExp ] ) => `${ linkPoint.coprime }<sup>${ linkExp }</sup>` ).join( ", " ) : "-",
                 "<div class='cycles'>" + Object
-                    .entries( root[1] )
+                    .entries( monomial )
                     .map( ( [ key, orbits ] ) => `${ key } * ${ orbits.length } = ` + orbits.map( orbit => `( ${ orbit.join( ' ' ) } )` ).join( '' ) )
                     .map( orbitsRow => `<span>${ orbitsRow }</span>` )
                     .join( '<br/>\n' )
                 + "</div>"
             ] );
 
-        const fragmentsCount = Object.values( this.fragments ).reduce( (a,c) => a + c.length, 0 );
-        const orbitsCount = this.roots.reduce( ( a, root ) => a + Object.values( root[2] ).reduce( ( b, orbits ) => b + orbits.length, 0 ), 0 );
-
-        return `<table id="${ tableId }" class='sortable symbol-details'>`
-            + `<caption>Orbitation: [ ${ this.bases.join( ', ' ) } ], terminal: ${ this.terminal }, fragments: ${ fragmentsCount }, orbits: ${ orbitsCount }</caption>`
-            + "<tr>" + header.map( (h,i) => `<th onclick='sortTable( "${ tableId }", ${ i }, "${ h[ 1 ] }" )'>${ h[0] }</th>` ).join( "\n" ) + "</tr>"
-            + rows.map( row => "<tr>" + row.map( r => `<td>${ r }</td>` ).join( "\n" ) + "</tr>" ).join( "\n" )
-            + "</table>";
+        return reify( "table", { id: tableId, class: "sortable, symbol-details" }, [
+            reify( "caption", {}, [], [ c => c.innerHTML = `Orbitation: [ ${ this.bases.join( ', ' ) } ], terminal: ${ this.terminal }` ] ),
+            reify(
+                "tr",
+                {},
+                header
+                    .filter( h => !excludes.includes( h[0] ) )
+                    .map( (h,i) => reify( "th", {}, [], [
+                    c => c.onclick = () => sortTable( tableId, i, h[ 1 ] ),
+                    c => c.innerHTML = h[0]
+                ] ) ) ),
+            ...rows
+                .flatMap( ( [ point, monomial, linksHtml, cyclesHtml ], i ) => reify(
+                    "tr", { id: `${ tableId }-${ point.coprime }` },
+                    [
+                        reify( "td", {}, [], [ c => c.innerHTML = coprimeHtml( point ) ] ),
+                        reify( "td", {}, [], [ c => c.innerHTML = cofactorHtml( point ) ] ),
+                        reify( "td", {}, [], [ c => c.innerHTML = monomialHtml( monomial ) ] ),
+                        reify( "td", {}, [], [ c => c.innerHTML = linksHtml ] ),
+                        excludes.includes( "cycles" ) ? null : reify( "td", {}, [], [ c => c.innerHTML = cyclesHtml ] )
+                    ].filter( c => c ),
+                    [
+                        c => c.onclick = () => {
+                            if ( this.selectTableRow( point.coprime ) ) {
+                                this.x3dRoot.runtime.showObject( point.shape )
+                            }
+                        }
+                    ] )
+                ) ] );
     }
 
     linkColor( exp ) {
@@ -425,6 +484,21 @@ class Orbitation {
             ? 0.001
             : 0.01;
 
+        const movePoint = ( point, minDist = 0.00001 ) => {
+            const tCoord = point
+                .shape
+                .getAttribute( "translation" )
+                .split( ' ' )
+                .map( t => Number( t ) );
+            if ( !arrayAlmostEqual( tCoord, point.coord, minDist ) ) {
+                point
+                    .shape
+                    .setAttribute( "translation", point.coord.join( ' ' ) );
+                return true;
+            } else {
+                return false;
+            }
+        };
         const moveLinks = ( point ) => {
             point
                 .shapeLinks
@@ -443,7 +517,8 @@ class Orbitation {
         this.points
             .forEach( p => {
 
-                const radius = 0.1;
+                const radius = p.cofactor ? 0.15 : 0.1;
+                const color = p.cofactor ? "red" : "yellow";
                 p.shapeLinks = p.links
                     .map( ( [ linkPoint, exp ] ) => [
                         linkPoint,
@@ -454,14 +529,38 @@ class Orbitation {
                     "transform",
                     { "translation": p.coord.join( ' ' ) },
                     [
-                        createSphereShape( `coprime-${ p.coprime }`, radius, "red", 0, `${ p.coprime } | ${ p.monomial }`, true ),
+                        createSphereShape( `coprime-${ p.coprime }`, radius, color, 0, `${ p.coprime } | ${ p.monomial }`, true ),
                         ...p.shapeLinks.map( sl => sl[2] )
+                    ],
+                    [
+                        shape => shape.onclick = () => this.selectTableRow( p.coprime )
                     ] );
 
+                p.move = () => movePoint( p, this.param.minDist );
                 p.moveLinks = () => moveLinks( p );
             } );
 
         return this.points;
+    }
+
+    selectTableRow( coprime ) {
+        var wasSelected = false;
+        try {
+            const tableId = `system-${ this.volume }`;
+            const table = document.getElementById( tableId );
+            table
+                .querySelectorAll( "tr.selected" )
+                .forEach( tableRows => tableRows.classList.remove("selected") );
+            table
+                .querySelectorAll( `tr#${ tableId }-${ coprime }` )
+                .forEach( selectedRow => {
+                    selectedRow.classList.add( "selected" );
+                    wasSelected = true;
+                } );
+        } catch ( e ) {
+            console.log( e );
+        }
+        return wasSelected;
     }
 
 }

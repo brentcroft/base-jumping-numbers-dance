@@ -188,7 +188,7 @@
                .forEach( stride => oneRoots( base, stride, w, h, param ) );
         }
 
-        function putDomNode( node, param ) {
+        function putDomNode( node, param = {} ) {
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
             const { css = [] } = param;
@@ -222,6 +222,14 @@
                 css.push( 'leftFlow' );
             }
 
+            sourceElement
+                .parentNode
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ x3dRoot ] ) );
+
+            x3dom.reload();
+
+
+
 
             const runButton = reify( "input", { "type": "button", "value": "run" } );
             runButtonAction = ( iteration ) => {
@@ -240,64 +248,62 @@
                 }
             };
 
-            const originFactorInput = reify( "label", {},
+            const originFactorInput = reify( "div", {}, [ reify( "label", {},
             [
                 reify( "span",{},[],[ c => c.innerHTML = "origin-factor " ] ),
-                reify( "input", { type: "number", class: "decimal-input", value: orb.param.originFactor },
+                reify( "input", { type: "number", class: "decimal-input", step: 0.01, value: orb.param.originFactor },
                     [], [ c => c.onchange = () =>orb.param.pairFactor = c.value ] )
-            ] );
+            ] ) ] );
 
-            const pairFactorInput = reify( "label", {},
+            const pairFactorInput = reify( "div", {}, [ reify( "label", {},
             [
                 reify( "span",{},[],[ c => c.innerHTML = "pair-factor " ] ),
-                reify( "input", { type: "number", class: "decimal-input", value: orb.param.pairFactor },
+                reify( "input", { type: "number", class: "decimal-input", step: 0.1, value: orb.param.pairFactor },
                     [], [ c => c.onchange = () =>orb.param.pairFactor = c.value ] )
-            ] );
+            ] ) ] );
 
-            sourceElement
-                .parentNode
-                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [
 
-                    x3dRoot
-                ] ) );
 
-            x3dom.reload();
-
-            const linkControlHeaders = [ "exponent", "spring-length", "spring-constant", "spring-color" ];
+            const linkControlHeaders = [ "exponent", "spring-length", "spring-constant" ];
             const linkControlRows = orb.linkParam
                 .map( ( expData, i ) => reify( "tr", {},
-                    expData
-                        .map( ( x, j ) => reify( "td", {},
-                            [
-                                j == 0
-                                    ? reify( "label", {}, [], [ c => c.innerHTML = x ] )
-                                    : reify( "label", {},
-                                        [
-                                            reify(
-                                                "input", { type: j == 3 ? "text": "number", class: "decimal-input", step: 0.0001, value: x },
-                                                [],
-                                                [ c => c.onchange = () => orb.linkParam[ i ][ j ] = c.value ]
-                                            )
-                                        ] )
-                            ],
-                            [
-                                td => td.style.backgroundColor = expData[3]
-                            ]
-                        )
-                    )
+                    [
+                        reify( "td", {}, [ reify( "label", {}, [], [ c => c.innerHTML = expData[ 0 ] ] ) ] ),
+                        reify( "td", {}, [ reify( "label", {}, [
+                            reify( "input", { type: "number", class: "decimal-input", step: 0.1, value: expData[ 1 ].toFixed( 4 ) },
+                                [], [ c => c.onchange = () => orb.linkParam[ i ][ 1 ] = c.value ] ) ] ) ] ),
+                        reify( "td", {}, [ reify( "label", {}, [
+                            reify( "input", { type: "number", class: "decimal-input", step: 0.000001, value: expData[ 2 ].toFixed( 10 ) },
+                                [], [ c => c.onchange = () => orb.linkParam[ i ][ 2 ] = c.value ] ) ] ) ] )
+                    ],
+                    [
+                        tr => tr.style.backgroundColor = expData[ 3 ]
+                    ]
                 ) );
 
-            const linkControls = reify( "table", {},
-                    [
-                        reify( "tr", {}, linkControlHeaders.map( h => reify( "th", {}, [], [ c => c.innerHTML = h ] ) ) ),
-                        ...linkControlRows
-                    ]
-                );
+            const linkControls = reify( "div", { id: "link_controls" },
+                [
+                    reify( "table", {},
+                        [
+                            reify( "tr", {}, linkControlHeaders.map( h => reify( "th", {}, [], [ c => c.innerHTML = h ] ) ) ),
+                            ...linkControlRows
+                        ]
+                    )
+                ],
+                [
+                    c => c.style.display = 'none'
+                ]);
 
             sourceElement
                 .parentNode
-                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'leftFlow' ].join( "," ) }, [
-                    originFactorInput, pairFactorInput, runButton,
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'rightFlow' ].join( "," ) }, [
+                    runButton,
+                    originFactorInput,
+                    pairFactorInput,
+                    reify( "label", {}, [
+                        reify( "text", {}, [], [ t => t.textContent = "show/hide link controls" ] ),
+                        reify( "input", { type: "checkbox" }, [], [ input => input.onclick = () => showHide( "link_controls", input ) ] )
+                    ] ),
                     linkControls
                 ] ) );
 
@@ -317,10 +323,6 @@
             applyForces( orb, param, runButtonAction );
         }
     </script>
-
-
-
-
     <style>
         .scriptPanel {
             width: 100%;
@@ -334,7 +336,7 @@
             overflow-wrap: normal;
             overflow-x: scroll;
         }
-        .symbol-details { font-size: 90%; border-top: solid 1px black; border-bottom: solid 1px black }
+        .symbol-details { font-size: 80%; border-top: solid 1px black; border-bottom: solid 1px black }
         .symbol-details tr { vertical-align: top; }
         .symbol-details tr:nth-child(even) { background: Ivory; }
         .symbol-details tr:nth-child(odd) { background: WhiteSmoke; }
@@ -350,8 +352,16 @@
         .rightFlow {
            float: right;
         }
-        input[ type=number ].decimal-input {
-            width: 300px;
+
+        div input[ type=number ].decimal-input {
+            width: 150px;
+        }
+        td input[ type=number ].decimal-input {
+            width: 100%;
+        }
+
+        tr.selected td {
+            background: pink;
         }
 
     </style>
@@ -363,22 +373,23 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="1">const param = {
-    forces: [ 'origin', 'link', 'pair' ],
+    forces: [ 'xorigin', 'pair', 'link' ],
     originFactor: 0.01,
-    pairFactor: -8,
-    minDist: 0.000001,
-    minDelta: 0.000001,
-    maxDelta: 1,
+    pairFactor: -3,
+    rodLengthExp: 1,
+    rodStrengthExp: 2,
+    newtonian: true,
+    friction: 0.96,
+    minDist: 0.000000000001,
+    minDelta: 0.000000000001,
+    maxDelta: 10,
     burst: 100,
-    rodLengthExp: 1.2,
-    rodStrengthExp: 2.5
 };
-const orb = new Orbitation( [ 2, 2, 2, 5 ], param );
-putX3DomNode( orb, { css: [ 'resizable' ], iterations: 10000, tickTime: 10, ...param } );
-putDomNode( orb.symbolsTable(), { css: [ 'rightFlow' ] } );
-pagebreak();
+examples = [ [ 2, 2, 3 ], [ 3, 3, 5 ] ];
+const orb = new Orbitation( [ 40 ], param );
+putX3DomNode( orb, { css: [ 'resizable', 'leftFlow' ], iterations: 2000, tickTime: 10, ...param } );
+putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putHtml( orb.fragmentsBlock() );
-putHtml( orb.htmlTable() );
 </textarea>
 </body>
 </html>

@@ -7,7 +7,7 @@ function minAbs( maxDelta, value ) {
         : Math.min( maxDelta, value );
 }
 
-function inverseForce( pointA, pointB, factor = 1, param = {} ) {
+function inverseForce( pointA, pointB, param = {} ) {
     const {
         minDist = 0.001,
         maxDelta = 0.01,
@@ -19,9 +19,7 @@ function inverseForce( pointA, pointB, factor = 1, param = {} ) {
     if ( r < minDist ) {
         return [ d, r, [ 0, 0, 0 ] ];
     }
-    const u = normalize( d )
-        .map( x => minAbs( maxDelta, factor * x / r ) )
-        .map( x => Math.abs( x ) < minDelta ? 0 : x );
+    const u = normalize( d );
     return [ d, r, u ];
 }
 
@@ -67,6 +65,9 @@ function springForce(  pointA, pointB, linkType, param = {}, linkParam = [] ) {
     return [ d, r, u ];
 }
 
+
+
+
 function applyForces( orb, param, onIteration ) {
 
     const [ points, linkParam ] = [ orb.points, orb.linkParam ];
@@ -98,7 +99,7 @@ function applyForces( orb, param, onIteration ) {
                     // only points that are not self inverse feel the origin force
                     //.filter( p => p.links.length == 0 || p.links.filter( ( [ linkPoint, exp ] ) => exp == -1 ).length > 0 )
                     .forEach( p => {
-                        const [ d, r2, u ] = inverseForce( origin, p, orb.param.originFactor, orb.param );
+                        const [ d, r2, u ] = inverseForce( origin, p, orb.param );
                         p.netForce = addition( p.netForce, u )
                     } );
             }
@@ -106,8 +107,11 @@ function applyForces( orb, param, onIteration ) {
             if ( forces.includes( 'pair' ) ) {
                 // only points with non-inverse links feel the pair force
                 const linkedPoints = points
+                    .filter( p => p.coprime != 'e' )
                     .filter( p => p.links.filter( ( [ linkPoint, exp ] ) => exp != -1  ).length > 0 );
+
                 const pointPairs = pairs( linkedPoints );
+
                 if ( pointPairs.length > 0 ) {
                     const pointFactor = orb.param.pairFactor / pointPairs.length;
                     pointPairs.forEach( ( [ p1, p2 ] ) => {
@@ -121,25 +125,35 @@ function applyForces( orb, param, onIteration ) {
 
             if ( forces.includes( 'link' ) ) {
                 const linkForceAdjuster = ( point, force, link ) => {
-                    const [ otherPoint, exp, pIsCoFac, opIsCoFac ] = link;
-
+                    const [ otherPoint, exp ] = link;
                     const [ d, r2, u ] = springForce( point, otherPoint, exp, orb.param, linkParam );
                     link[0].netForce = addition( link[0].netForce, u );
-
-                    const f = pIsCoFac && opIsCoFac
-                        ? 1
-                        : pIsCoFac || opIsCoFac
-                            ? 0.5
-                            : 0.1;
-
-                    return scale( u, 1 );
+                    return u;
                 };
 
                 points
+                    .filter( p => p.coprime != 'e' )
                     .forEach( p => {
                         const linkSum = p.links
                             .filter( link => p != link[0] )
                             .map( link => linkForceAdjuster( p, link[0].netForce, link ) )
+                            .reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] );
+                        p.netForce = subtraction( p.netForce, linkSum );
+                    } );
+
+                points
+                    .filter( p => p.coprime == 'e' )
+                    .filter( p => p.links.length > 0 )
+                    .forEach( p => {
+                        const identityFactor = -1 / p.links.length ;
+                        const linkSum = p.links
+                            //.filter( link => p != link[0] )
+                            .map( link => {
+                                const [ d, r2, u ] = inverseForce( p, link[0], orb.param );
+                                const upf = scale( u, identityFactor );
+                                link[0].netForce = addition( link[0].netForce, upf );
+                                return upf;
+                            } )
                             .reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] );
                         p.netForce = subtraction( p.netForce, linkSum );
                     } );

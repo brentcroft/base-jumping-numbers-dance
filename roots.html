@@ -373,7 +373,7 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="1">const param = {
-    forces: [ 'xorigin', 'pair', 'link' ],
+    forces: [ 'pair', 'link' ],
     originFactor: 0.01,
     pairFactor: -3,
     rodLengthExp: 1,
@@ -386,7 +386,7 @@
     burst: 100,
 };
 examples = [ [ 2, 2, 3 ], [ 3, 3, 5 ] ];
-const orb = new Orbitation( [ 40 ], param );
+const orb = new Orbitation( [ 36 ], param );
 putX3DomNode( orb, { css: [ 'resizable', 'leftFlow' ], iterations: 2000, tickTime: 10, ...param } );
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putHtml( orb.fragmentsBlock() );

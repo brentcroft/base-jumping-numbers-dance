@@ -162,6 +162,7 @@ function sortTable( tableId, columnIndex, columnType ) {
                           var yV = Product( yT );
                           break;
 
+
                         default:
                           var xV = xT;
                           var yV = yT;

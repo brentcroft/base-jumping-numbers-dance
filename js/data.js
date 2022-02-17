@@ -56,6 +56,17 @@ function reifyData( tag, data ) {
     );
 }
 
+function reifyInput( label, attr = { type: 'text' }, onChangeValue ) {
+    return reify( "div", {}, [
+        reify( "label", {}, [
+            reify( "span",{},[],[ c => c.textContent = label ] ),
+            reify( "input", attr, [], [
+                c => onChangeValue
+                    ? c.onchange = () => onChangeValue( c.value )
+                    : null ] )
+        ] ) ] );
+}
+
 /**
 
 */

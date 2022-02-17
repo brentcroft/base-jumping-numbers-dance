@@ -201,38 +201,37 @@
         function putX3DomNode( orb, param = {} ) {
             const { css = [] } = param;
 
-            const x3dRoot = reify(
-                "x3d",
-                { "width": "100%", "height": "100%" },
-                [
-                    reify(
-                        "scene",
-                        { "id": "plot_scene_root" },
-                        orb.points.map( p => p.shape )
-                    )
-                ]
+            orb.x3dRoot = reify( "x3d", { "width": "100%", "height": "100%" },
+                [ reify( "scene", { "id": "plot_scene_root" }, orb.points.map( p => p.shape ) ) ]
             );
-
-            orb.x3dRoot = x3dRoot;
 
             const sourceId = 'calculationScript';
             const sourceElement = document.getElementById( sourceId );
 
-            if ( !css.includes( 'rightFlow' ) ) {
-                css.push( 'leftFlow' );
-            }
-
             sourceElement
                 .parentNode
-                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ x3dRoot ] ) );
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ orb.x3dRoot ] ) );
 
             x3dom.reload();
 
+            orb.points.forEach( p => {
+                new x3dom.Moveable(
+                    orb.x3dRoot,
+                    p.shape,
+                    ( shape, position ) => {
+                         p.coord = [ position.x, position.y, position.z ];
+                         p.moveLinks();
+                    },
+                    0 );
+            } );
+        }
 
-
+        function putForceControls( orb, param = {} ) {
+            const { css = [], autoRun = true } = param;
 
             const runButton = reify( "input", { "type": "button", "value": "run" } );
-            runButtonAction = ( iteration ) => {
+
+            const onIterationAction = ( iteration ) => {
                 if ( iteration == 0 ) {
                     runButton.value = 'forces';
                     param.running = false;
@@ -240,27 +239,34 @@
                     runButton.value = iteration;
                 };
             };
+
             runButton.onclick = () => {
                 if ( param.running ) {
                     param.running = false;
+                    runButton.value = 'forces';
                 } else {
-                    applyForces( orb, param, runButtonAction )
+                    applyForces( orb, onIterationAction );
                 }
             };
 
-            const originFactorInput = reify( "div", {}, [ reify( "label", {},
-            [
-                reify( "span",{},[],[ c => c.innerHTML = "origin-factor " ] ),
-                reify( "input", { type: "number", class: "decimal-input", step: 0.01, value: orb.param.originFactor },
-                    [], [ c => c.onchange = () =>orb.param.pairFactor = c.value ] )
-            ] ) ] );
 
-            const pairFactorInput = reify( "div", {}, [ reify( "label", {},
-            [
-                reify( "span",{},[],[ c => c.innerHTML = "pair-factor " ] ),
-                reify( "input", { type: "number", class: "decimal-input", step: 0.1, value: orb.param.pairFactor },
-                    [], [ c => c.onchange = () =>orb.param.pairFactor = c.value ] )
-            ] ) ] );
+            const identityFactorInput = reifyInput(
+                "identity-factor: ",
+                { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.identityFactor },
+                identityFactor => orb.param.identityFactor = identityFactor
+            );
+
+            const pairFactorInput = reifyInput(
+                "pair-factor: ",
+                { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.pairFactor },
+                pairFactor => orb.param.pairFactor = pairFactor
+            );
+
+            const frictionInput = reifyInput(
+                "friction: ",
+                { type: "number", class: "decimal-input", max: 1, min: 0, step: 0.01, value: orb.param.friction },
+                friction => orb.param.friction = friction
+            );
 
 
 
@@ -281,7 +287,7 @@
                     ]
                 ) );
 
-            const linkControls = reify( "div", { id: "link_controls" },
+            const linkControls = reify( "div", { id: "link_controls", class: "summaryLeft" },
                 [
                     reify( "table", {},
                         [
@@ -294,12 +300,16 @@
                     c => c.style.display = 'none'
                 ]);
 
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+
             sourceElement
                 .parentNode
-                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'rightFlow' ].join( "," ) }, [
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [
                     runButton,
-                    originFactorInput,
+                    identityFactorInput,
                     pairFactorInput,
+                    frictionInput,
                     reify( "label", {}, [
                         reify( "text", {}, [], [ t => t.textContent = "show/hide link controls" ] ),
                         reify( "input", { type: "checkbox" }, [], [ input => input.onclick = () => showHide( "link_controls", input ) ] )
@@ -307,20 +317,9 @@
                     linkControls
                 ] ) );
 
-
-
-            orb.points.forEach( p => {
-                new x3dom.Moveable(
-                    x3dRoot,
-                    p.shape,
-                    ( shape, position ) => {
-                         p.coord = [ position.x, position.y, position.z ];
-                         p.moveLinks();
-                    },
-                    0 );
-            } );
-
-            applyForces( orb, param, runButtonAction );
+            if ( autoRun ) {
+                applyForces( orb, onIterationAction );
+            }
         }
     </script>
     <style>
@@ -372,10 +371,11 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="1">const param = {
+    <textarea id="calculationScript" class="scriptPanel" rows="1">const bases = [ 2, 2, 2, 5 ];
+const param = {
     forces: [ 'pair', 'link' ],
-    originFactor: 0.01,
-    pairFactor: -3,
+    identityFactor: 0.1,
+    pairFactor: -10,
     rodLengthExp: 1,
     rodStrengthExp: 2,
     newtonian: true,
@@ -384,11 +384,17 @@
     minDelta: 0.000000000001,
     maxDelta: 10,
     burst: 100,
+    iterations: 2000,
+    tickTime: 10
 };
-examples = [ [ 2, 2, 3 ], [ 3, 3, 5 ] ];
-const orb = new Orbitation( [ 36 ], param );
-putX3DomNode( orb, { css: [ 'resizable', 'leftFlow' ], iterations: 2000, tickTime: 10, ...param } );
+const orb = new Orbitation( bases, param );
+
+putX3DomNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
+putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: true } );
+
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
+putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );
+
 putHtml( orb.fragmentsBlock() );
 </textarea>
 </body>

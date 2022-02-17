@@ -203,8 +203,6 @@ class Orbitation {
             return [ coprime, monomial, order ];
         } ) );
 
-
-
         function getMatchingRoots( roots, cycles, coprime ) {
             const matchingRoots = roots
                 .filter( ( [ coprime2, monomial2, _ ] ) => {
@@ -215,51 +213,39 @@ class Orbitation {
             return matchingRoots;
         }
 
-        this.symbols = this.roots
-            //.filter( root => root != identityRoot )
-            .flatMap( ( [ coprime, monomial, order, point ] ) => {
-
+        this.roots
+            .forEach( root => {
+                const [ coprime, monomial, order ] = root;
                 const cycles = Object
                     .values( monomial )
                     .flatMap( c => c );
 
-                var expMatches = [];
-
-                [ -1 ].forEach( exponent => {
-                    const inverseCycles = cyclesExponential( cycles, exponent );
-                    const matchingRoots = getMatchingRoots( this.roots, inverseCycles );
-                    if ( matchingRoots.length > 0 ) {
-                        const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
-                        expMatches.push( [ coprime, exponent, expCoPrime ] );
-                    }
-                } );
-
+                const powers = [];
                 var expCycles = [ ...cycles ];
                 for ( var exponent = 2; exponent < order; exponent++ ) {
                         expCycles = composePermutations( cycles, expCycles )
                         const matchingRoots = getMatchingRoots( this.roots, expCycles );
                         if ( matchingRoots.length > 0 ) {
                             const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
-                            if ( expCoPrime != coprime || exponent == -1 ) {
-                                expMatches.push( [ coprime, exponent, expCoPrime ] );
-                            }
+                            const inverse = ( exponent == ( order - 1 ) );
+                            powers.push( [ exponent, expCoPrime, inverse ] );
                         }
                 }
 
-                expMatches = expMatches
-                    .filter( ( [ coprime, exponent, expCoPrime ] ) => expMatches
-                        .filter( em => ( expCoPrime == em[ 2 ] ) && exponent <= em[ 2 ] ) );
+                root.push( powers );
+            } )
 
-                const inverses = expMatches
-                    .filter( ( [ coprime, exponent, expCoPrime ] ) => exponent == -1 )
-                    .map( ( [ coprime, exponent, expCoPrime ] ) => expCoPrime );
 
-                return expMatches
-                    .filter( ( [ coprime, exponent, expCoPrime ] ) => exponent == -1 || !inverses.includes( expCoPrime ) );
+        this.symbols = this.roots
+            .flatMap( ( [ coprime, monomial, order, powers ] ) => {
+
+                var expMatches = powers.map( p => [ coprime, ...p ] );
+
+                return expMatches;
             } )
             .filter( x => x.length > 0  )
-            .reduce( ( a, [ coprime, exponent, expCoPrime ] ) => {
-                const ref = [ coprime, exponent ];
+            .reduce( ( a, [ coprime, exponent, expCoPrime, inverse ] ) => {
+                const ref = [ coprime, exponent, inverse ];
                 if ( expCoPrime in a ) {
                     a[ expCoPrime ].push( ref );
                 } else {
@@ -273,6 +259,9 @@ class Orbitation {
         this.roots.forEach( root => {
             const point = {
                 'coprime': root[0],
+                // assume self-inverse
+                'inverse': root[0],
+                'powers': root[3],
                 'cofactor': this.cofactors.includes( root[0] ),
                 'coord': randomSpherePoint( [ 0, 0, 0 ], 1 ),
                 'velocity': [ 0, 0, 0 ],
@@ -286,43 +275,20 @@ class Orbitation {
         const linkExponents = [];
         this.points.forEach( point => {
             point.links = ( point.coprime == 'e' )
-                ? this.roots.map( ( [ coprime, monomial, order ] ) => [ this.getPoint( coprime ), order ] )
-                : this.symbols[ point.coprime ]
-                      .map( ( [ c, exp ] ) => {
-                          const x = [ this.getPoint( c ), exp ];
-                          return x;
-                      } )
-                      // exclude self-references
-                      //.filter( ( [ p, exp ] ) => p != point )
-                      .filter( p => p );
+                ? this.roots.map( ( [ coprime, monomial, order ] ) => [ this.getPoint( coprime ), order, false ] )
+                : this.symbols[ point.coprime ].map( ( [ c, exp, inverse ] ) => [ this.getPoint( c ), exp, inverse ] );
         } );
 
         const linksStats = {
-            total: 0,
-            removed: 0
+            total: 0
         };
 
         this.points.forEach( point => {
             const links = point.links || [];
             linksStats.total += links.length;
             links
-                .map( link => {
-                    const [ p, exp ] = link;
-                    const reverseLink = p
-                        .links
-                        .find( ( [ pl, exp ] ) => pl == point && exp > -1 );
-                    if ( reverseLink ) {
-                        if ( exp < reverseLink[1] ) {
-                            p.links.splice( p.links.indexOf( reverseLink ), 1 );
-                        } else {
-                            point.links.splice( point.links.indexOf( link ), 1 );
-                        }
-                        linksStats.removed++;
-                    }
-                } );
-        } );
-
-        this.points.forEach( point => {
+                .filter( ( [ _, _1, inverse ] ) => inverse )
+                .forEach( ( [ p ] ) => point.inverse = p.coprime );
             point.links.forEach( ( [ _, exp ] ) => linkExponents.includes( exp ) ? 0 : linkExponents.push( exp ) );
             point.mass = 1 + point.links.length;
         } );
@@ -408,11 +374,11 @@ class Orbitation {
 
         const header = [
             [ "coprime", 'number' ],
-            [ "cofactor", "text" ],
+            [ "inverse", "number" ],
             [ "volume", "number" ],
             [ "order", "number" ],
-            [ "monomial", 'text' ],
-            [ "links", 'text' ],
+            [ "monomial", 'monomial' ],
+            [ "links", 'monomial' ],
             [ "cycles", 'cycles' ]
         ];
 
@@ -426,39 +392,34 @@ class Orbitation {
             if ( point.coprime == 'e' ) {
                 return `{${ terminal }}`;
             }
-            const inverseCoprime = point
-               .links
-               .filter( ( [ p, exp ] ) => exp == -1 )
-               .map( ( [ p, _ ] ) => p.coprime );
             return point.cofactor
-                ? inverseCoprime
-                : `{${ inverseCoprime }}`;
+                ? point.inverse
+                : `{${ point.inverse }}`;
         }
 
         function cofactorVolume( point, terminal ) {
             if ( point.coprime == 'e' ) {
                 return `${ terminal }`;
             }
-            const inverseCoprime = point
-               .links
-               .filter( ( [ p, exp ] ) => exp == -1 )
-               .map( ( [ p, _ ] ) => p.coprime );
-            return ( ( point.coprime * inverseCoprime ) - 1 ) / terminal;
+            return ( ( point.coprime * point.inverse ) - 1 ) / terminal;
         }
 
         const rows = this
             .roots
-            .map(  ( [ coprime, monomial, order, point ] ) => [
+            .map(  ( [ coprime, monomial, order, powers, point ] ) => [
                 point,
                 monomial,
                 order,
-                point.links ? point.links.map( ( [ linkPoint, linkExp ] ) => `${ linkPoint.coprime }<sup>${ linkExp }</sup>` ).join( ", " ) : "-",
+                point.coprime == 'e'
+                    ? ""
+                    : point.links
+                        ? point.links.map( ( [ linkPoint, linkExp ] ) => `${ linkPoint.coprime }<sup>${ linkExp }</sup>` ).join( ", " )
+                        : "-",
                 "<div class='cycles'>" + Object
-                    .entries( monomial )
-                    .map( ( [ key, orbits ] ) => `${ key } * ${ orbits.length } = ` + orbits.map( orbit => `( ${ orbit.join( ' ' ) } )` ).join( '' ) )
-                    .map( orbitsRow => `<span>${ orbitsRow }</span>` )
-                    .join( '<br/>\n' )
-                + "</div>"
+                        .entries( monomial )
+                        .map( ( [ key, orbits ] ) => `${ orbits.length } * ${ key } = ` + orbits.map( orbit => `( ${ orbit.join( ' ' ) } )` ).join( '' ) )
+                        .map( orbitsRow => `<span>${ orbitsRow }</span>` )
+                        .join( '<br/>\n' ) + "</div>"
             ] );
 
         return reify( "div", {}, [
@@ -477,8 +438,8 @@ class Orbitation {
                     .flatMap( ( [ point, monomial, order, linksHtml, cyclesHtml ], i ) => reify(
                         "tr", { id: `${ tableId }-${ point.coprime }` },
                         [
-                            reify( "td", {}, [], [ c => c.innerHTML = coprimeHtml( point ) ] ),
-                            reify( "td", {}, [], [ c => c.innerHTML = cofactorHtml( point, this.terminal ) ] ),
+                            reify( "td", {}, [], [ c => c.innerHTML = point.coprime ] ),
+                            reify( "td", {}, [], [ c => c.innerHTML = point.inverse ] ),
                             reify( "td", {}, [], [ c => c.innerHTML = cofactorVolume( point, this.terminal ) ] ),
                             reify( "td", {}, [], [ c => c.innerHTML = order ] ),
                             reify( "td", {}, [], [ c => c.innerHTML = monomialHtml( monomial ) ] ),
@@ -488,13 +449,17 @@ class Orbitation {
                         [
                             c => c.onclick = () => {
                                 if ( this.selectTableRow( point.coprime ) ) {
-                                    this.x3dRoot.runtime.showObject( point.shape )
+                                    document
+                                        .querySelectorAll( "#selected-cycles" )
+                                        .forEach( c => c.innerHTML = cyclesHtml );
+
+                                    this.x3dRoot.runtime.showObject( point.shape );
                                 }
                             }
                         ] )
                     )
             ] ),
-            reify( "span", { class: "summaryLeft" }, [], [ c => c.innerHTML = `Total rows: ${ rows.length }` ] )
+            reify( "div", { class: "summaryLeft" }, [], [ c => c.innerHTML = `Total rows: ${ rows.length }` ] )
         ] );
     }
 
@@ -505,10 +470,6 @@ class Orbitation {
     }
 
     buildX3domGraph() {
-
-        const rows = Object
-            .entries( this.symbols )
-            .map( ( [ coprime, refs ] ) => [ coprime, refs.map( ref => `${ ref[ 0 ] }<sup>${ ref[ 1 ] }</sup>` ).join( ', ' ) ] );
 
         const coord = () => 2 * ( 0.5 - Math.random() );
 
@@ -550,16 +511,20 @@ class Orbitation {
             .forEach( p => {
 
                 const [ sphereRadius, sphereColor, cylinderFactor ] = ( p.coprime == 'e' )
-                   ? [ 0.2, "black", 0.5 ]
+                   ? [ 0.2, "grey", 0.1 ]
                    : p.cofactor
-                        ? [ 0.15, "red", 1 ]
+                        ? [ 0.1, "red", 1 ]
                         : [ 0.1, "blue", 1 ];
 
                 p.shapeLinks = p.links
                     .map( ( [ linkPoint, exp ] ) => [
                         linkPoint,
                         exp,
-                        ...createCylinder( p, linkPoint, this.linkColor( exp ), cylinderFactor * linkRadius( exp ) ) ] );
+                        ...createCylinder(
+                            p,
+                            linkPoint,
+                            ( p.coprime == 'e' ) ? "black" : this.linkColor( exp ),
+                            cylinderFactor * linkRadius( exp ) ) ] );
 
                 p.shape = reify(
                     "transform",
@@ -584,14 +549,20 @@ class Orbitation {
         try {
             const tableId = `system-${ this.volume }`;
             const table = document.getElementById( tableId );
+            const removed = [];
             table
                 .querySelectorAll( "tr.selected" )
-                .forEach( tableRows => tableRows.classList.remove("selected") );
+                .forEach( tableRow => {
+                    tableRow.classList.remove("selected");
+                    removed.push( tableRow );
+                } );
             table
                 .querySelectorAll( `tr#${ tableId }-${ coprime }` )
                 .forEach( selectedRow => {
-                    selectedRow.classList.add( "selected" );
-                    wasSelected = true;
+                    if ( !removed.includes( selectedRow ) ) {
+                        selectedRow.classList.add( "selected" );
+                        wasSelected = true;
+                    }
                 } );
         } catch ( e ) {
             console.log( e );

@@ -68,24 +68,20 @@ function springForce(  pointA, pointB, linkType, param = {}, linkParam = [] ) {
 
 
 
-function applyForces( orb, param, onIteration ) {
+function applyForces( orb, onIteration ) {
 
     const [ points, linkParam ] = [ orb.points, orb.linkParam ];
 
     const {
-        forces = [ 'origin', 'link' ],
+        forces = [ 'pair', 'link' ],
         iterations = 100,
         tickTime = 100,
         minDist = 0.001,
         maxDelta = 0.001,
-        originFactor = 1,
-        pairFactor = 1,
         burst = 100,
-        newtonian = true,
-        friction = 0.99
-    } = param;
+    } = orb.param;
 
-    param.running = true;
+    orb.param.running = true;
 
     const origin = { coord: [ 0, 0, 0 ] };
     const tick = ( iteration, burst ) => {
@@ -93,16 +89,6 @@ function applyForces( orb, param, onIteration ) {
         for ( var b = 0; b < burst; b++ ) {
 
             points.forEach( p => p.netForce = [ 0, 0, 0 ] );
-
-            if ( forces.includes( 'origin' ) ) {
-                points
-                    // only points that are not self inverse feel the origin force
-                    //.filter( p => p.links.length == 0 || p.links.filter( ( [ linkPoint, exp ] ) => exp == -1 ).length > 0 )
-                    .forEach( p => {
-                        const [ d, r2, u ] = inverseForce( origin, p, orb.param );
-                        p.netForce = addition( p.netForce, u )
-                    } );
-            }
 
             if ( forces.includes( 'pair' ) ) {
                 // only points with non-inverse links feel the pair force
@@ -136,6 +122,12 @@ function applyForces( orb, param, onIteration ) {
                     .forEach( p => {
                         const linkSum = p.links
                             .filter( link => p != link[0] )
+                            // not if can find a lower exponent link via powers
+                            .filter( link => !p.powers
+                                .filter( ( [ exponent, expCoPrime ] ) => expCoPrime == link[0].coprime )
+                                .filter( ( [ exponent, expCoPrime ] ) => exponent <= link[1] )
+                                // arbitrarily choose one side
+                                .find( ( [ exponent, expCoPrime ] ) => ( exponent < link[1] ) || ( expCoPrime < p.coprime ) ) )
                             .map( link => linkForceAdjuster( p, link[0].netForce, link ) )
                             .reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] );
                         p.netForce = subtraction( p.netForce, linkSum );
@@ -145,26 +137,26 @@ function applyForces( orb, param, onIteration ) {
                     .filter( p => p.coprime == 'e' )
                     .filter( p => p.links.length > 0 )
                     .forEach( p => {
-                        const identityFactor = -1 / p.links.length ;
+                        const identityFactor = orb.param.identityFactor / p.links.length ;
                         const linkSum = p.links
                             //.filter( link => p != link[0] )
                             .map( link => {
                                 const [ d, r2, u ] = inverseForce( p, link[0], orb.param );
                                 const upf = scale( u, identityFactor );
-                                link[0].netForce = addition( link[0].netForce, upf );
+                                link[0].netForce = subtraction( link[0].netForce, upf );
                                 return upf;
                             } )
                             .reduce( ( a, c ) => addition( a, c ), [ 0, 0, 0 ] );
-                        p.netForce = subtraction( p.netForce, linkSum );
+                        p.netForce = addition( p.netForce, linkSum );
                     } );
             }
         }
 
-        if ( newtonian ) {
+        if ( orb.param.newtonian ) {
             points
                 .forEach( p => {
                     const acceleration = scale( p.netForce, 1 / p.mass );
-                    const nextVelocity = scale( addition( acceleration, p.velocity ), friction );
+                    const nextVelocity = scale( addition( acceleration, p.velocity ), orb.param.friction );
 
                     if ( !arrayAlmostEqual( p.velocity, nextVelocity, minDist ) ) {
                         p.velocity = nextVelocity;
@@ -192,14 +184,14 @@ function applyForces( orb, param, onIteration ) {
 
 
 
-        if ( iteration > 0 && param.running ) {
+        if ( iteration > 0 && orb.param.running ) {
             setTimeout( tick, tickTime, iteration - 1, burst );
         }
         if ( onIteration ) {
             onIteration( iteration );
         }
     };
-    if ( iterations > 0 && param.running ) {
+    if ( iterations > 0 && orb.param.running ) {
         setTimeout( tick, tickTime, iterations, burst );
     }
 }

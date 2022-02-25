@@ -73,7 +73,7 @@ function showLocus( containerId, currentAction, locusPoints, multi ) {
         locusGroup.removeChild( locusGroup.lastChild );
     }
 
-    locusGroup.appendChild( createLineSet( currentAction.getLocusPoints( locusPoints ) ) );
+    locusGroup.appendChild( createLineSetFromPoints( currentAction.getLocusPoints( locusPoints ) ) );
 }
 
 
@@ -194,33 +194,38 @@ function getBasePlaneItems( currentAction, toggles ) {
         } );
 
     planeItem.setAttribute( "render", toggles.plane == 1 );
+    root.appendChild( planeItem );
 
 
 
     // CENTRE LINES
-    const centrePoints = currentAction
-        .centrePoints
-        .map( x => reify(
-                        "transform",
-                        {
-                            "translation": to3D( x.point ).join( ' ' ),
-                            "scale": scaleUnit.join( ' ' )
-                        },
-                        [ createSphereShape( null, 0.1, "yellow", 0, `centre-${ x.point }` ) ]
-                    ) );
+    try {
+        const centrePoints = currentAction
+            .centrePoints
+            .map( x => reify(
+                            "transform",
+                            {
+                                "translation": to3D( x.point ).join( ' ' ),
+                                "scale": scaleUnit.join( ' ' )
+                            },
+                            [ createSphereShape( null, 0.1, "yellow", 0, `centre-${ x.point }` ) ]
+                        ) );
 
-    const centreLines = currentAction
-        .centreLines
-        .map( centreLine => createLineSetFromPoints( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), maxBase / 2 ), "gray", "3" ) );
+        const centreLines = currentAction
+            .centreLines
+            .map( centreLine => createLineSetFromPoints( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), maxBase / 2 ), "gray" ) );
 
-    const centreItems = reify(
-        "group",
-        { "class": "orbit-centre", "render": toggles.centres == 1 },
-        centrePoints.concat( centreLines )
-    );
+        const centreItems = reify(
+            "group",
+            { "class": "orbit-centre", "render": toggles.centres == 1 },
+            centrePoints.concat( centreLines )
+        );
 
-    root.appendChild( planeItem );
-    root.appendChild( centreItems );
+        root.appendChild( centreItems );
+
+    } catch ( e ) {
+        console.log( e );
+    }
 
     // FIXED POINTS
     currentAction
@@ -370,12 +375,12 @@ function getBasePlaneCycles( currentAction, toggles ) {
                                     "translation": `${ gid( identity.points[0] ) } 0 ${ zOff * -1 }`
                                 },
                                 [
-                                    createLineSet( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "black", attr )
+                                    createLineSetFromPoints( [ new Point( -1, [ 0, 0, 0 ] ), new Point( -1, [ 0, 0, zOff * ( orbits.length ) ] ) ], "black", attr )
                                 ]
                             )
                         ),
 
-                    createLineSet(
+                    createLineSetFromPoints(
                                 [ new Point( -1, [ 0, 0, zOff * ( -1 ) ] ), new Point( -1, [ currentAction.box.volume - 1, 0, zOff * ( -1 ) ] ) ],
                                 "black",
                                 attr
@@ -383,7 +388,7 @@ function getBasePlaneCycles( currentAction, toggles ) {
 
                     ...currentAction
                         .orbits
-                        .map( ( orbit, i ) => createLineSet(
+                        .map( ( orbit, i ) => createLineSetFromPoints(
                                 [ new Point( -1, [ 0, 0, zOff * ( i ) ] ), new Point( -1, [ currentAction.box.volume - 1, 0, zOff * ( i ) ] ) ],
                                 colorBasePlane.colorForIndex( orbit.index ),
                                 attr

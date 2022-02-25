@@ -27,6 +27,9 @@
     <script type="text/javascript" src="js/htmltable.js"></script>
     <script type="text/javascript" src="js/3d.js"></script>
 
+    <script type="text/javascript" src="js/cycles-x3dom.js"></script>
+
+
     <!-- page -->
     <script type="text/javascript">
         var instance = 0;
@@ -38,12 +41,12 @@
             var items = 0;
             const excludes = param.excludes | [];
 
-            function decomposeValue( label, value ) {
+            function decomposeValue( value ) {
                 return reify(
                     "div",
                     { class: 'summaryLeft' },
                     [],
-                    [ d => d.innerHTML = `${ label ? label + ': ' : '' }${ value }` ]
+                    [ d => d.innerHTML = value ]
                 );
             }
 
@@ -63,13 +66,12 @@
                         .map( ([k,v]) => decomposeArray( k, v ) )
                 ] );
             }
-            function decomposeArray( key, value ) {
+            function decomposeArray( value ) {
                 const firstElement = value[ 0 ];
                 const isNested = Array.isArray( firstElement );
                 return reify(
                     "textarea", { class: 'scriptPanelTextArea', rows: isNested ? Math.min( 20, 1 + value.length ) : 2, disabled: 'disabled' }, [], [
-                        d => d.value = key + ":\n" +
-                           ( isNested
+                        d => d.value = ( isNested
                                 ? value
                                     .map( r => r
                                         .map( a => String( a ).padStart( 2, ' ' ) )
@@ -82,12 +84,11 @@
             }
 
             function decompose( result ) {
-                const key = `<br/><hr/><b>result:</b> ${ new Date().toISOString() }<br/>`;
                 return Array.isArray( result )
-                    ? decomposeArray( key, result )
+                    ? decomposeArray( result )
                     : result instanceof Object
-                        ? decomposeObject( key, result )
-                        : decomposeValue( null, result );
+                        ? decomposeObject( result )
+                        : decomposeValue( result );
             }
 
             const css = ( param.css || [] );
@@ -100,7 +101,10 @@
             var targetElement = reify(
                 "div",
                 { class: cssClasses.join( ',' ) },
-                [ decompose( result ) ]
+                [
+                    reify( "span", {}, [], [ s => s.innerHTML = `<br/><hr/><b>result:</b> ${ new Date().toISOString() }<br/>` ] ),
+                    decompose( result )
+                ]
             );
 
             sourceElement.parentNode.appendChild( targetElement );
@@ -197,8 +201,32 @@
                 .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ node ] ) );
         }
 
+        function putX3DomNode( node, param = {} ) {
+            const {
+                css = [],
+                sceneId = `scene-${ new Date().toISOString() }`,
+                width = "50%",
+                height = "50%"
+            } = param;
+            const x3dRoot = reify(
+                    "x3d",
+                    { "width": `${ width }`, "height": `${ height }` },
+                    [ reify( "scene", { "id": `${ sceneId }` }, [ node ] ) ]
+                );
 
-        function putX3DomNode( orb, param = {} ) {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+
+            sourceElement
+                .parentNode
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ x3dRoot ] ) );
+
+            x3dom.reload();
+
+        }
+
+
+        function putOrbitationNode( orb, param = {} ) {
             const { css = [] } = param;
 
             orb.x3dRoot = reify( "x3d", { "width": "100%", "height": "100%" },
@@ -234,20 +262,26 @@
             const onIterationAction = ( iteration ) => {
                 if ( iteration == 0 ) {
                     runButton.value = 'forces';
-                    param.running = false;
+                    orb.param.running = false;
                 } else {
                     runButton.value = iteration;
                 };
             };
 
             runButton.onclick = () => {
-                if ( param.running ) {
-                    param.running = false;
+                if ( orb.param.running ) {
+                    orb.param.running = false;
                     runButton.value = 'forces';
                 } else {
                     applyForces( orb, onIterationAction );
                 }
             };
+
+            const iterationsInput = reifyInput(
+                "iterations: ",
+                { type: "number", class: "decimal-input", max: 100000, min: 0, step: 1, value: orb.param.iterations },
+                iterations => orb.param.iterations = iterations
+            );
 
 
             const identityFactorInput = reifyInput(
@@ -269,32 +303,68 @@
             );
 
 
+            const onChangeRodsAction = ( iteration ) => {
+                if ( iteration == 0 ) {
+                    runButton.value = 'forces';
+                    orb.param.running = false;
+                } else {
+                    runButton.value = iteration;
+                };
+            };
 
-            const linkControlHeaders = [ "exponent", "spring-length", "spring-constant" ];
-            const linkControlRows = orb.linkParam
-                .map( ( expData, i ) => reify( "tr", {},
-                    [
-                        reify( "td", {}, [ reify( "label", {}, [], [ c => c.innerHTML = expData[ 0 ] ] ) ] ),
-                        reify( "td", {}, [ reify( "label", {}, [
-                            reify( "input", { type: "number", class: "decimal-input", step: 0.1, value: expData[ 1 ].toFixed( 4 ) },
-                                [], [ c => c.onchange = () => orb.linkParam[ i ][ 1 ] = c.value ] ) ] ) ] ),
-                        reify( "td", {}, [ reify( "label", {}, [
-                            reify( "input", { type: "number", class: "decimal-input", step: 0.000001, value: expData[ 2 ].toFixed( 10 ) },
-                                [], [ c => c.onchange = () => orb.linkParam[ i ][ 2 ] = c.value ] ) ] ) ] )
-                    ],
-                    [
-                        tr => tr.style.backgroundColor = expData[ 3 ]
-                    ]
-                ) );
+            const rodLengthExponentInput = reifyInput(
+                "rod-length-exponent: ",
+                { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.rodLengthExp },
+                rodLengthExp => {
+                    orb.param.rodLengthExp = rodLengthExp;
+                    orb.createLinkParam();
+                    const linkControls = document.getElementById( 'link_controls' );
+                    linkControls.removeChild( linkControls.lastChild );
+                    linkControls.appendChild( createLinkTable() );
+                }
+            );
+            const rodStrengthExponentInput = reifyInput(
+                "rod-strength-exponent: ",
+                { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.rodStrengthExp },
+                rodStrengthExp => {
+                    orb.param.rodStrengthExp = rodStrengthExp;
+                    orb.createLinkParam();
+                    linkControls.removeChild( linkControls.lastChild );
+                    linkControls.appendChild( createLinkTable() );
+                }
+            );
 
-            const linkControls = reify( "div", { id: "link_controls", class: "summaryLeft" },
-                [
-                    reify( "table", {},
+            function createLinkTable() {
+                const linkControlHeaders = [ "exponent", "spring-length", "spring-constant" ];
+                const linkControlRows = orb.linkParam
+                    .map( ( expData, i ) => reify( "tr", {},
                         [
-                            reify( "tr", {}, linkControlHeaders.map( h => reify( "th", {}, [], [ c => c.innerHTML = h ] ) ) ),
-                            ...linkControlRows
+                            reify( "td", {}, [ reify( "label", {}, [], [ c => c.innerHTML = expData[ 0 ] ] ) ] ),
+                            reify( "td", {}, [ reify( "label", {}, [
+                                reify( "input", { type: "number", class: "decimal-input", step: 0.1, value: expData[ 1 ].toFixed( 4 ) },
+                                    [], [ c => c.onchange = () => orb.linkParam[ i ][ 1 ] = c.value ] ) ] ) ] ),
+                            reify( "td", {}, [ reify( "label", {}, [
+                                reify( "input", { type: "number", class: "decimal-input", step: 0.000001, value: expData[ 2 ].toFixed( 10 ) },
+                                    [], [ c => c.onchange = () => orb.linkParam[ i ][ 2 ] = c.value ] ) ] ) ] )
+                        ],
+                        [
+                            tr => tr.style.backgroundColor = expData[ 3 ]
                         ]
-                    )
+                    ) );
+
+                return reify( "table", {},
+                            [
+                                reify( "tr", {}, linkControlHeaders.map( h => reify( "th", {}, [], [ c => c.innerHTML = h ] ) ) ),
+                                ...linkControlRows
+                            ]
+                        );
+            }
+
+            const linkControls = reify( "div", { id: "link_controls", class: "floatRight" },
+                [
+                    rodLengthExponentInput,
+                    rodStrengthExponentInput,
+                    createLinkTable()
                 ],
                 [
                     c => c.style.display = 'none'
@@ -305,8 +375,9 @@
 
             sourceElement
                 .parentNode
-                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [
+                .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'summaryRight' ].join( "," ) }, [
                     runButton,
+                    iterationsInput,
                     identityFactorInput,
                     pairFactorInput,
                     frictionInput,
@@ -365,18 +436,15 @@
 
     </style>
 
-</head>
-<body onload="calculateNow()">
-    <input type="button" value="eval" onclick="calculateNow()"/>
-    <input type="button" value="clear" onclick="clearResults()"/>
-    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
-    <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="1">const bases = [ 2, 2, 2, 5 ];
+    <script>
+
+/*
+const bases = [ 2, 4, 5 ];
 const param = {
     forces: [ 'pair', 'link' ],
     identityFactor: 0.1,
-    pairFactor: -10,
-    rodLengthExp: 1,
+    pairFactor: -1.0,
+    rodLengthExp: 0,
     rodStrengthExp: 2,
     newtonian: true,
     friction: 0.96,
@@ -389,13 +457,44 @@ const param = {
 };
 const orb = new Orbitation( bases, param );
 
-putX3DomNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
+putOrbitationNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
 putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: true } );
 
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );
 
 putHtml( orb.fragmentsBlock() );
+*/
+
+
+/*
+z = [[3,6],[13,16],[26,23],[36,33],[1,5,7,8,4,2],[38,34,32,31,35,37],[11,15,17,18,14,12],[28,24,22,21,25,27]];
+z_0 = [z[0], z[4]];
+z_1 = [z[1], z[5]];
+z_2 = [z[2], z[6]];
+z_3 = [z[3], z[7]];
+compo( z_0, z_1, z_2, z_3 );
+
+
+*/
+
+
+    </script>
+
+</head>
+<body onload="calculateNow()">
+    <input type="button" value="eval" onclick="calculateNow()"/>
+    <input type="button" value="clear" onclick="clearResults()"/>
+    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
+    <br/>
+    <textarea id="calculationScript" class="scriptPanel" rows="7" cols="200">
+[ a_0i, a_1h ] = [ getCycles( [ 5, 4 ], 2, false ), getCycles( [ 2, 4 ], 5, true ) ];
+b_4 = compo( a_1h, a_0i );
+putHtml( a_0i ); putHtml( a_1h ); putHtml( b_4 );
+pagebreak();
+putX3DomNode( getCyclesDiagram( a_0i ), { width: '40%', height: '30%' } );
+putX3DomNode( getCyclesDiagram( a_1h ), { width: '40%', height: '30%' } );
+putX3DomNode( getCyclesDiagram( b_4 ), { width: '40%', height: '30%' } );
 </textarea>
 </body>
 </html>

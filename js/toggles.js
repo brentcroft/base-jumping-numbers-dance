@@ -19,17 +19,17 @@ toggleKeys = {
 
     monomialFilter: 1,
     boxActionNavigator: 1,
-    boxActionZoom: 1,
+    boxActionZoom: 0,
 
-    inverses: 0,
+    inverses: 1,
     harmonics: 1,
     degenerates: 1,
     radiance: 0,
 
-    indexComposer: 0,
-    autoCompose: 0,
+    indexComposer: 1,
+    autoCompose: 1,
 
-    compositionRules: 1,
+    compositionRules: 0,
     showCompositions: 0,
     ignoreEuclideanPerimeters: 0,
     ignoreIndexPerimeters: 0,

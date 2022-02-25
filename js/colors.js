@@ -21,7 +21,7 @@ class ColorBasePlane  {
 //        this.colorPoints = orbit.getCoordArray();
 //    }
 
-    constructor(  bases, colorPlaneIndex = 1, colorOrbitIndex = 0, minPixel = 0, maxPixel = 255  ) {
+    constructor(  bases = [ 11, 5, 7 ], colorPlaneIndex = 1, colorOrbitIndex = 0, minPixel = 0, maxPixel = 255  ) {
         this.bases = bases;
         this.minPixel = minPixel;
         this.maxPixel = maxPixel;

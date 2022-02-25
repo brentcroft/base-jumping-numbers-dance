@@ -44,11 +44,9 @@ function getClockfaces( terminal, coprime ) {
 
 function getOrbits( roots ) {
     const orbits = [];
-
     const identity = roots[0];
     const tally = [...identity];
     const terminal = identity.length;
-
     identity.forEach( i => {
         if ( tally.includes( i ) ) {
             // take the i th item from each clockface
@@ -58,9 +56,37 @@ function getOrbits( roots ) {
             orbits.push( orbit );
         }
     } );
-
     return orbits;
 }
+
+function expandCycles( cycles, copies = 1, harmonic = false ) {
+    const volume = cycles.reduce( ( a, c ) => a + c.length, 0 );
+    const baseCycles = [];
+    if ( harmonic ) {
+        const template = cycles.map( cycle => cycle.map( c => c * copies ) );
+        for ( var i = 0; i < copies; i++ ) {
+            template.forEach( cycle => baseCycles.push( cycle.map( c => c + i ) ) );
+        }
+    } else {
+        for ( var i = 0; i < copies; i++ ) {
+            cycles.forEach( cycle => baseCycles.push( cycle.map( c => c + ( i * volume ) ) ) );
+        }
+    }
+
+    return baseCycles;
+}
+
+function getCycles( factors, copies = 1, harmonic = false ) {
+    const [ coprime, cofactor ] = factors;
+    const volume = factors.reduce( ( a, c ) => a * c, 1 );
+    const terminal = volume - 1;
+    const clockfaces = getClockfaces( terminal, coprime );
+    const cycles = getOrbits( clockfaces );
+    // insert terminal fixed point
+    cycles.push( [ terminal ] );
+    return expandCycles( cycles, copies, harmonic ) ;
+}
+
 
 function monomialHtml( monomial ) {
      const identities = Object
@@ -147,6 +173,8 @@ function cyclesExponential( cycles, exponent ) {
     return cycles.flatMap( cycle => cycleExponential( cycle, exponent ) );
 }
 
+const getRodLength = ( rod, rodPower, inverseRod = 1000 ) => ( rod > 0 ) ? rod**rodPower : inverseRod;
+const getRodStrength = ( rod, rodPower, inverseRod = 0.000001 ) => ( rod > 0 ) ? ( 1 / rod )**rodPower : inverseRod;
 
 class Orbitation {
     constructor( bases, param = {} ) {
@@ -274,9 +302,15 @@ class Orbitation {
         // build links between points
         const linkExponents = [];
         this.points.forEach( point => {
-            point.links = ( point.coprime == 'e' )
-                ? this.roots.map( ( [ coprime, monomial, order ] ) => [ this.getPoint( coprime ), order, false ] )
-                : this.symbols[ point.coprime ].map( ( [ c, exp, inverse ] ) => [ this.getPoint( c ), exp, inverse ] );
+            if ( ( point.coprime == 'e' ) ) {
+                point.links = this.roots.map( ( [ coprime, monomial, order ] ) => [ this.getPoint( coprime ), order, false ] );
+            } else {
+                const coprimeSymbols = this.symbols[ point.coprime ];
+
+                point.links = coprimeSymbols
+                    ? coprimeSymbols.map( ( [ c, exp, inverse ] ) => [ this.getPoint( c ), exp, inverse ] )
+                    : [];
+            }
         } );
 
         const linksStats = {
@@ -298,19 +332,20 @@ class Orbitation {
 
         linkExponents.sort( ( a, b ) => a - b );
 
-        const getRodLength = ( rod, rodPower, inverseRod = 1000 ) => ( rod > 0 ) ? rod**rodPower : inverseRod;
-        const getRodStrength = ( rod, rodPower, inverseRod = 0.000001 ) => ( rod > 0 ) ? ( 1 / rod )**rodPower : inverseRod;
-
-        this.linkParam = linkExponents
-            .map( le => [
-                le,
-                getRodLength( le, param.rodLengthExp ),
-                getRodStrength( le, param.rodStrengthExp ),
-                this.linkColor( le )
-            ] );
-
+        this.linkExponents = linkExponents;
+        this.createLinkParam();
 
         this.buildX3domGraph();
+    }
+
+    createLinkParam() {
+        this.linkParam = this.linkExponents
+            .map( le => [
+                le,
+                getRodLength( le, this.param.rodLengthExp ),
+                getRodStrength( le, this.param.rodStrengthExp ),
+                this.linkColor( le )
+            ] );
     }
 
     getPoint( coprime ) {
@@ -399,7 +434,7 @@ class Orbitation {
 
         function cofactorVolume( point, terminal ) {
             if ( point.coprime == 'e' ) {
-                return `${ terminal }`;
+                return 1;
             }
             return ( ( point.coprime * point.inverse ) - 1 ) / terminal;
         }
@@ -451,7 +486,16 @@ class Orbitation {
                                 if ( this.selectTableRow( point.coprime ) ) {
                                     document
                                         .querySelectorAll( "#selected-cycles" )
-                                        .forEach( c => c.innerHTML = cyclesHtml );
+                                        .forEach( c => {
+                                            const cycles = Object
+                                                .entries( monomial )
+                                                .filter( ( [ key, orbits ] ) => Number( key ) > 1 )
+                                                .flatMap( ( [ key, orbits ] ) => orbits );
+
+                                            navigator.clipboard.writeText( JSON.stringify( cycles ) );
+
+                                            c.innerHTML = cyclesHtml;
+                                        } );
 
                                     this.x3dRoot.runtime.showObject( point.shape );
                                 }

@@ -506,14 +506,64 @@ function composeCyclePair( c0, c1 ) {
     return cycles;
 }
 
+function inversePermutation( cycles ) {
+    return [...cycles.map( c => [ ...c ].reverse() ) ];
+}
 
-function composePermutations( p0, p1 ) {
-    const index0 = [];
-    p0.forEach( c0 => index0.push( ...c0.filter( x => !index0.includes( x ) ) ) );
-    p1.forEach( c0 => index0.push( ...c0.filter( x => !index0.includes( x ) ) ) );
-    index0.sort();
+function canonicalizePermutation( p, rotateCycles = true, sortCycles = true ) {
 
-    const index1 = index0.map( i => {
+    function ios( cycle ) {
+        var l = 0;
+        for (var i = 1; i < cycle.length; i++) {
+            if ( cycle[ i ] < cycle[ l ] ) {
+                l = i;
+            }
+        }
+        return l;
+    }
+    const cycles = p.map( cycle => rotateCycles
+        ? rotateArray( cycle, ios( cycle ) )
+        : cycle );
+
+    cycles.sort( ( a, b ) => a[0] - b[0] );
+
+    return cycles;
+}
+
+/*
+    Successively compose arrays of cycle arrays (two permutations).
+    Returns an array of cycle arrays (another permutation).
+
+    Each input permutation is expected to have cycles in reduced form
+    so that each item occurs once in one cycle only.
+
+    Input permutations are composed in sequence from right to left.
+
+    The output permutation is in reduced form
+    so that each item occurs once in one cycle only.
+*/
+function composePermutations() {
+
+    const args = [ ...arguments ];
+
+    const p0 = args[ 0 ];
+    var p1 = args.pop();
+
+    while ( args.length > 1 ) {
+        const nextPair = [ p1, args.pop() ];
+        p1 = composePermutations( ...nextPair );
+    }
+
+    // build tally index of terms
+    const tallyIndex = [];
+    p0.forEach( c0 => tallyIndex.push( ...c0.filter( x => !tallyIndex.includes( x ) ) ) );
+    p1.forEach( c0 => tallyIndex.push( ...c0.filter( x => !tallyIndex.includes( x ) ) ) );
+    tallyIndex.sort();
+
+    const p1Copy = p1.map( x => [...x]);
+
+    // build next row from tallyIndex to p1
+    const index1 = tallyIndex.map( i => {
         var engagedCycle = p1.find( c1 => c1.includes( i ) );
 
         var stageValue = i;
@@ -531,21 +581,26 @@ function composePermutations( p0, p1 ) {
         }
         return stageValue;
     } );
+    const extractNextLink = ( i ) => [ ...tallyIndex.splice( i, 1 ), ...index1.splice( i, 1 ) ];
 
-    const extractNextLink = ( i ) => [ ...index0.splice( i, 1 ), ...index1.splice( i, 1 ) ];
     const cycles = [];
-    while ( index0.length > 0 ) {
+    while ( tallyIndex.length > 0 ) {
         var link = extractNextLink( 0 );
         if ( link[0] == link[1] ) {
             cycles.push( [ link[0] ] );
         } else {
             const cycle = [ link[ 0 ] ];
             while ( link[1] != cycle[0] ) {
-                link = extractNextLink( index0.indexOf( link[1] ) );
+                link = extractNextLink( tallyIndex.indexOf( link[1] ) );
                 cycle.push( link[0] );
             }
             cycles.push( cycle );
         }
     }
-    return cycles;
+
+    return canonicalizePermutation( cycles, 0 );
 }
+
+
+var compo = composePermutations;
+var inver = inversePermutation

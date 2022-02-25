@@ -70,7 +70,7 @@ function springForce(  pointA, pointB, linkType, param = {}, linkParam = [] ) {
 
 function applyForces( orb, onIteration ) {
 
-    const [ points, linkParam ] = [ orb.points, orb.linkParam ];
+    const points = orb.points;
 
     const {
         forces = [ 'pair', 'link' ],
@@ -93,8 +93,8 @@ function applyForces( orb, onIteration ) {
             if ( forces.includes( 'pair' ) ) {
                 // only points with non-inverse links feel the pair force
                 const linkedPoints = points
-                    .filter( p => p.coprime != 'e' )
-                    .filter( p => p.links.filter( ( [ linkPoint, exp ] ) => exp != -1  ).length > 0 );
+                    .filter( p => p.coprime != 'e' );
+//                    .filter( p => p.links.filter( ( [ linkPoint, _ ] ) => p.inverse != linkPoint  ).length > 0 );
 
                 const pointPairs = pairs( linkedPoints );
 
@@ -112,13 +112,14 @@ function applyForces( orb, onIteration ) {
             if ( forces.includes( 'link' ) ) {
                 const linkForceAdjuster = ( point, force, link ) => {
                     const [ otherPoint, exp ] = link;
-                    const [ d, r2, u ] = springForce( point, otherPoint, exp, orb.param, linkParam );
+                    const [ d, r2, u ] = springForce( point, otherPoint, exp, orb.param, orb.linkParam );
                     link[0].netForce = addition( link[0].netForce, u );
                     return u;
                 };
 
                 points
                     .filter( p => p.coprime != 'e' )
+                    .filter( p => p.links )
                     .forEach( p => {
                         const linkSum = p.links
                             .filter( link => p != link[0] )
@@ -139,7 +140,6 @@ function applyForces( orb, onIteration ) {
                     .forEach( p => {
                         const identityFactor = orb.param.identityFactor / p.links.length ;
                         const linkSum = p.links
-                            //.filter( link => p != link[0] )
                             .map( link => {
                                 const [ d, r2, u ] = inverseForce( p, link[0], orb.param );
                                 const upf = scale( u, identityFactor );

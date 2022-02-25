@@ -33,6 +33,7 @@ var SYMBOLIC_COMPOSITIONS = [
             "# 3d-canonical; ",
 
             "# a-constructions; ",
+            "a_1 + b_4i; ",
             "a_2 + b_2i; b_2 + a_2i; ",
             "a_0 + b_4; b_4i + a_0i; ",
             "a_1 + b_0; b_0i + a_1i; ",
@@ -52,6 +53,15 @@ var SYMBOLIC_COMPOSITIONS = [
             "a_2 + a_0i + a_1; ",
             "a_2i + a_0 + a_1i; ",
         ],
+        "3d-b-from-a": [
+            "# 3d-b-from-a; ",
+
+            "# b constructions; ",
+            "a_1 + a_2i; a_2i + a_1; ; a_1i + a_2; a_2 + a_1i; ",
+            "a_0 + a_1i; a_1 + a_0i; a_0i + a_1; a_1i + a_0; ",
+            "a_2 + a_0i; a_0 + a_2i; a_2i + a_0; a_0i + a_2; ",
+        ],
+
         "b-commutes": [
             "# b-commutes; ",
             "b_2 + b_4i; b_4i + b_2; ",
@@ -66,6 +76,14 @@ var SYMBOLIC_COMPOSITIONS = [
             "b_2i + b_0; b_0 + b_2i; ",
             "b_3i + b_1; b_1 + b_3i; ",
             "b_1i + b_3; b_3 + b_1i; ",
+        ],
+        "b-commutes#1": [
+            "b_2 + b_4i; b_2i + b_4;",
+            "b_0 + b_4; b_0i + b_4i;",
+            "b_0i + b_2; b_0 + b_2i;",
+            "b_3 + b_5i; b_3i + b_5;",
+            "b_1 + b_5; b_1i + b_5i;",
+            "b_1i + b_3; b_1 + b_3i;"
         ],
         "b-alt": [
             "# b-commuters; ",
@@ -169,6 +187,15 @@ var SYMBOLIC_COMPOSITIONS = [
             "z_0f^3;",
             "z_0f^4;",
             "z_0f^5;"
+        ],
+
+        "roots": [
+            "root( z_0, 2 );",
+             "z_0r2^2;",
+             "root( z_0r2, 3 );",
+             "root( z_0, 3 );",
+             "z_0r3^3;",
+             "root( z_0r3, 2 );"
         ],
 
         "specials": [

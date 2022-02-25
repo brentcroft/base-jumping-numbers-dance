@@ -126,13 +126,17 @@ function createPlaneItemWithNormal( param ) {
                               planeColor,
                               planeTransparency);
 
-    planeItem.appendChild(
-        reify(
-            "group",
-            {},
-            [ createLineSetFromPoints( [ [0,0,0], unitNormal ], planeColor, "3" ) ]
-        )
-    );
+    try {
+        planeItem.appendChild(
+            reify(
+                "group",
+                {},
+                [ createLineSetFromPoints( [ [ 0, 0, 0 ], unitNormal ], planeColor ) ]
+            )
+        );
+    } catch ( e ) {
+        console.log( e );
+    }
 
     planeItem.appendChild(
         reify(
@@ -213,31 +217,32 @@ function createPolyLineShape( lineSegments, emissiveColor = "red" ){
     return s;
 }
 
-function createLineSetFromPoints( points, emissiveColor, lineType ) {
 
-    if ( points.length == 0 ) {
-        return null;
-    }
 
-    var shape = createShape( emissiveColor, lineType );
-    var lineSet = document.createElement( "lineset" );
+function createLineSet( points, emissiveColor, attr = {} ){
+    var shape = createShape( emissiveColor, attr.linetype ? attr.linetype : "1", attr );
+    var lineSet = document.createElement( "LineSet" );
     shape.appendChild( lineSet );
 
-    lineSet.setAttribute( 'vertexCount', `${ points.length }` );
+    lineSet.setAttribute( 'vertexCount', `${ points.length + 1 }` );
 
-    var pointText = "";
-    for ( var j = 0; j < points.length; j++ ) {
-        pointText += `${ points[j].join( ' ' ) } `;
-    }
+    // guarantee 3 values per coord
+    var point = points
+        .map( ( [ x = 0, y = 0, z = 0 ] ) => `${ x } ${ y } ${ z }` )
+        .join( ' ' );
+
+    const [ x = 0, y = 0, z = 0 ] = points[0];
+    point += ` ${ x } ${ y } ${ z } -1`;
 
     var coordinate = document.createElement( 'coordinate' );
-    coordinate.setAttribute( 'point', `${ pointText }` );
+    coordinate.setAttribute( 'point', `${ point }` );
     lineSet.append( coordinate );
 
     return shape;
 }
 
-function createLineSet( points, emissiveColor, attr = {} ){
+
+function createLineSetFromPoints( points, emissiveColor, attr = {} ){
     var shape = createShape( emissiveColor, attr.linetype ? attr.linetype : "1", attr );
     var lineSet = document.createElement( "LineSet" );
     shape.appendChild( lineSet );
@@ -630,7 +635,7 @@ function createDialLineSet( points, emissiveColor, attr = {} ){
 
 
 function createCentreLine( p1, p2, pad = 0 ) {
-    return createLineSetFromPoints( extendLine( p1, p2, pad ), "gray", 3 );
+    return createLineSetFromPoints( extendLine( p1, p2, pad ), "gray" );
 }
 
 

@@ -706,7 +706,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
             var rowHtml = `<td>${ actionElement.id }</td>`;
             rowHtml += `<td align='center' ${clickAttr}>${ actionElement.getLabel() }</td>`;
             if ( optionalColumns.includes(  "composition" ) ) {
-                rowHtml += `<td align='center' ${clickAttr}>${ actionAlias }</td>`;
+                rowHtml += `<td align='center' ${clickAttr}>${ actionElement.alias }</td>`;
             }
             rowHtml += `<td align='center' ${clickAttr}>${ actionElement.symbols.join( " = " ) }</td>`;
             if ( actionElement.pair ) {

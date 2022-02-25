@@ -22,7 +22,16 @@
  */
 
 
-const OPERATIONS = [ '+', '*' ];
+const OPERATIONS = [
+    '+', '*', '/'
+];
+
+const OPERATORS = {
+    '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
+    '+': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
+    '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
+    '/': ( operator, left, right ) => new OperatorExpression( operator, left, right )
+};
 
 /*
     Inversion rules:
@@ -529,8 +538,8 @@ class Formula {
         return exprCopy[0];
     }
 
-    isOperator(char) {
-        return typeof char === 'string' && char.match(/[\*\+\^]/);
+    isOperator( char ) {
+        return ( char in OPERATORS );
     }
 
     isOperatorExpr(expr) {
@@ -618,7 +627,7 @@ class Formula {
             if ( r instanceof CompositeAction ) {
                 r.label = aliasText;
                 r.alias = [];
-                r.indexPoints();
+                //r.indexPoints();
                 r.initialise();
             }
 
@@ -702,11 +711,8 @@ class Formula {
 
 class Expression {
     static createOperatorExpression(operator, left, right, boxGroup) {
-        if (operator === '^') {
-            return new PowerExpression(operator, left, right);
-        }
-        if (operator === OPERATIONS[0]) {
-            return new OperatorExpression( operator, left, right );
+        if ( operator in OPERATORS ) {
+            return OPERATORS[ operator ]( operator, left, right );
         }
         throw new Error(`Unknown operator: ${operator}`);
     }
@@ -768,7 +774,8 @@ class StringExpression extends Expression {
 class OperatorExpression extends Expression {
     constructor( operator, left, right, boxGroup ) {
         super();
-        if (!OPERATIONS.includes( operator ) ) {
+
+        if ( !( operator in OPERATORS ) ) {
             throw new Error( `Operator not implemented: ${ this.left } "${operator}" ${ this.right }`);
         }
         this.operator = operator;

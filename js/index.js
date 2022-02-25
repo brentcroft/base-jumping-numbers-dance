@@ -414,6 +414,13 @@ class BoxAction {
         this.orbits = [];
     }
 
+    getCycles() {
+        return [
+            ...this.identities.map( o => o.points ),
+            ...this.orbits.map( o => o.points )
+        ];
+    }
+
     getLabel() {
         return this.label;
     }

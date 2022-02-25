@@ -768,6 +768,9 @@ function initPage( urlParam = true ) {
                     document.getElementById( 'monomialFilter' ).value = JSON.stringify( currentAction.cycleIndexMonomial );
                     document.getElementById( 'monomialFilterDisplay' ).innerHTML = getCycleIndexMonomialHtml( currentAction );
 
+                    const cycles = currentAction.orbits.map( orbit => orbit.points.map( p => p.at( currentAction.key ).id ) );
+                    navigator.clipboard.writeText( JSON.stringify( canonicalizePermutation( cycles ) ) );
+
                     const param = getControlValues();
 
                     showIndex( "indexSummary", data.sender, param );

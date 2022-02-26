@@ -618,7 +618,7 @@ class RootAction extends BoxAction {
 class CompositeAction extends BoxAction {
 
     static compositeLabel( leftAction, rightAction ) {
-        return `${ leftAction.getLabel() } + ${ rightAction.getLabel() }`;
+        return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
     }
 
     static compositeSymbol( leftAction, rightAction ) {
@@ -628,7 +628,7 @@ class CompositeAction extends BoxAction {
                 ? rightAction.symbols[0]
                 : rightAction.symbols[0] == one
                     ? leftAction.symbols[0]
-                    : `${ leftAction.symbols[0] } + ${ rightAction.symbols[0] }`
+                    : `${ leftAction.symbols[0] } * ${ rightAction.symbols[0] }`
             : one;
     }
 
@@ -649,11 +649,11 @@ class CompositeAction extends BoxAction {
         this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
 
         //
-        this.label = CompositeAction.compositeLabel( leftAction, rightAction );
-        this.symbols = [ CompositeAction.compositeSymbol( leftAction, rightAction ) ];
+        if ( leftAction instanceof BoxAction && rightAction instanceof BoxAction ) {
+            this.label = CompositeAction.compositeLabel( leftAction, rightAction );
+            this.symbols = [ CompositeAction.compositeSymbol( leftAction, rightAction ) ];
+        }
         this.alias = [];
-
-        const fromCycles = true;
 
         if ( autoInit ) {
             this.indexPointsFromCycles();
@@ -670,8 +670,7 @@ class CompositeAction extends BoxAction {
     }
 
     indexPointFromCycles( point ) {
-
-        const cycle = this
+        var cycle = this
             .cycles
             .find( cycle => cycle.find( c => c == point ) );
 
@@ -710,42 +709,6 @@ class CompositeAction extends BoxAction {
         delete this.unindexed;
     }
 
-
-    indexPoint( point ) {
-
-        var wayPoint = this.reverse
-            ? this.rightAction.applyInverse( point )
-            : this.rightAction.apply( point );
-        var endPoint = this.leftAction.apply( wayPoint );
-
-        // using local ids from leftAction
-        const id = point.at( this.leftAction.key ).id;
-        const di = endPoint.at( this.leftAction.key ).id;
-
-        this.box.validateIds( [ id, di ] );
-
-        const partnerId = ( this.box.volume - id - 1 );
-
-        const pointIndexData = {
-           id: id,
-           di: di,
-           partnerId: partnerId,
-           jump: ( di - id ),
-           radiant: ( partnerId - id )
-        };
-
-        const existingPointIndexData = point.indexes[ this.key ];
-
-        if ( existingPointIndexData ) {
-            //consoleLog( `Id already allocated in point for index[${ this.id }]; point=${ point }, data=${ JSON.stringify( pointIndexData ) }, existing=${ JSON.stringify( existingPointIndexData ) }` );
-        }
-
-        point.indexes[this.key] = pointIndexData;
-
-        this.idx[ id ] = point;
-        this.dix[ di ] = point;
-    }
-
     getType() {
         return 'comp';
     }
@@ -755,63 +718,38 @@ class CompositeAction extends BoxAction {
     }
 }
 
+class CoprimesAction extends CompositeAction {
+    constructor( box, id = 0, label, cycles ) {
+        super( box, id, -1, -1 );
+        this.cycles = cycles.map( cycle => cycle.map( c => this.box.points[ c ]));
 
+        this.label = label;
+        this.symbols = [];
 
-class DivisionAction extends BoxAction {
-
-    constructor( box, id = 0, leftAction, rightAction, autoInit = false, reverse = false ) {
-        super( box, id );
-
-        this.leftAction = leftAction;
-        this.rightAction = rightAction;
-        this.boxGroup = this.leftAction.boxGroup;
-        this.reverse = reverse;
-
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
-
-        // todo: no identity plane
-        this.identityPlane = [ -1, -1, 1 ];
-        this.identityPlaneGcd = 1;
-        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-
-        //
-        this.label = CompositeAction.compositeLabel( leftAction, rightAction );
-        this.symbols = [ CompositeAction.compositeSymbol( leftAction, rightAction ) ];
-        this.alias = [];
-
-        const fromCycles = true;
-
-        if ( autoInit ) {
-            this.indexPointsFromCycles();
-            this.initialise();
-        } else {
-            this.unindexed = true;
-        }
+        this.indexPointsFromCycles();
+        this.initialise();
     }
 
     indexPointsFromCycles() {
-        this.cycles = decomposePermutations( this.leftAction.getCycles(), this.rightAction.getCycles() );
         this.box.points.forEach( point => this.indexPointFromCycles( point ) );
         delete this.unindexed;
     }
 
     indexPointFromCycles( point ) {
-
-        const cycle = this
+        var cycle = this
             .cycles
             .find( cycle => cycle.find( c => c == point ) );
 
         if ( !cycle || cycle.length == 0 ) {
-            throw new Error( `No cycle for point: ${ point }` );
+            cycle = [ point ];
+            this.cycles.push( cycle );
         }
 
         const nextIndex = ( 1 + cycle.indexOf( point ) ) % cycle.length;
         const endPoint = cycle[ nextIndex ];
 
-        // using common ids from leftAction
-        const id = point.at( this.leftAction.key ).id;
-        const di = endPoint.at( this.leftAction.key ).id;
+        const id = point.id;
+        const di = endPoint.id;
 
         this.box.validateIds( [ id, di ] );
 
@@ -831,16 +769,7 @@ class DivisionAction extends BoxAction {
         this.dix[ di ] = point;
     }
 
-    getType() {
-        return 'div';
-    }
-
-    getPlaneEquationTx() {
-        return this.alias.join(" / ");
-    }
 }
-
-
 
 
 class BoxGroup {

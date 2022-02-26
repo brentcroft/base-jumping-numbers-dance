@@ -23,14 +23,15 @@
 
 
 const OPERATIONS = [
-    '+', '*', '/'
+    '*'
 ];
 
 const OPERATORS = {
-    '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
-    '+': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
     '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
-    '/': ( operator, left, right ) => new OperatorExpression( operator, left, right )
+    '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
+    '#': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
+    '|': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
+    '~': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right )
 };
 
 /*
@@ -808,7 +809,7 @@ class OperatorExpression extends Expression {
 
         // may get replaced by equivalent box action
         boxAction = new CompositeAction(
-            leftAction.box,
+            boxGroup.box,
             Math.round( Math.random() * 10000 + 1),
             leftAction,
             rightAction,
@@ -826,6 +827,67 @@ class OperatorExpression extends Expression {
         return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
     }
 }
+
+
+class CyclesExpression extends OperatorExpression {
+    constructor( operator, left, right, boxGroup ) {
+        super( operator, left, right, boxGroup );
+    }
+
+    evaluate( params = {} ) {
+        const leftCoprime = this.left.evaluate( params );
+        const rightCoprime = this.right.evaluate( params );
+
+        if ( ! ( Number.isInteger( leftCoprime ) && Number.isInteger( rightCoprime ) ) ) {
+            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+        }
+
+        return getCycles( [ leftCoprime, rightCoprime ] );
+    }
+
+    toString() {
+        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+    }
+}
+
+
+class CyclesExtensionExpression extends OperatorExpression {
+    constructor( operator, left, right, boxGroup ) {
+        super( operator, left, right, boxGroup );
+    }
+
+    evaluate( params = {} ) {
+        const leftCycles = this.left.evaluate(params);
+        const multiplier = this.right.evaluate(params);
+
+        if ( !(Array.isArray( leftCycles ) && Number.isInteger( multiplier ) ) ) {
+            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+        }
+
+        const cycles = expandCycles( leftCycles, multiplier, this.operator == '~' );
+
+        const label = "xxx";
+
+        // may get replaced by equivalent box action
+        const boxAction = new CoprimesAction(
+            this.boxGroup.box,
+            Math.round( Math.random() * 10000 + 1),
+            label,
+            cycles );
+
+        //this.boxGroup.registerCompositeAction( alias, boxAction );
+
+        // make immediately available by label
+        params[ boxAction.label ] = boxAction;
+
+        return boxAction;
+    }
+
+    toString() {
+        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+    }
+}
+
 
 
 class PowerExpression extends Expression {

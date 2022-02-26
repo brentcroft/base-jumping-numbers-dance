@@ -179,12 +179,14 @@
             <label><input type="button" onclick="processFormula()" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4">b_0^2;
-b_1^2;
-b_2^2;
-b_3^2;
-b_4^2;
-b_5^2;</textarea>
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4">
+5 # 4 | 2;
+5 # 4 ~ 2;
+5 # 2 | 4;
+5 # 2 ~ 4;
+4 # 2 | 5;
+4 # 2 ~ 5;
+                </textarea>
                 <label>
                     Results: <br/>
                     <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>

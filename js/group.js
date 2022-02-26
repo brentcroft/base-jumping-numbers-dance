@@ -719,9 +719,43 @@ class CompositeAction extends BoxAction {
 }
 
 class CoprimesAction extends CompositeAction {
-    constructor( box, id = 0, label, cycles ) {
+    constructor( box, id = 0, label, cyclesObject ) {
         super( box, id, -1, -1 );
-        this.cycles = cycles.map( cycle => cycle.map( c => this.box.points[ c ]));
+
+
+
+        const key = [ cyclesObject.leftCoprime, cyclesObject.rightCoprime, cyclesObject.multiplier ];
+
+        const bases = this.box.bases;
+        this.box.placeValuePermutations.filter( pvp => {
+            const a0 = pvp.perm.map( i => bases[i] );
+            if ( arrayExactlyEquals( key, a0 ) ) {
+                this.pvp = pvp;
+                this.pvpAnti = false;
+                return true;
+            }
+            const a1 = pvp.antiPerm.map( i => bases[i] );
+            if ( arrayExactlyEquals( key, a1 ) ) {
+                this.pvp = pvp;
+                this.pvpAnti = true;
+                return true;
+            }
+            return false;
+        } );
+
+        if ( !this.pvp ) {
+            throw new Error( `No PVP found for cyclesObject: ${ cyclesObject }` );
+        }
+
+        this.cycles = this.pvpAnti
+            ? cyclesObject
+                .cycles
+                .map( cycle => cycle
+                    .map( c => this.pvp.dix[ c ] ) )
+            : cyclesObject
+                .cycles
+                .map( cycle => cycle
+                    .map( c => this.pvp.idx[ c ] ) );
 
         this.label = label;
         this.symbols = [];

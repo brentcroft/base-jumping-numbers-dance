@@ -160,13 +160,13 @@ class Boxes extends Box {
     }
 }
 
-function testIt() {
-    const b4 = new PermBox( [ 4, 1 ] );
-    const b10 = new PermBox( [ 10, 1 ] );
-    const b4x10 = new Boxes( [ b10, b4 ] );
-
-    return b4x10;
-}
+//function testIt() {
+//    const b4 = new PermBox( [ 4, 1 ] );
+//    const b10 = new PermBox( [ 10, 1 ] );
+//    const b4x10 = new Boxes( [ b10, b4 ] );
+//
+//    return b4x10;
+//}
 
 
 class PermBox extends Box {

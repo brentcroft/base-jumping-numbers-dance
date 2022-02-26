@@ -842,7 +842,11 @@ class CyclesExpression extends OperatorExpression {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
-        return getCycles( [ leftCoprime, rightCoprime ] );
+        return {
+            leftCoprime: leftCoprime,
+            rightCoprime: rightCoprime,
+            cycles: getCycles( [ leftCoprime, rightCoprime ] )
+        };
     }
 
     toString() {
@@ -857,14 +861,16 @@ class CyclesExtensionExpression extends OperatorExpression {
     }
 
     evaluate( params = {} ) {
-        const leftCycles = this.left.evaluate(params);
+        const leftCyclesObject = this.left.evaluate(params);
         const multiplier = this.right.evaluate(params);
 
-        if ( !(Array.isArray( leftCycles ) && Number.isInteger( multiplier ) ) ) {
+        if ( !(Array.isArray( leftCyclesObject.cycles ) && Number.isInteger( multiplier ) ) ) {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
-        const cycles = expandCycles( leftCycles, multiplier, this.operator == '~' );
+        leftCyclesObject.multiplier = multiplier;
+        leftCyclesObject.harmonic = ( this.operator == '~' );
+        leftCyclesObject.cycles = expandCycles( leftCyclesObject.cycles, leftCyclesObject.multiplier, this.operator == '~' );
 
         const label = "xxx";
 
@@ -873,7 +879,7 @@ class CyclesExtensionExpression extends OperatorExpression {
             this.boxGroup.box,
             Math.round( Math.random() * 10000 + 1),
             label,
-            cycles );
+            leftCyclesObject );
 
         //this.boxGroup.registerCompositeAction( alias, boxAction );
 

@@ -722,9 +722,7 @@ class CoprimesAction extends CompositeAction {
     constructor( box, id = 0, label, cyclesObject ) {
         super( box, id, -1, -1 );
 
-
-
-        const key = [ cyclesObject.leftCoprime, cyclesObject.rightCoprime, cyclesObject.multiplier ];
+        const key = [ cyclesObject.rightCoprime, cyclesObject.leftCoprime, cyclesObject.multiplier ];
 
         const bases = this.box.bases;
         this.box.placeValuePermutations.filter( pvp => {

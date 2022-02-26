@@ -34,7 +34,7 @@ toggleKeys = {
     ignoreEuclideanPerimeters: 0,
     ignoreIndexPerimeters: 0,
     ignoreOrbitOffsets: 1,
-    alternatePerms: 0,
+    alternatePerms: 1,
 
 
     chart3d: 0,

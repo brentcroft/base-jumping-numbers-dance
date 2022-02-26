@@ -29,8 +29,8 @@ const OPERATIONS = [
 const OPERATORS = {
     '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
     '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
-    '#': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
-    '|': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
+    ':': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
+    '#': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
     '~': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right )
 };
 
@@ -626,7 +626,9 @@ class Formula {
             // reset id
             //r.id = this.boxGroup.boxActions.length;
             if ( r instanceof CompositeAction ) {
-                r.label = aliasText;
+                if ( !r.label ) {
+                    r.label = aliasText;
+                }
                 r.alias = [];
                 //r.indexPoints();
                 r.initialise();
@@ -872,7 +874,7 @@ class CyclesExtensionExpression extends OperatorExpression {
         leftCyclesObject.harmonic = ( this.operator == '~' );
         leftCyclesObject.cycles = expandCycles( leftCyclesObject.cycles, leftCyclesObject.multiplier, this.operator == '~' );
 
-        const label = "xxx";
+        const label = `<${ leftCyclesObject.leftCoprime }:${ leftCyclesObject.rightCoprime }${ this.operator }${ leftCyclesObject.multiplier }>`;
 
         // may get replaced by equivalent box action
         const boxAction = new CoprimesAction(
@@ -881,7 +883,7 @@ class CyclesExtensionExpression extends OperatorExpression {
             label,
             leftCyclesObject );
 
-        //this.boxGroup.registerCompositeAction( alias, boxAction );
+        this.boxGroup.registerCompositeAction( label, boxAction );
 
         // make immediately available by label
         params[ boxAction.label ] = boxAction;

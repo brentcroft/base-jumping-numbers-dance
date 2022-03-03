@@ -131,15 +131,9 @@ class Box {
     }
 }
 
-//function testIt() {
-//    const b4 = new PermBox( [ 4, 1 ] );
-//    const b10 = new PermBox( [ 10, 1 ] );
-//    const b4x10 = new Boxes( [ b10, b4 ] );
-//
-//    return b4x10;
-//}
+/*
 
-
+*/
 class PermBox extends Box {
     constructor( bases ) {
         super( bases );
@@ -207,7 +201,9 @@ class PermBox extends Box {
     }
 
     getPermKey( key ) {
-        return key.map( k => this.bases.indexOf( k ) );
+        return key
+            .map( k => this.bases.indexOf( k ) )
+            .filter( i => i > -1 );
     }
 
     getPermVector( permKey ) {

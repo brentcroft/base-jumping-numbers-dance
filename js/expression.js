@@ -38,7 +38,7 @@ const OPERATORS = {
     Inversion rules:
         1. The inverse of a group action has the pair of permutations swapped over
 */
-function inversion( boxAction, boxGroup ) {
+function invertByRules( boxAction, boxGroup ) {
     return ( boxAction instanceof PlaceValuesAction )
         ? boxGroup.findActionByPermPair( [ boxAction.pair.permPair[1], boxAction.pair.permPair[0] ] )
         : null;
@@ -48,7 +48,7 @@ function inversion( boxAction, boxGroup ) {
         1. Immediately adjacent and equal symbols in a composition that form an identity can be removed.
         3. Outside edge symbols in a composition that form an identity can be removed - and the inside reversed
 */
-function composition( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
+function composeByRules( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
 
     function updateSymbols( left, right, boxAction ) {
         const symbolic = `${ left.symbols[0] } ${ OPERATIONS[0] } ${ right.symbols[0] }`;
@@ -577,6 +577,7 @@ class Formula {
         if (!(expr instanceof Expression)) {
             throw new Error('No expression set: Did you init the object with a Formula?');
         }
+
         if (this.options.memoization) {
             let res = this.resultFromMemory(valueObj);
             if (res !== null) {
@@ -588,7 +589,7 @@ class Formula {
             }
         }
 
-        return expr.evaluate({ ...this.boxGroup.getIndexMap(), ...valueObj });
+        return expr.evaluate( { ...this.boxGroup.getIndexMap(), ...valueObj } );
     }
 
     // todo: externalize work on boxGroup
@@ -623,15 +624,14 @@ class Formula {
 
         if ( r instanceof CompositeAction || r instanceof FlatAction || r instanceof RootAction ) {
 
-            // reset id
-            //r.id = this.boxGroup.boxActions.length;
             if ( r instanceof CompositeAction ) {
                 if ( !r.label ) {
                     r.label = aliasText;
                 }
                 r.alias = [];
-                //r.indexPoints();
-                r.initialise();
+                if ( r.unindexed ) {
+                    r.initialise();
+                }
             }
 
             // promote results
@@ -649,7 +649,7 @@ class Formula {
                         if ( `e ${ OPERATIONS[0] } ${ existingIndex }` == aliasText ) {
                             //
                         } else {
-                            updateAlias( existingIndex, aliasText );
+                            updateAlias( existingIndex, r.label );
                         }
                         copySymbols( existingIndex, r );
                     } );
@@ -792,13 +792,13 @@ class OperatorExpression extends Expression {
         const rightAction = this.right.evaluate(params);
 
         if ( this.boxGroup.compositionRules ) {
-            const boxAction = composition( leftAction, rightAction, this.boxGroup );
+            const boxAction = composeByRules( leftAction, rightAction, this.boxGroup );
             if ( boxAction ) {
                 return boxAction;
             }
         }
 
-        const alias = CompositeAction.compositeLabel( leftAction, rightAction );
+        const alias = CompositionAction.compositeLabel( leftAction, rightAction );
 
         var boxAction = this.boxGroup.findActionByAlias( alias );
         if ( boxAction ) {
@@ -810,7 +810,7 @@ class OperatorExpression extends Expression {
         }
 
         // may get replaced by equivalent box action
-        boxAction = new CompositeAction(
+        boxAction = new CompositionAction(
             this.boxGroup.box,
             Math.round( Math.random() * 10000 + 1),
             leftAction,
@@ -877,7 +877,7 @@ class CyclesExtensionExpression extends OperatorExpression {
         const label = `<${ leftCyclesObject.leftCoprime }:${ leftCyclesObject.rightCoprime }${ this.operator }${ leftCyclesObject.multiplier }>`;
 
         // may get replaced by equivalent box action
-        const boxAction = new CoprimesAction(
+        const boxAction = new IndexCyclesAction(
             this.boxGroup.box,
             Math.round( Math.random() * 10000 + 1),
             label,
@@ -919,13 +919,13 @@ class PowerExpression extends Expression {
             //
         } else if ( exp > 0 ) {
             for ( var i = 1; i < exp; i++ ) {
-                const alias = CompositeAction.compositeLabel( locus, start );
+                const alias = CompositionAction.compositeLabel( locus, start );
                 const boxAction = this.boxGroup.findActionByAlias( alias );
 
                 if ( boxAction ) {
                     locus = boxAction;
                 } else {
-                    locus = new CompositeAction(
+                    locus = new CompositionAction(
                         locus.box,
                         Math.round( Math.random() * 10000 + 1),
                         locus, start,
@@ -940,13 +940,13 @@ class PowerExpression extends Expression {
         } else if ( exp < 0 ) {
 
             if ( this.boxGroup.compositionRules && start instanceof PlaceValuesAction ) {
-                locus = inversion( start, this.boxGroup );
+                locus = invertByRules( start, this.boxGroup );
             } else {
                 locus = params['e'] || params['e_0'];
                 if ( ! locus ) {
                     throw new Error("PowerExpression: 'e' did not return an identity. Switch on 'radiance'?");
                 }
-                locus = new CompositeAction(
+                locus = new CompositionAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
                             locus, start,
@@ -960,13 +960,13 @@ class PowerExpression extends Expression {
             }
 
             for ( var i = -1; i > exp; i-- ) {
-                const alias = CompositeAction.compositeLabel( locus, start );
+                const alias = CompositionAction.compositeLabel( locus, start );
                 const boxAction = this.boxGroup.findActionByAlias( alias );
 
                 if ( boxAction ) {
                     locus = boxAction;
                 } else {
-                    locus = new CompositeAction(
+                    locus = new CompositionAction(
                             locus.box,
                             Math.round( Math.random() * 10000 + 1),
                             locus, start,

@@ -359,11 +359,20 @@ function processFormula( indexedBox, compositionFormulasText ) {
                 return new RootAction( index, factor );
             }
 
+            function base( baseId ) {
+                if ( baseId < 0 ) {
+                    throw new Error( `base(): baseId must be greater than 0: ${ baseId }` );
+                } else if ( baseId > ( indexedBox.box.bases - 1 ) ) {
+                    throw new Error( `base(): baseId must be less than ${ indexedBox.box.bases }: ${ baseId }` );
+                }
+                return indexedBox.box.bases[ baseId ];
+            }
+
             const results = compositionFormulaLines
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
-                        return [ f, f.evaluate( { root: root, flat: flat, dump: dump, label: label } ) ];
+                        return [ f, f.evaluate( { base: base, root: root, flat: flat, dump: dump, label: label } ) ];
                     } catch ( e ) {
                         consoleLog( e );
                         return [ f, e ];

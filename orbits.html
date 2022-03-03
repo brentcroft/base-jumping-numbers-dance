@@ -13,6 +13,7 @@
     <script type="text/javascript" src="js/orbits.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/group.js"></script>
+    <script type="text/javascript" src="js/group-extras.js"></script>
     <script type="text/javascript" src="js/expression.js"></script>
 
     <script type="text/javascript" src="js/orbitation.js"></script>
@@ -179,7 +180,7 @@
             <label><input type="button" onclick="processFormula( getIndexedBox() )" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4">
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4"># 2D expansions (12);
 2 : 4 | 5;
 2 : 4 ~ 5;
 4 : 2 | 5;
@@ -191,21 +192,7 @@
 4 : 5 | 2;
 4 : 5 ~ 2;
 5 : 4 | 2;
-5 : 4 ~ 2;
-                </textarea>
-                <!--
-
-
-
-2 : 3 | 5;
-#3 : 2 | 5;
-#2 : 5 | 3;
-#2 : 5 ~ 3;
-#5 : 2 | 3;
-#3 : 5 | 2;
-#5 : 3 | 2;
-#2 : 3 ~ 5;
-#3 : 2 ~ 5;                -->
+5 : 4 ~ 2; </textarea>
                 <label>
                     Results: <br/>
                     <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>

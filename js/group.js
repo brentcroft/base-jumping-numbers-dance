@@ -164,6 +164,22 @@ class PlaceValuesAction extends BoxAction {
 }
 
 class CompositeAction extends BoxAction {
+    constructor( box, id = 0 ) {
+        super( box, id );
+
+        this.idx = new Array( this.box.volume );
+        this.dix = new Array( this.box.volume );
+
+        // todo: no identity plane
+        this.identityPlane = [ -1, -1, 1 ];
+        this.identityPlaneGcd = 1;
+        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+
+        this.alias = [];
+    }
+}
+
+class CompositionAction extends CompositeAction {
 
     static compositeLabel( leftAction, rightAction ) {
         return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
@@ -180,28 +196,17 @@ class CompositeAction extends BoxAction {
             : one;
     }
 
-    constructor( box, id = 0, leftAction, rightAction, autoInit = false, reverse = false ) {
+    constructor( box, id = 0, leftAction, rightAction, autoInit = false ) {
         super( box, id );
 
         this.leftAction = leftAction;
         this.rightAction = rightAction;
-        this.reverse = reverse;
 
-        this.idx = new Array( this.box.volume );
-        this.dix = new Array( this.box.volume );
+        this.boxGroup = this.leftAction.boxGroup;
+        this.label = CompositionAction.compositeLabel( leftAction, rightAction );
+        this.symbols = [ CompositionAction.compositeSymbol( leftAction, rightAction ) ];
 
-        // todo: no identity plane
-        this.identityPlane = [ -1, -1, 1 ];
-        this.identityPlaneGcd = 1;
-        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
-
-        //
-        if ( leftAction instanceof BoxAction && rightAction instanceof BoxAction ) {
-            this.boxGroup = this.leftAction.boxGroup;
-            this.label = CompositeAction.compositeLabel( leftAction, rightAction );
-            this.symbols = [ CompositeAction.compositeSymbol( leftAction, rightAction ) ];
-        }
-        this.alias = [];
+        this.cycles = composePermutations( this.leftAction.getCycles(), this.rightAction.getCycles() );
 
         if ( autoInit ) {
             this.indexPointsFromCycles();
@@ -212,7 +217,6 @@ class CompositeAction extends BoxAction {
     }
 
     indexPointsFromCycles() {
-        this.cycles = composePermutations( this.leftAction.getCycles(), this.rightAction.getCycles() );
         this.box.points.forEach( point => this.indexPointFromCycles( point ) );
         delete this.unindexed;
     }
@@ -266,7 +270,7 @@ class CompositeAction extends BoxAction {
     }
 }
 
-class CoprimesAction extends CompositeAction {
+class IndexCyclesAction extends CompositeAction {
 
     constructor( box, id = 0, label, cyclesObject ) {
         super( box, id, null, null );
@@ -276,7 +280,7 @@ class CoprimesAction extends CompositeAction {
         this.indexPoints( pair, cyclesObject );
         this.initialise();
 
-        consoleLog( `${ label } = ${ pair.symbol } = ${ pair }` );
+        //consoleLog( `${ label } = ${ pair.symbol } = ${ pair }` );
     }
 
     getPlaceValuesPermutationPair( cyclesObject ) {
@@ -382,7 +386,7 @@ class BoxGroup {
         if (toggles.includes( "radiance" )) {
 
             this.box.radiance = new RadiantAction( this.box, 0, toggles.includes( "fixedRad" ) );
-            this.box.unity = new CompositeAction( this.box, 1, this.box.radiance, this.box.radiance );
+            this.box.unity = new CompositionAction( this.box, 1, this.box.radiance, this.box.radiance );
             this.box.unity.label = 'e';
 
             this.boxActions = [ this.box.radiance, this.box.unity ];

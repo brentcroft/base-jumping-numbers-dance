@@ -29,7 +29,8 @@ const OPERATIONS = [
 const OPERATORS = {
     '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
     '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
-    ':': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
+    ':': ( operator, left, right ) => new LiteralCyclesExpression( operator, left, right ),
+    '#': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
     '|': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
     '~': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right )
 };
@@ -837,15 +838,21 @@ class CyclesExpression extends OperatorExpression {
     }
 
     evaluate( params = {} ) {
-        const leftCoprime = this.left.evaluate( params );
-        const rightCoprime = this.right.evaluate( params );
+        const leftBase = this.left.evaluate( params );
+        const rightBase = this.right.evaluate( params );
 
-        if ( ! ( Number.isInteger( leftCoprime ) && Number.isInteger( rightCoprime ) ) ) {
+        if ( ! ( Number.isInteger( leftBase ) && Number.isInteger( rightBase ) ) ) {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
+        const leftCoprime = this.boxGroup.box.bases[ leftBase ];
+        const rightCoprime = this.boxGroup.box.bases[ rightBase ];
+
         return {
+            literal: false,
+            leftBase: leftBase,
             leftCoprime: leftCoprime,
+            rightBase: rightBase,
             rightCoprime: rightCoprime,
             cycles: getCycles( [ leftCoprime, rightCoprime ] )
         };
@@ -855,6 +862,38 @@ class CyclesExpression extends OperatorExpression {
         return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
     }
 }
+
+class LiteralCyclesExpression extends OperatorExpression {
+    constructor( operator, left, right, boxGroup ) {
+        super( operator, left, right, boxGroup );
+    }
+
+    evaluate( params = {} ) {
+        const leftCoprime = this.left.evaluate( params );
+        const rightCoprime = this.right.evaluate( params );
+
+        if ( ! ( Number.isInteger( leftCoprime ) && Number.isInteger( rightCoprime ) ) ) {
+            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+        }
+
+        const leftBase = this.boxGroup.box.bases.indexOf( leftCoprime );
+        const rightBase = this.boxGroup.box.bases.indexOf( rightCoprime );
+
+        return {
+            literal: true,
+            leftBase: leftBase,
+            leftCoprime: leftCoprime,
+            rightBase: rightBase,
+            rightCoprime: rightCoprime,
+            cycles: getCycles( [ leftCoprime, rightCoprime ] )
+        };
+    }
+
+    toString() {
+        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+    }
+}
+
 
 
 class CyclesExtensionExpression extends OperatorExpression {
@@ -870,7 +909,13 @@ class CyclesExtensionExpression extends OperatorExpression {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
-        leftCyclesObject.multiplier = multiplier;
+        if ( leftCyclesObject.literal ) {
+            leftCyclesObject.multiplier = multiplier;
+            leftCyclesObject.multiplierBase = this.boxGroup.box.bases.indexOf( multiplier );
+        } else {
+            leftCyclesObject.multiplierBase = multiplier;
+            leftCyclesObject.multiplier = this.boxGroup.box.bases[ multiplier ];
+    }
         leftCyclesObject.harmonic = ( this.operator == '~' );
         leftCyclesObject.cycles = expandCycles( leftCyclesObject.cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
 

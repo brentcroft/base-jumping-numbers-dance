@@ -117,7 +117,7 @@
         <div id="actionControls" class="toolbar" style="display: none">
             <hr/>
             Layers: <span id="boxLayerSelectors">
-<!--                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>-->
+                <input id="box-layer.e" type="checkbox" class="box-layer-control" value="0" checked="checked"/>
                 <input id="box-layer.2" type="checkbox" class="box-layer-control" value="2" checked="checked"/>
                 <input id="box-layer.3" type="checkbox" class="box-layer-control" value="3" checked="checked"/>
                 <input id="box-layer.4" type="checkbox" class="box-layer-control" value="4" checked="checked"/>
@@ -180,13 +180,14 @@
             <label><input type="button" onclick="processFormula( getIndexedBox() )" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4"># 2D expansions (12);
-< bb( 1, 2 ) : bb( 0 ) | 1 >;
-< bb( 0 ) : bb( 1, 2 ) | 1 >;
-< bb( 1 ) : bb( 2, 0 ) | 1 >;
-< bb( 2, 0 ) : bb( 1 ) | 1 >;
-< bb( 2 ) : bb( 0, 1 ) | 1 >;
-< bb( 0, 1 ) : bb( 2 ) | 1 >;
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4">40 : 1 | 1;
+20 : 2 | 1;
+10 : 4 | 1;
+8 : 5 | 1;
+5 : 8 | 1;
+4 : 10 | 1;
+2 : 20 | 1;
+1 : 40 | 1;
 </textarea>
                 <label>
                     Results: <br/>

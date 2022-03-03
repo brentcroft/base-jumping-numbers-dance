@@ -203,7 +203,7 @@ class PermBox extends Box {
     getPermKey( key ) {
         return key
             .map( k => this.bases.indexOf( k ) )
-            .filter( i => i > -1 );
+            .filter( ( _, i ) => i < this.bases.length );
     }
 
     getPermVector( permKey ) {

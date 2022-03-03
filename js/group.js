@@ -285,23 +285,13 @@ class IndexCyclesAction extends CompositeAction {
 
     getPlaceValuesPermutationPair( cyclesObject ) {
         const [ l, r, m ] = [
-            cyclesObject.leftCoprime,
-            cyclesObject.rightCoprime,
-            cyclesObject.multiplier
+            cyclesObject.leftBase,
+            cyclesObject.rightBase,
+            cyclesObject.multiplierBase
         ];
-        const [ lr, rl ] = cyclesObject.harmonic
-            ? [ [ m, r, l ], [ m, l, r ] ]
-            : [ [ r, l, m ], [ l, r, m ] ];
-
-        const [ leftPermKey, rightPermKey ] =  [
-            this.box.getPermKey( lr ),
-            this.box.getPermKey( rl )
-        ];
-        if ( !leftPermKey ) {
-            throw new Error( `No leftPermKey found for: ${ rl }`);
-        } else if ( !rightPermKey ) {
-            throw new Error( `No rightPermKey found for: ${ lr }`);
-        }
+        const [ leftPermKey, rightPermKey ] = cyclesObject.harmonic
+            ? [ [ m, r, l ], [ m, l, r ] ].map( x => x.filter( i => i > -1 ) )
+            : [ [ r, l, m ], [ l, r, m ] ].map( x => x.filter( i => i > -1 ) );
 
         const [ leftPerm, rightPerm ] = [
             this.box.getPermVector( leftPermKey ),

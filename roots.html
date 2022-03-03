@@ -480,15 +480,13 @@ compo( z_0, z_1, z_2, z_3 );
 */
 
 /*
-[ a_0i, a_1h, a_1, a_1i ] = [ getCycles( [ 5, 4 ], 2, false ), getCycles( [ 2, 4 ], 5, true ), getCycles( [ 4, 2 ], 5, false ), getCycles( [ 2, 4 ], 5, false ) ];
-b_4 = compo( a_1h, a_0i );
-putHtml( a_0i ); putHtml( a_1h ); putHtml( b_4 );
-pagebreak();
-putX3DomNode( getCyclesDiagram( a_0i ), { width: '40%', height: '30%' } );
-putX3DomNode( getCyclesDiagram( a_1h ), { width: '40%', height: '30%' } );
-putX3DomNode( getCyclesDiagram( a_1 ), { width: '40%', height: '30%' } );
-putX3DomNode( getCyclesDiagram( a_1i ), { width: '40%', height: '30%' } );
-putX3DomNode( getCyclesDiagram( b_4 ), { width: '40%', height: '30%' } );
+const actions = [
+    getCycles( [ 4, 5 ], 2, false ),
+    getCycles( [ 5, 4 ], 2, false ),
+    getCycles( [ 2, 5 ], 4, false ),
+    getCycles( [ 5, 2 ], 4, false ),
+];
+actions.forEach( a => { putHtml( a ); putX3DomNode( getCyclesDiagram( a ), { width: '40%', height: '30%' } ); } );
 
 */
 
@@ -501,13 +499,31 @@ putX3DomNode( getCyclesDiagram( b_4 ), { width: '40%', height: '30%' } );
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="7" cols="200">
-const actions = [
-    getCycles( [ 4, 5 ], 2, false ),
-    getCycles( [ 5, 4 ], 2, false ),
-    getCycles( [ 2, 5 ], 4, false ),
-    getCycles( [ 5, 2 ], 4, false ),
-];
-actions.forEach( a => { putHtml( a ); putX3DomNode( getCyclesDiagram( a ), { width: '40%', height: '30%' } ); } );
+const bases = [ 2, 4, 5 ];
+const param = {
+    forces: [ 'pair', 'link' ],
+    identityFactor: 0.1,
+    pairFactor: -1.0,
+    rodLengthExp: 0,
+    rodStrengthExp: 2,
+    newtonian: true,
+    friction: 0.96,
+    minDist: 0.000000000001,
+    minDelta: 0.000000000001,
+    maxDelta: 10,
+    burst: 100,
+    iterations: 2000,
+    tickTime: 10
+};
+const orb = new Orbitation( bases, param );
+
+putOrbitationNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
+putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: false } );
+
+putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
+putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );
+
+putHtml( orb.fragmentsBlock() );
 </textarea>
 </body>
 </html>

@@ -4,10 +4,10 @@ var SYMBOLIC_COMPOSITIONS = [
     {
         "clear": [],
         "bases" : [
-            "base( 0 ) : base( 1 ) | 1; ",
-            "base( 0 ) : base( 1 ) ~ 1; ",
-            "base( 1 ) : base( 0 ) | 1; ",
-            "base( 1 ) : base( 0 ) ~ 1; ",
+            "bb( 0 ) : bb( 1 ) | 1; ",
+            "bb( 0 ) : bb( 1 ) ~ 1; ",
+            "bb( 1 ) : bb( 0 ) | 1; ",
+            "bb( 1 ) : bb( 0 ) ~ 1; ",
         ],
 
         "2d-full": [
@@ -37,18 +37,18 @@ var SYMBOLIC_COMPOSITIONS = [
     {
         "clear": [],
         "bases" : [
-            "base( 0 ) : base( 1 ) | base( 2 ); ",
-            "base( 0 ) : base( 1 ) ~ base( 2 ); ",
-            "base( 1 ) : base( 0 ) | base( 2 ); ",
-            "base( 1 ) : base( 0 ) ~ base( 2 ); ",
-            "base( 0 ) : base( 2 ) | base( 1 ); ",
-            "base( 0 ) : base( 2 ) ~ base( 1 ); ",
-            "base( 2 ) : base( 0 ) | base( 1 ); ",
-            "base( 2 ) : base( 0 ) ~ base( 1 ); ",
-            "base( 1 ) : base( 2 ) | base( 0 ); ",
-            "base( 1 ) : base( 2 ) ~ base( 0 ); ",
-            "base( 2 ) : base( 1 ) | base( 0 ); ",
-            "base( 2 ) : base( 1 ) ~ base( 0 ); "
+            "bb( 0 ) : bb( 1 ) | bb( 2 ); ",
+            "bb( 0 ) : bb( 1 ) ~ bb( 2 ); ",
+            "bb( 1 ) : bb( 0 ) | bb( 2 ); ",
+            "bb( 1 ) : bb( 0 ) ~ bb( 2 ); ",
+            "bb( 0 ) : bb( 2 ) | bb( 1 ); ",
+            "bb( 0 ) : bb( 2 ) ~ bb( 1 ); ",
+            "bb( 2 ) : bb( 0 ) | bb( 1 ); ",
+            "bb( 2 ) : bb( 0 ) ~ bb( 1 ); ",
+            "bb( 1 ) : bb( 2 ) | bb( 0 ); ",
+            "bb( 1 ) : bb( 2 ) ~ bb( 0 ); ",
+            "bb( 2 ) : bb( 1 ) | bb( 0 ); ",
+            "bb( 2 ) : bb( 1 ) ~ bb( 0 ); "
         ],
         "2x4x5" : [
             "2 : 4 | 5; ",

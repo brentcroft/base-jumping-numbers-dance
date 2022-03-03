@@ -30,7 +30,7 @@ const OPERATORS = {
     '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
     '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
     ':': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
-    '#': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
+    '|': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
     '~': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right )
 };
 
@@ -811,7 +811,7 @@ class OperatorExpression extends Expression {
 
         // may get replaced by equivalent box action
         boxAction = new CompositeAction(
-            boxGroup.box,
+            this.boxGroup.box,
             Math.round( Math.random() * 10000 + 1),
             leftAction,
             rightAction,
@@ -872,7 +872,7 @@ class CyclesExtensionExpression extends OperatorExpression {
 
         leftCyclesObject.multiplier = multiplier;
         leftCyclesObject.harmonic = ( this.operator == '~' );
-        leftCyclesObject.cycles = expandCycles( leftCyclesObject.cycles, leftCyclesObject.multiplier, this.operator == '~' );
+        leftCyclesObject.cycles = expandCycles( leftCyclesObject.cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
 
         const label = `<${ leftCyclesObject.leftCoprime }:${ leftCyclesObject.rightCoprime }${ this.operator }${ leftCyclesObject.multiplier }>`;
 

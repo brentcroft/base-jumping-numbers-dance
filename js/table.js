@@ -172,7 +172,8 @@ function renderCurrentActionTable( tableArgs ) {
 
     const {
         containerId, currentAction, cellClick, clearClick, totalClick, midi = false,
-        conj = false, perms = false, jumps = false, globalIds = false, minCols = false, maxCols = false, medCols = false
+        conj = false, perms = false, jumps = false, globalIds = false,
+        minCols = false, maxCols = false, medCols = false
     } = tableArgs;
 
     //consoleLog( `orbits.table: ${ containerId }: id=${ currentAction.id }` );
@@ -188,9 +189,6 @@ function renderCurrentActionTable( tableArgs ) {
     if ( maxCols ) {
         optionalColumns.push( "tension", "torsion" );
     }
-
-
-
 
     const gid = globalIds
         ? ( point ) => point.id
@@ -619,7 +617,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
         optionalColumns.pop();
         optionalColumns.pop();
         optionalColumns.pop();
-        optionalColumns.push( "composition" );
+        optionalColumns.push( "composition", "stats", "permutation-pair" );
     }
     if ( toggles.includes( "maxCols" ) ) {
         optionalColumns.push( "permutation-pair", "place-values-pair", "identity-equation" );

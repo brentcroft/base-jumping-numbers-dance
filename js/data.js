@@ -3,6 +3,10 @@ function consoleLog( s ) {
     console.log( s );
 }
 
+function arrowUp( parity ) {
+    return parity ? '🠅' : '🠇';
+}
+
 const PI = 3.1415926;
 const TWO_PI = 2 * PI;
 

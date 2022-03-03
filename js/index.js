@@ -131,35 +131,6 @@ class Box {
     }
 }
 
-class Boxes extends Box {
-    constructor( boxes ) {
-        super( boxes.flatMap( box => box.bases.filter( b => b > 1 ) ) );
-        this.boxes = boxes;
-        this.points = this.buildPoints();
-    }
-
-    buildPoints() {
-        var coords = [ [ ] ];
-        const points = [];
-        const boxStack = [...this.boxes];
-        while ( boxStack.length > 0 ) {
-            const box = boxStack.pop();
-
-            // check for empty bases
-            // and filter out corresponding coord values
-
-            const mask = box.bases.map( (b,i) => b > 1 ? true : false );
-
-            coords = coords
-                .flatMap( coord => box
-                    .points
-                    .map( b => [ ...coord, ...b.coord.filter( (c,i) => mask[ i ] ) ] ) )
-        }
-
-        return coords.map( ( coord, i ) => new Point( i, coord, this.centre ) );
-    }
-}
-
 //function testIt() {
 //    const b4 = new PermBox( [ 4, 1 ] );
 //    const b10 = new PermBox( [ 10, 1 ] );
@@ -229,6 +200,24 @@ class PermBox extends Box {
             }
         }
         return points;
+    }
+
+    getPointAtCoord( coord ) {
+        return this.points.find( point => arrayExactlyEquals( coord, point.coord ) );
+    }
+
+    getPermKey( key ) {
+        return key.map( k => this.bases.indexOf( k ) );
+    }
+
+    getPermVector( permKey ) {
+        return this.placeValuePermutations
+            .map( pvp => arrayExactlyEquals( permKey, pvp.perm )
+                  ? [ pvp, false ]
+                  : arrayExactlyEquals( permKey, pvp.antiPerm )
+                      ? [ pvp, true ]
+                      : null )
+            .find( x => x );
     }
 
     getJson() {
@@ -309,7 +298,7 @@ class PlaceValuesPermutationPair {
     };
 
     toString() {
-        return "[" + this.permPair.map( p => p.join(", ") ).join( "], [" ) + "]";
+        return "[" + this.permPair.map( p => p.join( "," ) ).join( "]:[" ) + "]";
     }
 
     constructor( id, bases = [ 1 ], left, right, state = [ false, false, '' ], inversePair, harmonic = false ) {
@@ -340,7 +329,7 @@ class PlaceValuesPermutationPair {
           ]
           .map( i => i + 127 );
 
-        this.symbol = `(${ left.symbol }${ this.leftState ? '🠅' : '🠇' }-${ right.symbol }${ this.rightState ? '🠅' : '🠇' })`;
+        this.symbol = `${ left.symbol }${ arrowUp( this.leftState ) }:${ right.symbol }${ arrowUp( this.rightState ) }`;
 
         this.rank = this.permPair[0].length;
 
@@ -377,7 +366,6 @@ class PlaceValuesPermutationPair {
 
         this.signature = report;
     }
-
 
     getInversePair() {
         if ( this.inversePair ) {
@@ -514,7 +502,7 @@ class BoxAction {
 
         if ( !this.ignoreIndexPerimeters ) {
             if ( this.totalIndexPerimeter != other.totalIndexPerimeter ) {
-                consoleLog( `${ other } != ${ this }; index-perimeter: ${ other.totalIndexPerimeter } != ${ this.totalIndexPerimeter }`);
+                //consoleLog( `${ other } != ${ this }; index-perimeter: ${ other.totalIndexPerimeter } != ${ this.totalIndexPerimeter }`);
                 return false;
             }
         }
@@ -522,7 +510,7 @@ class BoxAction {
         const orbitOffsetEntries = Object.entries( orbitOffsetMessages );
         if ( orbitOffsetEntries.length > 0 ) {
             const msg = orbitOffsetEntries.map( entry => `${ entry[1] }(${ entry[0] })` ).join(", ");
-            consoleLog( `${ other } != ${ this }; offsets: ${ msg };`);
+            //consoleLog( `${ other } != ${ this }; offsets: ${ msg };`);
             return false;
         }
 
@@ -595,7 +583,7 @@ class BoxAction {
             var point = idx[ startIndex ];
 
             if (!point) {
-                throw new Error( `Bad orbit: No start point: ${ indexId }/${ orbitId };${ startIndex }` );
+                throw new Error( `Bad orbit: No start point: index: ${ indexId } orbit: ${ orbitId }, start: ${ startIndex }` );
             }
 
             try {

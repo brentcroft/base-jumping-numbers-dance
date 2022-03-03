@@ -131,7 +131,7 @@ function createPlaneItemWithNormal( param ) {
             reify(
                 "group",
                 {},
-                [ createLineSetFromPoints( [ [ 0, 0, 0 ], unitNormal ], planeColor ) ]
+                [ createLineSetFromCoords( [ [ 0, 0, 0 ], unitNormal ], planeColor ) ]
             )
         );
     } catch ( e ) {
@@ -243,21 +243,23 @@ function createLineSet( points, emissiveColor, attr = {} ){
 
 
 function createLineSetFromPoints( points, emissiveColor, attr = {} ){
+    return createLineSetFromCoords( points.map( p => p.coord ), emissiveColor, attr = {} );
+}
+
+function createLineSetFromCoords( coords, emissiveColor, attr = {} ) {
     var shape = createShape( emissiveColor, attr.linetype ? attr.linetype : "1", attr );
     var lineSet = document.createElement( "LineSet" );
     shape.appendChild( lineSet );
 
-    lineSet.setAttribute( 'vertexCount', `${ points.length + 1 }` );
+    lineSet.setAttribute( 'vertexCount', `${ coords.length + 1 }` );
 
     // guarantee 3 values per coord
-    var point = points
-        .map( (x,i) => {
-            var [ x = 0, y = 0, z = 0 ] = x.coord;
-            return `${ x } ${ y } ${ z }`;
-        } )
+    var point = coords
+        .map( ( [ x = 0, y = 0, z = 0 ] ) => `${ x } ${ y } ${ z }` )
         .join( ' ' );
 
-    var [ x = 0, y = 0, z = 0 ] = points[0].coord;
+    // loop back to start point
+    var [ x = 0, y = 0, z = 0 ] = coords[0];
     point += ` ${ x } ${ y } ${ z } -1`;
 
     var coordinate = document.createElement( 'coordinate' );

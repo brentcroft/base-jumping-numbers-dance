@@ -326,7 +326,7 @@ function openPlot() {
 }
 
 
-function processFormula( compositionFormulasText ) {
+function processFormula( indexedBox, compositionFormulasText ) {
 
     document.getElementById( 'summaryEditorResult' ).innerHTML = "";
     document.getElementById( 'summaryEditorErrorMessage' ).innerHTML = "";
@@ -600,6 +600,9 @@ function buildOctahedralNavigator( boxGroup, param ) {
     }
 }
 
+function getIndexedBox() {
+    return indexedBox;
+}
 
 function updatePage() {
 
@@ -639,7 +642,7 @@ function updatePage() {
 
     if ( param.toggles.includes( "autoCompose" ) ) {
         const compositionFormulas = document.getElementById( "compositionFormulas" ).value;
-        processFormula( compositionFormulas );
+        processFormula( indexedBox,  compositionFormulas );
     }
 }
 
@@ -769,7 +772,12 @@ function initPage( urlParam = true ) {
                     document.getElementById( 'monomialFilterDisplay' ).innerHTML = getCycleIndexMonomialHtml( currentAction );
 
                     const cycles = currentAction.orbits.map( orbit => orbit.points.map( p => p.at( currentAction.key ).id ) );
-                    navigator.clipboard.writeText( JSON.stringify( canonicalizePermutation( cycles ) ) );
+
+                    try {
+                        navigator.clipboard.writeText( JSON.stringify( canonicalizePermutation( cycles ) ) );
+                    } catch ( e ) {
+                        consoleLog( `Failed write to clipboard: ${ e }`);
+                    }
 
                     const param = getControlValues();
 

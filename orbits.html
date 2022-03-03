@@ -136,8 +136,8 @@
 <!--                <input id="box-layer-filter.0" type="checkbox" class="box-layer-control-filter" value="0" checked="checked"/>-->
                 <input id="box-layer-filter.1" type="checkbox" class="box-layer-control-filter" value="1" checked="checked"/>
                 <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>
-                <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>
-                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>
+<!--                <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>-->
+<!--                <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>-->
             </span> |
             <label title="Filter actions by monomial">
                 monomial<input type="checkbox" id="monomialFilterEnabled" onchange="disableCheckBoxIfNoFilterElseUpdatePage( this )" value=""/>
@@ -176,19 +176,36 @@
             </div>
 
             <br/><br/>
-            <label><input type="button" onclick="processFormula()" value="compose"/></label>
+            <label><input type="button" onclick="processFormula( getIndexedBox() )" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
                 <textarea id="compositionFormulas" class="formulaPanel" rows="4">
-5 : 4 # 2;
+2 : 4 | 5;
+2 : 4 ~ 5;
+4 : 2 | 5;
+4 : 2 ~ 5;
+2 : 5 | 4;
+2 : 5 ~ 4;
+5 : 2 | 4;
+5 : 2 ~ 4;
+4 : 5 | 2;
+4 : 5 ~ 2;
+5 : 4 | 2;
 5 : 4 ~ 2;
-4 : 5 # 2;
-5 : 2 # 4;
-2 : 5 # 4;
-4 : 2 # 5;
-2 : 4 # 5;
-
                 </textarea>
+                <!--
+
+
+
+2 : 3 | 5;
+#3 : 2 | 5;
+#2 : 5 | 3;
+#2 : 5 ~ 3;
+#5 : 2 | 3;
+#3 : 5 | 2;
+#5 : 3 | 2;
+#2 : 3 ~ 5;
+#3 : 2 ~ 5;                -->
                 <label>
                     Results: <br/>
                     <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>

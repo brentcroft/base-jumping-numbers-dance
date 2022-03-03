@@ -7,13 +7,13 @@ toggleKeys = {
     more: 0,
 
     globalIds: 0,
-    conj: 1,
+    conj: 0,
     coords: 0,
     fixedRad: 1,
     colours: 0,
 
-    minCols: 0,
-    medCols: 0,
+    minCols: 1,
+    medCols: 1,
     maxCols: 0,
 
 
@@ -30,7 +30,7 @@ toggleKeys = {
     autoCompose: 1,
 
     compositionRules: 0,
-    showCompositions: 0,
+    showCompositions: 1,
     ignoreEuclideanPerimeters: 0,
     ignoreIndexPerimeters: 0,
     ignoreOrbitOffsets: 1,

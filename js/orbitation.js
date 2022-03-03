@@ -60,6 +60,9 @@ function getOrbits( roots ) {
 }
 
 function expandCycles( cycles, copies = 1, harmonic = false ) {
+    if ( copies < 2 ) {
+        return cycles;
+    }
     const volume = cycles.reduce( ( a, c ) => a + c.length, 0 );
     const baseCycles = [];
     if ( harmonic ) {
@@ -69,7 +72,9 @@ function expandCycles( cycles, copies = 1, harmonic = false ) {
         }
     } else {
         for ( var i = 0; i < copies; i++ ) {
-            cycles.forEach( cycle => baseCycles.push( cycle.map( c => c + ( i * volume ) ) ) );
+            cycles
+                .forEach( cycle => baseCycles.push(
+                    cycle.map( c => c + ( i * volume ) ) ) );
         }
     }
 
@@ -81,10 +86,16 @@ function getCycles( factors, copies = 1, harmonic = false ) {
     const volume = factors.reduce( ( a, c ) => a * c, 1 );
     const terminal = volume - 1;
     const clockfaces = getClockfaces( terminal, coprime );
+
+    // create points
     const cycles = getOrbits( clockfaces );
-    // insert terminal fixed point
-    cycles.push( [ terminal ] );
-    return expandCycles( cycles, copies, harmonic ) ;
+
+    // maybe insert terminal fixed point
+    if ( terminal > 0 ) {
+        cycles.push( [ terminal ] );
+    }
+
+    return expandCycles( cycles, copies, harmonic );
 }
 
 
@@ -492,7 +503,12 @@ class Orbitation {
                                                 .filter( ( [ key, orbits ] ) => Number( key ) > 1 )
                                                 .flatMap( ( [ key, orbits ] ) => orbits );
 
-                                            navigator.clipboard.writeText( JSON.stringify( cycles ) );
+                                            try {
+                                                navigator.clipboard.writeText( JSON.stringify( cycles ) );
+                                            } catch ( e ) {
+                                                consoleLog( `Failed write to clipboard: ${ e }`);
+                                            }
+
 
                                             c.innerHTML = cyclesHtml;
                                         } );

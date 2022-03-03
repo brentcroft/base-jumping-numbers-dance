@@ -213,7 +213,7 @@ function getBasePlaneItems( currentAction, toggles ) {
 
         const centreLines = currentAction
             .centreLines
-            .map( centreLine => createLineSetFromPoints( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), maxBase / 2 ), "gray" ) );
+            .map( centreLine => createLineSetFromCoords( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), maxBase / 2 ), "gray" ) );
 
         const centreItems = reify(
             "group",

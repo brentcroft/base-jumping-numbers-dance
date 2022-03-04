@@ -280,6 +280,26 @@ function extendLine( p1, p2, scale = 0 ) {
 }
 
 
+function factorize( f, bases = [ 1 ] ) {
+    var g = f;
+    const b = [ ...bases ];
+    b.sort( (a1,a2)=> a2-a1 );
+    const factors = [];
+
+    while ( g > 1 ) {
+        const base = b.find( c => Number.isInteger( g / c ) );
+        if ( !base ) {
+            throw new Error( `Cannot factorize ${ f } in bases: [${ bases }]`);
+        }
+        g = g / base;
+        b.splice( b.indexOf( base ), 1 );
+        factors.push( base );
+    }
+    return factors;
+}
+
+
+
 function tetrahedralVolume( line1, line2 ) {
     const [ p1, p2 ] = line1;
     const [ p3, p4 ] = line2;

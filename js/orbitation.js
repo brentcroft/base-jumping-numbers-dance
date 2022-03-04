@@ -81,23 +81,21 @@ function expandCycles( cycles, copies = 1, harmonic = false ) {
     return baseCycles;
 }
 
+function getMultiplicativeGroupMember( terminal, coprime ) {
+    return getOrbits( getClockfaces( terminal, coprime ) );
+}
+
 function getCycles( factors, copies = 1, harmonic = false ) {
     const [ coprime, cofactor ] = factors;
     const volume = factors.reduce( ( a, c ) => a * c, 1 );
     const terminal = volume - 1;
-    const clockfaces = getClockfaces( terminal, coprime );
-
-    // create points
-    const cycles = getOrbits( clockfaces );
-
+    const cycles = getMultiplicativeGroupMember( terminal, coprime );
     // maybe insert terminal fixed point
     if ( terminal > 0 ) {
         cycles.push( [ terminal ] );
     }
-
     return expandCycles( cycles, copies, harmonic );
 }
-
 
 function monomialHtml( monomial ) {
      const identities = Object

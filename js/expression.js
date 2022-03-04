@@ -3,8 +3,8 @@
  * -------------------
  * (c) 2012-2021 Alexander Schenkel, alex@alexi.ch
  *
- * JS Formula Parser takes a string, parses its mathmatical formula
- * and creates an evaluatable Formula object of it.
+ * JS Formula Parser takes a string, parses its mathematical formula
+ * and creates an evaluable Formula object of it.
  *
  * Example input:
  *
@@ -746,6 +746,24 @@ class BracketExpression extends Expression {
     }
 }
 
+
+class ListExpression extends Expression {
+    constructor(expr) {
+        super();
+        this.innerExpression = expr;
+        if (!(this.innerExpression instanceof Expression)) {
+            throw new Error('No inner expression given for bracket expression');
+        }
+    }
+    evaluate(params = {}) {
+        return this.innerExpression.evaluate(params);
+    }
+    toString() {
+        return `(${this.innerExpression.toString()})`;
+    }
+}
+
+
 class ValueExpression extends Expression {
     constructor(value) {
         super();
@@ -850,11 +868,10 @@ class CyclesExpression extends OperatorExpression {
 
         return {
             literal: false,
-            leftBase: leftBase,
-            leftCoprime: leftCoprime,
-            rightBase: rightBase,
-            rightCoprime: rightCoprime,
-            cycles: getCycles( [ leftCoprime, rightCoprime ] )
+            leftBases: [ leftBase ],
+            leftCoprimes: [ leftCoprime ],
+            rightBases: [ rightBase ],
+            rightCoprimes: [ rightCoprime ]
         };
     }
 
@@ -869,23 +886,60 @@ class LiteralCyclesExpression extends OperatorExpression {
     }
 
     evaluate( params = {} ) {
-        const leftCoprime = this.left.evaluate( params );
-        const rightCoprime = this.right.evaluate( params );
+        var leftCoprimes = this.left.evaluate( params );
+        var rightCoprimes = this.right.evaluate( params );
 
-        if ( ! ( Number.isInteger( leftCoprime ) && Number.isInteger( rightCoprime ) ) ) {
-            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+        if ( Number.isInteger( leftCoprimes ) ) {
+            var f = leftCoprimes;
+            leftCoprimes = this.boxGroup.box.bases.includes( f )
+                ? [ f ]
+                : factorize( f, this.boxGroup.box.bases );
+
+            // check
+            if ( leftCoprimes.reduce( ( a, c ) => a * c, 1 ) != f ) {
+                throw new Error( `Invalid left argument for operator, ${ f } is not a box factor: ${ leftCoprimes }` );
+            }
+
+        } else {
+            if ( !leftCoprimes.leftCoprimes ) {
+                throw new Error( `Invalid left argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+            }
+            // todo: losing info
+            leftCoprimes = [ ...leftCoprimes.leftCoprimes, ...leftCoprimes.rightCoprimes ];
         }
 
-        const leftBase = this.boxGroup.box.bases.indexOf( leftCoprime );
-        const rightBase = this.boxGroup.box.bases.indexOf( rightCoprime );
+        if ( Number.isInteger( rightCoprimes ) ) {
+            var f = rightCoprimes;
+            rightCoprimes = this.boxGroup.box.bases.includes( f )
+                ? [ f ]
+                : factorize( rightCoprimes, this.boxGroup.box.bases );
+
+            // check
+            if ( rightCoprimes.reduce( ( a, c ) => a * c, 1 ) != f ) {
+                throw new Error( `Invalid right argument for operator, ${ f } is not a box factor: ${ rightCoprimes }` );
+            }
+        } else {
+            if ( !rightCoprimes.leftCoprimes ) {
+                throw new Error( `Invalid right argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+            }
+            // todo: losing info
+            rightCoprimes = [ ...rightCoprimes.leftCoprimes, ...rightCoprimes.rightCoprimes ];
+        }
+
+        var leftBases = [];
+        // todo: fails on duplicate factors
+        leftCoprimes.forEach( cp => leftBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
+
+        var rightBases = [];
+        // todo: fails on duplicate factors
+        rightCoprimes.forEach( cp => rightBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
 
         return {
             literal: true,
-            leftBase: leftBase,
-            leftCoprime: leftCoprime,
-            rightBase: rightBase,
-            rightCoprime: rightCoprime,
-            cycles: getCycles( [ leftCoprime, rightCoprime ] )
+            leftBases: leftBases,
+            leftCoprimes: leftCoprimes,
+            rightBases: rightBases,
+            rightCoprimes: rightCoprimes
         };
     }
 
@@ -905,7 +959,7 @@ class CyclesExtensionExpression extends OperatorExpression {
         const leftCyclesObject = this.left.evaluate(params);
         const multiplier = this.right.evaluate(params);
 
-        if ( !(Array.isArray( leftCyclesObject.cycles ) && Number.isInteger( multiplier ) ) ) {
+        if ( !(Number.isInteger( multiplier ) ) ) {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
@@ -915,11 +969,18 @@ class CyclesExtensionExpression extends OperatorExpression {
         } else {
             leftCyclesObject.multiplierBase = multiplier;
             leftCyclesObject.multiplier = this.boxGroup.box.bases[ multiplier ];
-    }
-        leftCyclesObject.harmonic = ( this.operator == '~' );
-        leftCyclesObject.cycles = expandCycles( leftCyclesObject.cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
+        }
 
-        const label = `<${ leftCyclesObject.leftCoprime }:${ leftCyclesObject.rightCoprime }${ this.operator }${ leftCyclesObject.multiplier }>`;
+        leftCyclesObject.harmonic = ( this.operator == '~' );
+
+        const leftFactor = leftCyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
+        const rightFactor = leftCyclesObject.rightCoprimes.reduce( ( a, c ) => a * c, 1 );
+
+        const cycles = getCycles( [ leftFactor, rightFactor ] );
+
+        leftCyclesObject.cycles = expandCycles( cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
+
+        const label = `<${ leftCyclesObject.leftCoprimes.join( ':' ) }:${ leftCyclesObject.rightCoprimes }${ this.operator }${ leftCyclesObject.multiplier }>`;
 
         // may get replaced by equivalent box action
         const boxAction = new IndexCyclesAction(

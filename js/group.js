@@ -274,11 +274,11 @@ class IndexCyclesAction extends CompositeAction {
 
     constructor( box, id = 0, label, cyclesObject ) {
         super( box, id, null, null );
-        const pair = this.getPlaceValuesPermutationPair( cyclesObject );
+        this.pair = this.getPlaceValuesPermutationPair( cyclesObject );
         this.harmonic = cyclesObject.harmonic;
         this.label = label;
-        this.symbols = [ pair.symbol ];
-        this.indexPoints( pair, cyclesObject );
+        this.symbols = [ this.pair.symbol ];
+        this.indexPoints( this.pair, cyclesObject );
         this.initialise();
 
         //consoleLog( `${ label } = ${ pair.symbol } = ${ pair }` );
@@ -306,8 +306,14 @@ class IndexCyclesAction extends CompositeAction {
         }
 
         return new PlaceValuesPermutationPair( null, this.box.bases,
-            leftPerm[0], rightPerm[0], [ leftPerm[1], rightPerm[1], '' ],
-            null, cyclesObject.harmonic
+            leftPerm[0], rightPerm[0],
+            [
+                leftPerm[1],
+                rightPerm[1],
+                `${ leftPerm[1].leftState ? 'U' : 'D' }${ rightPerm[1].rightState ? 'U' : 'D' }`
+            ],
+            null,
+            cyclesObject.harmonic
         );
     }
 

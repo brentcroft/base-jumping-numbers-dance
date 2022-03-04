@@ -136,8 +136,8 @@
             <span id="boxLayerFilterSelectors">
 <!--                <input id="box-layer-filter.0" type="checkbox" class="box-layer-control-filter" value="0" checked="checked"/>-->
                 <input id="box-layer-filter.1" type="checkbox" class="box-layer-control-filter" value="1" checked="checked"/>
-<!--                <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>-->
-<!--                <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>-->
+                <input id="box-layer-filter.2" type="checkbox" class="box-layer-control-filter" value="2" checked="checked"/>
+                <input id="box-layer-filter.3" type="checkbox" class="box-layer-control-filter" value="3" checked="checked"/>
                 <input id="box-layer-filter.4" type="checkbox" class="box-layer-control-filter" value="4" checked="checked"/>
             </span> |
             <label title="Filter actions by monomial">
@@ -180,43 +180,15 @@
             <label><input type="button" onclick="processFormula( getIndexedBox() )" value="compose"/></label>
             <span id="compositionSelectors"></span>
             <form name="compositionFormulas">
-                <textarea id="compositionFormulas" class="formulaPanel" rows="4">
-2 : 4 | 5;
-2 : 4 ~ 5;
-4 : 2 | 5;
-4 : 2 ~ 5;
-2 : 5 | 4;
-2 : 5 ~ 4;
-5 : 2 | 4;
-5 : 2 ~ 4;
-4 : 5 | 2;
-4 : 5 ~ 2;
-5 : 4 | 2;
-5 : 4 ~ 2;
-( 4 : 5 ) : 2 | 1;
-( 5 : 4 ) : 2 | 1;
-2 : ( 4 : 5 ) | 1;
-2 : ( 5 : 4 ) | 1;
-( 2 : 4 ) : 5 | 1;
-( 4 : 2 ) : 5 | 1;
-5 : ( 2 : 4 ) | 1;
-5 : ( 4 : 2 ) | 1;
-( 5 : 2 ) : 4 | 1;
-( 2 : 5 ) : 4 | 1;
-4 : ( 5 : 2 ) | 1;
-4 : ( 2 : 5 ) | 1;
-( 2 : ( 5 : 4 ) | 1 ) * ( 4 : 5 | 2 );
-( 4 : 2 | 5 ) * ( 5 : ( 4 : 2 )  | 1 );
-( 4 : 5 | 2 ) * ( ( 4 : 5 ) : 2 | 1 );
-( 2 : ( 4 : 5 ) | 1 ) * ( 5 : 4 | 2 );
-( 5 : 2 | 4 ) * ( ( 5 : 2 ) : 4 | 1 );
-( 4 : ( 5 : 2 ) | 1 ) * ( 2 : 5 | 4 );
-</textarea>
+                <textarea id="compositionFormulas" class="formulaPanel" rows="4"></textarea>
                 <label>
                     Results: <br/>
                     <textarea id="summaryEditorResult" class="formulaPanel" rows="5" disabled="disabled"></textarea>
                 </label>
             </form>
+            <script>
+                document.getElementById( "compositionFormulas" ).value = SYMBOLIC_COMPOSITIONS[ 3 ][ 'bases' ].join( "\n" );
+            </script>
             <div id="compositionMessages" class="formulaPanel"></div>
             <div id="summaryEditorErrorMessage" class="difference"></div>
         </div>

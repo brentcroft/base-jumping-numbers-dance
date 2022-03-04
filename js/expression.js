@@ -58,7 +58,7 @@ function composeByRules( left, right, boxGroup, rules = { "outer": 1, "rotations
         }
     }
 
-    if ( left instanceof PlaceValuesAction && right instanceof PlaceValuesAction ) {
+    if ( left.pair && right.pair ) {
 
         const [
             leftState, leftPermPair,

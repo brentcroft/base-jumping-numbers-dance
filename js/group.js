@@ -281,7 +281,7 @@ class IndexCyclesAction extends CompositeAction {
         this.indexPoints( pair, cyclesObject );
         this.initialise();
 
-        consoleLog( `${ label } = ${ pair.symbol } = ${ pair }` );
+        //consoleLog( `${ label } = ${ pair.symbol } = ${ pair }` );
     }
 
     getPlaceValuesPermutationPair( cyclesObject ) {
@@ -291,14 +291,14 @@ class IndexCyclesAction extends CompositeAction {
             [ cyclesObject.multiplierBase ].filter( i => i > -1 )
         ];
         const [ leftPermKey, rightPermKey ] = cyclesObject.harmonic
-            //? [ [ ...m, ...r, ...l ], [ ...m, ...l, ...r ] ]
-            ? [ [ ...m, ...l.reverse(), ...r.reverse() ], [ ...m, ...r, ...l ] ]
+            ? [ [ ...m, ...r, ...l ], [ ...m, ...l, ...r ] ]
             : [ [ ...r, ...l, ...m ], [ ...l, ...r, ...m ] ];
 
         const [ leftPerm, rightPerm ] = [
             this.box.getPermVector( leftPermKey ),
             this.box.getPermVector( rightPermKey )
         ];
+
         if ( !leftPerm ) {
             throw new Error( `No leftPerm found for: ${ leftPermKey }`);
         } else if ( !rightPerm ) {
@@ -312,7 +312,9 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     indexPoints( pair, cyclesObject ) {
-        const pointIndex = ( pair.leftState ^ this.harmonic ) ? pair.dix : pair.idx;
+        const pointIndex = ( pair.leftState ^ this.harmonic )
+            ? pair.dix
+            : pair.idx;
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle

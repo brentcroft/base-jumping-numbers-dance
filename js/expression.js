@@ -980,7 +980,15 @@ class CyclesExtensionExpression extends OperatorExpression {
 
         leftCyclesObject.cycles = expandCycles( cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
 
-        const label = `<${ leftCyclesObject.leftCoprimes.join( ':' ) }:${ leftCyclesObject.rightCoprimes }${ this.operator }${ leftCyclesObject.multiplier }>`;
+        const leftLabel = leftCyclesObject.leftCoprimes.length > 1
+            ? `(${ leftCyclesObject.leftCoprimes.join( ':' ) })`
+            : `${ leftCyclesObject.leftCoprimes[0] }`;
+
+        const rightLabel = leftCyclesObject.rightCoprimes.length > 1
+            ? `(${ leftCyclesObject.rightCoprimes.join( ':' ) })`
+            : `${ leftCyclesObject.rightCoprimes[0] }`;
+
+        const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ leftCyclesObject.multiplier })`;
 
         // may get replaced by equivalent box action
         const boxAction = new IndexCyclesAction(

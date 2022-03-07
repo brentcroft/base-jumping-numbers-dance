@@ -274,6 +274,12 @@ class IndexCyclesAction extends CompositeAction {
 
     constructor( box, id = 0, label, cyclesObject ) {
         super( box, id, null, null );
+        this.structure = {
+            leftBases: cyclesObject.leftBases,
+            rightBases: cyclesObject.rightBases,
+            multiplierBases: [ cyclesObject.multiplierBase ],
+            harmonic: cyclesObject.harmonic
+        }
         this.pair = this.getPlaceValuesPermutationPair( cyclesObject );
         this.harmonic = cyclesObject.harmonic;
         this.label = label;

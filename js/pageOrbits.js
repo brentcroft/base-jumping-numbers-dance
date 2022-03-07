@@ -679,6 +679,11 @@ function initPage( urlParam = true ) {
     const [ bases, orbitIndex, minPixel ] = getColorConfiguration();
     putBasePlane( "COLOR_ORBITS", new ColorBasePlane( bases, orbitIndex, minPixel ) );
 
+    // maybe insert a set of compositions
+    if ( !param.toggles.includes( 'noCompositions' ) ) {
+        document.getElementById( "compositionFormulas" ).value = SYMBOLIC_COMPOSITIONS[ param.bases.length ][ 'bases' ].join( "\n" );
+    }
+
     updatePage();
 
     if ( !urlParam ) {

@@ -16,7 +16,9 @@
     <script type="text/javascript" src="js/group-extras.js"></script>
     <script type="text/javascript" src="js/expression.js"></script>
 
+    <script type="text/javascript" src="js/clockfaces.js"></script>
     <script type="text/javascript" src="js/orbitation.js"></script>
+
     <script type="text/javascript" src="js/bitmap.js"></script>
     <script type="text/javascript" src="js/glyphs.js"></script>
 
@@ -205,6 +207,8 @@
         function putX3DomNode( node, param = {} ) {
             const {
                 css = [],
+                sourceId = 'calculationScript',
+                sourceElement,
                 sceneId = `scene-${ new Date().toISOString() }`,
                 width = "50%",
                 height = "50%"
@@ -215,10 +219,9 @@
                     [ reify( "scene", { "id": `${ sceneId }` }, [ node ] ) ]
                 );
 
-            const sourceId = 'calculationScript';
-            const sourceElement = document.getElementById( sourceId );
+            const targetElement = sourceElement || document.getElementById( sourceId );
 
-            sourceElement
+            targetElement
                 .parentNode
                 .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ x3dRoot ] ) );
 
@@ -522,7 +525,7 @@ putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: false } )
 
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );
-
+//putDomNode( reify( "div", { id: "selected-cycles-diagram" } ), { css: [ 'summaryLeft', 'resizable', 'leftFlow' ] } );
 putHtml( orb.fragmentsBlock() );
 </textarea>
 </body>

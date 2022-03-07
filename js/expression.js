@@ -49,10 +49,10 @@ function invertByRules( boxAction, boxGroup ) {
         1. Immediately adjacent and equal symbols in a composition that form an identity can be removed.
         3. Outside edge symbols in a composition that form an identity can be removed - and the inside reversed
 */
-function composeByRules( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
+function composeBySymbols( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
 
     function updateSymbols( left, right, boxAction ) {
-        const symbolic = `${ left.symbols[0] } ${ OPERATIONS[0] } ${ right.symbols[0] }`;
+        const symbolic = `${ left.symbols[0] }${ OPERATIONS[0] }${ right.symbols[0] }`;
         if ( !boxAction.symbols.includes( symbolic ) ) {
             boxAction.symbols.push( symbolic );
         }
@@ -155,6 +155,15 @@ function composeByRules( left, right, boxGroup, rules = { "outer": 1, "rotations
 
         }
     }
+    return null;
+}
+
+/*
+    Composition rules:
+        1. Immediately adjacent and equal symbols in a composition that form an identity can be removed.
+        3. Outside edge symbols in a composition that form an identity can be removed - and the inside reversed
+*/
+function composeByStructure( left, right, boxGroup, rules = { "outer": 1, "rotations": 1 } ) {
     return null;
 }
 
@@ -811,9 +820,17 @@ class OperatorExpression extends Expression {
         const rightAction = this.right.evaluate(params);
 
         if ( this.boxGroup.compositionRules ) {
-            const boxAction = composeByRules( leftAction, rightAction, this.boxGroup );
-            if ( boxAction ) {
-                return boxAction;
+            if ( leftAction.structure && rightAction.structure ) {
+                //const boxAction = composeByStructure( leftAction, rightAction, this.boxGroup );
+                const boxAction = composeBySymbols( leftAction, rightAction, this.boxGroup );
+                if ( boxAction ) {
+                    return boxAction;
+                }
+            } else {
+                const boxAction = composeBySymbols( leftAction, rightAction, this.boxGroup );
+                if ( boxAction ) {
+                    return boxAction;
+                }
             }
         }
 
@@ -876,7 +893,7 @@ class CyclesExpression extends OperatorExpression {
     }
 
     toString() {
-        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
     }
 }
 
@@ -944,7 +961,7 @@ class LiteralCyclesExpression extends OperatorExpression {
     }
 
     toString() {
-        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
     }
 }
 
@@ -1006,7 +1023,7 @@ class CyclesExtensionExpression extends OperatorExpression {
     }
 
     toString() {
-        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
     }
 }
 

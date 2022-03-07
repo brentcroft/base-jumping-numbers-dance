@@ -29,7 +29,7 @@ toggleKeys = {
     indexComposer: 0,
     autoCompose: 1,
 
-    compositionRules: 0,
+    compositionRules: 1,
     showCompositions: 0,
     ignoreEuclideanPerimeters: 0,
     ignoreIndexPerimeters: 0,

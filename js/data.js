@@ -494,41 +494,6 @@ function placeValuesPermutation( bases, placePermutation = [] ) {
     return p;
 }
 
-function composeCyclePair( c0, c1 ) {
-    const [ e00, e10 ] = [ [ ...c0 ], [ ...c1 ] ];
-    const [ l0, l1 ] = [ e00.length, e10.length ];
-
-    const e01 = e00.map( ( _, i ) => e00[ ( i + 1 ) % l0 ] );
-    const e02 = [ ...e01 ];
-
-    e10.forEach( ( p, i ) => {
-        const h = e01.indexOf( p );
-        const q = e10[ ( i + 1 ) % l1 ];
-        if ( h == -1 ) {
-            e00.push( p );
-            e02.push( q );
-        } else {
-            e02[ h ] = q;
-        }
-    } );
-
-    const extractNextLink = ( i ) => [ ...e00.splice( i, 1 ), ...e02.splice( i, 1 ) ];
-    const cycles = [];
-    while ( e00.length > 0 ) {
-        var link = extractNextLink( 0 );
-        if ( link[0] == link[1] ) {
-            cycles.push( [ link[0] ] );
-        } else {
-            const cycle = [ link[ 0 ] ];
-            while ( link[1] != cycle[0] ) {
-                link = extractNextLink( e00.indexOf( link[1] ) );
-                cycle.push( link[0] );
-            }
-            cycles.push( cycle );
-        }
-    }
-    return cycles;
-}
 
 function inversePermutation( cycles ) {
     return [...cycles.map( c => [ ...c ].reverse() ) ];
@@ -569,7 +534,6 @@ function canonicalizePermutation( p, rotateCycles = true, sortCycles = true ) {
 function composePermutations() {
 
     const args = [ ...arguments ];
-
     const p0 = args[ 0 ];
     var p1 = args.pop();
 

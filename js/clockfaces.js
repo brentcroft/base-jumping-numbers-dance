@@ -1,4 +1,7 @@
 
+const pointLabel = ( point ) => point.id;
+
+
 function getClockfaces( terminal, stride ) {
 
     const identity = [ ...Array( terminal ).keys() ];
@@ -30,17 +33,27 @@ function getOrbits( roots ) {
             orbits.push( orbit );
         }
     } );
-    return orbits;
+
+    return orbits
+        .map( orbit => orbit
+            .map( ( c, i ) => {
+                 return {
+                    id: c,
+                    di: orbit[ ( i + 1 ) % orbit.length ],
+                    coord: [ c ],
+                    toString: () => c
+                };
+            } )
+        );
 }
 
 
-const pointLabel = ( point ) => point.id;
 
 function createPoint( i, j, coprime, cofactor ) {
     const point = {
          id: j + ( i * coprime ),
          di: ( j * cofactor ) + i,
-         coord: [ j, i ]
+         coord: [ i, j ]
     };
     point.toString = () => pointLabel( point );
     return point;
@@ -49,7 +62,8 @@ function createPoint( i, j, coprime, cofactor ) {
 function stubNextPoint( lastPoint, cofactor, terminal ) {
     const point = {
         id: lastPoint.di,
-        di: ( lastPoint.di * cofactor ) % terminal
+        di: ( lastPoint.di * cofactor ) % terminal,
+        coord: []
     };
     point.toString = () => pointLabel( point );
     return point;
@@ -70,11 +84,10 @@ function getBoxGroupMember( volume, coprime ) {
             const cycle = cycles.find( cycle => cycle.find( p => p.id == point.id ) );
 
             if ( cycle ) {
-                const infoPoint = cycle.find( p => p.id == point.id );
-                if ( infoPoint.coord ) {
-                    throw new Error( `Point #${ point.id } already has a coord: ${ infoPoint.coord }` );
-                }
-                infoPoint.coord = [ j, i ];
+                cycle
+                    .find( p => p.id == point.id )
+                    .coord
+                    .push( i, j );
             } else {
                 const newCycle = [ point ];
                 var lastPoint = point;
@@ -105,7 +118,7 @@ function offsetPoint( c, i, volume = 1 ) {
     const point = {
         id: ( c.id + ( i * volume ) ),
         di: ( c.di + ( i * volume ) ),
-        coord: [ ...c.coord, i ]
+        coord: [ i, ...c.coord ]
     };
     point.toString = () => pointLabel( point );
     return point;
@@ -137,13 +150,18 @@ function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
     const volume = ( terminal + 1 );
     const cofactor = volume / stride;
     if ( Number.isInteger( cofactor ) ) {
-        return getBoxGroupMember( volume, stride )
+        return getBoxGroupMember( volume, cofactor )
             .filter( cycle => !truncated || !cycle.find( c => c.id == terminal ) );
     } else {
         // one-dimensional
         const cycles = getOrbits( getClockfaces( terminal, stride ) );
         if ( !truncated ) {
-            cycles.push( [ terminal ] );
+            cycles.push( [ {
+                id: terminal,
+                di: terminal,
+                coord: [ terminal ],
+                toString: () => c
+            } ] );
         }
         return cycles;
     }

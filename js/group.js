@@ -329,20 +329,17 @@ class IndexCyclesAction extends CompositeAction {
             ? pair.dix
             : pair.idx;
 
-//        this.cycles = cyclesObject
-//            .cycles
-//            .map( cycle => cycle
-//                .map( c => Number.isInteger( c ) ? c : c.id )
-//                .map( ( id, i ) => [ id, cycle[ ( 1 + i ) % cycle.length ] ] )
-//                .map( ( [ id, di ] ) => [ id, Number.isInteger( di ) ? di : di.id ] )
-//                .map( ( [ id, di ] ) => this.indexPoint( pointIndex, id, di ) ) );
+        const coordPerm = ( pair.leftState ^ this.harmonic )
+            ? pair.permPair[0]
+            : pair.permPair[1];
 
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle
-                .map( c => Number.isInteger( c )
-                    ? [ id, cycle[ ( 1 + i ) % cycle.length, null ] ]
+                .map( ( c, i ) => Number.isInteger( c )
+                    ? [ c, cycle[ ( 1 + i ) % cycle.length, [] ] ]
                     : [ c.id, c.di, c.coord ] )
+                .map( ( [ id, di, coord ] ) => [ id, di, coordPerm.map( b => coord[b] ) ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pointIndex, id, di, coord ) ) );
     }
 
@@ -350,7 +347,8 @@ class IndexCyclesAction extends CompositeAction {
         const point = pointIndex[ id ];
         const partnerId = ( this.box.volume - id - 1 );
 
-        if ( coord && !arrayExactlyEquals( coord, point.coord ) ) {
+        const reportBadCoords = false;
+        if ( reportBadCoords && coord && !arrayExactlyEquals( coord, point.coord ) ) {
             const msg = `Matched point ${ point } has wrong coord; expected ${ coord }`;
             consoleLog( msg );
             //throw new Error( msg );

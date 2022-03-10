@@ -5,6 +5,9 @@
 var indexMap = {};
 const PERMUTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
 
+
+const doConjugateShortcut = false;
+
 /*
     Extract a permutation (and reverse anti-permutation) of the bases
     and provide corresponding place value functions.
@@ -634,7 +637,6 @@ class BoxAction {
             return points;
         }
 
-        const doConjugateShortcut = true;
 
         for ( var i = 0; i < this.idx.length; i++) {
             if ( tally[ i ]!= -1 ) {

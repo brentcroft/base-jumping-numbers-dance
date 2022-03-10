@@ -973,46 +973,53 @@ class CyclesExtensionExpression extends OperatorExpression {
     }
 
     evaluate( params = {} ) {
-        const leftCyclesObject = this.left.evaluate(params);
+        const cyclesObject = this.left.evaluate(params);
         const multiplier = this.right.evaluate(params);
 
         if ( !(Number.isInteger( multiplier ) ) ) {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
-        if ( leftCyclesObject.literal ) {
-            leftCyclesObject.multiplier = multiplier;
-            leftCyclesObject.multiplierBase = this.boxGroup.box.bases.indexOf( multiplier );
+        if ( cyclesObject.literal ) {
+            cyclesObject.multiplier = multiplier;
+            cyclesObject.multiplierBase = this.boxGroup.box.bases.indexOf( multiplier );
         } else {
-            leftCyclesObject.multiplierBase = multiplier;
-            leftCyclesObject.multiplier = this.boxGroup.box.bases[ multiplier ];
+            cyclesObject.multiplierBase = multiplier;
+            cyclesObject.multiplier = this.boxGroup.box.bases[ multiplier ];
         }
 
-        leftCyclesObject.harmonic = ( this.operator == '~' );
+        cyclesObject.harmonic = ( this.operator == '~' );
 
-        const leftFactor = leftCyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
-        const rightFactor = leftCyclesObject.rightCoprimes.reduce( ( a, c ) => a * c, 1 );
+        const leftFactor = cyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
+        const rightFactor = cyclesObject.rightCoprimes.reduce( ( a, c ) => a * c, 1 );
 
         const cycles = getCycles( [ leftFactor, rightFactor ], 1, false, false );
 
-        leftCyclesObject.cycles = expandCycles( cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
+        cyclesObject.cycles = expandCycles( cycles, cyclesObject.multiplier, cyclesObject.harmonic );
 
-        const leftLabel = leftCyclesObject.leftCoprimes.length > 1
-            ? `(${ leftCyclesObject.leftCoprimes.join( ':' ) })`
-            : `${ leftCyclesObject.leftCoprimes[0] }`;
+        const leftLabel = cyclesObject.leftCoprimes.length > 1
+            ? `(${ cyclesObject.leftCoprimes.join( ':' ) })`
+            : `${ cyclesObject.leftCoprimes[0] }`;
 
-        const rightLabel = leftCyclesObject.rightCoprimes.length > 1
-            ? `(${ leftCyclesObject.rightCoprimes.join( ':' ) })`
-            : `${ leftCyclesObject.rightCoprimes[0] }`;
+        const rightLabel = cyclesObject.rightCoprimes.length > 1
+            ? `(${ cyclesObject.rightCoprimes.join( ':' ) })`
+            : `${ cyclesObject.rightCoprimes[0] }`;
 
-        const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ leftCyclesObject.multiplier })`;
+        const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ cyclesObject.multiplier })`;
+
+        const boxBases = [ ...cyclesObject.leftCoprimes, ...cyclesObject.rightCoprimes, cyclesObject.multiplier ];
+        const volume = boxBases.reduce( (a,c) => a * c, 1 );
+
+        const subBox = ( volume == this.boxGroup.box.volume )
+            ? this.boxGroup.box
+            : new PermBox( boxBases )
 
         // may get replaced by equivalent box action
         const boxAction = new IndexCyclesAction(
-            this.boxGroup.box,
+            subBox,
             Math.round( Math.random() * 10000 + 1),
             label,
-            leftCyclesObject );
+            cyclesObject );
 
         this.boxGroup.registerCompositeAction( label, boxAction );
 

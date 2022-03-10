@@ -181,17 +181,12 @@ function createConeShape( radius = 0.01, height = 0.02, emissiveColor = "blue", 
 
 
 
-function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI, cssClass = "", toggles = {} } = {} ) {
-    return reify(
-        "shape",
-        {
-            "class": cssClass
-        },
+function createTorusShape( { outerRadius = 1, size = 0.1, emissiveColor = "blue", transparency = 0, angle = PI, cssClass = "" } = {} ) {
+    return reify( "shape", { "class": cssClass },
         [
             reify( "appearance", {}, [ reify( "material", { "emissiveColor": emissiveColor, "transparency": transparency } ) ] ),
             reify( "torus", { "innerRadius": size, "outerRadius": outerRadius, "angle": angle, "subdivision": "48,48", "lit": "false" } )
-        ],
-        []
+        ]
     );
 }
 
@@ -657,4 +652,32 @@ function openX3DomFrame( containerId, selectedBoxAction, framePage = 'orbitsView
     const windowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
 
     window.open( `${ framePage }?id=${ selectedBoxAction.key }`, containerId, windowFeatures );
+}
+
+
+function appendX3DomNode( node, param = {} ) {
+    const {
+        id = `x3dom-container-${ new Date().toISOString() }`,
+        css = [],
+        containerId,
+        containerElement,
+        sceneId = `scene-${ new Date().toISOString() }`,
+        width = "100%",
+        height = "100%",
+        reload = false
+    } = param;
+
+    const x3dRoot = reify(
+            "x3d",
+            { "width": `${ width }`, "height": `${ height }` },
+            [ reify( "scene", { "id": `${ sceneId }` }, [ node ] ) ]
+        );
+
+    const targetElement = containerElement || document.getElementById( containerId );
+
+    targetElement.appendChild( reify( "div", { "id": id, "class": css }, [ x3dRoot ] ) );
+
+    if ( reload ) {
+        x3dom.reload();
+    }
 }

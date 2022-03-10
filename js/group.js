@@ -280,6 +280,7 @@ class IndexCyclesAction extends CompositeAction {
             multiplierBases: [ cyclesObject.multiplierBase ],
             harmonic: cyclesObject.harmonic
         }
+        this.cyclesObject = cyclesObject;
         this.pair = this.getPlaceValuesPermutationPair( cyclesObject );
         this.harmonic = cyclesObject.harmonic;
         this.label = label;
@@ -327,15 +328,33 @@ class IndexCyclesAction extends CompositeAction {
         const pointIndex = ( pair.leftState ^ this.harmonic )
             ? pair.dix
             : pair.idx;
+
+//        this.cycles = cyclesObject
+//            .cycles
+//            .map( cycle => cycle
+//                .map( c => Number.isInteger( c ) ? c : c.id )
+//                .map( ( id, i ) => [ id, cycle[ ( 1 + i ) % cycle.length ] ] )
+//                .map( ( [ id, di ] ) => [ id, Number.isInteger( di ) ? di : di.id ] )
+//                .map( ( [ id, di ] ) => this.indexPoint( pointIndex, id, di ) ) );
+
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle
-                .map( ( id, i ) => this.indexPoint( pointIndex, id, cycle[ ( 1 + i ) % cycle.length ] ) ) );
+                .map( c => Number.isInteger( c )
+                    ? [ id, cycle[ ( 1 + i ) % cycle.length, null ] ]
+                    : [ c.id, c.di, c.coord ] )
+                .map( ( [ id, di, coord ] ) => this.indexPoint( pointIndex, id, di, coord ) ) );
     }
 
-    indexPoint( pointIndex, id, di ) {
+    indexPoint( pointIndex, id, di, coord ) {
         const point = pointIndex[ id ];
         const partnerId = ( this.box.volume - id - 1 );
+
+        if ( coord && !arrayExactlyEquals( coord, point.coord ) ) {
+            const msg = `Matched point ${ point } has wrong coord; expected ${ coord }`;
+            consoleLog( msg );
+            //throw new Error( msg );
+        }
 
         const pointIndexData = {
            id: id,

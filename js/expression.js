@@ -993,7 +993,7 @@ class CyclesExtensionExpression extends OperatorExpression {
         const leftFactor = leftCyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
         const rightFactor = leftCyclesObject.rightCoprimes.reduce( ( a, c ) => a * c, 1 );
 
-        const cycles = getCycles( [ leftFactor, rightFactor ] );
+        const cycles = getCycles( [ leftFactor, rightFactor ], 1, false, false );
 
         leftCyclesObject.cycles = expandCycles( cycles, leftCyclesObject.multiplier, leftCyclesObject.harmonic );
 

@@ -1,0 +1,24 @@
+
+
+<h2>A box of lengths</h2>
+
+<div>
+    A box is a collection of sides of various lengths
+    and the box volume is the product of all the box side lengths.<br/><br/>
+    Therefore, all the box lengths are coprime to the volume of the box minus one,
+    and it follows that each box side length identifies an element in the multiplicative group modulo the volume of the box minus one.<br/>
+    (e.g.: see <a target="_blank" href="https://en.wikipedia.org/wiki/Multiplicative_group_of_integers_modulo_n">Multiplicative group of integers modulo n</a>)
+    <br/><br/>
+</div>
+<div id="orbitation-2x4x5"></div>
+<div id="orbitation-2x4"></div>
+<div id="orbitation-4x5"></div>
+<div id="orbitation-5x2"></div>
+<div id="orbitation-2x2"></div>
+<script>
+    insertOrbitation( [ 2, 4, 5 ] );
+    insertOrbitation( [ 2, 4 ] );
+    insertOrbitation( [ 4, 5 ] );
+    insertOrbitation( [ 5, 2 ] );
+    insertOrbitation( [ 2, 2 ] );
+</script>

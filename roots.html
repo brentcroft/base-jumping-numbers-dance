@@ -231,16 +231,15 @@
 
 
         function putOrbitationNode( orb, param = {} ) {
-            const { css = [] } = param;
+            const { css = [], sourceId = 'calculationScript', sourceElement } = param;
 
             orb.x3dRoot = reify( "x3d", { "width": "100%", "height": "100%" },
                 [ reify( "scene", { "id": "plot_scene_root" }, orb.points.map( p => p.shape ) ) ]
             );
 
-            const sourceId = 'calculationScript';
-            const sourceElement = document.getElementById( sourceId );
+            const targetElement = sourceElement || document.getElementById( sourceId );
 
-            sourceElement
+            targetElement
                 .parentNode
                 .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ orb.x3dRoot ] ) );
 
@@ -410,11 +409,11 @@
             overflow-wrap: normal;
             overflow-x: scroll;
         }
-        .symbol-details { font-size: 80%; border-top: solid 1px black; border-bottom: solid 1px black }
-        .symbol-details tr { vertical-align: top; }
-        .symbol-details tr:nth-child(even) { background: Ivory; }
-        .symbol-details tr:nth-child(odd) { background: WhiteSmoke; }
-        .symbol-details tr > td { border-top: 1px black dotted; }
+        .multiplicative-group-table { font-size: 80%; border-top: solid 1px black; border-bottom: solid 1px black }
+        .multiplicative-group-table tr { vertical-align: top; }
+        .multiplicative-group-table tr:nth-child(even) { background: Ivory; }
+        .multiplicative-group-table tr:nth-child(odd) { background: WhiteSmoke; }
+        .multiplicative-group-table tr > td { border-top: 1px black dotted; }
 
         .resizable {
             overflow-wrap: normal;
@@ -447,7 +446,7 @@ const bases = [ 2, 4, 5 ];
 const param = {
     forces: [ 'pair', 'link' ],
     identityFactor: 0.1,
-    pairFactor: -1.0,
+    pairFactor: -0.1,
     rodLengthExp: 0,
     rodStrengthExp: 2,
     newtonian: true,
@@ -505,8 +504,8 @@ actions.forEach( a => { putHtml( a ); putX3DomNode( getCyclesDiagram( a ), { wid
 const bases = [ 2, 4, 5 ];
 const param = {
     forces: [ 'pair', 'link' ],
-    identityFactor: 0.1,
-    pairFactor: -1.0,
+    identityFactor: 0.05,
+    pairFactor: -0.5,
     rodLengthExp: 0,
     rodStrengthExp: 2,
     newtonian: true,
@@ -521,12 +520,13 @@ const param = {
 const orb = new Orbitation( bases, param );
 
 putOrbitationNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
-putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: false } );
+putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: true } );
 
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );
 //putDomNode( reify( "div", { id: "selected-cycles-diagram" } ), { css: [ 'summaryLeft', 'resizable', 'leftFlow' ] } );
 putHtml( orb.fragmentsBlock() );
+
 </textarea>
 </body>
 </html>

@@ -33,45 +33,126 @@ function getOrbits( roots ) {
     return orbits;
 }
 
-function getMultiplicativeGroupMember( terminal, coprime ) {
-    return getOrbits( getClockfaces( terminal, coprime ) );
+
+const pointLabel = ( point ) => point.id;
+
+function createPoint( i, j, coprime, cofactor ) {
+    const point = {
+         id: j + ( i * coprime ),
+         di: ( j * cofactor ) + i,
+         coord: [ j, i ]
+    };
+    point.toString = () => pointLabel( point );
+    return point;
+}
+
+function stubNextPoint( lastPoint, cofactor, terminal ) {
+    const point = {
+        id: lastPoint.di,
+        di: ( lastPoint.di * cofactor ) % terminal
+    };
+    point.toString = () => pointLabel( point );
+    return point;
+}
+
+function getBoxGroupMember( volume, coprime ) {
+    const cofactor = ( volume / coprime );
+    if ( !Number.isInteger( cofactor ) ) {
+        throw new Error( `Volume ${ volume } is not a truncated box with side ${ coprime }.` );
+    }
+    const terminal = volume - 1;
+    const cycles = [];
+
+    for ( var i = 0; i < cofactor; i++ ) {
+        for ( var j = 0; j < coprime; j++ ) {
+
+            const point = createPoint( i, j, coprime, cofactor );
+            const cycle = cycles.find( cycle => cycle.find( p => p.id == point.id ) );
+
+            if ( cycle ) {
+                const infoPoint = cycle.find( p => p.id == point.id );
+                if ( infoPoint.coord ) {
+                    throw new Error( `Point #${ point.id } already has a coord: ${ infoPoint.coord }` );
+                }
+                infoPoint.coord = [ j, i ];
+            } else {
+                const newCycle = [ point ];
+                var lastPoint = point;
+                var nextPoint = stubNextPoint( lastPoint, cofactor, terminal );
+                while ( nextPoint.id != point.id ) {
+                    newCycle.push( nextPoint );
+                    lastPoint = nextPoint;
+                    nextPoint = stubNextPoint( lastPoint, cofactor, terminal );
+                }
+                cycles.push( newCycle );
+            }
+        }
+    };
+    return cycles;
+}
+
+function magnifyPoint( c, magnification ) {
+    const point = {
+        id: c.id * magnification,
+        di: c.di * magnification,
+        coord: [ ...c.coord ]
+    };
+    point.toString = () => pointLabel( point );
+    return point;
+}
+
+function offsetPoint( c, i, volume = 1 ) {
+    const point = {
+        id: ( c.id + ( i * volume ) ),
+        di: ( c.di + ( i * volume ) ),
+        coord: [ ...c.coord, i ]
+    };
+    point.toString = () => pointLabel( point );
+    return point;
 }
 
 function expandCycles( cycles, copies = 1, harmonic = false ) {
     if ( copies < 2 ) {
         return cycles;
     }
+
     const volume = cycles.reduce( ( a, c ) => a + c.length, 0 );
     const baseCycles = [];
+
     if ( harmonic ) {
-        const template = cycles.map( cycle => cycle.map( c => c * copies ) );
+        const template = cycles.map( cycle => cycle.map( c => magnifyPoint( c, copies ) ) );
         for ( var i = 0; i < copies; i++ ) {
-            template.forEach( cycle => baseCycles.push( cycle.map( c => c + i ) ) );
+            template.forEach( cycle => baseCycles.push( cycle.map( c => offsetPoint( c, i ) ) ) );
         }
     } else {
         for ( var i = 0; i < copies; i++ ) {
-            cycles
-                .forEach( cycle => baseCycles.push(
-                    cycle.map( c => c + ( i * volume ) ) ) );
+            cycles.forEach( cycle => baseCycles.push( cycle.map( c => offsetPoint( c, i, volume ) ) ) );
         }
     }
 
     return baseCycles;
 }
 
-function getCycles( factors, copies = 1, harmonic = false ) {
+function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
+    const volume = ( terminal + 1 );
+    const cofactor = volume / stride;
+    if ( Number.isInteger( cofactor ) ) {
+        return getBoxGroupMember( volume, stride )
+            .filter( cycle => !truncated || !cycle.find( c => c.id == terminal ) );
+    } else {
+        // one-dimensional
+        const cycles = getOrbits( getClockfaces( terminal, stride ) );
+        if ( !truncated ) {
+            cycles.push( [ terminal ] );
+        }
+        return cycles;
+    }
+}
+
+function getCycles( factors, copies = 1, harmonic = false, truncated = true ) {
     const [ coprime, cofactor ] = factors;
     const volume = factors.reduce( ( a, c ) => a * c, 1 );
     const terminal = volume - 1;
-    const cycles = getMultiplicativeGroupMember( terminal, coprime );
-    // maybe insert terminal fixed point
-    if ( terminal > 0 ) {
-        cycles.push( [ terminal ] );
-    }
+    const cycles = getMultiplicativeGroupMember( terminal, coprime, truncated );
     return expandCycles( cycles, copies, harmonic );
-}
-
-
-function quickCycles( factors, copies = 1, harmonic = false ) {
-
 }

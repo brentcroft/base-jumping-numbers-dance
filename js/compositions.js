@@ -36,7 +36,12 @@ var SYMBOLIC_COMPOSITIONS = [
     },
     {
         "clear": [],
-        "basesX" : [
+        "bases": [
+            "bb( 0 ) : bb( 1 ) | bb( 2 ); ",
+            "bb( 0 ) : bb( 1 ) ~ bb( 2 ); ",
+
+        ],
+        "bases-x" : [
             "bb( 0 ) : bb( 1 ) | bb( 2 ); ",
             "bb( 0 ) : bb( 1 ) ~ bb( 2 ); ",
             "bb( 1 ) : bb( 0 ) | bb( 2 ); ",
@@ -68,7 +73,7 @@ var SYMBOLIC_COMPOSITIONS = [
             "( bb( 2 ) : bb( 0 ) | bb( 1 ) ) * ( ( bb( 2 ) : bb( 0 ) ) : bb( 1 ) | 1 ); ",
             "( bb( 1 ) : ( bb( 2 ) : bb( 0 ) ) | 1 ) * ( bb( 0 ) : bb( 2 ) | bb( 1 ) ); ",
         ],
-        "bases" : [
+        "basesY" : [
             "2 : 4 | 5; ",
             "2 : 4 ~ 5; ",
             "4 : 2 | 5; ",

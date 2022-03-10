@@ -671,9 +671,9 @@ class BoxAction {
                     this.orbits.push( orbit );
                 }
 
-//                if ( !doConjugateShortcut ) {
-//                    continue;
-//                }
+                if ( !doConjugateShortcut ) {
+                    continue;
+                }
 
                 const point = this.idx[ i ];
                 const partnerPoint = point.partner;
@@ -686,7 +686,7 @@ class BoxAction {
 
                 const partnerData = partnerPoint.at( indexId );
 
-                if ( !partnerData ) {
+                if ( !partnerData || !partnerData.id ) {
                     const msg = `Bad point ${ point } partner ${ partnerPoint }; no data for index: ${ indexId }`;
                     consoleLog( msg );
                     throw new Error( msg );

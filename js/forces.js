@@ -38,7 +38,7 @@ function inverseSquareForce( pointA, pointB, param = {} ) {
     return [ d, r2, u ];
 }
 
-function springForce(  pointA, pointB, linkType, param = {}, linkParam = [] ) {
+function springForce(  pointA, pointB, linkType, param = {}, linkParam = [], G = 5 ) {
     const {
         minDist = 0.1,
         maxDelta = 0.01,
@@ -55,7 +55,8 @@ function springForce(  pointA, pointB, linkType, param = {}, linkParam = [] ) {
 
     const [ _, springLength, springFactor ] = linkParam.find( lp => lp[0] == linkType );
 
-    const restoringForce = springFactor * ( springLength - r );
+    const massFactor = ( pointA.mass * pointB.mass ) / G;
+    const restoringForce = springFactor * ( springLength - r ) * 1;
     const delta = minAbs( maxDelta, restoringForce );
 
     const u = normalize( d )
@@ -134,6 +135,7 @@ function applyForces( orb, onIteration ) {
                         p.netForce = subtraction( p.netForce, linkSum );
                     } );
 
+                // origin force
                 points
                     .filter( p => p.coprime == 'e' )
                     .filter( p => p.links.length > 0 )

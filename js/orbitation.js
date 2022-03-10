@@ -115,7 +115,22 @@ const getRodStrength = ( rod, rodPower, inverseRod = 0.000001 ) => ( rod > 0 ) ?
 
 class Orbitation {
     constructor( bases, param = {} ) {
-        this.param = param;
+        this.param = {
+            forces: [ 'pair', 'link' ],
+            identityFactor: 0.1,
+            pairFactor: -1.0,
+            rodLengthExp: 0,
+            rodStrengthExp: 2,
+            newtonian: true,
+            friction: 0.96,
+            minDist: 0.000000000001,
+            minDelta: 0.000000000001,
+            maxDelta: 10,
+            burst: 100,
+            iterations: 2000,
+            tickTime: 10,
+            ...param
+        };
         this.bases = bases;
         this.volume = bases.reduce( ( a, c ) => a * c, 1 );
         this.terminal = this.volume - 1;
@@ -130,8 +145,10 @@ class Orbitation {
         this.fragments = {};
 
         this.roots.push( ...this.coprimes.map( coprime => {
-            const clockfaces = getClockfaces( this.terminal, coprime );
-            const orbits = getOrbits( clockfaces );
+//            const clockfaces = getClockfaces( this.terminal, coprime );
+//            const orbits = getOrbits( clockfaces );
+
+            const orbits = getMultiplicativeGroupMember( this.terminal, coprime )
 
             orbits.sort( ( o1, o2 ) => o1.length - o2.length );
 
@@ -178,6 +195,30 @@ class Orbitation {
             return matchingRoots;
         }
 
+//        // slow links
+//        this.roots
+//            .forEach( root => {
+//                const [ coprime, monomial, order ] = root;
+//                const cycles = Object
+//                    .values( monomial )
+//                    .flatMap( c => c );
+//
+//                const powers = [];
+//                var expCycles = [ ...cycles ];
+//                for ( var exponent = 2; exponent < order; exponent++ ) {
+//                        expCycles = composePermutations( cycles, expCycles )
+//                        const matchingRoots = getMatchingRoots( this.roots, expCycles );
+//                        if ( matchingRoots.length > 0 ) {
+//                            const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
+//                            const inverse = ( exponent == ( order - 1 ) );
+//                            powers.push( [ exponent, expCoPrime, inverse ] );
+//                        }
+//                }
+//
+//                root.push( powers );
+//            } )
+
+        // quick links
         this.roots
             .forEach( root => {
                 const [ coprime, monomial, order ] = root;
@@ -186,10 +227,10 @@ class Orbitation {
                     .flatMap( c => c );
 
                 const powers = [];
-                var expCycles = [ ...cycles ];
+                var locus = coprime;
                 for ( var exponent = 2; exponent < order; exponent++ ) {
-                        expCycles = composePermutations( cycles, expCycles )
-                        const matchingRoots = getMatchingRoots( this.roots, expCycles );
+                        locus = ( locus * coprime ) % this.terminal;
+                        const matchingRoots = this.roots.filter( r => r[0] == locus );
                         if ( matchingRoots.length > 0 ) {
                             const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
                             const inverse = ( exponent == ( order - 1 ) );
@@ -314,7 +355,7 @@ class Orbitation {
                     .filter( ref => ( ref[ 0 ] in this.symbols ) )
                     .map( ref => `${ ref[ 0 ] }<sup>${ ref[ 1 ] }</sup>` ).join( ', ' ) ] );
 
-        return reify( "table", { "id": tableId, class: "sortable, symbol-details" },
+        return reify( "table", { "id": tableId, class: "sortable, multiplicative-group-table" },
             [
                 reify( "caption", {}, [], [ c => c.innerHTML = "Symbols" ] ),
                 reify( "tr", {},
@@ -339,6 +380,13 @@ class Orbitation {
             ]
         );
     }
+    
+    cycles( coprime ) {
+        const [ _, monomial, order, powers, point ] = this.roots.find( r => r[0] == coprime );
+        return Object
+                .entries( monomial )
+                .flatMap( ( ( [ _, orbits ] ) => orbits ) );
+    }
 
     htmlTable( excludes = [ "cycles" ] ) {
 
@@ -350,7 +398,7 @@ class Orbitation {
             [ "volume", "number" ],
             [ "order", "number" ],
             [ "monomial", 'monomial' ],
-            [ "links", 'monomial' ],
+            [ "relations", 'monomial' ],
             [ "cycles", 'cycles' ]
         ];
 
@@ -389,14 +437,14 @@ class Orbitation {
                         : "-",
                 "<div class='cycles'>" + Object
                         .entries( monomial )
-                        .map( ( [ key, orbits ] ) => `${ orbits.length } * ${ key } = ` + orbits.map( orbit => `( ${ orbit.join( ' ' ) } )` ).join( '' ) )
+                        .map( ( [ key, orbits ] ) => `${ orbits.length } * ${ key } = ` + orbits.map( orbit => `(${ orbit.map( c => c.toString() ).join( ' ' ) })` ).join( '' ) )
                         .map( orbitsRow => `<span>${ orbitsRow }</span>` )
                         .join( '<br/>\n' ) + "</div>"
             ] );
 
         return reify( "div", {}, [
-            reify( "table", { id: tableId, class: "sortable, symbol-details" }, [
-                reify( "caption", {}, [], [ c => c.innerHTML = `Orbitation: [ ${ this.bases.join( ', ' ) } ], terminal: ${ this.terminal }` ] ),
+            reify( "table", { id: tableId, class: "sortable, multiplicative-group-table" }, [
+                reify( "caption", {}, [], [ c => c.innerHTML = `Box: [ ${ this.bases.join( ', ' ) } ]; MG(${ this.terminal })` ] ),
                 reify(
                     "tr",
                     {},
@@ -408,12 +456,20 @@ class Orbitation {
                     ] ) ) ),
                 ...rows
                     .flatMap( ( [ point, monomial, order, linksHtml, cyclesHtml ], i ) => reify(
-                        "tr", { id: `${ tableId }-${ point.coprime }` },
+                        "tr",
+                        {
+                            'id': `${ tableId }-${ point.coprime }`,
+                            'class': this.bases.includes( point.coprime )
+                                ? 'box-side-length'
+                                : ( point.coprime != 'e' && cofactorVolume( point, this.terminal ) == 1 )
+                                    ? 'inverse-box-side-length'
+                                    : ''
+                        },
                         [
-                            reify( "td", {}, [], [ c => c.innerHTML = point.coprime ] ),
-                            reify( "td", {}, [], [ c => c.innerHTML = point.inverse ] ),
-                            reify( "td", {}, [], [ c => c.innerHTML = cofactorVolume( point, this.terminal ) ] ),
-                            reify( "td", {}, [], [ c => c.innerHTML = order ] ),
+                            reify( "td", { 'class': 'centre-label' }, [], [ c => c.innerHTML = point.coprime ] ),
+                            reify( "td", { 'class': 'centre-label' }, [], [ c => c.innerHTML = point.inverse ] ),
+                            reify( "td", { 'class': 'centre-label' }, [], [ c => c.innerHTML = cofactorVolume( point, this.terminal ) ] ),
+                            reify( "td", { 'class': 'centre-label' }, [], [ c => c.innerHTML = order ] ),
                             reify( "td", {}, [], [ c => c.innerHTML = monomialHtml( monomial ) ] ),
                             reify( "td", {}, [], [ c => c.innerHTML = linksHtml ] ),
                             excludes.includes( "cycles" ) ? null : reify( "td", {}, [], [ c => c.innerHTML = cyclesHtml ] )
@@ -426,7 +482,6 @@ class Orbitation {
                                         .forEach( c => {
                                             const cycles = Object
                                                 .entries( monomial )
-                                                //.filter( ( [ key, orbits ] ) => Number( key ) > 1 )
                                                 .flatMap( ( [ key, orbits ] ) => orbits );
 
                                             try {
@@ -459,7 +514,9 @@ class Orbitation {
                                             );
                                         } );
 
-                                    this.x3dRoot.runtime.showObject( point.shape );
+                                    if ( this.x3dRoot && point.shape ) {
+                                        this.x3dRoot.runtime.showObject( point.shape );
+                                    }
                                 }
                             }
                         ] )
@@ -570,6 +627,10 @@ class Orbitation {
                         wasSelected = true;
                     }
                 } );
+
+            if ( this.onSelectTableRow ) {
+                this.onSelectTableRow( coprime );
+            }
         } catch ( e ) {
             console.log( e );
         }
@@ -630,3 +691,195 @@ function rootsInfo( base, stride ) {
     return { base: base, stride: stride, size: r.length, windings: w, roots: r  };
 }
 
+function putOrbitationNode( orb, param = {} ) {
+    const { css = [], sourceId = 'calculationScript', sourceElement } = param;
+
+    orb.x3dRoot = reify( "x3d", { "width": "100%", "height": "100%" },
+        [ reify( "scene", { "id": "plot_scene_root" }, orb.points.map( p => p.shape ) ) ]
+    );
+
+    const targetElement = sourceElement || document.getElementById( sourceId );
+
+    targetElement
+        .appendChild( reify( "div", { "class": [ 'scriptPanelResult', ...css ].join( "," ) }, [ orb.x3dRoot ] ) );
+
+    x3dom.reload();
+
+    orb.points.forEach( p => {
+        new x3dom.Moveable(
+            orb.x3dRoot,
+            p.shape,
+            ( shape, position ) => {
+                 p.coord = [ position.x, position.y, position.z ];
+                 p.moveLinks();
+            },
+            0 );
+    } );
+}
+
+function putForceControls( orb, param = {} ) {
+    const { css = [], sourceId = 'calculationScript', sourceElement, autoRun = true, } = param;
+
+    const runButton = reify( "input", { "type": "button", "value": "run" } );
+
+    const onIterationAction = ( iteration ) => {
+        if ( iteration == 0 ) {
+            runButton.value = 'forces';
+            orb.param.running = false;
+        } else {
+            runButton.value = iteration;
+        };
+    };
+
+    runButton.onclick = () => {
+        if ( orb.param.running ) {
+            orb.param.running = false;
+            runButton.value = 'forces';
+        } else {
+            applyForces( orb, onIterationAction );
+        }
+    };
+
+    const iterationsInput = reifyInput(
+        "iterations: ",
+        { type: "number", class: "decimal-input", max: 100000, min: 0, step: 1, value: orb.param.iterations },
+        iterations => orb.param.iterations = iterations
+    );
+
+
+    const identityFactorInput = reifyInput(
+        "identity-factor: ",
+        { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.identityFactor },
+        identityFactor => orb.param.identityFactor = identityFactor
+    );
+
+    const pairFactorInput = reifyInput(
+        "pair-factor: ",
+        { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.pairFactor },
+        pairFactor => orb.param.pairFactor = pairFactor
+    );
+
+    const frictionInput = reifyInput(
+        "friction: ",
+        { type: "number", class: "decimal-input", max: 1, min: 0, step: 0.01, value: orb.param.friction },
+        friction => orb.param.friction = friction
+    );
+
+
+    const onChangeRodsAction = ( iteration ) => {
+        if ( iteration == 0 ) {
+            runButton.value = 'forces';
+            orb.param.running = false;
+        } else {
+            runButton.value = iteration;
+        };
+    };
+
+    const rodLengthExponentInput = reifyInput(
+        "rod-length-exponent: ",
+        { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.rodLengthExp },
+        rodLengthExp => {
+            orb.param.rodLengthExp = rodLengthExp;
+            orb.createLinkParam();
+            const linkControls = document.getElementById( 'link_controls' );
+            linkControls.removeChild( linkControls.lastChild );
+            linkControls.appendChild( createLinkTable() );
+        }
+    );
+    const rodStrengthExponentInput = reifyInput(
+        "rod-strength-exponent: ",
+        { type: "number", class: "decimal-input", max: 100, min: -100, step: 0.1, value: orb.param.rodStrengthExp },
+        rodStrengthExp => {
+            orb.param.rodStrengthExp = rodStrengthExp;
+            orb.createLinkParam();
+            linkControls.removeChild( linkControls.lastChild );
+            linkControls.appendChild( createLinkTable() );
+        }
+    );
+
+    function createLinkTable() {
+        const linkControlHeaders = [ "exponent", "spring-length", "spring-constant" ];
+        const linkControlRows = orb.linkParam
+            .map( ( expData, i ) => reify( "tr", {},
+                [
+                    reify( "td", {}, [ reify( "label", {}, [], [ c => c.innerHTML = expData[ 0 ] ] ) ] ),
+                    reify( "td", {}, [ reify( "label", {}, [
+                        reify( "input", { type: "number", class: "decimal-input", step: 0.1, value: expData[ 1 ].toFixed( 4 ) },
+                            [], [ c => c.onchange = () => orb.linkParam[ i ][ 1 ] = c.value ] ) ] ) ] ),
+                    reify( "td", {}, [ reify( "label", {}, [
+                        reify( "input", { type: "number", class: "decimal-input", step: 0.000001, value: expData[ 2 ].toFixed( 10 ) },
+                            [], [ c => c.onchange = () => orb.linkParam[ i ][ 2 ] = c.value ] ) ] ) ] )
+                ],
+                [
+                    tr => tr.style.backgroundColor = expData[ 3 ]
+                ]
+            ) );
+
+        return reify( "table", {},
+                    [
+                        reify( "tr", {}, linkControlHeaders.map( h => reify( "th", {}, [], [ c => c.innerHTML = h ] ) ) ),
+                        ...linkControlRows
+                    ]
+                );
+    }
+
+    const linkControls = reify( "div", { id: "link_controls", class: "floatRight" },
+        [
+            rodLengthExponentInput,
+            rodStrengthExponentInput,
+            createLinkTable()
+        ],
+        [
+            c => c.style.display = 'none'
+        ]);
+
+    const targetElement = sourceElement || document.getElementById( sourceId );
+
+    targetElement
+        .appendChild( reify( "div", { "class": [ 'scriptPanelResult', 'summaryRight' ].join( "," ) }, [
+            runButton,
+            iterationsInput,
+            identityFactorInput,
+            pairFactorInput,
+            frictionInput,
+            reify( "label", {}, [
+                reify( "text", {}, [], [ t => t.textContent = "show/hide link controls" ] ),
+                reify( "input", { type: "checkbox" }, [], [ input => input.onclick = () => showHide( "link_controls", input ) ] )
+            ] ),
+            linkControls
+        ] ) );
+
+    if ( autoRun ) {
+        applyForces( orb, onIterationAction );
+    }
+}
+
+
+function insertOrbitation( bases ) {
+    const key = bases.join( 'x' );
+    const containerId = `orbitation-${ key }`;
+    const div = document.getElementById( containerId );
+    const orb = new Orbitation( bases );
+    div.appendChild( orb.htmlTable( excludes = [] ) );
+
+    orb.onSelectTableRow = ( coprime ) => {
+        const orbCyclesId = `orbitation-${ key }-cycles`;
+        const orbCycles = document.getElementById( orbCyclesId );
+        if ( orbCycles ) {
+            div.removeChild( orbCycles );
+        }
+        appendX3DomNode(
+            getCyclesDiagram( orb.cycles( coprime ), { scaleBase: [ 1, 1, 1 ], scaleVolume: 10 } ),
+            {
+                containerId: containerId,
+                id: orbCyclesId,
+                height: "100%",
+                width: "100%",
+                css: [ "resizable" ],
+                reload: true
+            }
+        );
+    };
+    //putOrbitationNode( orb, { sourceElement: div, width: "100%", height: "100%", css: [ "resizable", "leftFlow" ] } );
+    //putForceControls( orb, { sourceElement: div } );
+}

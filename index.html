@@ -9,30 +9,65 @@
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/x3dom.js"></script>
 
+    <script type="text/javascript" src="js/3d.js"></script>
+    <script type="text/javascript" src="js/htmltable.js"></script>
+
+    <script type="text/javascript" src="js/colors.js"></script>
+    <script type="text/javascript" src="js/cycles-x3dom.js"></script>
+
+
+    <script type="text/javascript" src="js/3d.js"></script>
+    <script type="text/javascript" src="js/clockfaces.js"></script>
+    <script type="text/javascript" src="js/orbitation.js"></script>
+    <script type="text/javascript" src="js/forces.js"></script>
+
+
     <script>
         const pages = {
-            'page-1-0': '1.0-tally-ho.html',
-            'page-2-0': '2.0-place-value-tables.html',
-            'page-3-0': '3.0-conjugate-points-radiance.html',
-            'page-4-0': '4.0-two-dimensional-boxes.html',
-            'page-4-1': '4.1-two-more-boxes.html',
-            'page-5-0': '5.0-three-dimensional-boxes.html'
+            'page-0-1': '0.1-the-multiplicative-group.html',
+<!--            'page-1-0': '1.0-tally-ho.html',-->
+<!--            'page-2-0': '2.0-place-value-tables.html',-->
+<!--            'page-3-0': '3.0-conjugate-points-radiance.html',-->
+<!--            'page-4-0': '4.0-two-dimensional-boxes.html',-->
+<!--            'page-4-1': '4.1-two-more-boxes.html',-->
+<!--            'page-5-0': '5.0-three-dimensional-boxes.html'-->
         };
 
         function includePages() {
+            const pagesElement = document.getElementById( 'pages' );
             const tally = Object.keys( pages );
             Object
                 .entries( pages )
                 .forEach( entry => {
                     const [ id, src ] = entry;
+
+                    const entryElement = reify( "div", { id: id } );
+                    pagesElement.appendChild( entryElement );
+
                     const request = new XMLHttpRequest();
 
                     const includer = () => {
                         try {
-                            const element = document.getElementById( id );
-                            if ( element ) {
-                                element.innerHTML = request.responseText;
-                            }
+                            entryElement.innerHTML = request.responseText;
+
+                            const scripts = [];
+                            entryElement
+                                .querySelectorAll( "script" )
+                                .forEach( s => {
+                                    scripts.push( s.textContent );
+                                } );
+
+                            scripts
+                                .filter( s => s.length > 0 )
+                                .forEach( s => {
+                                    try {
+                                        eval( s );
+                                    } catch ( e ) {
+                                        consoleLog( `Bad script: ${ src }; ${ e }`, { cause: e } );
+                                        console.trace();
+                                    }
+                                } );
+
                         } finally {
                             tally.pop();
                             if ( tally.length == 0 ) {
@@ -47,25 +82,41 @@
                 } );
         }
     </script>
+    <style>
+        .multiplicative-group-table { font-size: 80%; border-top: solid 1px black; border-bottom: solid 1px black }
+        .multiplicative-group-table th { vertical-align: top; background: WhiteSmoke; }
+        .multiplicative-group-table tr { vertical-align: top; background: Ivory; }
+        #.multiplicative-group-table tr:nth-child(even) { }
+        #.multiplicative-group-table tr:nth-child(odd) { background: WhiteSmoke; }
+        .multiplicative-group-table tr > td { border-top: 1px black dotted; padding-right: 5pt;}
+        .multiplicative-group-table tr.box-side-length { background: rgb(175, 225, 175); }
+        .multiplicative-group-table tr.inverse-box-side-length { background: rgb(173, 216, 230); }
+
+         td.centre-label { text-align: center }
+
+        .resizable {
+            resize:both;
+            overflow-wrap: normal;
+            overflow-x: scroll;
+            white-space: pre;
+        }
+        .leftFlow {
+           float: left;
+        }
+        .rightFlow {
+           float: right;
+        }
+        tr.selected td {
+            background: pink;
+        }
+</style>
 </head>
 <body onload="includePages()">
     <h1>Thinking inside the Box</h1>
-    <div>
-        Alaric Dobson, 2012-12-09<br/>
-        alaric@brentcroft.com
-    </div>
-
-    <div id="page-1-0"></div>
-
-    <div id="page-2-0" class="pagebreak"></div>
-
-    <div id="page-3-0" class="pagebreak"></div>
-
-    <div id="page-4-0" class="pagebreak"></div>
-
-    <div id="page-4-1" class="pagebreak"></div>
-
-    <div id="page-5-0" class="pagebreak"></div>
-
+<!--    <div>-->
+<!--        Alaric Dobson, 2022-03-07<br/>-->
+<!--        alaric@brentcroft.com-->
+<!--    </div>-->
+    <div id="pages"></div>
 </body>
 </html>

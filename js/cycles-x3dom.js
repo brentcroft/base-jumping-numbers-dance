@@ -1,4 +1,10 @@
-function getCyclesDiagram( cycles, toggles = {} ) {
+function getCyclesDiagram( cycles, param ) {
+
+    const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10 } = param;
+
+    if ( !Array.isArray( cycles ) ) {
+        throw new Error( `Cycles is not an array: ${ cycles }` );
+    }
 
     const fixedPointTransparency = 0.1;
     const colorBasePlane = new ColorBasePlane();
@@ -9,7 +15,7 @@ function getCyclesDiagram( cycles, toggles = {} ) {
     const indexCentre = terminal / 2;
 
     const zOff = 1;
-    const scaleUnit = scale( [ 1, 1, 1 ], 10 / volume );
+    const scaleUnit = scale( scaleBase, scaleVolume / volume );
 
     const root = reify( "transform", { "translation": `${ -1 * volume / 2 } 0 0` } );
 
@@ -90,8 +96,7 @@ function getCyclesDiagram( cycles, toggles = {} ) {
                                                         emissiveColor: color,
                                                         transparency: 0,
                                                         angle: PI,
-                                                        cssClass: "orbitation",
-                                                        toggles: toggles
+                                                        cssClass: "orbitation"
                                                      } )
                                             ] )
                                     ]

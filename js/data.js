@@ -1,6 +1,6 @@
 
-function consoleLog( s ) {
-    console.log( s );
+function consoleLog( s, m = {} ) {
+    console.log( s, m );
 }
 
 function arrowUp( parity ) {
@@ -26,7 +26,9 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
             if ( value === null || value === "") {
                 // do nothing
             } else if ( "class" == key ) {
-                value.split( /\s*,\s*/ ).forEach( c => e.classList.add( c ) );
+                ( Array.isArray( value ) ? value : [ value ] )
+                    .flatMap( v => v.split( /\s*,\s*/ ) )
+                    .forEach( c => e.classList.add( c ) );
             } else if ( "type" == key ) {
                 e.type = value;
             } else {

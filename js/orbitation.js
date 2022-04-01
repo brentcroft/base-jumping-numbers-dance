@@ -642,7 +642,7 @@ class Orbitation {
 
 function boxPackingTable( sides, cellFn, invert = false ) {
 
-    const caption = `Box: ${ sides.join( ' x ' )}${ invert ? ' (inverted)' : '' }`;
+    const caption = `Box: ${ sides.join( ' x ' )}${ invert ? ' (twisted)' : '' }`;
 
     const bases = invert ? [ ...sides ].reverse() : sides;
     const rank = bases.length;

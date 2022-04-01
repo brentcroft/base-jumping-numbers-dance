@@ -1,7 +1,7 @@
 <script>
-    const bases = [ 3, 5 ];
+    pageScope.bases = [ 3, 5 ];
 
-    pageScope.orb = new Orbitation( bases, { truncated: false } );
+    pageScope.orb = new Orbitation( pageScope.bases, { truncated: false } );
 
     pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
     pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
@@ -9,23 +9,23 @@
     const factorial = n => !(n > 1) ? 1 : factorial(n - 1) * n;
     const fff = (n) => factorial( n ) * n * ( n - 1 ) / 2;
 
-    pageScope.ranks = fff( pageScope.orb.bases.length );
+    pageScope.ranks = fff( pageScope.bases.length );
 
 </script>
 
 <h2>Specification</h2>
-Consider a box with <a class="eval" title="pageScope.orb.bases.length">RANK</a> sides: for example <a class="eval" title="pageScope.orb.specification()">SPEC</a>;
+Consider a box with <a class="eval" title="pageScope.bases.length">RANK</a> sides: for example <a class="eval" title="pageScope.orb.specification()">SPEC</a>;
 it contains <a class="eval" title="pageScope.orb.volume">VOLUME</a> points.
 
 <ul>
     <li>
         The specification "<a class="eval" title="pageScope.orb.specification()">SPEC</a>" means
-        "<a class="eval" title="pageScope.orb.bases[0]">B0</a> copies of a collection of <a class="eval" title="pageScope.orb.bases[1]">B1</a> points".
+        "<a class="eval" title="pageScope.bases[0]">B0</a> copies of a collection of <a class="eval" title="pageScope.bases[1]">B1</a> points".
     </li>
     <li>
         The specification
         "<a class="eval" title="pageScope.orb.specification( true )">SPEC</a>" means
-        "<a class="eval" title="pageScope.orb.bases[1]">B1</a> copies of a collection of <a class="eval" title="pageScope.orb.bases[0]">B0</a> points".
+        "<a class="eval" title="pageScope.bases[1]">B1</a> copies of a collection of <a class="eval" title="pageScope.bases[0]">B0</a> points".
     </li>
 </ul>
 
@@ -48,34 +48,34 @@ A box specification can be laid-out in a packing table, given that:
     </li>
 </ol>
 
-A box with <a class="eval" title="pageScope.orb.bases.length">RANK</a> sides will have <a class="eval" title="pageScope.ranks">RANKS</a> packing table layouts,
+A box with <a class="eval" title="pageScope.bases.length">RANK</a> sides will have <a class="eval" title="pageScope.ranks">RANKS</a> packing table layouts,
 each the reverse specification of the other.
 
 <table>
     <tr>
-        <td class="evalNode" title="boxPackingTable( pageScope.orb.bases, pageScope.serialText )"></td>
-        <td class="evalNode" title="boxPackingTable( [ ...pageScope.orb.bases ].reverse(), pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( [ ...pageScope.bases ].reverse(), pageScope.serialText )"></td>
     </tr>
 </table>
 
 <div class="pagebreak"></div>
 
-A packing table layout can be inverted by reflecting its points in the diagonal between the origin and terminal points
+A packing table layout can be twisted by reflecting its points in the diagonal between the origin and terminal points
 and then reversing the coordinate for each point.
 
 <table>
     <tr>
-        <td class="evalNode" title="boxPackingTable( pageScope.orb.bases, pageScope.serialText )"></td>
-        <td class="evalNode" title="boxPackingTable( pageScope.orb.bases, pageScope.serialText, true )"></td>
+        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText, true )"></td>
     </tr>
 </table>
 
-Inverting a box specification layout makes it the same shape as the layout of the reverse specification.
+Twisting a box specification layout makes it the same shape as the layout of the reverse specification.
 
 <table>
     <tr>
-        <td class="evalNode" title="boxPackingTable( [ ...pageScope.orb.bases ].reverse(), pageScope.serialText, true )"></td>
-        <td class="evalNode" title="boxPackingTable( pageScope.orb.bases, pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( [ ...pageScope.bases ].reverse(), pageScope.serialText, true )"></td>
+        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText )"></td>
     </tr>
 </table>
 
@@ -88,16 +88,17 @@ For example;
 <ul>
     <li><span class="eval" title="pageScope
         .orb
-        .cycles( 5 )
+        .cycles( pageScope.bases[1] )
         .filter( cycle => cycle[0] == 1 )
-        .map( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] }` ) )
-        .join( ', ' )"></span>, completing a cycle of length <a class="eval" title="pageScope.orb.order( 5 )"></a>.</li>
+        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
+        .join( '' )"></span>, completing a cycle of length <a class="eval" title="pageScope.orb.order( pageScope.bases[1] )"></a>.</li>
     <li><span class="eval" title="pageScope
         .orb
-        .cycles( 5 )
-        .filter( cycle => cycle[0] == 2 )
-        .map( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] }` ) )
-        .join( ', ' )"></span>, completing another cycle of length <a class="eval" title="pageScope.orb.order( 5 )"></a>.</li>
+        .cycles( pageScope.bases[1] )
+        .filter( cycle => cycle.length > 1 )
+        .filter( cycle => cycle[0] != 1 )
+        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
+        .join( '' )"></span>, completing another cycle of length <a class="eval" title="pageScope.orb.order( pageScope.bases[1] )"></a>.</li>
 </ul>
 
 However:
@@ -107,8 +108,8 @@ However:
         .orb
         .cycles( 5 )
         .filter( cycle => cycle.length == 1 )
-        .map( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
-        .join( ', ' )"></span>, each is a cycle of length 1: a fixed point.</li>
+        .flatMap( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
+        .join( ', ' )"></span>; cycles of length 1, or fixed points.</li>
 </ul>
 
 This is written more succinctly as an expression in cycle notation:

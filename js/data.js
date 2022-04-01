@@ -282,7 +282,7 @@ function extendLine( p1, p2, scale = 0 ) {
 }
 
 
-function factorize( f, bases = [ 1 ] ) {
+function factorize( f, bases = [ 1 ], allowNonBaseFactor = false ) {
     var g = f;
     const b = [ ...bases ];
     b.sort( (a1,a2)=> a2-a1 );
@@ -291,6 +291,10 @@ function factorize( f, bases = [ 1 ] ) {
     while ( g > 1 ) {
         const base = b.find( c => Number.isInteger( g / c ) );
         if ( !base ) {
+            if ( allowNonBaseFactor ) {
+                factors.push( g );
+                return factors;
+            }
             throw new Error( `Cannot factorize ${ f } in bases: [${ bases }]`);
         }
         g = g / base;

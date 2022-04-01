@@ -1,5 +1,7 @@
 
-const pointLabel = ( point ) => point.id;
+const pointId = ( point ) => point.id;
+const pointCoord = ( point ) => `(${ point.coord.join( "," ) })`;
+const pointLabel = pointId;
 
 
 function getClockfaces( terminal, stride ) {
@@ -147,6 +149,11 @@ function expandCycles( cycles, copies = 1, harmonic = false ) {
 }
 
 function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
+
+    if ( Number.isInteger( terminal / stride ) ) {
+        throw new Error( `Not a Multiplicative Group Member: stride ${ stride } is not coprime to the terminal ${ terminal }` );
+    }
+
     const volume = ( terminal + 1 );
     const cofactor = volume / stride;
     if ( Number.isInteger( cofactor ) ) {
@@ -160,7 +167,7 @@ function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
                 id: terminal,
                 di: terminal,
                 coord: [ terminal ],
-                toString: () => c
+                toString: () => terminal
             } ] );
         }
         return cycles;
@@ -173,4 +180,19 @@ function getCycles( factors, copies = 1, harmonic = false, truncated = true ) {
     const terminal = volume - 1;
     const cycles = getMultiplicativeGroupMember( terminal, coprime, truncated );
     return expandCycles( cycles, copies, harmonic );
+}
+
+function isCycles( value ) {
+    if ( Array.isArray( value ) && value.length > 0 ) {
+        const firstCycle = value[0];
+        if ( Array.isArray( firstCycle ) && firstCycle.length > 0 ) {
+            const firstPoint = firstCycle[0];
+            return firstPoint.id >= 0 && firstPoint.di >= 0;
+        }
+    }
+    return false;
+}
+
+function formatCycles( cycles ) {
+    return cycles.map( cycle => "(" + cycle.map( p => p.id ).join(',') + ")" ).join( '' );
 }

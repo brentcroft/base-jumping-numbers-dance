@@ -56,11 +56,15 @@ class LiteralPermutation {
     constructor( id, volume ) {
         this.id = id;
         this.volume = volume;
+        this.bases = [ volume ];
         this.key =  2 * id;
         this.idx = new Array( volume ).fill( -1 );
         this.dix = new Array( volume ).fill( -1 );
         this.perm = [ 0 ];
-        this.symbol = "#";
+        this.antiPerm = [ 0 ];
+        this.placeValues = placeValuesPermutation( bases, this.perm );
+        this.antiPlaceValues = placeValuesPermutation( bases, this.antiPerm );
+        this.symbol = "?";
     }
 
     indexPoint( point ) {
@@ -74,6 +78,22 @@ class LiteralPermutation {
         this.dix[ antiIndexValue ] = point;
     }
 }
+
+class ExtantBoxes {
+    constructor() {
+        this.boxes = [];
+    }
+    getBox( bases ) {
+        var box = this.boxes.find( box => arrayExactlyEquals( box.bases, bases ) );
+        if ( !box ) {
+            box = new PermBox( bases );
+            this.boxes.push( box );
+        }
+        return box;
+    }
+}
+
+const extantBoxes = new ExtantBoxes();
 
 
 class Box {
@@ -204,8 +224,16 @@ class PermBox extends Box {
     }
 
     getPermKey( key ) {
+        // allocate and consume duplicate bases
+        const tally = {};
         return key
-            .map( k => this.bases.indexOf( k ) )
+            .map( k => {
+                const fromIndex = ( k in tally )
+                    ? tally[ k ] + 1
+                    : 0;
+                tally[ k ] = this.bases.indexOf( k, fromIndex );
+                return tally[ k ];
+            } )
             .filter( ( _, i ) => i < this.bases.length );
     }
 

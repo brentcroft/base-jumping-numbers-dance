@@ -30,6 +30,7 @@ const OPERATORS = {
     '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
     '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
     ':': ( operator, left, right ) => new LiteralCyclesExpression( operator, left, right ),
+    '/': ( operator, left, right ) => new FractionCyclesExpression( operator, left, right ),
     '#': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
     '|': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
     '~': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right )
@@ -845,9 +846,15 @@ class OperatorExpression extends Expression {
             return params[alias];
         }
 
+        if ( leftAction.box != rightAction.box ) {
+            throw new Error( `Cannot compose cycles from different boxes: ${ leftAction.box }, ${ rightAction.box }` );
+        }
+
+        const subBox = leftAction.box;
+
         // may get replaced by equivalent box action
         boxAction = new CompositionAction(
-            this.boxGroup.box,
+            subBox,
             Math.round( Math.random() * 10000 + 1),
             leftAction,
             rightAction,
@@ -898,6 +905,7 @@ class CyclesExpression extends OperatorExpression {
 }
 
 class LiteralCyclesExpression extends OperatorExpression {
+
     constructor( operator, left, right, boxGroup ) {
         super( operator, left, right, boxGroup );
     }
@@ -906,22 +914,20 @@ class LiteralCyclesExpression extends OperatorExpression {
         var leftCoprimes = this.left.evaluate( params );
         var rightCoprimes = this.right.evaluate( params );
 
+        const allowNonBaseFactor = true;
+
         if ( Number.isInteger( leftCoprimes ) ) {
             var f = leftCoprimes;
+
             leftCoprimes = this.boxGroup.box.bases.includes( f )
                 ? [ f ]
-                : factorize( f, this.boxGroup.box.bases );
-
-            // check
-            if ( leftCoprimes.reduce( ( a, c ) => a * c, 1 ) != f ) {
-                throw new Error( `Invalid left argument for operator, ${ f } is not a box factor: ${ leftCoprimes }` );
-            }
+                : factorize( f, this.boxGroup.box.bases, allowNonBaseFactor );
 
         } else {
             if ( !leftCoprimes.leftCoprimes ) {
                 throw new Error( `Invalid left argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
             }
-            // todo: losing info
+            // todo: check losing info
             leftCoprimes = [ ...leftCoprimes.leftCoprimes, ...leftCoprimes.rightCoprimes ];
         }
 
@@ -929,27 +935,24 @@ class LiteralCyclesExpression extends OperatorExpression {
             var f = rightCoprimes;
             rightCoprimes = this.boxGroup.box.bases.includes( f )
                 ? [ f ]
-                : factorize( rightCoprimes, this.boxGroup.box.bases );
+                : factorize( rightCoprimes, this.boxGroup.box.bases, allowNonBaseFactor );
 
-            // check
-            if ( rightCoprimes.reduce( ( a, c ) => a * c, 1 ) != f ) {
-                throw new Error( `Invalid right argument for operator, ${ f } is not a box factor: ${ rightCoprimes }` );
-            }
         } else {
             if ( !rightCoprimes.leftCoprimes ) {
                 throw new Error( `Invalid right argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
             }
-            // todo: losing info
+            // todo: check losing info
             rightCoprimes = [ ...rightCoprimes.leftCoprimes, ...rightCoprimes.rightCoprimes ];
         }
 
         var leftBases = [];
-        // todo: fails on duplicate factors
-        leftCoprimes.forEach( cp => leftBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
-
         var rightBases = [];
-        // todo: fails on duplicate factors
-        rightCoprimes.forEach( cp => rightBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
+
+        if ( !allowNonBaseFactor ) {
+            // todo: fails on duplicate factors
+            leftCoprimes.forEach( cp => leftBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
+            rightCoprimes.forEach( cp => rightBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
+        }
 
         return {
             literal: true,
@@ -958,6 +961,54 @@ class LiteralCyclesExpression extends OperatorExpression {
             rightBases: rightBases,
             rightCoprimes: rightCoprimes
         };
+    }
+
+    toString() {
+        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
+    }
+}
+
+class FractionCyclesExpression extends OperatorExpression {
+    constructor( operator, left, right, boxGroup ) {
+        super( operator, left, right, boxGroup );
+    }
+
+    evaluate( params = {} ) {
+        const volume = this.left.evaluate(params);
+        const stride = this.right.evaluate(params);
+
+        if ( !(Number.isInteger( volume ) ) || !(Number.isInteger( stride ) ) ) {
+            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
+        }
+
+        const cycles = expandCycles(
+            getMultiplicativeGroupMember( volume - 1, stride, false ),
+            1,
+            false );
+
+        const label = `(${ volume }${ this.operator }${ stride })`;
+
+        const subBox = extantBoxes.getBox( [ volume ] );
+
+        // may get replaced by equivalent box action
+        const boxAction = new IndexCyclesAction(
+            subBox,
+            Math.round( Math.random() * 10000 + 1),
+            label,
+            {
+                cycles: cycles,
+                leftBases: [ 0 ],
+                rightBases: []
+            } );
+
+        boxAction.boxGroup = this.boxGroup;
+
+        this.boxGroup.registerCompositeAction( label, boxAction );
+
+        // make immediately available by label
+        params[ label ] = boxAction;
+
+        return boxAction;
     }
 
     toString() {
@@ -999,20 +1050,23 @@ class CyclesExtensionExpression extends OperatorExpression {
 
         const leftLabel = cyclesObject.leftCoprimes.length > 1
             ? `(${ cyclesObject.leftCoprimes.join( ':' ) })`
-            : `${ cyclesObject.leftCoprimes[0] }`;
+            : `${ cyclesObject.leftCoprimes.length > 0 ? cyclesObject.leftCoprimes[0] : '1' }`;
 
         const rightLabel = cyclesObject.rightCoprimes.length > 1
             ? `(${ cyclesObject.rightCoprimes.join( ':' ) })`
-            : `${ cyclesObject.rightCoprimes[0] }`;
+            : `${ cyclesObject.rightCoprimes.length > 0 ? cyclesObject.rightCoprimes[0] : '1' }`;
 
         const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ cyclesObject.multiplier })`;
 
-        const boxBases = [ ...cyclesObject.leftCoprimes, ...cyclesObject.rightCoprimes, cyclesObject.multiplier ];
+        const boxBases = [
+                ...cyclesObject.leftCoprimes,
+                ...cyclesObject.rightCoprimes,
+                cyclesObject.multiplier
+            ]
+            .filter( b => b > 1 );
         const volume = boxBases.reduce( (a,c) => a * c, 1 );
 
-        const subBox = ( volume == this.boxGroup.box.volume )
-            ? this.boxGroup.box
-            : new PermBox( boxBases )
+        const subBox = extantBoxes.getBox( boxBases );
 
         // may get replaced by equivalent box action
         const boxAction = new IndexCyclesAction(
@@ -1020,6 +1074,8 @@ class CyclesExtensionExpression extends OperatorExpression {
             Math.round( Math.random() * 10000 + 1),
             label,
             cyclesObject );
+
+        boxAction.boxGroup = this.boxGroup;
 
         this.boxGroup.registerCompositeAction( label, boxAction );
 

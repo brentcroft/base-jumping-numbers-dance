@@ -24,8 +24,8 @@
 
     <script>
         const pages = {
-            'page-0-1': '0.1-the-multiplicative-group.html',
-<!--            'page-1-0': '1.0-tally-ho.html',-->
+<!--            'page-0-1': '0.1-the-multiplicative-group.html',-->
+            'page-1-0': '1.0-tally-ho.html',
 <!--            'page-2-0': '2.0-place-value-tables.html',-->
 <!--            'page-3-0': '3.0-conjugate-points-radiance.html',-->
 <!--            'page-4-0': '4.0-two-dimensional-boxes.html',-->
@@ -36,6 +36,10 @@
         function includePages() {
             const pagesElement = document.getElementById( 'pages' );
             const tally = Object.keys( pages );
+
+            const topScope = {
+            };
+
             Object
                 .entries( pages )
                 .forEach( entry => {
@@ -57,17 +61,79 @@
                                     scripts.push( s.textContent );
                                 } );
 
+                            // scripts do not run concurrently
+                            const pageScope = {
+                                id: id,
+                                src: src
+                            };
+
                             scripts
                                 .filter( s => s.length > 0 )
-                                .forEach( s => {
+                                .forEach( ( s, i ) => {
                                     try {
-                                        eval( s );
+                                        const scriptLines = [
+                                            '"use strict";',
+                                            "const [ pageScope, topScope ] = arguments;",
+                                            "try {", s, "} catch ( e ) {",
+                                            `  const msg = "Script [${ src }#${ id }#${ i + 1 }]; " + e;`,
+                                            "  console.log( msg );",
+                                            "  console.trace();",
+                                            "  throw new Error( msg, { cause: e } );",
+                                            "}",
+                                            ];
+
+                                        Function( scriptLines.join( "\n" ) )( pageScope, topScope );
                                     } catch ( e ) {
-                                        consoleLog( `Bad script: ${ src }; ${ e }`, { cause: e } );
-                                        console.trace();
+                                        document
+                                            .getElementById( "load-errors" )
+                                            .appendChild( reify( "div", {}, [], [ c => c.innerHTML = e.toString() ] ) )
                                     }
                                 } );
 
+                            entryElement
+                                .querySelectorAll( ".eval" )
+                                .forEach( ( ref, i ) => {
+                                    try {
+                                        const t = eval( ref.title );
+                                        if ( t ) {
+                                            ref.innerHTML = t;
+                                        } else {
+                                            throw new Error( "Invalid Object: " + t );
+                                        }
+                                    } catch ( e ) {
+                                        const msg = `Bad Eval Title [${ src }#${ id }#${ i + 1 }]: title=${ ref.title }; ${ e }`;
+                                        console.log( msg );
+                                        document
+                                            .getElementById( "load-errors" )
+                                            .appendChild( reify( "div", {}, [], [ c => c.innerHTML = msg ] ) )
+                                    }
+                                } );
+
+                            entryElement
+                                .querySelectorAll( ".evalNode" )
+                                .forEach( ( ref, i ) => {
+                                    try {
+                                        const t = eval( ref.title );
+                                        if ( t instanceof Element ) {
+                                            ref.appendChild( t );
+                                        } else {
+                                            throw new Error( "Object reference not found: " + ref.title );
+                                        }
+                                    } catch ( e ) {
+                                        const msg = `Bad Eval Node Title [${ src }#${ id }#${ i + 1 }]; title=${ ref.title }; ${ e }`;
+                                        console.log( msg );
+                                        document
+                                            .getElementById( "load-errors" )
+                                            .appendChild( reify( "div", {}, [], [ c => c.innerHTML = msg ] ) )
+                                    }
+                                } );
+
+                        } catch ( e ) {
+                            console.log( e );
+                            console.trace();
+                            document
+                                .getElementById( "load-errors" )
+                                .appendChild( reify( "div", {}, [], [ c => c.innerHTML = e.toString() ] ) )
                         } finally {
                             tally.pop();
                             if ( tally.length == 0 ) {
@@ -92,7 +158,16 @@
         .multiplicative-group-table tr.box-side-length { background: rgb(175, 225, 175); }
         .multiplicative-group-table tr.inverse-box-side-length { background: rgb(173, 216, 230); }
 
-         td.centre-label { text-align: center }
+         td.centre-label { text-align: center; }
+
+         td.cell { border: 1px dotted blue; padding: 5px; margin: 10px; border-radius: 25%; text-align: center; font-size: 70%; }
+         td.cell sub { font-size: 70%; }
+         td.pack { border: 0px solid black; padding: 0px; margin: 0px; text-align: center; }
+         tr.pack {}
+         table.pack { border: 1px dotted black; padding: 0px; margin: 0px; border-spacing: 10px;  border-radius: 25%; width: 100%; }
+         table.packing { border: 1px dotted black; padding: 15px; margin: 15px; border-radius: 25%; }
+         table.packing caption { font-size: 80%; }
+
 
         .resizable {
             resize:both;
@@ -106,12 +181,25 @@
         .rightFlow {
            float: right;
         }
+        .noFlow {
+           float: inline-start;
+        }
         tr.selected td {
             background: pink;
         }
+
+        .grid-of-cells {
+            margin: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+
+        #load-errors { color: red; font-weight: bold;}
+        a.def, a.def:hover, a.def:focus, a.def:active { text-decoration: none; color: inherit; }
 </style>
 </head>
 <body onload="includePages()">
+    <div id="load-errors"></div>
     <h1>Thinking inside the Box</h1>
 <!--    <div>-->
 <!--        Alaric Dobson, 2022-03-07<br/>-->

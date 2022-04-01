@@ -129,6 +129,7 @@ class Orbitation {
             burst: 100,
             iterations: 2000,
             tickTime: 10,
+            truncated: true,
             ...param
         };
         this.bases = bases;
@@ -145,10 +146,8 @@ class Orbitation {
         this.fragments = {};
 
         this.roots.push( ...this.coprimes.map( coprime => {
-//            const clockfaces = getClockfaces( this.terminal, coprime );
-//            const orbits = getOrbits( clockfaces );
 
-            const orbits = getMultiplicativeGroupMember( this.terminal, coprime )
+            const orbits = getMultiplicativeGroupMember( this.terminal, coprime, this.param.truncated );
 
             orbits.sort( ( o1, o2 ) => o1.length - o2.length );
 
@@ -185,40 +184,6 @@ class Orbitation {
             return [ coprime, monomial, order ];
         } ) );
 
-        function getMatchingRoots( roots, cycles, coprime ) {
-            const matchingRoots = roots
-                .filter( ( [ coprime2, monomial2, _ ] ) => {
-                    const cycles2 = Object.values( monomial2 ).flatMap( c => c );
-                    return equalCycles( cycles, cycles2 );
-                } );
-
-            return matchingRoots;
-        }
-
-//        // slow links
-//        this.roots
-//            .forEach( root => {
-//                const [ coprime, monomial, order ] = root;
-//                const cycles = Object
-//                    .values( monomial )
-//                    .flatMap( c => c );
-//
-//                const powers = [];
-//                var expCycles = [ ...cycles ];
-//                for ( var exponent = 2; exponent < order; exponent++ ) {
-//                        expCycles = composePermutations( cycles, expCycles )
-//                        const matchingRoots = getMatchingRoots( this.roots, expCycles );
-//                        if ( matchingRoots.length > 0 ) {
-//                            const expCoPrime = Math.min( matchingRoots.map( r => r[0] ) );
-//                            const inverse = ( exponent == ( order - 1 ) );
-//                            powers.push( [ exponent, expCoPrime, inverse ] );
-//                        }
-//                }
-//
-//                root.push( powers );
-//            } )
-
-        // quick links
         this.roots
             .forEach( root => {
                 const [ coprime, monomial, order ] = root;
@@ -380,12 +345,48 @@ class Orbitation {
             ]
         );
     }
+
+    specification( anti = false) {
+        return anti
+            ? [ ...this.bases ].reverse().join( " x " )
+            : this.bases.join( " x " );
+    }
+
+    cyclesHtml( coprime ) {
+        const [ _, monomial, order, powers, point ] = this.roots.find( r => r[0] == coprime );
+        return reify(
+            "div",
+            { "class": "cycles" },
+            Object
+                .entries( monomial )
+                .map( ( [ key, orbits ] ) => orbits.map( orbit => `(${ orbit.map( c => c.toString() ).join( ' ' ) })` ).join( '' ) )
+                .map( orbitsRow => reify( "span", {}, [], [ c => c.innerHTML = orbitsRow ] ) )
+        );
+    }
+
+
+    coordCyclesHtml( coprime, spacer = "<br/>" ) {
+        const [ _, monomial, order, powers, point ] = this.roots.find( r => r[0] == coprime );
+        return reify(
+            "div",
+            { "class": "cycles" },
+            Object
+                .entries( monomial )
+                .map( ( [ key, orbits ] ) => orbits.map( orbit => `(${ orbit.map( c => `(${ c.coord.join( ", " ) })` ).join( ' ' ) })` ).join( spacer ) )
+                .map( orbitsRow => reify( "span", {}, [], [ c => c.innerHTML = orbitsRow + spacer ] ) )
+        );
+    }
     
     cycles( coprime ) {
         const [ _, monomial, order, powers, point ] = this.roots.find( r => r[0] == coprime );
         return Object
                 .entries( monomial )
                 .flatMap( ( ( [ _, orbits ] ) => orbits ) );
+    }
+
+    order( coprime ) {
+        const [ _, monomial, order, powers, point ] = this.roots.find( r => r[0] == coprime );
+        return order;
     }
 
     htmlTable( excludes = [ "cycles" ] ) {
@@ -639,7 +640,63 @@ class Orbitation {
 
 }
 
+function boxPackingTable( sides, cellFn, invert = false ) {
 
+    const caption = `Box: ${ sides.join( ' x ' )}${ invert ? ' (inverted)' : '' }`;
+
+    const bases = invert ? [ ...sides ].reverse() : sides;
+    const rank = bases.length;
+
+    const placesForward = placeValuesForwardArray( bases, offset = 0 );
+    const placesReverse = placeValuesReverseArray( bases, offset = 0 );
+
+    const indexForward = ( coord ) => placesForward.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+    const indexReverse = ( coord ) => placesReverse.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+
+    function _walkBases( bases, cellFn, inverted = false, place = 0, locusStack = [] ) {
+        if ( place == rank ) {
+            const id = inverted
+                ? indexForward( locusStack )
+                : indexReverse( locusStack );
+            return reify( "td", { 'class' : 'cell' }, [], [ c => c.innerHTML = cellFn( locusStack, id ) ] );
+        } else {
+            const isRow = ( 0 != ( rank - place ) % 2 );
+
+            const holder = isRow
+                ? reify( "tr", { 'class' : 'pack' } )
+                : ( place == 0 )
+                    ? reify( "table", { 'class' : 'packing' } )
+                    : reify( "td", { 'class' : 'pack' } );
+
+            for ( var i = 0; i < bases[ place ]; i++) {
+
+                locusStack.push( i );
+                const cell = _walkBases( bases, cellFn, inverted, place + 1, locusStack );
+                locusStack.pop();
+
+                if ( isRow ) {
+                    holder.appendChild( cell );
+                } else {
+                    holder.insertBefore( reify( "tr", {}, [ reify( "td", { 'class' : 'pack' } , [ cell ] ) ] ), holder.firstChild );
+                }
+            }
+            if ( isRow ) {
+                return reify( "table", { 'class' : 'pack' }, [ holder ] );
+            } else {
+                return holder;
+            }
+        }
+    }
+
+    // the locus stack handles reversed coordinates
+    const table = _walkBases( bases, cellFn, invert );
+
+    table.createCaption().textContent = caption;
+    table.classList.remove( 'pack' );
+    table.classList.add( 'packing' );
+
+    return table;
+}
 
 
 function twist( sequence, stride = 2 ) {

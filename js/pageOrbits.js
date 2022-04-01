@@ -373,18 +373,39 @@ function processFormula( indexedBox, compositionFormulasText ) {
                 return indexedBox.box.bases[ baseId ] * bb( ...remainder );
             }
 
+            function Gm( terminal, stride, truncated = true ) {
+                return getMultiplicativeGroupMember( terminal, stride, truncated );
+            }
+
+            function box( label, base, cycles ) {
+                const boxAction = new IndexCyclesAction(
+                    extantBoxes.getBox( [ base ] ),
+                    Math.round( Math.random() * 10000 + 1),
+                    label,
+                    {
+                        leftCoprimes: [ base ],
+                        rightCoprimes: [ 1 ],
+                        leftBases: [ 0 ],
+                        rightBases: [ 0 ],
+                        cycles: cycles
+                    }
+                );
+
+                indexedBox.registerCompositeAction( label, boxAction );
+            }
+
             const results = compositionFormulaLines
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
-                        return [ f, f.evaluate( { bb: bb, root: root, flat: flat, dump: dump, label: label } ) ];
+                        return [ f, f.evaluate( { box: box, Gm: Gm, bb: bb, root: root, flat: flat, dump: dump, label: label } ) ];
                     } catch ( e ) {
                         consoleLog( e );
                         return [ f, e ];
                     }
                 } );
 
-            const report = results.map( r => `${ r[0] } = ${ r[1] }` ).join( "\n" );
+            const report = results.map( r => `${ r[0] } = ${ isCycles( r[1] ) ? formatCycles( r[1] ) : r[1] }` ).join( "\n" );
             document.getElementById( 'summaryEditorResult' ).innerHTML = `${ report }`;
 
         } catch ( e ) {

@@ -32,14 +32,14 @@ function createShape( emissiveColor, lineType, attr = {} ) {
         s.setAttribute( key, value );
     });
 
-    var app = document.createElement('Appearance');
-    var mat = document.createElement('Material');
+    var app = document.createElement('appearance');
+    var mat = document.createElement('material');
     if (emissiveColor){
         mat.setAttribute( "emissiveColor", emissiveColor );
     }
     app.appendChild(mat);
     if (lineType) {
-        app.appendChild(  reify( "LineProperties", { "linetype": `${ lineType }` } ) );
+        app.appendChild(  reify( "lineProperties", { "linetype": `${ lineType }` } ) );
     }
     s.appendChild(app);
     return s;
@@ -200,6 +200,57 @@ function createBoxShape( size = [0.1, 0.1, 0.1], emissiveColor = "blue", transpa
         ]
     );
 }
+
+
+function createGridOfCells( sides, param, cellFn ) {
+    const rank = sides.length;
+    const [ b0 = 1, b1 = 1, b2 = 1 ] = sides;
+    const sides3d = [ b0, b1, b2 ];
+
+    const {
+        scaleUnit = [ 1, 1, 1 ],
+        offset = [ 0, 0, 0 ]
+    } = param;
+
+    const root = reify( 'transform',{
+        "translation": sides3d.map( ( b, i ) => ( offset[ i ] + ( -1.0 * b ) / 2 ) ).join( ' ' ),
+        "scale": scaleUnit.join( ' ' )
+    } );
+
+    const serial = [ 0 ];
+
+    function _walkBases( sides, cellFn, place = 0, locusStack = [] ) {
+        if ( place == rank ) {
+            const coord = [ ...locusStack ].reverse();
+            cellFn( coord, serial[ 0 ]++ );
+        } else {
+            for ( var i = 0; i < sides[ place ]; i++) {
+                locusStack.push( i );
+                _walkBases( sides, cellFn, place + 1, locusStack );
+                locusStack.pop();
+            }
+        }
+    }
+
+    // the locus stack handles reversed coordinates
+    _walkBases( [ ...sides ].reverse(), ( coord, serial ) => {
+        const children = cellFn( coord, serial );
+        root
+            .appendChild(
+                reify(
+                    "transform",
+                    { "translation": coord.join( ' ' ) },
+                    Array.isArray( children ) ? children : [ children ]
+                )
+            );
+    } );
+    return root;
+}
+
+
+
+
+
 
 
 function createPolyLineShape( lineSegments, emissiveColor = "red" ){
@@ -664,20 +715,28 @@ function appendX3DomNode( node, param = {} ) {
         sceneId = `scene-${ new Date().toISOString() }`,
         width = "100%",
         height = "100%",
-        reload = false
+        reload = false,
+        showAll = false
     } = param;
 
     const x3dRoot = reify(
             "x3d",
-            { "width": `${ width }`, "height": `${ height }` },
+            { "id": id, "class": css, "width": `${ width }`, "height": `${ height }` },
             [ reify( "scene", { "id": `${ sceneId }` }, [ node ] ) ]
         );
 
     const targetElement = containerElement || document.getElementById( containerId );
 
-    targetElement.appendChild( reify( "div", { "id": id, "class": css }, [ x3dRoot ] ) );
+    targetElement.appendChild( x3dRoot );
 
     if ( reload ) {
         x3dom.reload();
+
+        // only works if loaded
+        if ( showAll ) {
+            x3dRoot.runtime.showAll();
+        }
     }
+
+    return x3dRoot;
 }

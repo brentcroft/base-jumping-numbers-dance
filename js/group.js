@@ -182,7 +182,12 @@ class CompositeAction extends BoxAction {
 class CompositionAction extends CompositeAction {
 
     static compositeLabel( leftAction, rightAction ) {
-        return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
+        try {
+            return `${ leftAction.getLabel() } * ${ rightAction.getLabel() }`;
+        } catch ( e ) {
+            //consoleLog( e );
+            return "anon";
+        }
     }
 
     static compositeSymbol( leftAction, rightAction ) {
@@ -206,7 +211,14 @@ class CompositionAction extends CompositeAction {
         this.label = CompositionAction.compositeLabel( leftAction, rightAction );
         this.symbols = [ CompositionAction.compositeSymbol( leftAction, rightAction ) ];
 
-        this.cycles = composePermutations( this.leftAction.getCycles(), this.rightAction.getCycles() );
+        const leftCycles = isCycles( this.leftAction )
+            ? this.leftAction
+            : this.leftAction.getCycles();
+        const rightCycles = isCycles( this.rightAction )
+            ? this.rightAction
+            : this.rightAction.getCycles();
+
+        this.cycles = composePermutations( leftCycles, rightCycles );
 
         if ( autoInit ) {
             this.indexPointsFromCycles();
@@ -403,7 +415,7 @@ class BoxGroup {
         ];
 
 
-        this.box = new PermBox( bases );
+        this.box = extantBoxes.getBox( bases );
         this.key = "box-group" + this.box.bases.join( "." );
 
         if (toggles.includes( "radiance" )) {

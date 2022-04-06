@@ -270,9 +270,6 @@ class Orbitation {
             point.mass = 1 + point.links.length;
         } );
 
-        console.log( `Link stats: ${ JSON.stringify( linksStats ) }`);
-
-
         linkExponents.sort( ( a, b ) => a - b );
 
         this.linkExponents = linkExponents;
@@ -346,10 +343,31 @@ class Orbitation {
         );
     }
 
-    specification( anti = false) {
-        return anti
-            ? [ ...this.bases ].reverse().join( " x " )
-            : this.bases.join( " x " );
+    specification( anti = false, rotation = 0) {
+        const basesCopy = [ ...this.bases ];
+        if ( anti ) {
+            basesCopy.reverse();
+        }
+        rotateArray( basesCopy, rotation );
+        return basesCopy.join( "x" );
+    }
+
+    placeValuesSpec( anti = false, rotation = 0 ) {
+        const basesCopy = [ ...this.bases ];
+        if ( anti ) {
+            basesCopy.reverse();
+        }
+        rotateArray( basesCopy, rotation );
+        return basesCopy.map( ( b, i ) => ( i + 1 ) == basesCopy.length ? '1' : basesCopy.slice( i + 1 ).join( 'x' ) );
+    }
+
+    placeValues( anti = false, rotation = 0) {
+        const basesCopy = [ ...this.bases ];
+        if ( anti ) {
+            basesCopy.reverse();
+        }
+        rotateArray( basesCopy, rotation );
+        return basesCopy.map( ( b, i ) => ( i + 1 ) == basesCopy.length ? 1 : basesCopy.slice( i + 1 ).reduce( (a,c) => a * c, 1 ) );
     }
 
     cyclesHtml( coprime ) {
@@ -359,7 +377,7 @@ class Orbitation {
             { "class": "cycles" },
             Object
                 .entries( monomial )
-                .map( ( [ key, orbits ] ) => orbits.map( orbit => `(${ orbit.map( c => c.toString() ).join( ' ' ) })` ).join( '' ) )
+                .map( ( [ key, orbits ] ) => orbits.map( orbit => `( ${ orbit.map( c => c.toString() ).join( ' ' ) } )` ).join( ' ' ) )
                 .map( orbitsRow => reify( "span", {}, [], [ c => c.innerHTML = orbitsRow ] ) )
         );
     }
@@ -637,12 +655,195 @@ class Orbitation {
         }
         return wasSelected;
     }
-
 }
+
+function walkBases( bases, cellFn, place = 0, locusStack = [] ) {
+    if ( place == bases.length ) {
+        cellFn( locusStack );
+    } else {
+        for ( var i = 0; i < bases[ place ]; i++) {
+            locusStack.push( i );
+            walkBases( bases, cellFn, place + 1, locusStack );
+            locusStack.pop();
+        }
+    }
+}
+
+
+function boxPlaceValueTable( bases, maxRows, order ) {
+
+    //const caption = `Box: ${ bases.join( 'x' )}`;
+
+    const placesForward = placeValuesForwardArray( bases, offset = 0 );
+    const placesReverse = placeValuesReverseArray( bases, offset = 0 );
+    const indexReverse = ( coord ) => placesReverse.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+
+    const placeOrder = order || new Array( bases.length ).fill( 0 ).map( (_,i) => i );
+
+    function reorder( coord, order ) {
+        return order.map( i => coord[i] );
+    }
+
+    const rowData = [];
+
+    walkBases( bases, coord => rowData.push( [ reorder( coord, placeOrder ), indexReverse( coord ) ] ) );
+
+    rowData.sort( (a,b) => numericArraySorter( a[0], b[0] ) );
+
+    const rows = rowData
+        .map( ( [ coord, index ], i ) => reify(
+             "tr",
+             {},
+             [
+                ...coord.map( b => reify( "td", { "class": "places-left" }, [], [ c => c.innerHTML = b ] ) ),
+                reify( "td", { "class": "tally-value" }, [], [ c => c.innerHTML = index ] )
+             ] ) );
+
+    const rowsPerTable = maxRows || rows.length;
+    const cols = maxRows
+        ? Math.ceil( rows.length / rowsPerTable )
+        : 1;
+
+    const tables = [];
+
+    const placeValuesHeader = reorder(
+        bases
+            .map( ( b, i ) => reify(
+                "th",
+                { "class": "places-left" },
+                [],
+                [ c => c.innerHTML = ( i + 1 ) == bases.length ? 1 : bases.slice( i + 1 ).join( 'x' ) ] )
+            ),
+        placeOrder
+    );
+
+    for ( var i = 0; i < cols; i++ ) {
+        const tableRows = rows.splice( 0, rowsPerTable );
+        const table = reify( "table", { "class": "place-values-table"}, [
+            reify(
+                "tr",
+                {},
+                [
+                    reify( "th", { "colspan": bases.length }, [], [ c => c.innerHTML = 'Coordinate' ] ),
+                    reify( "th", {}, [], [ c => c.innerHTML = 'Index' ] )
+                ]
+            ),
+            reify(
+                "tr",
+                {},
+                [
+                    ...reorder(
+                        bases
+                            .map( ( b, i ) => reify(
+                                "th",
+                                { "class": "places-left" },
+                                [],
+                                [ c => c.innerHTML = ( i + 1 ) == bases.length ? 1 : bases.slice( i + 1 ).join( 'x' ) ] )
+                            ),
+                        placeOrder
+                    ),
+                    reify( "th", { "class": "places-left" }, [], [ c => c.innerHTML = '' ] )
+                ]
+            ),
+            ...tableRows
+        ] );
+
+        //table.createCaption().textContent = caption;
+
+        tables.push( table );
+    }
+
+    if ( tables.length == 1 ) {
+        return tables[0];
+    } else {
+        return reify( "table", {}, [
+            reify( "tr", {}, tables.map( table => reify( "td", {}, [ table ] ) ) )
+        ] );
+    }
+}
+
+function compareBoxIndexesTable( bases0, bases1 ) {
+
+    const placesReverse0 = placeValuesReverseArray( bases0, offset = 0 );
+    const indexReverse0 = ( coord ) => placesReverse0.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+
+    const placesReverse1 = placeValuesReverseArray( bases1, offset = 0 );
+    const indexReverse1 = ( coord ) => placesReverse1.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+
+    const colData = [];
+
+    walkBases( bases0, coord => colData.push( [ indexReverse0( coord ), indexReverse1( [...coord].reverse() ) ] ) );
+
+    colData.sort( (a,b) => a[0] - b[0] );
+
+    colData.splice( 0, 0, [ bases0.join( "x" ), bases1.join( "x" ) ] )
+
+    const rowData = [ [], [] ];
+    colData.forEach( c => {
+        rowData[0].push( c[0] );
+        rowData[1].push( c[1] );
+    } );
+
+    return reify(
+        "table",
+        { "class": "raw-permutation" },
+        rowData.map( row => reify(
+            "tr",
+            {},
+            row.map( ( v, i ) => reify(
+                "td",
+                { "class": "" },
+                [],
+                [ c => c.innerHTML = v ] ) ) ) ) );
+}
+
+function compareBoxSpecificationsTable( bases, anti = false, rotation = 0 ) {
+
+    const bases0 = [...bases];
+
+    const placesReverse0 = placeValuesReverseArray( bases0, offset = 0 );
+    const indexReverse0 = ( coord ) => placesReverse0.map( ( p, i ) => p * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+
+    function txArray( a, anti, rotation ) {
+        return rotateArray( anti ? [...a].reverse() : [...a], rotation );
+    }
+
+    const bases1 = txArray( bases, anti, rotation );
+
+    const placesReverse1 = placeValuesReverseArray( bases1, offset = 0 );
+    const indexReverse1 = ( coord ) => placesReverse1.map( ( p, i ) => p * txArray( coord, anti, rotation )[i] ).reduce( ( a, c ) => a + c, 0 );
+
+    const colData = [];
+
+    walkBases( bases0, coord => colData.push( [ indexReverse0( coord ), indexReverse1( coord ) ] ) );
+
+    colData.sort( (a,b) => a[0] - b[0] );
+
+    colData.splice( 0, 0, [ bases0.join( "x" ), bases1.join( "x" ) ] )
+
+    const rowData = [ [], [] ];
+    colData.forEach( c => {
+        rowData[0].push( c[0] );
+        rowData[1].push( c[1] );
+    } );
+
+    return reify(
+        "table",
+        { "class": "raw-permutation" },
+        rowData.map( row => reify(
+            "tr",
+            {},
+            row.map( ( v, i ) => reify(
+                "td",
+                { "class": "" },
+                [],
+                [ c => c.innerHTML = v ] ) ) ) ) );
+}
+
 
 function boxPackingTable( sides, cellFn, invert = false ) {
 
-    const caption = `Box: ${ sides.join( ' x ' )}${ invert ? ' (twisted)' : '' }`;
+    const caption = `Box specification: ${ sides.join( 'x' )}${ invert ? ' (twisted)' : '' }`;
 
     const bases = invert ? [ ...sides ].reverse() : sides;
     const rank = bases.length;

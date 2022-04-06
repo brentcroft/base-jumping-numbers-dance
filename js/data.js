@@ -116,7 +116,7 @@ var arrayOfIndexes = ( n ) => new Array( n ).fill( 0 ).map( (x,i) => i );
 var aoi = arrayOfIndexes;
 
 
-var numericArraySorter =  (a,b) => {
+var numericArraySorter = (a,b) => {
     for ( var i = 0; i < a.length; i++ ) {
         if ( a[i] != b[i] ) {
             return a[i] - b[i];
@@ -225,6 +225,7 @@ var reflectPoint = ( point, centre ) => subtraction( scale( centre, 2 ), point )
 var euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v, 0 )
 var distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
 
+var factorial = n => !(n > 1) ? 1 : factorial(n - 1) * n;
 var gcd = (a, b) => a ? gcd( b % a, a) : b;
 var lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
 

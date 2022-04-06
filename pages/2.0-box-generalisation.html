@@ -1,0 +1,84 @@
+<script>
+    if ( urlParam.has( "bases2d" ) ) {
+        pageScope.bases2d = urlParam.get( "bases2d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases2d = [ 3, 4 ];
+    }
+
+    pageScope.orb2d = new Orbitation( pageScope.bases2d, { truncated: false } );
+
+    if ( urlParam.has( "bases3d" ) ) {
+        pageScope.bases3d = urlParam.get( "bases3d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases3d = [ 2, 3, 4 ];
+    }
+
+    pageScope.orb3d = new Orbitation( pageScope.bases3d, { truncated: false } );
+
+    if ( urlParam.has( "bases4d" ) ) {
+        pageScope.bases4d = urlParam.get( "bases4d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases4d = [ 2, 3, 4, 5 ];
+    }
+
+    pageScope.orb4d = new Orbitation( pageScope.bases4d, { truncated: false } );
+
+    pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
+    pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
+</script>
+
+<h2>Generalisation</h2>
+
+A box with <code>n</code> different sides has <code>n!</code> specifications,
+because each one is a permutation of the bases,
+and also has <code>n!/2</code> pairs of mutually reverse specifications.
+
+<ul>
+    <li>
+        A box with <a class="eval" title="pageScope.bases2d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases2d.length )">RANKS</a> specifications,
+        being <a class="eval" title="factorial( pageScope.bases2d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases2d.length == 2 ? 'pair' : 'pairs' )"></a>
+        of mutually reverse specifications.
+    </li>
+    <li>
+        A box with <a class="eval" title="pageScope.bases3d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases3d.length )">RANKS</a> specifications,
+        being <a class="eval" title="factorial( pageScope.bases3d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
+        of mutually reverse specifications.
+    </li>
+    <li>
+        A box with <a class="eval" title="pageScope.bases4d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases4d.length )">RANKS</a> specifications,
+        being <a class="eval" title="factorial( pageScope.bases4d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
+        of mutually reverse specifications.
+    </li>
+</ul>
+
+For every two dimensional box specification <span class="box-text">a x b</span>,
+the permutations and place table structures are identified and labelled as follows:
+<br/>
+<br/>
+
+<table class="chain-details summary sortable">
+    <tr><th>Spec</th><th>Label</th><th>Bases Permutation</th><th>Place Values Structure</th></tr>
+    <tr><td>b x a</td><td>α🠅</td><td>[ 1, 0 ]</td><td>[ 1, b ]</td></tr>
+    <tr><td>a x b</td><td>α🠇</td><td>[ 0, 1 ]</td><td>[ a, 1 ]</td></tr>
+    <tr><td colspan="4"></td></tr>
+</table>
+<br/>
+
+For every three dimensional box specification <span class="box-text">a x b x c</span>,
+the permutations and place table structures are identified and labelled as follows:
+<br/>
+<br/>
+<table class="chain-details summary sortable">
+    <tr><th>Label</th><th>Bases Permutation</th><th>Place Values Structure</th></tr>
+    <tr><td>α🠅</td><td>[ 2, 1, 0 ]</td><td>[ b x c, c, 1 ]</td></tr>
+    <tr><td>α🠇</td><td>[ 0, 1, 2 ]</td><td>[ 1, a, a x b ]</td></tr>
+    <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, a x c, c ]</td></tr>
+    <tr><td>β🠇</td><td>[ 1, 2, 0 ]</td><td>[ b x c, 1, b ]</td></tr>
+    <tr><td>γ🠅</td><td>[ 1, 0, 2 ]</td><td>[ b, 1, a x b ]</td></tr>
+    <tr><td>γ🠇</td><td>[ 2, 0, 1 ]</td><td>[ c, a x c, 1 ]</td></tr>
+    <tr><td colspan="3"></td></tr>
+</table>
+<br/>
+
+
+

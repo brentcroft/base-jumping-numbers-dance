@@ -21,133 +21,8 @@
     <script type="text/javascript" src="js/orbitation.js"></script>
     <script type="text/javascript" src="js/forces.js"></script>
 
+    <script type="text/javascript" src="js/pagery.js"></script>
 
-    <script>
-        const pages = {
-<!--            'page-0-1': '0.1-the-multiplicative-group.html',-->
-            'page-1-0': '1.0-tally-ho.html',
-<!--            'page-2-0': '2.0-place-value-tables.html',-->
-<!--            'page-3-0': '3.0-conjugate-points-radiance.html',-->
-<!--            'page-4-0': '4.0-two-dimensional-boxes.html',-->
-<!--            'page-4-1': '4.1-two-more-boxes.html',-->
-<!--            'page-5-0': '5.0-three-dimensional-boxes.html'-->
-        };
-
-        function includePages() {
-            const pagesElement = document.getElementById( 'pages' );
-            const tally = Object.keys( pages );
-
-            const topScope = {
-            };
-
-            Object
-                .entries( pages )
-                .forEach( entry => {
-                    const [ id, src ] = entry;
-
-                    const entryElement = reify( "div", { id: id } );
-                    pagesElement.appendChild( entryElement );
-
-                    const request = new XMLHttpRequest();
-
-                    const includer = () => {
-                        try {
-                            entryElement.innerHTML = request.responseText;
-
-                            const scripts = [];
-                            entryElement
-                                .querySelectorAll( "script" )
-                                .forEach( s => {
-                                    scripts.push( s.textContent );
-                                } );
-
-                            // scripts do not run concurrently
-                            const pageScope = {
-                                id: id,
-                                src: src
-                            };
-
-                            scripts
-                                .filter( s => s.length > 0 )
-                                .forEach( ( s, i ) => {
-                                    try {
-                                        const scriptLines = [
-                                            '"use strict";',
-                                            "const [ pageScope, topScope ] = arguments;",
-                                            "try {", s, "} catch ( e ) {",
-                                            `  const msg = "Script [${ src }#${ id }#${ i + 1 }]; " + e;`,
-                                            "  console.log( msg );",
-                                            "  console.trace();",
-                                            "  throw new Error( msg, { cause: e } );",
-                                            "}",
-                                            ];
-
-                                        Function( scriptLines.join( "\n" ) )( pageScope, topScope );
-                                    } catch ( e ) {
-                                        document
-                                            .getElementById( "load-errors" )
-                                            .appendChild( reify( "div", {}, [], [ c => c.innerHTML = e.toString() ] ) )
-                                    }
-                                } );
-
-                            entryElement
-                                .querySelectorAll( ".eval" )
-                                .forEach( ( ref, i ) => {
-                                    try {
-                                        const t = eval( ref.title );
-                                        if ( t ) {
-                                            ref.innerHTML = t;
-                                        } else {
-                                            throw new Error( "Invalid Object: " + t );
-                                        }
-                                    } catch ( e ) {
-                                        const msg = `Bad Eval Title [${ src }#${ id }#${ i + 1 }]: title=${ ref.title }; ${ e }`;
-                                        console.log( msg );
-                                        document
-                                            .getElementById( "load-errors" )
-                                            .appendChild( reify( "div", {}, [], [ c => c.innerHTML = msg ] ) )
-                                    }
-                                } );
-
-                            entryElement
-                                .querySelectorAll( ".evalNode" )
-                                .forEach( ( ref, i ) => {
-                                    try {
-                                        const t = eval( ref.title );
-                                        if ( t instanceof Element ) {
-                                            ref.appendChild( t );
-                                        } else {
-                                            throw new Error( "Object reference not found: " + ref.title );
-                                        }
-                                    } catch ( e ) {
-                                        const msg = `Bad Eval Node Title [${ src }#${ id }#${ i + 1 }]; title=${ ref.title }; ${ e }`;
-                                        console.log( msg );
-                                        document
-                                            .getElementById( "load-errors" )
-                                            .appendChild( reify( "div", {}, [], [ c => c.innerHTML = msg ] ) )
-                                    }
-                                } );
-
-                        } catch ( e ) {
-                            console.log( e );
-                            console.trace();
-                            document
-                                .getElementById( "load-errors" )
-                                .appendChild( reify( "div", {}, [], [ c => c.innerHTML = e.toString() ] ) )
-                        } finally {
-                            tally.pop();
-                            if ( tally.length == 0 ) {
-                                x3dom.reload();
-                            }
-                        }
-                    };
-
-                    request.addEventListener( "load", includer );
-                    request.open( "GET", src );
-                    request.send();
-                } );
-        }
-    </script>
     <style>
         .multiplicative-group-table { font-size: 80%; border-top: solid 1px black; border-bottom: solid 1px black }
         .multiplicative-group-table th { vertical-align: top; background: WhiteSmoke; }
@@ -160,14 +35,18 @@
 
          td.centre-label { text-align: center; }
 
-         td.cell { border: 1px dotted blue; padding: 5px; margin: 10px; border-radius: 25%; text-align: center; font-size: 70%; }
+         td.cell { border: 1px dotted blue; padding: 3px; margin: 2px; border-radius: 25%; text-align: center; font-size: 70%; }
          td.cell sub { font-size: 70%; }
-         td.pack { border: 0px solid black; padding: 0px; margin: 0px; text-align: center; }
+         td.pack { border: 1px dotted black; padding: 2px; margin: 2px; text-align: center; border-radius: 5%; }
          tr.pack {}
-         table.pack { border: 1px dotted black; padding: 0px; margin: 0px; border-spacing: 10px;  border-radius: 25%; width: 100%; }
-         table.packing { border: 1px dotted black; padding: 15px; margin: 15px; border-radius: 25%; }
-         table.packing caption { font-size: 80%; }
+         table.pack { border: 0px dotted green; padding: 0px; margin: 0px; border-spacing: 2px; width: 100%; font-size: 70%; }
+         table.packing { border: 1px dotted blue; padding: 0px; margin: 0px; border-spacing: 2px;  border-radius: 5%; }
+         table.packing caption { font-size: 60%; }
 
+        code {
+            font-size: 140%;
+            font-weight: bold;
+        }
 
         .resizable {
             resize:both;
@@ -194,12 +73,26 @@
             border: 0px;
         }
 
-        #load-errors { color: red; font-weight: bold;}
+        .error {
+            color: black;
+            border: 2px solid yellow;
+            background: pink;
+        }
+
         a.def, a.def:hover, a.def:focus, a.def:active { text-decoration: none; color: inherit; }
-</style>
+    </style>
+    <script>
+        var pageRefs = {
+            'page-1-0': 'pages/1.0-box-specifications.html',
+            'page-2-0': 'pages/2.0-box-generalisation.html',
+        };
+    </script>
 </head>
-<body onload="includePages()">
-    <div id="load-errors"></div>
+
+<body onload="includePages( 'pages', 'errors', pageRefs )">
+
+    <div id="errors"></div>
+
     <h1>Thinking inside the Box</h1>
 <!--    <div>-->
 <!--        Alaric Dobson, 2022-03-07<br/>-->

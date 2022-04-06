@@ -1,187 +1,130 @@
 <script>
-    pageScope.bases = [ 3, 5 ];
 
-    pageScope.orb = new Orbitation( pageScope.bases, { truncated: false } );
+    if ( urlParam.has( "bases2d" ) ) {
+        pageScope.bases2d = urlParam.get( "bases2d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases2d = [ 3, 4 ];
+    }
+
+    pageScope.orb2d = new Orbitation( pageScope.bases2d, { truncated: false } );
+
+    if ( urlParam.has( "bases3d" ) ) {
+        pageScope.bases3d = urlParam.get( "bases3d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases3d = [ 2, 3, 4 ];
+    }
+
+    pageScope.orb3d = new Orbitation( pageScope.bases3d, { truncated: false } );
+
+    if ( urlParam.has( "bases4d" ) ) {
+        pageScope.bases4d = urlParam.get( "bases4d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases4d = [ 2, 3, 4, 5 ];
+    }
+
+    pageScope.orb4d = new Orbitation( pageScope.bases4d, { truncated: false } );
 
     pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
     pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
-
-    const factorial = n => !(n > 1) ? 1 : factorial(n - 1) * n;
-    const fff = (n) => factorial( n ) * n * ( n - 1 ) / 2;
-
-    pageScope.ranks = fff( pageScope.bases.length );
-
 </script>
 
 <h2>Specification</h2>
-Consider a box with <a class="eval" title="pageScope.bases.length">RANK</a> sides: for example <a class="eval" title="pageScope.orb.specification()">SPEC</a>;
-it contains <a class="eval" title="pageScope.orb.volume">VOLUME</a> points.
+
+Consider a box with <a class="eval" title="pageScope.bases3d.length">RANK</a> sides of different lengths: for example <a class="eval" title="pageScope.orb3d.specification()">SPEC</a>;
+it contains <a class="eval" title="pageScope.orb3d.volume">VOLUME</a> points.
 
 <ul>
     <li>
-        The specification "<a class="eval" title="pageScope.orb.specification()">SPEC</a>" means
-        "<a class="eval" title="pageScope.bases[0]">B0</a> copies of a collection of <a class="eval" title="pageScope.bases[1]">B1</a> points".
+        The specification "<a class="eval" title="pageScope.orb3d.specification()">SPEC</a>" means
+        "<a class="eval" title="pageScope.bases3d.map( (b,i) => ( i == pageScope.bases3d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
     </li>
     <li>
-        The specification
-        "<a class="eval" title="pageScope.orb.specification( true )">SPEC</a>" means
-        "<a class="eval" title="pageScope.bases[1]">B1</a> copies of a collection of <a class="eval" title="pageScope.bases[0]">B0</a> points".
+        The reverse specification "<a class="eval" title="pageScope.orb3d.specification( true )">SPEC</a>" means
+        "<a class="eval" title="[ ...pageScope.bases3d ].reverse().map( (b,i) => ( i == pageScope.bases3d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
     </li>
 </ul>
 
-A box specification can be laid-out in a packing table, given that:
-
-<ol type="i">
-    <li>
-        The bottom left point is identified as the origin (and then the top right point will be the terminal).
-    </li>
-    <li>
-        The points are counted in sequence from the origin: left-to-right, bottom-to-top, (in-to-out).
-    </li>
-    <li>The index of each point is the count of points up to, but not including, the current point.</li>
-    <li>The coordinate of each point is the sequence of places such that:
-        <ul>
-            <li>the right-most place counts left-to-right only</li>
-            <li>the second right place counts down-to-up only</li>
-            <li>(the third right place counts in-to-out only).</li>
-        </ul>
-    </li>
-</ol>
-
-A box with <a class="eval" title="pageScope.bases.length">RANK</a> sides will have <a class="eval" title="pageScope.ranks">RANKS</a> packing table layouts,
-each the reverse specification of the other.
-
 <table>
     <tr>
-        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText )"></td>
-        <td class="evalNode" title="boxPackingTable( [ ...pageScope.bases ].reverse(), pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( pageScope.bases3d, pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( [ ...pageScope.bases3d ].reverse(), pageScope.serialText )"></td>
     </tr>
 </table>
+<br/>
+
+A box specification aligns with the numeral place value convention where the significance of each place value increases from right-to-left,
+but the base counted by each place value varies with the box side lengths.
+<br/>
+<br/>
+
+Each point in the box <a class="eval" title="pageScope.orb3d.specification()"></a> has a unique coordinate in the range: [
+(<a class="eval" title="new Array( pageScope.bases3d.length ).fill( 0 ).join( ', ' )"></a>),
+(<a class="eval" title="pageScope.bases3d.map( b => b - 1 ).join( ', ' )"></a>) ],
+and each coordinate represents a numeral that evaluates to a unique index number,
+with respect to the box specification.
+
+The specification determines the sequence of place values,
+and the scalar product of the place values with each coordinate provides the corresponding index number.<br/>
+<br/>
+
+For example, the box specification <a class="eval" title="pageScope.orb3d.specification()"></a>
+has the place values structure [ <a class="eval" title="pageScope
+        .orb3d
+        .placeValuesSpec()
+        .join( ', ' )"></a> ]
+which evaluates to
+[ <a class="eval" title="pageScope
+        .orb3d
+        .placeValues()
+        .join( ', ' )"></a> ], and the following coordinates and index numbers.
+<br/>
+<br/>
+
+<span class="evalNode" title="boxPlaceValueTable( pageScope.bases3d, pageScope.orb3d.volume / pageScope.bases3d[ pageScope.bases3d.length - 1 ] )"></span>
+<br/>
+
+However, the reverse box specification <a class="eval" title="pageScope.orb3d.specification( true )"></a>
+has different coordinates and index numbers:
+<br/>
+<br/>
+<span class="evalNode" title="boxPlaceValueTable(
+        [ ...pageScope.bases3d ].reverse(),
+        pageScope.orb3d.volume / pageScope.bases3d[ pageScope.bases3d.length - 1 ]
+    )"></span>
+<br/>
+
+The rows and columns in any one specification can always be reordered to match coordinates with any other specification from the same box.
+<br/>
+<br/>
+<span class="evalNode" title="boxPlaceValueTable(
+        [ ...pageScope.bases3d ].reverse(),
+        pageScope.orb3d.volume / pageScope.bases3d[ pageScope.bases3d.length - 1 ],
+        new Array( pageScope.bases3d.length ).fill( 0 ).map( (_,i) => i ).reverse()
+    )"></span>
+<br/>
+<br/>
+
+A box with <code>n</code> different sides has <code>n!</code> specifications,
+because each one is a permutation of the bases,
+and also has <code>n!/2</code> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
+of mutually reverse specifications.
+
+<ul>
+    <li>
+        A box with <a class="eval" title="pageScope.bases2d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases2d.length )">RANKS</a> specifications,
+        being <a class="eval" title="factorial( pageScope.bases2d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases2d.length == 2 ? 'pair' : 'pairs' )"></a>
+        of mutually reverse specifications.
+    </li>
+    <li>
+        A box with <a class="eval" title="pageScope.bases3d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases3d.length )">RANKS</a> specifications,
+        being <a class="eval" title="factorial( pageScope.bases3d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
+        of mutually reverse specifications.
+    </li>
+    <li>
+        A box with <a class="eval" title="pageScope.bases4d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases4d.length )">RANKS</a> specifications,
+        being <a class="eval" title="factorial( pageScope.bases4d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
+        of mutually reverse specifications.
+    </li>
+</ul>
 
 <div class="pagebreak"></div>
-
-A packing table layout can be twisted by reflecting its points in the diagonal between the origin and terminal points
-and then reversing the coordinate for each point.
-
-<table>
-    <tr>
-        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText )"></td>
-        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText, true )"></td>
-    </tr>
-</table>
-
-Twisting a box specification layout makes it the same shape as the layout of the reverse specification.
-
-<table>
-    <tr>
-        <td class="evalNode" title="boxPackingTable( [ ...pageScope.bases ].reverse(), pageScope.serialText, true )"></td>
-        <td class="evalNode" title="boxPackingTable( pageScope.bases, pageScope.serialText )"></td>
-    </tr>
-</table>
-
-
-The two layouts now have the same coordinates in the same places, but not always the same index values.
-<br/>
-<br/>
-
-For example;
-<ul>
-    <li><span class="eval" title="pageScope
-        .orb
-        .cycles( pageScope.bases[1] )
-        .filter( cycle => cycle[0] == 1 )
-        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
-        .join( '' )"></span>, completing a cycle of length <a class="eval" title="pageScope.orb.order( pageScope.bases[1] )"></a>.</li>
-    <li><span class="eval" title="pageScope
-        .orb
-        .cycles( pageScope.bases[1] )
-        .filter( cycle => cycle.length > 1 )
-        .filter( cycle => cycle[0] != 1 )
-        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
-        .join( '' )"></span>, completing another cycle of length <a class="eval" title="pageScope.orb.order( pageScope.bases[1] )"></a>.</li>
-</ul>
-
-However:
-
-<ul>
-    <li><span class="eval" title="pageScope
-        .orb
-        .cycles( 5 )
-        .filter( cycle => cycle.length == 1 )
-        .flatMap( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
-        .join( ', ' )"></span>; cycles of length 1, or fixed points.</li>
-</ul>
-
-This is written more succinctly as an expression in cycle notation:
-<br/>
-<br/>
-
-<span class="evalNode" title="pageScope.orb.cyclesHtml( 5 )"></span>
-<br/><br/>
-
-NB: It's useful to retain the fixed points in the expression, even though they are usually elided,
-so that every point is represented and hence the total number of points is apparent.
-
-<div class="pagebreak"></div>
-
-The cycles can also be written in terms of coordinates:
-<br/>
-<br/>
-
-<span class="evalNode" title="pageScope.orb.coordCyclesHtml( 5 )"></span>
-
-
-<script>
-    /*
-    const boxFn = ( coord, serial, transparency = 0.95 ) => {
-        return ( serial == 0 )
-            ? createBoxShape( new Array( 3 ).fill( 0.7 ), "red", 0.8 )
-            : createBoxShape( new Array( 3 ).fill( 0.6 ), "blue", transparency );
-    };
-
-    const textFn = ( coord, serial ) => createTextShape( `${ serial } (${ [ ...coord ].reverse().join( ',' ) })`, { "size": 0.3, 'solid': false } );
-    const serialTextFn = ( coord, serial ) => createTextShape( `${ serial }`, { "size": 0.3, 'solid': false } );
-    const coordTextFn = ( coord, serial ) => createTextShape( `(${ [ ...coord ].reverse().join( ',' ) })`, { "size": 0.3, 'solid': true } );
-
-
-    var cellFn = ( coord, serial ) => [
-        boxFn( coord, serial ),
-        serialTextFn( coord, serial )
-    ];
-
-    var sides = [ 5, 3 ];
-
-    const serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
-    const coordText = ( coord, serial ) => `(${ coord.join( ',' ) })`;
-
-
-    const bpt2 = boxPackingTable( [ 3, 5 ], serialText, true );
-    document.getElementById( 'cuboid-packing-table-2' ).appendChild( bpt2 );
-
-    const bpt3 = boxPackingTable( [ 5, 3 ], serialText, false );
-    document.getElementById( 'cuboid-packing-table-3' ).appendChild( bpt3 );
-
-
-    const x3domNode0 = appendX3DomNode(
-        createGridOfCells( sides, { offset: [ -2, 0, 0 ], scaleUnit: [ 2, 2, 0.1 ] },
-            ( coord, serial ) => [
-                boxFn( coord, serial ),
-                coordTextFn( coord, serial )
-            ] ),
-        { containerId: 'cuboid-coords' }
-    );
-
-    const x3domNode1 = appendX3DomNode(
-        createGridOfCells( sides, { offset: [ -2, 0, 0 ], scaleUnit: [ 2, 2, 0.1 ] }, cellFn ),
-        { containerId: 'cuboid-landscape' } );
-
-    const sides2 = [ ...sides ].reverse();
-
-    const x3domNode2 = appendX3DomNode(
-        createGridOfCells( sides2, { offset: [ 0, -0.5, 0 ], scaleUnit: [ 1.5, 1.5, 0.1 ] }, cellFn ),
-        { containerId: 'cuboid-portrait' } );
-
-
-    insertOrbitation( sides );
-    */
-</script>

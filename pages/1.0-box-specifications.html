@@ -1,0 +1,182 @@
+<script>
+    if ( urlParam.has( "bases2d" ) ) {
+        pageScope.bases2d = urlParam.get( "bases2d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases2d = [ 3, 4 ];
+    }
+
+    pageScope.orb2d = new Orbitation( pageScope.bases2d, { truncated: false } );
+
+    if ( urlParam.has( "bases3d" ) ) {
+        pageScope.bases3d = urlParam.get( "bases3d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases3d = [ 2, 3, 4 ];
+    }
+
+    pageScope.orb3d = new Orbitation( pageScope.bases3d, { truncated: false } );
+
+    if ( urlParam.has( "bases4d" ) ) {
+        pageScope.bases4d = urlParam.get( "bases4d" ).split( "," ).map( b => Number( b ) );
+    } else {
+        pageScope.bases4d = [ 2, 3, 4, 5 ];
+    }
+
+    pageScope.orb4d = new Orbitation( pageScope.bases4d, { truncated: false } );
+
+    pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
+    pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
+</script>
+
+<h2>Specification</h2>
+
+Consider a box with <a class="eval" title="pageScope.bases3d.length">RANK</a> sides of different lengths: for example <a class="eval" title="pageScope.orb3d.specification()">SPEC</a>;
+it contains <a class="eval" title="pageScope.orb3d.volume">VOLUME</a> points.
+
+<ul>
+    <li>
+        The specification "<a class="eval" title="pageScope.orb3d.specification()">SPEC</a>" means
+        "<a class="eval" title="pageScope.bases3d.map( (b,i) => ( i == pageScope.bases3d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
+    </li>
+    <li>
+        The reverse specification "<a class="eval" title="pageScope.orb3d.specification( true )">SPEC</a>" means
+        "<a class="eval" title="[ ...pageScope.bases3d ].reverse().map( (b,i) => ( i == pageScope.bases3d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
+    </li>
+</ul>
+
+<table>
+    <tr>
+        <td class="evalNode" title="boxPackingTable( pageScope.bases3d, pageScope.serialText )"></td>
+        <td class="evalNode" title="boxPackingTable( [ ...pageScope.bases3d ].reverse(), pageScope.serialText )"></td>
+    </tr>
+</table>
+<br/>
+
+There are four other possible specifications for this box, being:
+"<a class="eval" title="pageScope.orb3d.specification( false, 1 )">SPEC</a>",
+"<a class="eval" title="pageScope.orb3d.specification( false, 2 )">SPEC</a>",
+"<a class="eval" title="pageScope.orb3d.specification( true, 1 )">SPEC</a>",
+"<a class="eval" title="pageScope.orb3d.specification( true, 2 )">SPEC</a>".
+<br/>
+<br/>
+
+A box specification aligns with the numeral place value convention where the significance of each place value increases from right-to-left,
+but the base counted by each place value varies with the box side lengths.
+<br/>
+<br/>
+
+Each point in the box <a class="eval" title="pageScope.orb3d.specification()"></a> has a unique coordinate in the range:
+[(<a class="eval" title="new Array( pageScope.bases3d.length ).fill( 0 ).join( ', ' )"></a>),
+(<a class="eval" title="pageScope.bases3d.map( b => b - 1 ).join( ', ' )"></a>)],
+and each coordinate represents a numeral that evaluates to a unique index number,
+with respect to the box specification.
+
+The specification determines the sequence of place values,
+and the scalar product of the place values with each coordinate provides the corresponding index number.<br/>
+<br/>
+
+For example, the box specification <a class="eval" title="pageScope.orb3d.specification()"></a>
+has the place values structure [<a class="eval" title="pageScope.orb3d.placeValuesSpec().join( ', ' )"></a>]
+which evaluates to [<a class="eval" title="pageScope.orb3d.placeValues().join( ', ' )"></a>],
+and produces the following coordinates and index numbers:
+<br/>
+<br/>
+
+<span class="evalNode" title="boxPlaceValueTable( pageScope.bases3d, pageScope.orb3d.volume / pageScope.bases3d[ pageScope.bases3d.length - 1 ] )"></span>
+<br/>
+
+However, the reverse box specification <a class="eval" title="pageScope.orb3d.specification( true )"></a>
+has the place values structure [<a class="eval" title="pageScope.orb3d.placeValuesSpec( true ).join( ', ' )"></a>]
+which evaluates to [<a class="eval" title="pageScope.orb3d.placeValues( true ).join( ', ' )"></a>],
+and produces the following different coordinates and index numbers:
+<br/>
+<br/>
+<span class="evalNode" title="boxPlaceValueTable(
+        [ ...pageScope.bases3d ].reverse(),
+        pageScope.orb3d.volume / pageScope.bases3d[ pageScope.bases3d.length - 1 ]
+    )"></span>
+<br/>
+
+The rows and columns in any one specification can always be reordered to match coordinates with any other specification from the same box,
+for example:
+<br/>
+<br/>
+<span class="evalNode" title="boxPlaceValueTable(
+        [ ...pageScope.bases3d ].reverse(),
+        pageScope.orb3d.volume / pageScope.bases3d[ pageScope.bases3d.length - 1 ],
+        new Array( pageScope.bases3d.length ).fill( 0 ).map( (_,i) => i ).reverse()
+    )"></span>
+<br/>
+
+<hr class="pagebreak"/>
+
+The index numbers can be compared, for corresponding coordinates, for any two specifications from the same box:
+<br/>
+<br/>
+<span class="evalNode" title="compareBoxSpecificationsTable(
+        pageScope.bases3d,
+        true
+    )"></span>
+<br/>
+
+The second row is a permutation of the first row and this represents a mapping from all the points in the box back onto all the points in the box:
+<ul>
+    <li><span class="eval" title="pageScope
+        .orb3d
+        .cycles( pageScope.orb3d.placeValues( true )[0] )
+        .filter( cycle => cycle[0] == 1 )
+        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
+        .join( '' )"></span>, completing a cycle of length <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.</li>
+    <li><span class="eval" title="pageScope
+        .orb3d
+        .cycles( pageScope.orb3d.placeValues( true )[0] )
+        .filter( cycle => cycle.length > 1 )
+        .filter( cycle => cycle[0] != 1 )
+        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
+        .join( '&nbsp;' )"></span>, completing another cycle of length <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.</li>
+    <li><span class="eval" title="pageScope
+        .orb3d
+        .cycles( pageScope.orb3d.placeValues( true )[0] )
+        .filter( cycle => cycle.length == 1 )
+        .flatMap( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
+        .join( ', ' )"></span>; these are cycles of length 1, or fixed points.</li>
+</ul>
+
+
+This is written more succinctly as an expression in cycle notation:
+<br/>
+<br/>
+<span class="evalNode" title="pageScope.orb3d.cyclesHtml( pageScope.orb3d.placeValues( true )[0] )"></span>
+<br/>
+
+Reversing the comparison of specifications leads to the same cycles, but in reverse:
+<br/>
+<br/>
+<span class="evalNode" title="compareBoxSpecificationsTable(
+        [ ...pageScope.bases3d ].reverse(),
+        true,
+        0
+    )"></span>
+<br/>
+<br/>
+<span class="evalNode" title="compareBoxSpecificationsTable(
+        pageScope.bases3d,
+        true,
+        3
+    )"></span>
+<br/>
+
+
+
+NB: It's useful to retain the fixed points in the expression, even though they are usually elided,
+so that every point is represented and hence the total number of points is apparent.
+<br/>
+<br/>
+
+There are 6 possible specifications for a box with three different sides,
+and each one can be compared with every other,
+including itself.
+
+
+
+<hr class="pagebreak"/>
+

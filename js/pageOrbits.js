@@ -702,7 +702,7 @@ function initPage( urlParam = true ) {
 
     // maybe insert a set of compositions
     if ( !param.toggles.includes( 'noCompositions' ) ) {
-        document.getElementById( "compositionFormulas" ).value = SYMBOLIC_COMPOSITIONS[ param.bases.length ][ 'bases' ].join( "\n" );
+        document.getElementById( "compositionFormulas" ).value = SYMBOLIC_COMPOSITIONS[ param.bases.length ][ '3d-canonical' ].join( "\n" );
     }
 
     updatePage();

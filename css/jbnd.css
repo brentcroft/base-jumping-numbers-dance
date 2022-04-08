@@ -39,6 +39,7 @@ th {
     font-size: 60%;
     margin-left: 3px;
     margin-right: 3px;
+    page-break-inside: avoid;
 }
 
 .place-values-table td,th {

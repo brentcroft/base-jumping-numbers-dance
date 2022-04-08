@@ -53,7 +53,7 @@ it contains <a class="eval" title="pageScope.orb3d.volume">VOLUME</a> points.
 </table>
 <br/>
 
-There are four other possible specifications for this box, being:
+There are 6 possible specifications for this box, the other four being:
 "<a class="eval" title="pageScope.orb3d.specification( false, 1 )">SPEC</a>",
 "<a class="eval" title="pageScope.orb3d.specification( false, 2 )">SPEC</a>",
 "<a class="eval" title="pageScope.orb3d.specification( true, 1 )">SPEC</a>",
@@ -61,10 +61,13 @@ There are four other possible specifications for this box, being:
 <br/>
 <br/>
 
+<h3>Place values, Coordinates and Index numbers</h3>
+
 A box specification aligns with the numeral place value convention where the significance of each place value increases from right-to-left,
 but the base counted by each place value varies with the box side lengths.
 <br/>
 <br/>
+
 
 Each point in the box <a class="eval" title="pageScope.orb3d.specification()"></a> has a unique coordinate in the range:
 [(<a class="eval" title="new Array( pageScope.bases3d.length ).fill( 0 ).join( ', ' )"></a>),
@@ -89,7 +92,7 @@ and produces the following coordinates and index numbers:
 However, the reverse box specification <a class="eval" title="pageScope.orb3d.specification( true )"></a>
 has the place values structure [<a class="eval" title="pageScope.orb3d.placeValuesSpec( true ).join( ', ' )"></a>]
 which evaluates to [<a class="eval" title="pageScope.orb3d.placeValues( true ).join( ', ' )"></a>],
-and produces the following different coordinates and index numbers:
+and produces the following, partially different, coordinates and index numbers:
 <br/>
 <br/>
 <span class="evalNode" title="boxPlaceValueTable(
@@ -98,7 +101,7 @@ and produces the following different coordinates and index numbers:
     )"></span>
 <br/>
 
-The rows and columns in any one specification can always be reordered to match coordinates with any other specification from the same box,
+The rows and columns from any one specification can always be reordered to match coordinates with any other specification from the same box,
 for example:
 <br/>
 <br/>
@@ -109,7 +112,8 @@ for example:
     )"></span>
 <br/>
 
-<hr class="pagebreak"/>
+
+<h3>Index Comparisons, Permutations, and Cycles</h3>
 
 The index numbers can be compared, for corresponding coordinates, for any two specifications from the same box:
 <br/>
@@ -121,6 +125,12 @@ The index numbers can be compared, for corresponding coordinates, for any two sp
 <br/>
 
 <script>
+    pageScope.e_0_cycles = pageScope
+        .box3d
+        .findActionByLabel( 'e_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
     pageScope.z_0_cycles = pageScope
         .box3d
         .findActionByLabel( 'z_0' )
@@ -176,6 +186,11 @@ This is written more succinctly as an expression in cycle notation:
 <br/>
 <br/>
 
+NB: Here it's useful to retain the fixed points in the expression, even though they are usually elided,
+so that the entire set of points is presented.
+<br/>
+<br/>
+
 Swapping the two specifications in the comparison produces the same cycles in reverse:
 <br/>
 <br/>
@@ -195,16 +210,25 @@ Swapping the two specifications in the comparison produces the same cycles in re
 <br/>
 <br/>
 
-NB: It's useful to retain the fixed points in the expression, even though they are usually elided,
-so that every point is represented and hence the total number of points is apparent.
+
+Comparing a specification with itself always produces a set of fixed points only:
+<br/>
+<br/>
+<span class="evalNode" title="compareBoxSpecificationsTable(
+        pageScope.bases3d,
+        false,
+        0
+    )"></span>
 <br/>
 <br/>
 
-There are 6 possible specifications for a box with three different sides,
-and each one can be compared with every other,
-including itself.
-
-
+<span class="eval" title="pageScope
+            .e_0_cycles
+            .map( cycle => rotateArray( cycle, -1 ) )
+            .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+            .join( ' ' )"></span>
+<br/>
+<br/>
 
 <hr class="pagebreak"/>
 

@@ -14,6 +14,7 @@
     }
 
     pageScope.orb3d = new Orbitation( pageScope.bases3d, { truncated: false } );
+    pageScope.box3d = new BoxGroup( pageScope.bases3d, { toggles: [ 'all-indexes', 'all-layers' ] } );
 
     if ( urlParam.has( "bases4d" ) ) {
         pageScope.bases4d = urlParam.get( "bases4d" ).split( "," ).map( b => Number( b ) );
@@ -25,6 +26,7 @@
 
     pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
     pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
+
 </script>
 
 <h2>Specification</h2>
@@ -118,34 +120,60 @@ The index numbers can be compared, for corresponding coordinates, for any two sp
     )"></span>
 <br/>
 
+<script>
+    pageScope.z_0_cycles = pageScope
+        .box3d
+        .findActionByLabel( 'z_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0i_cycles = pageScope
+        .box3d
+        .findActionByLabel( 'z_0i' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+</script>
+
 The second row is a permutation of the first row and this represents a mapping from all the points in the box back onto all the points in the box:
 <ul>
-    <li><span class="eval" title="pageScope
-        .orb3d
-        .cycles( pageScope.orb3d.placeValues( true )[0] )
-        .filter( cycle => cycle[0] == 1 )
-        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
-        .join( '' )"></span>, completing a cycle of length <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.</li>
-    <li><span class="eval" title="pageScope
-        .orb3d
-        .cycles( pageScope.orb3d.placeValues( true )[0] )
-        .filter( cycle => cycle.length > 1 )
-        .filter( cycle => cycle[0] != 1 )
-        .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
-        .join( '&nbsp;' )"></span>, completing another cycle of length <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.</li>
-    <li><span class="eval" title="pageScope
-        .orb3d
-        .cycles( pageScope.orb3d.placeValues( true )[0] )
-        .filter( cycle => cycle.length == 1 )
-        .flatMap( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
-        .join( ', ' )"></span>; these are cycles of length 1, or fixed points.</li>
+    <li>
+        <span class="eval" title="pageScope
+            .z_0_cycles
+            .filter( cycle => cycle[0] == 1 )
+            .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
+            .join( '' )"></span>,
+        completing a cycle of length
+        <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.
+    </li>
+    <li>
+        <span class="eval" title="pageScope
+            .z_0_cycles
+            .filter( cycle => cycle.length > 1 )
+            .filter( cycle => cycle[0] != 1 )
+            .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
+            .join( '&nbsp;' )"></span>,
+        completing another cycle of length
+        <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.
+    </li>
+    <li>
+        <span class="eval" title="pageScope
+            .z_0_cycles
+            .filter( cycle => cycle.length == 1 )
+            .flatMap( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
+            .join( ', ' )"></span>;
+        these are cycles of length 1, or fixed points.
+    </li>
 </ul>
 
 
 This is written more succinctly as an expression in cycle notation:
 <br/>
 <br/>
-<span class="evalNode" title="pageScope.orb3d.cyclesHtml( pageScope.orb3d.placeValues( true )[0] )"></span>
+<span class="eval" title="pageScope
+            .z_0_cycles
+            .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+            .join( ' ' )"></span>
+<br/>
 <br/>
 
 Reversing the comparison of specifications leads to the same cycles, but in reverse:
@@ -158,14 +186,13 @@ Reversing the comparison of specifications leads to the same cycles, but in reve
     )"></span>
 <br/>
 <br/>
-<span class="evalNode" title="compareBoxSpecificationsTable(
-        pageScope.bases3d,
-        true,
-        3
-    )"></span>
+
+<span class="eval" title="pageScope
+            .z_0i_cycles
+            .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+            .join( ' ' )"></span>
 <br/>
-
-
+<br/>
 
 NB: It's useful to retain the fixed points in the expression, even though they are usually elided,
 so that every point is represented and hence the total number of points is apparent.

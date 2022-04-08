@@ -94,6 +94,8 @@ function includePages( pagesElementId, errorElementId, pages ) {
                                 const t = eval( ref.title );
                                 if ( t instanceof Element ) {
                                     ref.appendChild( t );
+                                } else if ( Array.isArray( t ) && ( t.length > 0 ) && ( t[0] instanceof Element ) ) {
+                                    t.forEach( t0 => ref.appendChild( t0 ) );
                                 } else {
                                     throw new Error( "Invalid Node: " + t );
                                 }

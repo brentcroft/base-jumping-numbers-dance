@@ -171,9 +171,10 @@ class CompositeAction extends BoxAction {
         this.dix = new Array( this.box.volume );
 
         // todo: no identity plane
-        this.identityPlane = [ -1, -1, 1 ];
+        this.identityPlane = [ 1, 0, 0 ];
         this.identityPlaneGcd = 1;
-        this.identityPlaneNormal = displacement( this.box.origin, this.identityPlane );
+        this.identityPlaneNormal = [ 0, 1, 0 ];
+
 
         this.alias = [];
     }
@@ -407,11 +408,14 @@ class BoxGroup {
             toggles.includes( "ignoreEuclideanPerimeters" )
         ];
 
-        const [ identities, inverses, harmonics, degenerates, compositionRules, ignoreOrbitOffsets ] = [
-            toggles.includes( "identities" ),
-            toggles.includes( "inverses" ),
-            toggles.includes( "harmonics" ),
-            toggles.includes( "degenerates" )
+        const allIndexes = toggles.includes( "all-indexes" );
+        const allLayers = toggles.includes( "all-layers" );
+
+        const [ identities, inverses, harmonics, degenerates ] = [
+            allIndexes || toggles.includes( "identities" ),
+            allIndexes || toggles.includes( "inverses" ),
+            allIndexes || toggles.includes( "harmonics" ),
+            allIndexes || toggles.includes( "degenerates" )
         ];
 
 
@@ -520,7 +524,7 @@ class BoxGroup {
 
             // filter and group by layers
             indexors
-                .filter( pair => actionLayers.includes( pair.layer ) )
+                .filter( pair => allLayers || actionLayers.includes( pair.layer ) )
                 .filter( pair => harmonics || !pair.harmonic )
                 .filter( pair => degenerates || !pair.degenerate )
                 .forEach( pair => {
@@ -608,6 +612,19 @@ class BoxGroup {
         if ( matchingAlias.length > 0 ) {
             //consoleLog( `found matching alias: ${ matchingAlias }`);
             return matchingAlias[0];
+        }
+
+        return null;
+    }
+
+    findActionByLabel( label ) {
+
+        const action = this.boxActions
+            .filter( a => a.label === label );
+
+        if ( action.length > 0 ) {
+            //consoleLog( `found matching action: ${ action }`);
+            return action[0];
         }
 
         return null;

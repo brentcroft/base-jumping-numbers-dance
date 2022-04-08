@@ -329,6 +329,9 @@ function reduce( n, d ) {
 
 
 function rotateArray( array, times = 1 ) {
+    if ( times < 0 ) {
+        return rotateReverseArray( array, -1 * times );
+    }
     for ( var i = 0; i < times; i++ ) {
         array.push( array.shift() );
     }
@@ -336,6 +339,9 @@ function rotateArray( array, times = 1 ) {
 }
 
 function rotateReverseArray( array, times = 1 ) {
+    if ( times < 0 ) {
+        return rotateArray( array, -1 * times );
+    }
     for ( var i = 0; i < times; i++ ) {
         array.unshift( array.pop() );
     }

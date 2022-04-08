@@ -176,7 +176,7 @@ This is written more succinctly as an expression in cycle notation:
 <br/>
 <br/>
 
-Reversing the comparison of specifications leads to the same cycles, but in reverse:
+Swapping the two specifications in the comparison produces the same cycles in reverse:
 <br/>
 <br/>
 <span class="evalNode" title="compareBoxSpecificationsTable(
@@ -189,6 +189,7 @@ Reversing the comparison of specifications leads to the same cycles, but in reve
 
 <span class="eval" title="pageScope
             .z_0i_cycles
+            .map( cycle => rotateArray( cycle, -1 ) )
             .map( cycle => `( ${ cycle.join( ' ' ) } )` )
             .join( ' ' )"></span>
 <br/>

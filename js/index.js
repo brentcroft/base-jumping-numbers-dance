@@ -93,7 +93,7 @@ class ExtantBoxes {
     }
 }
 
-const extantBoxes = new ExtantBoxes();
+var extantBoxes = new ExtantBoxes();
 
 
 class Box {
@@ -117,7 +117,7 @@ class Box {
         this.indexCentre = ( this.volume - 1 ) / 2;
 
         // fixed points
-        this.origin = new Array( bases.length ).fill( 0 );
+        this.origin = new Array( this.bases.length ).fill( 0 );
         this.terminal = this.bases.map( x => x - 1 );
         this.diagonal = [ this.origin, this.terminal ];
 

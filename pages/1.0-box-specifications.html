@@ -35,14 +35,14 @@ Consider a box with <a class="eval" title="pageScope.bases3d.length">RANK</a> si
 it contains <a class="eval" title="pageScope.orb3d.volume">VOLUME</a> points.
 <br/>
 <br/>
-The specification "<a class="eval" title="pageScope.orb3d.specification()">SPEC</a>" means
+The specification <a class="eval" title="pageScope.orb3d.specification()">SPEC</a> means
 "<a class="eval" title="pageScope.bases3d.map( (b,i) => ( i == pageScope.bases3d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
 <br/>
 <br/>
 <span class="evalNode" title="boxPackingTable( pageScope.bases3d, pageScope.serialText )"></span>
 <br/>
 
-The reverse specification "<a class="eval" title="pageScope.orb3d.specification( true )">SPEC</a>" means
+The reverse specification <a class="eval" title="pageScope.orb3d.specification( true )">SPEC</a> means
 "<a class="eval" title="[ ...pageScope.bases3d ].reverse().map( (b,i) => ( i == pageScope.bases3d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
 <br/>
 <br/>
@@ -51,10 +51,10 @@ The reverse specification "<a class="eval" title="pageScope.orb3d.specification(
 
 
 There are 6 possible specifications for this box, the other four being:
-"<a class="eval" title="pageScope.orb3d.specification( false, 1 )">SPEC</a>",
-"<a class="eval" title="pageScope.orb3d.specification( false, 2 )">SPEC</a>",
-"<a class="eval" title="pageScope.orb3d.specification( true, 1 )">SPEC</a>",
-"<a class="eval" title="pageScope.orb3d.specification( true, 2 )">SPEC</a>".
+<a class="eval" title="pageScope.orb3d.specification( false, 1 )">SPEC</a>,
+<a class="eval" title="pageScope.orb3d.specification( false, 2 )">SPEC</a>,
+<a class="eval" title="pageScope.orb3d.specification( true, 1 )">SPEC</a>,
+<a class="eval" title="pageScope.orb3d.specification( true, 2 )">SPEC</a>.
 <br/>
 <br/>
 
@@ -68,11 +68,11 @@ but the base counted by each place value varies with the box side lengths.
 
 Each point in the box <a class="eval" title="pageScope.orb3d.specification()"></a> can have a unique coordinate in the range:
 [ (<a class="eval" title="new Array( pageScope.bases3d.length ).fill( 0 ).join( ', ' )"></a> ),
-(<a class="eval" title="pageScope.bases3d.map( b => b - 1 ).join( ', ' )"></a>)],
+(<a class="eval" title="pageScope.bases3d.map( b => b - 1 ).join( ', ' )"></a>) ],
 and each coordinate represents a numeral,
 with respect to the box specification,
 that evaluates to a unique index number in the range
-[ 0, <a class="eval" title="pageScope.box3d.box.volume"></a> ].
+[ 0, <a class="eval" title="( pageScope.box3d.box.volume - 1 )"></a> ].
 
 The specification determines the sequence of place values,
 and the scalar product of the place values with each coordinate provides the corresponding index number.<br/>

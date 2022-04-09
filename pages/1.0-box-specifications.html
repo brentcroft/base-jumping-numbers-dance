@@ -156,7 +156,7 @@ Specifically:
         .map( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' &rarr; 1' : ' &rarr; ' + cycle[ i + 1 ] + ' | ' }` ).join( '' ) )
         .map( ( cycle, i ) => `<li>${ i == 0 ? 'A' : 'Another' } cycle of length ${ pageScope.orb3d.order( pageScope.bases3d[0] ) }:<br/><br/>${ cycle }</li>` )
         .flatMap( cycle => cycle )
-        .join( '\n' ),
+        .join( '' ),
 
     '<li>Cycles of length 1, or fixed points:<br/><br/>' + pageScope
         .z_0_cycles
@@ -164,7 +164,7 @@ Specifically:
         .map( cycle => cycle.map( c => `${ c } &rarr; ${ c }` ) )
         .join( ' | ' ) + '</li>'
 
-]"></ul>
+    ].join( '' )"></ul>
 
 
 This is written more succinctly as an expression in cycle notation:

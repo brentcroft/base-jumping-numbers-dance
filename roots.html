@@ -438,16 +438,24 @@
         }
 
     </style>
-
-    <script>
-
-/*
-const bases = [ 2, 4, 5 ];
+</head>
+<body onload="calculateNow()">
+    <div class="menu noprint">
+        <a href="index.html" title="Thinking inside the box">doc</a>
+        <a href="orbits.html" title="Box Group Laboratory">lab</a>
+        <a title="Multiplicative Groups">groups</a>
+    </div>
+    <input type="button" value="eval" onclick="calculateNow()"/>
+    <input type="button" value="clear" onclick="clearResults()"/>
+    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
+    <br/>
+    <textarea id="calculationScript" class="scriptPanel" rows="7" cols="200">
+const bases = [ 2, 3, 4 ];
 const param = {
     forces: [ 'pair', 'link' ],
-    identityFactor: 0.1,
-    pairFactor: -0.1,
-    rodLengthExp: 0,
+    identityFactor: 0.05,
+    pairFactor: -0.5,
+    rodLengthExp: 0.5,
     rodStrengthExp: 2,
     newtonian: true,
     friction: 0.96,
@@ -462,65 +470,6 @@ const orb = new Orbitation( bases, param );
 
 putOrbitationNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
 putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: true } );
-
-putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
-putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );
-
-putHtml( orb.fragmentsBlock() );
-*/
-
-
-/*
-z = [[3,6],[13,16],[26,23],[36,33],[1,5,7,8,4,2],[38,34,32,31,35,37],[11,15,17,18,14,12],[28,24,22,21,25,27]];
-z_0 = [z[0], z[4]];
-z_1 = [z[1], z[5]];
-z_2 = [z[2], z[6]];
-z_3 = [z[3], z[7]];
-compo( z_0, z_1, z_2, z_3 );
-
-
-*/
-
-/*
-const actions = [
-    getCycles( [ 4, 5 ], 2, false ),
-    getCycles( [ 5, 4 ], 2, false ),
-    getCycles( [ 2, 5 ], 4, false ),
-    getCycles( [ 5, 2 ], 4, false ),
-];
-actions.forEach( a => { putHtml( a ); putX3DomNode( getCyclesDiagram( a ), { width: '40%', height: '30%' } ); } );
-
-*/
-
-    </script>
-
-</head>
-<body onload="calculateNow()">
-    <input type="button" value="eval" onclick="calculateNow()"/>
-    <input type="button" value="clear" onclick="clearResults()"/>
-    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
-    <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="7" cols="200">
-const bases = [ 2, 4, 5 ];
-const param = {
-    forces: [ 'pair', 'link' ],
-    identityFactor: 0.05,
-    pairFactor: -0.5,
-    rodLengthExp: 0,
-    rodStrengthExp: 2,
-    newtonian: true,
-    friction: 0.96,
-    minDist: 0.000000000001,
-    minDelta: 0.000000000001,
-    maxDelta: 10,
-    burst: 100,
-    iterations: 2000,
-    tickTime: 10
-};
-const orb = new Orbitation( bases, param );
-
-putOrbitationNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
-putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: false } );
 
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );

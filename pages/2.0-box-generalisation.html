@@ -29,48 +29,97 @@
 
 <h2>Generalisation</h2>
 
-A box with <code>n</code> different sides has <code>n!</code> specifications,
-because each one is a permutation of the bases,
-and also has <code>n!/2</code> pairs of mutually reverse specifications.
+A box with <code>n</code> dimensions, or bases, has <code>n!</code> specifications,
+because each specification is a permutation of the bases,
+and each specification can be compared with itself and every other specification
+to produce <code>(n!)<sup>2</sup></code> actions.
+<br/>
+<br/>
 
+Of these, <code>n!</code> will be self comparisons,
+identity actions that don't move any points and are self-inverse,
+and the remainder form <code>&frac12;((n!)<sup>2</sup> - n!)</code> pairs of distinct mutually inverse actions
+that move at least two points.
+<br/>
+<br/>
+
+<table class="evalNode generalization-table" title="[
+        [
+            'Box<br/>',
+            'Base<br/>Permutation',
+            'Dimensions<br/><code>n</code>',
+            'Specs<br/><code>n!</code>',
+            'Actions<br/><code>(n!)<sup>2</sup></code>',
+            'Identities<br/><code>n!</code>',
+            'Distinct Inverse Actions<br/><code>&frac12;n!(n!-1)</code>',
+        ]
+            .map( h => reify( 'th', {}, [], [ c => c.innerHTML = h ] ) ),
+
+        ...[ [ 'a', 'b' ], [ 'a', 'b', 'c' ], [ 'a', 'b', 'c', 'd' ], [ 'a', 'b', 'c', 'd', 'e' ] ]
+            .map( bases => [
+                    bases.join( ' <code>x</code> ' ),
+                    `[ ${ aoi( bases.length ).join( ', ' ) } ]`,
+                    bases.length,
+                    factorial( bases.length ),
+                    factorial( bases.length )**2,
+                    factorial( bases.length ),
+                    (1/2) * ( factorial( bases.length )**2 - factorial( bases.length ) )
+                ] )
+            .map( row => row.map( cell => reify( 'td', {}, [], [ c => c.innerHTML = cell ] ) ) )
+
+    ]
+        .map( cells => reify( 'tr', {}, cells ) )
+"></table>
+
+
+<h3>Symbology</h3>
+
+Each specification can be assigned a unique two symbol coordinate such that:
 <ul>
     <li>
-        A box with <a class="eval" title="pageScope.bases2d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases2d.length )">RANKS</a> specifications,
-        being <a class="eval" title="factorial( pageScope.bases2d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases2d.length == 2 ? 'pair' : 'pairs' )"></a>
-        of mutually reverse specifications.
+        The first symbol is shared by both the specification and the corresponding reverse specification.
+        <br/>
+        e.g.: α, β, γ, δ, etc.
     </li>
     <li>
-        A box with <a class="eval" title="pageScope.bases3d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases3d.length )">RANKS</a> specifications,
-        being <a class="eval" title="factorial( pageScope.bases3d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
-        of mutually reverse specifications.
-    </li>
-    <li>
-        A box with <a class="eval" title="pageScope.bases4d.length">RANK</a> different sides will have <a class="eval" title="factorial( pageScope.bases4d.length )">RANKS</a> specifications,
-        being <a class="eval" title="factorial( pageScope.bases4d.length ) / 2">PAIRS</a> <a class="eval" title="( pageScope.bases3d.length == 2 ? 'pair' : 'pairs' )"></a>
-        of mutually reverse specifications.
+        The second symbol, perhaps arbitrarily,
+        distinguishes between the specification and the corresponding reverse specification.
+        <br/>
+        e.g.: up 🠅, and down 🠇.
     </li>
 </ul>
 
-For every two dimensional box specification <span class="box-text">a x b</span>,
-the permutations and place table structures are identified and labelled as follows:
+A two dimensional box has two specifications
+with base permutations and labels as follows:
 <br/>
 <br/>
 
-<table class="chain-details summary sortable">
-    <tr><th>Spec</th><th>Label</th><th>Bases Permutation</th><th>Place Values Structure</th></tr>
-    <tr><td>b x a</td><td>α🠅</td><td>[ 1, 0 ]</td><td>[ 1, b ]</td></tr>
-    <tr><td>a x b</td><td>α🠇</td><td>[ 0, 1 ]</td><td>[ a, 1 ]</td></tr>
-    <tr><td colspan="4"></td></tr>
+<table class="generalization-table">
+    <tr><th>Spec</th><th>Base<br/>Permutation</th><th>Symbols</th></tr>
+    <tr><td>a <code>x</code> b</td><td>[ 0, 1 ]</td><td>α🠇</td></tr>
+    <tr><td>b <code>x</code> a</td><td>[ 1, 0 ]</td><td>α🠅</td></tr>
+</table>
+<br/>
+The four actions of a two dimensional box are labelled as follows:
+<br/>
+<br/>
+
+<table class="generalization-table">
+    <tr><th>Action Symbols</th><th>Comparison</th><th>Label</th><th>Alias</th></tr>
+    <tr><td>α🠇α🠇</td><td>[ 0, 1 ] - [ 0, 1 ]</td><td><code>e<sub>0</sub></code></td><td>e</td></tr>
+    <tr><td>α🠅α🠅</td><td>[ 1, 0 ] - [ 1, 0 ]</td><td><code>e<sub>1</sub></code></td><td>e</td></tr>
+    <tr><td>α🠇α🠅</td><td>[ 0, 1 ] - [ 1, 0 ]</td><td><code>z<sub>0</sub></code></td><td>(α🠅α🠇)<sup>-1</sup></td></tr>
+    <tr><td>α🠅α🠇</td><td>[ 1, 0 ] - [ 0, 1 ]</td><td><code>z<sub>0</sub><sup>-1</sup></code></td><td>(α🠇α🠅)<sup>-1</sup></td></tr>
 </table>
 <br/>
 
-For every three dimensional box specification <span class="box-text">a x b x c</span>,
-the permutations and place table structures are identified and labelled as follows:
+A three dimensional box has six specifications
+with permutations and labels as follows:
 <br/>
 <br/>
 <table class="chain-details summary sortable">
-    <tr><th>Label</th><th>Bases Permutation</th><th>Place Values Structure</th></tr>
-    <tr><td>α🠅</td><td>[ 2, 1, 0 ]</td><td>[ b x c, c, 1 ]</td></tr>
+    <tr><th>Spec</th><th>Bases Permutation</th><th>Label</th></tr>
+    <tr><td>[ 2, 1, 0 ]</td><td>α🠅</td></tr>
     <tr><td>α🠇</td><td>[ 0, 1, 2 ]</td><td>[ 1, a, a x b ]</td></tr>
     <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, a x c, c ]</td></tr>
     <tr><td>β🠇</td><td>[ 1, 2, 0 ]</td><td>[ b x c, 1, b ]</td></tr>

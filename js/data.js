@@ -37,11 +37,10 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
         });
     }
     if ( children ) {
-        const handledError = new Error( `Bad Child: tag=${ tag }, attr=${ attr }, children=${ children }` );
         try {
             children.forEach( x => e.appendChild( x ) );
         } catch ( e ) {
-            throw handledError;
+            throw new Error( `Bad Child: tag=${ tag }, attr=${ attr }, children=${ children }`, { 'cause': e } );
         }
     }
     if ( ops ) {
@@ -71,6 +70,10 @@ function reifyInput( label, attr = { type: 'text' }, onChangeValue ) {
                     ? c.onchange = () => onChangeValue( c.value )
                     : null ] )
         ] ) ] );
+}
+
+function reifyText( text ) {
+    return reify( "text", {}, [], [ c => c.textContent = text ] );
 }
 
 /**

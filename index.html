@@ -95,9 +95,20 @@
             background: pink;
         }
 
-        a.def, a.def:hover, a.def:focus, a.def:active { text-decoration: none; color: inherit; }
+        li { padding-top: 10px; padding-bottom: 10px; }
 
-        li { padding-bottom: 10px; }
+        .generalization-table {
+            font-size: 100%;
+            page-break-inside: avoid;
+        }
+        .generalization-table tr:first-child th { border-bottom: solid blue 1px; }
+
+        .generalization-table td,th {
+            padding-left: 3px;
+            padding-right: 3px;
+            text-align: center;
+            vertical-align: top;
+        }
     </style>
     <script>
         var pageRefs = {
@@ -108,7 +119,11 @@
 </head>
 
 <body onload="includePages( 'pages', 'errors', pageRefs )">
-
+    <div class="menu noprint">
+        <a title="Thinking inside the box">doc</a>
+        <a href="orbits.html" title="Box Group Laboratory">lab</a>
+        <a href="roots.html" title="Multiplicative Groups">groups</a>
+    </div>
     <div id="errors"></div>
 
     <h1>Thinking inside the Box</h1>

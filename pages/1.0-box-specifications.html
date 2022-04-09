@@ -58,7 +58,7 @@ There are 6 possible specifications for this box, the other four being:
 <br/>
 <br/>
 
-<h3>Place values, Coordinates and Index numbers</h3>
+<h3>Place Values, Coordinates and Index numbers</h3>
 
 A box specification aligns with the numeral place value convention where the significance of each place value increases from right-to-left,
 but the base counted by each place value varies with the box side lengths.
@@ -75,7 +75,7 @@ that evaluates to a unique index number in the range
 [ 0, <a class="eval" title="( pageScope.box3d.box.volume - 1 )"></a> ].
 
 The specification determines the sequence of place values,
-and the scalar product of the place values with each coordinate provides the corresponding index number.<br/>
+and the scalar product of the place values with each coordinate produces the corresponding index number.<br/>
 <br/>
 
 For example, the box specification <a class="eval" title="pageScope.orb3d.specification()"></a>
@@ -91,8 +91,8 @@ and produces the following coordinates and index numbers:
 <div  class="pagebreak"></div>
 
 However, the reverse box specification <a class="eval" title="pageScope.orb3d.specification( true )"></a>
-has the place values structure [<a class="eval" title="pageScope.orb3d.placeValuesSpec( true ).join( ', ' )"></a>]
-which evaluates to [<a class="eval" title="pageScope.orb3d.placeValues( true ).join( ', ' )"></a>],
+has the place values structure [ <a class="eval" title="pageScope.orb3d.placeValuesSpec( true ).join( ', ' )"></a> ]
+which evaluates to [ <a class="eval" title="pageScope.orb3d.placeValues( true ).join( ', ' )"></a> ],
 and produces the following, partially different, coordinates and index numbers:
 <br/>
 <br/>
@@ -101,8 +101,6 @@ and produces the following, partially different, coordinates and index numbers:
         pageScope.orb3d.volume / Math.max( ...pageScope.bases3d )
     )"></span>
 <br/>
-
-<h3>Index Comparisons, Permutations, and Cycles</h3>
 
 The rows and columns from any one specification can always be reordered to match coordinates with any other specification from the same box,
 for example:
@@ -115,8 +113,9 @@ for example:
     )"></span>
 <br/>
 
+<h3>Index Comparisons, Permutations, and Cycles</h3>
 
-The index numbers can be compared, for corresponding coordinates, for any two specifications from the same box:
+The index numbers for corresponding coordinates, for any two specifications from the same box, can be compared:
 <br/>
 <br/>
 <span class="evalNode" title="compareBoxSpecificationsTable(
@@ -150,35 +149,22 @@ The second row is a permutation of the first row and this maps all the points in
 <br/>
 
 Specifically:
-<ul>
-    <li>
-        <span class="eval" title="pageScope
-            .z_0_cycles
-            .filter( cycle => cycle[0] == 1 )
-            .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
-            .join( '' )"></span>,
-        completing a cycle of length
-        <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.
-    </li>
-    <li>
-        <span class="eval" title="pageScope
-            .z_0_cycles
-            .filter( cycle => cycle.length > 1 )
-            .filter( cycle => cycle[0] != 1 )
-            .flatMap( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' goes back to 1' : '  goes to ' + cycle[ i + 1 ] + ', and ' }` ) )
-            .join( '&nbsp;' )"></span>,
-        completing another cycle of length
-        <a class="eval" title="pageScope.orb3d.order( pageScope.bases3d[0] )"></a>.
-    </li>
-    <li>
-        <span class="eval" title="pageScope
-            .z_0_cycles
-            .filter( cycle => cycle.length == 1 )
-            .flatMap( cycle => cycle.map( ( c, i ) => `${ c } goes to ${ c }` ) )
-            .join( ', ' )"></span>;
-        these are cycles of length 1, or fixed points.
-    </li>
-</ul>
+<ul class="eval" title="[
+    pageScope
+        .z_0_cycles
+        .filter( cycle => cycle.length > 1 )
+        .map( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' &rarr; 1' : ' &rarr; ' + cycle[ i + 1 ] + ' | ' }` ).join( '' ) )
+        .map( ( cycle, i ) => `<li>${ i == 0 ? 'A' : 'Another' } cycle of length ${ pageScope.orb3d.order( pageScope.bases3d[0] ) }:<br/><br/>${ cycle }</li>` )
+        .flatMap( cycle => cycle )
+        .join( '\n' ),
+
+    '<li>Cycles of length 1, or fixed points:<br/><br/>' + pageScope
+        .z_0_cycles
+        .filter( cycle => cycle.length == 1 )
+        .map( cycle => cycle.map( c => `${ c } &rarr; ${ c }` ) )
+        .join( ' | ' ) + '</li>'
+
+]"></ul>
 
 
 This is written more succinctly as an expression in cycle notation:
@@ -196,7 +182,7 @@ so that the entire set of points is presented.
 <br/>
 <br/>
 
-<div class="pagebreak"></div>
+<hr class="pagebreak"/>
 
 Swapping the two specifications in the comparison produces the same cycles in reverse:
 <br/>
@@ -207,7 +193,6 @@ Swapping the two specifications in the comparison produces the same cycles in re
         0
     )"></span>
 <br/>
-<br/>
 
 <span class="eval" title="pageScope
             .z_0i_cycles
@@ -216,7 +201,7 @@ Swapping the two specifications in the comparison produces the same cycles in re
             .join( ' ' )"></span>
 <br/>
 <br/>
-
+<br/>
 
 Comparing a specification with itself always produces a set of fixed points only:
 <br/>

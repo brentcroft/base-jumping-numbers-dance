@@ -25,6 +25,9 @@
 
     pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
     pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
+
+    pageScope.letters = "abcdefghijklmnopqrstuvwxyz";
+    pageScope.greek = "αβγδεζηθικλμξνοπρςστυφχψω";
 </script>
 
 <h2>Generalisation</h2>
@@ -32,7 +35,7 @@
 A box with <code>n</code> dimensions, or bases, has <code>n!</code> specifications,
 because each specification is a permutation of the bases,
 and each specification can be compared with itself and every other specification
-to produce <code>(n!)<sup>2</sup></code> actions.
+to produce <code>(n!)<sup>2</sup></code> actions (i.e. cycles expressions).
 <br/>
 <br/>
 
@@ -57,8 +60,8 @@ that move at least two points.
 
         ...[ [ 'a', 'b' ], [ 'a', 'b', 'c' ], [ 'a', 'b', 'c', 'd' ], [ 'a', 'b', 'c', 'd', 'e' ] ]
             .map( bases => [
-                    bases.join( ' <code>x</code> ' ),
-                    `[ ${ aoi( bases.length ).join( ', ' ) } ]`,
+                    bases.join( '<code>x</code>' ),
+                    `[${ aoi( bases.length ).join( ',' ) }]`,
                     bases.length,
                     factorial( bases.length ),
                     factorial( bases.length )**2,
@@ -70,63 +73,86 @@ that move at least two points.
     ]
         .map( cells => reify( 'tr', {}, cells ) )
 "></table>
-
+<br/>
+<br/>
 
 <h3>Symbology</h3>
 
 Each specification can be assigned a unique two symbol coordinate such that:
 <ul>
     <li>
-        The first symbol is shared by both the specification and the corresponding reverse specification.
+        The first symbol is shared by both a specification and its corresponding reverse specification (i.e. mutually inverse actions).
         <br/>
         e.g.: α, β, γ, δ, etc.
     </li>
     <li>
-        The second symbol, perhaps arbitrarily,
-        distinguishes between the specification and the corresponding reverse specification.
+        The second symbol distinguishes, perhaps arbitrarily, between the two actions in a mutually inverse pair.
         <br/>
         e.g.: up 🠅, and down 🠇.
     </li>
 </ul>
 
-A two dimensional box has two specifications
-with base permutations and labels as follows:
+A two dimensional box has two symbol coordinates as follows:
 <br/>
 <br/>
 
 <table class="generalization-table">
-    <tr><th>Spec</th><th>Base<br/>Permutation</th><th>Symbols</th></tr>
-    <tr><td>a <code>x</code> b</td><td>[ 0, 1 ]</td><td>α🠇</td></tr>
-    <tr><td>b <code>x</code> a</td><td>[ 1, 0 ]</td><td>α🠅</td></tr>
+    <tr><th>Box<br/>Specification</th><th>Base<br/>Permutation</th><th>Symbol<br/>Coordinate</th></tr>
+    <tr><td>a<code>x</code>b</td><td>[0,1]</td><td>α🠇</td></tr>
+    <tr><td>b<code>x</code>a</td><td>[1,0]</td><td>α🠅</td></tr>
 </table>
 <br/>
+
 The four actions of a two dimensional box are labelled as follows:
 <br/>
 <br/>
 
 <table class="generalization-table">
     <tr><th>Action Symbols</th><th>Comparison</th><th>Label</th><th>Alias</th></tr>
-    <tr><td>α🠇α🠇</td><td>[ 0, 1 ] - [ 0, 1 ]</td><td><code>e<sub>0</sub></code></td><td>e</td></tr>
-    <tr><td>α🠅α🠅</td><td>[ 1, 0 ] - [ 1, 0 ]</td><td><code>e<sub>1</sub></code></td><td>e</td></tr>
-    <tr><td>α🠇α🠅</td><td>[ 0, 1 ] - [ 1, 0 ]</td><td><code>z<sub>0</sub></code></td><td>(α🠅α🠇)<sup>-1</sup></td></tr>
-    <tr><td>α🠅α🠇</td><td>[ 1, 0 ] - [ 0, 1 ]</td><td><code>z<sub>0</sub><sup>-1</sup></code></td><td>(α🠇α🠅)<sup>-1</sup></td></tr>
+    <tr><td>α🠇α🠇</td><td>[0,1]-[0,1]</td><td><code>e<sub>0</sub></code></td><td>e</td></tr>
+    <tr><td>α🠅α🠅</td><td>[1,0]-[1,0]</td><td><code>e<sub>1</sub></code></td><td>e</td></tr>
+    <tr><td>α🠇α🠅</td><td>[0,1]-[1,0]</td><td><code>z<sub>0</sub></code></td><td>(α🠅α🠇)<sup>-1</sup></td></tr>
+    <tr><td>α🠅α🠇</td><td>[1,0]-[0,1]</td><td><code>z<sub>0</sub><sup>-1</sup></code></td><td>(α🠇α🠅)<sup>-1</sup></td></tr>
 </table>
 <br/>
 
 A three dimensional box has six specifications
-with permutations and labels as follows:
+and in this case second symbols can be aligned
+so that specifications which are rotations of each other
+have the same second symbol.
 <br/>
 <br/>
-<table class="chain-details summary sortable">
-    <tr><th>Spec</th><th>Bases Permutation</th><th>Label</th></tr>
-    <tr><td>[ 2, 1, 0 ]</td><td>α🠅</td></tr>
-    <tr><td>α🠇</td><td>[ 0, 1, 2 ]</td><td>[ 1, a, a x b ]</td></tr>
-    <tr><td>β🠅</td><td>[ 0, 2, 1 ]</td><td>[ 1, a x c, c ]</td></tr>
-    <tr><td>β🠇</td><td>[ 1, 2, 0 ]</td><td>[ b x c, 1, b ]</td></tr>
-    <tr><td>γ🠅</td><td>[ 1, 0, 2 ]</td><td>[ b, 1, a x b ]</td></tr>
-    <tr><td>γ🠇</td><td>[ 2, 0, 1 ]</td><td>[ c, a x c, 1 ]</td></tr>
-    <tr><td colspan="3"></td></tr>
-</table>
+
+For example:
+<br/>
+<br/>
+<script>
+    pageScope.basePerms = [
+        [ 0, 1, 2 ],
+        [ 1, 2, 0 ],
+        [ 2, 0, 1 ],
+        [ 2, 1, 0 ],
+        [ 0, 2, 1 ],
+        [ 1, 0, 2 ],
+    ];
+</script>
+<table class="evalNode generalization-table" title="[
+        [
+            'Spec<br/>',
+            'Base<br/>Permutation',
+            'Symbols'
+        ]
+            .map( h => reify( 'th', {}, [], [ c => c.innerHTML = h ] ) ),
+
+        ...pageScope.basePerms.map(
+            ( basePerm, i ) => [ basePerm.map( b => pageScope.letters[b] ).join( '<code>x</code>' ),
+                `[${ basePerm.join( ',' ) }]`,
+                `${ pageScope.greek[ i % 3 ] }${ i < 3 ? '🠇' : '🠅' }`
+            ].map( cell => reify( 'td', {}, [], [ c => c.innerHTML = cell ] ) )
+        ),
+
+
+    ].map( cells => reify( 'tr', {}, cells ) )"></table>
 <br/>
 
 

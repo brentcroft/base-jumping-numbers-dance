@@ -1,7 +1,6 @@
 body {
     font-family: Arial, Helvetica, sans-serif;
     width: 90%;
-    font-size: 70%;
 }
 
 .small {
@@ -16,6 +15,13 @@ th {
     min-height: 1px;
     page-break-before: always;
 }
+
+
+.resizable {
+    resize: both;
+    overflow: auto;
+}
+
 
 .equation-list { list-style-type: none; }
 .equation-list li { padding: 6pt; }
@@ -121,13 +127,6 @@ table.raw-permutation td:first-child {
     color: blue;
 }
 
-.chain-details { font-size: 90%; border-top: solid 1px black; }
-.chain-details tr { vertical-align: top; }
-.chain-details tr:nth-child(even) { background: Ivory; }
-.chain-details tr:nth-child(odd) { background: WhiteSmoke; }
-.chain-details tr:last-child td { border-top: double 1px; }
-.chain-details td { text-align: center; padding-left: 25px; padding-right: 25px; }
-
 .grid-container {
     display: grid;
     grid-template-columns: fit-content(40%) fit-content(40%);
@@ -151,3 +150,12 @@ a.def, a.def:hover, a.def:focus, a.def:active { text-decoration: none; color: in
 @media print {
    .noprint { display:none; }
 }
+
+.multiplicative-group-table { font-size: 80%; border-top: solid 1px black; border-bottom: solid 1px black }
+.multiplicative-group-table th { vertical-align: top; background: WhiteSmoke; }
+.multiplicative-group-table tr { vertical-align: top; background: Ivory; }
+.multiplicative-group-table tr:nth-child(even) { }
+.multiplicative-group-table tr:nth-child(odd) { background: WhiteSmoke; }
+.multiplicative-group-table tr > td { border-top: 1px black dotted; padding-right: 5pt;}
+.multiplicative-group-table tr.box-side-length { background: rgb( 175, 225, 175 ); }
+.multiplicative-group-table tr.inverse-box-side-length { background: rgb( 173, 216, 230 ); }

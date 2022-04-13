@@ -54,11 +54,17 @@ that move at least two points.
             'Specs<br/><code>n!</code>',
             'Actions<br/><code>(n!)<sup>2</sup></code>',
             'Identities<br/><code>n!</code>',
-            'Distinct Inverse Actions<br/><code>&frac12;n!(n!-1)</code>',
+            'Distinct Inverse Action Pairs<br/><code>&frac12;n!(n!-1)</code>',
         ]
             .map( h => reify( 'th', {}, [], [ c => c.innerHTML = h ] ) ),
 
-        ...[ [ 'a', 'b' ], [ 'a', 'b', 'c' ], [ 'a', 'b', 'c', 'd' ], [ 'a', 'b', 'c', 'd', 'e' ] ]
+        ...[
+                [ 'a', 'b' ],
+                [ 'a', 'b', 'c' ],
+                [ 'a', 'b', 'c', 'd' ],
+                [ 'a', 'b', 'c', 'd', 'e' ],
+                [ 'a', 'b', 'c', 'd', 'e', 'f' ],
+                [ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ]]
             .map( bases => [
                     bases.join( '<code>x</code>' ),
                     `[${ aoi( bases.length ).join( ',' ) }]`,

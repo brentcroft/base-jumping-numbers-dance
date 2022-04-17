@@ -1,4 +1,4 @@
-function getCyclesDiagram( cycles, param ) {
+function getCyclesDiagram( cycles, param = {} ) {
 
     const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10 } = param;
 

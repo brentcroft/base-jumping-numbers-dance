@@ -523,14 +523,9 @@ class Orbitation {
                                                 .entries( monomial )
                                                 .flatMap( ( [ key, orbits ] ) => orbits );
 
-                                            putX3DomNode(
-                                                getCyclesDiagram( cycles ),
-                                                {
-                                                    sourceElement: header,
-                                                    width: "100%",
-                                                    height: "100%",
-                                                }
-                                            );
+                                            d.appendChild( buildX3DomRootNode( getCyclesDiagram( cycles ), { width: "100%", height: "100%" } ) );
+
+                                            x3dom.reload();
                                         } );
 
                                     if ( this.x3dRoot && point.shape ) {

@@ -30,7 +30,7 @@
     pageScope.greek = "αβγδεζηθικλμξνοπρςστυφχψω";
 </script>
 
-<h2>Generalisation</h2>
+<h2 class="pagebreak">Generalisation</h2>
 
 A box with <code>n</code> dimensions, or bases, has <code>n!</code> specifications,
 because each specification is a permutation of the bases,
@@ -48,13 +48,13 @@ that move at least two points.
 
 <table class="evalNode generalization-table" title="[
         [
-            'Box<br/>',
+            'Box',
             'Base<br/>Permutation',
             'Dimensions<br/><code>n</code>',
-            'Specs<br/><code>n!</code>',
-            'Actions<br/><code>(n!)<sup>2</sup></code>',
-            'Identities<br/><code>n!</code>',
-            'Distinct Inverse Action Pairs<br/><code>&frac12;n!(n!-1)</code>',
+            'Total<br/>Specifications<br/><code>n!</code>',
+            'Total<br/>Actions<br/><code>(n!)<sup>2</sup></code>',
+            'Total<br/>Identities<br/><code>n!</code>',
+            'Total Distinct<br/>Inverse Action Pairs<br/><code>&frac12;n!(n!-1)</code>',
         ]
             .map( h => reify( 'th', {}, [], [ c => c.innerHTML = h ] ) ),
 
@@ -84,10 +84,11 @@ that move at least two points.
 
 <h3>Symbology</h3>
 
-Each specification can be assigned a unique two symbol coordinate such that:
+Each specification can be assigned a unique label by the concatenation of two symbols such that:
 <ul>
     <li>
-        The first symbol is shared by both a specification and its corresponding reverse specification (i.e. mutually inverse actions).
+        The first symbol is a greek letter shared by both a specification and its corresponding reverse specification
+        (i.e. each mutually inverse action pair has one unique symbol).
         <br/>
         e.g.: α, β, γ, δ, etc.
     </li>
@@ -98,36 +99,26 @@ Each specification can be assigned a unique two symbol coordinate such that:
     </li>
 </ul>
 
-A two dimensional box has two symbol coordinates as follows:
+A two dimensional box has two such specification labels as follows:
 <br/>
 <br/>
 
 <table class="generalization-table">
-    <tr><th>Box<br/>Specification</th><th>Base<br/>Permutation</th><th>Symbol<br/>Coordinate</th></tr>
+    <tr><th>Specification</th><th>Base<br/>Permutation</th><th>Label</th></tr>
     <tr><td>a<code>x</code>b</td><td>[0,1]</td><td>α🠇</td></tr>
     <tr><td>b<code>x</code>a</td><td>[1,0]</td><td>α🠅</td></tr>
 </table>
 <br/>
 
-The four actions of a two dimensional box are labelled as follows:
-<br/>
-<br/>
 
-<table class="generalization-table">
-    <tr><th>Action Symbols</th><th>Comparison</th><th>Label</th><th>Alias</th></tr>
-    <tr><td>α🠇α🠇</td><td>[0,1]-[0,1]</td><td><code>e<sub>0</sub></code></td><td>e</td></tr>
-    <tr><td>α🠅α🠅</td><td>[1,0]-[1,0]</td><td><code>e<sub>1</sub></code></td><td>e</td></tr>
-    <tr><td>α🠇α🠅</td><td>[0,1]-[1,0]</td><td><code>z<sub>0</sub></code></td><td>(α🠅α🠇)<sup>-1</sup></td></tr>
-    <tr><td>α🠅α🠇</td><td>[1,0]-[0,1]</td><td><code>z<sub>0</sub><sup>-1</sup></code></td><td>(α🠇α🠅)<sup>-1</sup></td></tr>
-</table>
-<br/>
-
-A three dimensional box has six specifications
-and in this case second symbols can be aligned
+A three dimensional box has six specification labels
+and in this case the second symbols can be aligned
 so that specifications which are rotations of each other
 have the same second symbol.
 <br/>
 <br/>
+
+<span class="pagebreak"></span>
 
 For example:
 <br/>
@@ -144,9 +135,9 @@ For example:
 </script>
 <table class="evalNode generalization-table" title="[
         [
-            'Spec<br/>',
+            'Specification<br/>',
             'Base<br/>Permutation',
-            'Symbols'
+            'Specification<br/>Label'
         ]
             .map( h => reify( 'th', {}, [], [ c => c.innerHTML = h ] ) ),
 
@@ -159,6 +150,30 @@ For example:
 
 
     ].map( cells => reify( 'tr', {}, cells ) )"></table>
+<br/>
+
+<h3>Action Expressions</h3>
+
+Each action (i.e. cycles expression) of a box is uniquely identified by the labels of the two specifications of its composition.
+<br/>
+<br/>
+
+For example, the four actions of a two dimensional box are expressed as follows:
+<br/>
+<br/>
+
+<table class="generalization-table">
+    <tr><th>Expression</th><th>Comparison</th><th>Label</th><th>Alias</th></tr>
+    <tr><td>α🠇α🠇</td><td>[0,1]-[0,1]</td><td><code>e<sub>0</sub></code></td><td>e</td></tr>
+    <tr><td>α🠅α🠅</td><td>[1,0]-[1,0]</td><td><code>e<sub>1</sub></code></td><td>e</td></tr>
+    <tr><td>α🠇α🠅</td><td>[0,1]-[1,0]</td><td><code>z<sub>0</sub></code></td><td>(α🠅α🠇)<sup>-1</sup></td></tr>
+    <tr><td>α🠅α🠇</td><td>[1,0]-[0,1]</td><td><code>z<sub>0</sub><sup>-1</sup></code></td><td>(α🠇α🠅)<sup>-1</sup></td></tr>
+</table>
+<br/>
+<br/>
+
+For example, the 36 actions of a three dimensional box are identified and labelled as follows:
+<br/>
 <br/>
 
 

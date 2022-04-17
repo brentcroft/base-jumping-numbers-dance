@@ -1,3 +1,27 @@
+
+function buildX3DomRootNode( node, param = {} ) {
+    const {
+        id = `x3d-${ new Date().toISOString() }`,
+        sceneId = `scene-${ new Date().toISOString() }`,
+
+        width = '30%',
+        height = '20%',
+
+        orientation = '0 0 0 1',
+        position = '0 0 10',
+
+    } = param;
+
+    return reify(
+        'x3d',
+        { id: id, 'width': width, 'height': height },
+        [ reify( 'scene', { id: sceneId }, [
+            reify( 'viewpoint', { 'orientation': orientation, 'position': position } ),
+            node
+        ] ) ]
+    );
+}
+
 //
 function to3D(a) {
     return a.length == 3

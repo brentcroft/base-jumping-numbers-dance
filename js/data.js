@@ -23,9 +23,9 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
     if ( attr ) {
         Object.entries(attr).forEach( x => {
             const [ key, value ] = x;
-            if ( value === null || value === "") {
+            if ( value === null || value === "" || typeof value === 'undefined' ) {
                 // do nothing
-            } else if ( "class" == key ) {
+            } else if ( "class" == key || "cssClass" == key ) {
                 ( Array.isArray( value ) ? value : [ value ] )
                     .flatMap( v => v.split( /\s*,\s*/ ) )
                     .forEach( c => e.classList.add( c ) );
@@ -72,8 +72,8 @@ function reifyInput( label, attr = { type: 'text' }, onChangeValue ) {
         ] ) ] );
 }
 
-function reifyText( text ) {
-    return reify( "text", {}, [], [ c => c.textContent = text ] );
+function reifyText( text, cssClass = [] ) {
+    return reify( "span", { 'cssClass': cssClass }, [], [ c => c.innerHTML = text ] );
 }
 
 /**

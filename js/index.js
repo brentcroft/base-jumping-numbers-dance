@@ -1033,4 +1033,71 @@ class BoxAction {
         return this.grossIndexRadiance() - this.grossIndexPerimeter();
     }
 
+    htmlTable( param = {} ) {
+
+        const { tableId = `action-orbits-${ this.id }` } = param;
+
+        const volume = this.box.volume;
+        const maxIndex = volume - 1;
+
+        const initialPointsSum = new Array( this.box.rank ).fill( 0 );
+        const identityPointsSum = this.identities ? this.identities.reduce( (a, p) => addition( a, p.points[0].coord ), initialPointsSum ) : 0;
+        const identityIdSum = this.identities ? this.identities.reduce( (a, p) => a + p.points[0].at( this.id ).id, 0 ) : 0;
+        const identityIdSumGcd = gcd( maxIndex, identityIdSum );
+
+        const headerRow = [
+            [ 'Id', [ true ] ],
+            [ 'Cycle', [] ],
+            [ 'Coord Sum', [ true, true ] ],
+            [ 'Id Sum', [ true, false, true ] ],
+            [ 'Order', [ true, false, true ] ],
+            [ 'Radiance', [ true, true ] ],
+            [ 'Perimeter', [ true, true ] ],
+        ];
+
+        const identityRow = [
+            [ '<code>e</code>', [] ],
+            [ this.identities.map( orbit => `( ${ orbit.points[0].at( this.id ).id } )` ).join( ', ' ), [] ],
+            [ `<code>( ${ identityPointsSum } )</code>`, [] ],
+            [ `<code>( ${ identityIdSum } )</code>`, [] ],
+            [ `<code>1</code>`, [] ],
+            [ `<code>(${ this.identityEuclideanRadiance() })</code>`, [] ],
+            [ `<code>(${ this.identityEuclideanPerimeter() })</code>`, [] ],
+        ];
+
+        const footerRow = [
+            [ '', [] ],
+            [ '', [] ],
+            [ `( ${ this.box.sum.join( ', ') } )`, [ 'sum-total' ] ],
+            [ `${ this.box.indexSum }`, [ 'sum-total' ] ],
+            [ `${ this.order }`, [ 'product-total' ] ],
+            [ `${ this.grossIndexRadiance() }`, [ 'sum-total' ] ],
+            [ `${ this.grossEuclideanPerimeter() }`, [ 'sum-total' ] ],
+        ];
+
+        return reify(
+            "table",
+             { 'cssClass': [ 'box-action' ] },
+             [
+                reify( "caption", {}, [ reifyText( "Cycles" ) ] ),
+                reify( "tr", {}, headerRow.map( ( h, colIndex ) => reify( "th", {}, [ reifyText( h[0] ) ] ) ) ),
+                reify( "tr", {}, identityRow.map( ir => reify( "td", {}, [ reifyText( ir[0] ) ] ) ) ),
+                ...this.orbits.map( ( orbit, i ) => reify(
+                        "tr",
+                        {},
+                        [
+                            reify( "td", {}, [ reifyText( orbit.isSelfPartner() ? orbit.index : orbit.isFirstConjugate() ? orbit.index : `<sup>( ${ orbit.index } )</sup>` ) ] ),
+                            reify( "td", { id: `${ tableId }.${ orbit.index }`, cssClass: [ 'orbit' ] }, [
+                                reifyText( `( ${ orbit.points.map( p => p.at( this.id ).id ).join( ', ' ) } )` )
+                            ] ),
+                            reify( "td", {}, [ reifyText( `( ${ orbit.sum.join( ', ' ) } )` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.getIdSum() }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.order }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.indexRadiance() }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.euclideanRadiance() }` ) ] ),
+                        ]
+                ) ),
+                reify( "tr", {}, footerRow.map( f => reify( "td", { 'cssClass': f[1] }, [ reifyText( f[0] ) ] ) ) ),
+             ] );
+    }
 }

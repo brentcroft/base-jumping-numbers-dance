@@ -100,8 +100,8 @@ function includePages( pagesElementId, errorElementId, pages ) {
                                     throw new Error( "Invalid Node: " + t );
                                 }
                             } catch ( e ) {
-
-                                const msg = `Bad Eval Node [${ src }#${ id }#${ i + 1 }]; title=${ ref.title }; ${ e }`;
+                                const errorDetail = ` ${ e.stack }`;
+                                const msg = `Bad Eval Node [${ src }#${ id }#${ i + 1 }]; title=${ ref.title }; ${ e }; ${ errorDetail }`;
                                 console.log( msg );
                                 ref
                                     .appendChild( reify( "div", { class: "error" }, [], [ c => c.innerHTML = msg ] ) )

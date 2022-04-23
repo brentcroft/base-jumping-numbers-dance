@@ -10,11 +10,14 @@ function buildX3DomRootNode( node, param = {} ) {
         orientation = '0 0 0 1',
         position = '0 0 10',
 
+        cssClass = []
+
     } = param;
+
 
     return reify(
         'x3d',
-        { id: id, 'width': width, 'height': height },
+        { id: id, 'width': width, 'height': height, 'cssClass': cssClass },
         [ reify( 'scene', { id: sceneId }, [
             reify( 'viewpoint', { 'orientation': orientation, 'position': position } ),
             node

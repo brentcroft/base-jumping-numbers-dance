@@ -1,0 +1,129 @@
+
+:root {
+  --eval-color: rgb(175, 225, 175);
+  --puce-color: rgb(173, 216, 230);
+}
+
+
+.eval {
+    #background: var(--puce-color);
+}
+
+.evalNode {
+    #background-color: var(--rank-color);
+}
+
+
+code {
+    font-size: 140%;
+    font-weight: bold;
+}
+
+.evalNode code {
+    font-size: 100%;
+    font-weight: bold;
+}
+.eval code {
+    font-size: 100%;
+    font-weight: bold;
+}
+
+
+.error {
+    color: black;
+    border: 2px solid yellow;
+    background: pink;
+}
+
+.cycles-text {
+    font-size: 80%;
+}
+
+div.diagram {
+    width: 400px;
+    height: 240px;
+    margin: 0px;
+    border: 0px;
+}
+
+li { padding-top: 5px; padding-bottom: 5px; }
+
+table.box-action {
+    border-top: solid 0px black;
+    text-align: center;
+    font-size: 90%;
+    width: 700px;
+}
+
+table.box-action caption {}
+
+table.box-action tr { vertical-align: top; background: Ivory; }
+table.box-action tr:nth-child(even) {}
+table.box-action tr:nth-child(odd) { background: WhiteSmoke; }
+
+table.box-action th {
+}
+table.box-action td {
+}
+table.box-action td.sum-total {
+    border-top: 1px solid;
+}
+table.box-action td.product-total {
+    border-top: 2px double;
+    color: blue;
+    font-weight: bold;
+}
+
+
+
+
+td.centre-label { text-align: center; }
+
+td.cell { border: 1px dotted blue; padding: 3px; margin: 2px; border-radius: 25%; text-align: center; font-size: 70%; }
+td.cell sub { font-size: 70%; }
+td.pack { border: 1px dotted black; padding: 2px; margin: 2px; text-align: center; border-radius: 5%; }
+tr.pack {}
+table.pack { border: 0px dotted green; padding: 0px; margin: 0px; border-spacing: 2px; width: 100%; font-size: 70%; }
+table.packing { border: 1px dotted blue; padding: 0px; margin: 0px; border-spacing: 2px;  border-radius: 5%; }
+table.packing caption { font-size: 60%; }
+
+.leftFlow {
+   float: left;
+}
+.rightFlow {
+   float: right;
+}
+.noFlow {
+   float: inline-start;
+}
+tr.selected td {
+    background: pink;
+}
+
+.grid-of-cells {
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+}
+
+
+.generalization-table {
+    font-size: 100%;
+    page-break-inside: avoid;
+}
+.generalization-table tr:first-child th { border-bottom: solid blue 1px; }
+
+.generalization-table td,th {
+    padding-left: 3px;
+    padding-right: 3px;
+    text-align: center;
+    vertical-align: top;
+}
+
+body.smallish {
+    font-size: 80%;
+}
+
+@media print {
+   body.smallish { font-size: 70%; }
+}

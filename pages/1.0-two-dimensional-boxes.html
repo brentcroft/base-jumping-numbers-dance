@@ -1,0 +1,336 @@
+<script>
+
+    pageScope.bases2d = [ 5, 3 ];
+    pageScope.bases2dAlt = [ 2, 6 ];
+
+    pageScope.orb2d = new Orbitation( pageScope.bases2d, {} );
+    pageScope.box2d = new BoxGroup( pageScope.bases2d, { toggles: [ 'all-indexes', 'all-layers' ] } );
+
+    pageScope.orb2dAlt = new Orbitation( pageScope.bases2dAlt, { truncated: false } );
+    pageScope.box2dAlt = new BoxGroup( pageScope.bases2dAlt, { toggles: [ 'all-indexes', 'all-layers' ] } );
+
+
+    pageScope.serialText = ( coord, serial ) => `${ serial }<sub>(${ coord.join( ',' ) })</sub>`;
+    pageScope.coordText = ( coord, serial ) => `(${ coord.join( ',' ) })<sub>${ serial }</sub>`;
+</script>
+
+<h3>Specifications</h3>
+
+Consider a box with <a class="eval" title="pageScope.bases2d.length">RANK</a> sides of different lengths: for example <a class="eval" title="pageScope.orb2d.specification()">SPEC</a>;
+it contains <a class="eval" title="pageScope.orb2d.volume">VOLUME</a> points.
+<br/>
+<br/>
+The specification <a class="eval" title="pageScope.orb2d.specification()">SPEC</a> means
+"<a class="eval" title="pageScope.bases2d.map( (b,i) => ( i == pageScope.bases2d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
+<br/>
+<br/>
+<span class="evalNode" title="boxPackingTable( pageScope.bases2d, pageScope.serialText )"></span>
+<br/>
+
+The reverse specification <a class="eval" title="pageScope.orb2d.specification( true )">SPEC</a> means
+"<a class="eval" title="[ ...pageScope.bases2d ].reverse().map( (b,i) => ( i == pageScope.bases2d.length - 1 ) ? `a sequence of ${ b } points` : `${ b } copies of ` ).join( '' )"></a>".
+<br/>
+<br/>
+<span class="evalNode" title="boxPackingTable( [ ...pageScope.bases2d ].reverse(), pageScope.serialText )"></span>
+<br/>
+
+There are only 2 possible specifications for this box, each the reverse specification of the other.
+<br/>
+
+<h3>Place Values, Coordinates and Index numbers</h3>
+
+A box specification aligns with the numeral place value convention where the significance of each place value increases from right-to-left,
+but the base counted by each place value varies with the box side lengths.
+<br/>
+<br/>
+
+
+Each point in the box <a class="eval" title="pageScope.orb2d.specification()"></a> can have a unique coordinate in the range:
+[ (<a class="eval" title="new Array( pageScope.bases2d.length ).fill( 0 ).join( ', ' )"></a> ),
+(<a class="eval" title="pageScope.bases2d.map( b => b - 1 ).join( ', ' )"></a>) ],
+and each coordinate represents a numeral,
+with respect to the box specification,
+that evaluates to a unique index number in the range
+[ 0, <a class="eval" title="( pageScope.box2d.box.volume - 1 )"></a> ].
+
+The specification determines the sequence of place values,
+and the scalar product of the place values with each coordinate produces the corresponding index number.<br/>
+<br/>
+
+For example, the box specification <a class="eval" title="pageScope.orb2d.specification()"></a>
+has the place values [ <a class="eval" title="pageScope.orb2d.placeValues().join( ', ' )"></a> ],
+and produces the following coordinates and index numbers:
+<br/>
+<br/>
+
+<span class="evalNode" title="boxPlaceValueTable( pageScope.bases2d, pageScope.orb2d.volume / Math.max( ...pageScope.bases2d ) )"></span>
+<br/>
+
+However, the reverse box specification <a class="eval" title="pageScope.orb2d.specification( true )"></a>
+has the place values [ <a class="eval" title="pageScope.orb2d.placeValues( true ).join( ', ' )"></a> ],
+and produces the following, partially different, coordinates and index numbers:
+<br/>
+<br/>
+<span class="evalNode" title="boxPlaceValueTable(
+        [ ...pageScope.bases2d ].reverse(),
+        pageScope.orb2d.volume / Math.max( ...pageScope.bases2d )
+    )"></span>
+<br/>
+
+The rows and columns from any one specification can always be reordered to match coordinates with any other specification from the same box,
+for example:
+<br/>
+<br/>
+<span class="evalNode" title="boxPlaceValueTable(
+        [ ...pageScope.bases2d ].reverse(),
+        pageScope.orb2d.volume / Math.max( ...pageScope.bases2d ),
+        new Array( pageScope.bases2d.length ).fill( 0 ).map( (_,i) => i ).reverse()
+    )"></span>
+
+<h3>Index Comparison: Permutations and Cycles</h3>
+
+The index numbers for corresponding coordinates, for any two specifications from the same box, can be compared:
+<br/>
+<br/>
+<span class="evalNode" title="compareBoxSpecificationsTable(
+        pageScope.bases2d,
+        true
+    )"></span>
+<br/>
+
+<script>
+    pageScope.e_0_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'e_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0 = pageScope
+        .box2d
+        .findActionByLabel( 'z_0' );
+
+    pageScope.z_0_cycles = pageScope.z_0
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0i_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'z_0i' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+</script>
+
+The second row is a permutation of the first row and maps all the points in the box back onto all the points in the box.
+
+<ul>
+    <li>This is an action of the box: it swaps points around inside the box.</li>
+</ul>
+
+Specifically, it has:
+<ul class="eval" title="[
+    pageScope
+        .z_0_cycles
+        .filter( cycle => cycle.length > 1 )
+        .map( cycle => cycle.map( ( c, i ) => `${ c }${ i + 1 == cycle.length ? ' &rarr; 1' : ' &rarr; ' + cycle[ i + 1 ] + ' | ' }` ).join( '' ) )
+        .map( ( cycle, i ) => `<li>${ i == 0 ? 'a' : 'another' } cycle of length ${ pageScope.orb2d.order( pageScope.bases2d[0] ) }:<br/><br/>${ cycle }</li>` )
+        .flatMap( cycle => cycle )
+        .join( '' ),
+
+    '<li>cycles of length 1, or fixed points:<br/><br/>' + pageScope
+        .z_0_cycles
+        .filter( cycle => cycle.length == 1 )
+        .map( cycle => cycle.map( c => `${ c } &rarr; ${ c }` ) )
+        .join( ' | ' ) + '</li>'
+
+    ].join( '' )"></ul>
+
+
+This is written more succinctly as an expression in cycle notation:
+<br/>
+<br/>
+<span class="eval cycles-text" title="pageScope
+            .z_0_cycles
+            .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+            .join( ' ' )"></span>
+<br/>
+<br/>
+
+NB: Here it's useful to retain the fixed points in the expression, even though they are usually elided,
+so that the entire set of points is presented.
+<br/>
+<br/>
+
+Swapping the two specifications in the comparison produces the same cycles in reverse:
+<br/>
+<br/>
+<div class="evalNode" title="compareBoxSpecificationsTable(
+        [ ...pageScope.bases2d ].reverse(),
+        true,
+        0
+    )"></div>
+<br/>
+<span class="eval cycles-text" title="pageScope
+            .z_0i_cycles
+            .map( cycle => rotateArray( cycle, -1 ) )
+            .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+            .join( ' ' )"></span>
+<br/>
+<br/>
+
+
+Comparing a specification with itself always produces a set of fixed points only:
+<br/>
+<br/>
+<div class="evalNode" title="compareBoxSpecificationsTable(
+        pageScope.bases2d,
+        false,
+        0
+    )"></div>
+<br/>
+<span class="eval cycles-text" title="pageScope
+            .e_0_cycles
+            .map( cycle => rotateArray( cycle, -1 ) )
+            .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+            .join( ' ' )"></span>
+<br/>
+
+
+<script>
+    pageScope.cyclesView = {};
+    pageScope.cyclesView[ 'default' ] = { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+    pageScope.cyclesView[ 'fixed' ] = { width: '300px', height: '300px', orientation: '-1 -1 0 0.5', position: '-4 3 7' };
+    pageScope.cyclesView[ 'table' ] = { width: '150px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' };
+
+    pageScope.x3dCycles = ( cycles, param, x3dParam = pageScope.cyclesView[ 'default' ] ) => buildX3DomRootNode( getCyclesDiagram( cycles, param ), x3dParam );
+
+
+    pageScope.pointsView = {};
+    pageScope.pointsView[ 'default' ] = { width: '100%', height: '90%', position: '1 0.5 7' };
+    pageScope.pointsView[ 'fixed' ] = { width: '400px', height: '250px' };
+
+    pageScope.x3dPoints = ( action, param, x3dParam = pageScope.pointsView[ 'default' ] ) => buildX3DomRootNode( getPointsDiagram( action, param ), x3dParam );
+</script>
+<h3 class="pagebreak">Radiance</h3>
+
+A cycles expression can be plotted as a radiance diagram,
+where all the fixed points occur on the same base index line,
+but each other cycle has its own points on its own parallel index line - the lines together making a stave.
+<br/>
+<br/>
+
+Semi-circles, normal to the plane of the stave, connect adjacent points in each cycle,
+either above the stave, if the sign of the jump (i.e. difference) between the index values for adjacent points is positive.
+<ul>
+    <li>A cycle has a radiance equal to the sum of the absolute values of its jumps.</li>
+    <li>A cycles expression with only fixed points (an identity) has a radiance of 0.</li>
+    <li>A cycles expression has a radiance that is the sum of the radiance of its cycles.</li>
+</ul>
+
+<div class="evalNode resizable diagram" title="pageScope.x3dCycles( pageScope.z_0_cycles )"></div>
+
+Or the points underlying the indices in the cycles can be projected on a coordinate grid in two dimensions
+with lines connecting adjacent points in each cycle to make a perimeter with a euclidean length.
+<ul>
+    <li>A cycle with more than one point has a perimeter equal to the sum of the euclidean lengths of its lines.</li>
+    <li>A cycles expression with only fixed points (an identity) has a perimeter of 0.</li>
+    <li>A cycles expression has a perimeter that is the sum of the perimeters of its cycles.</li>
+</ul>
+
+<div class="evalNode resizable diagram" title="pageScope.x3dPoints( pageScope.z_0, { toggles: [ 'lines' ] } )"></div>
+
+<div class="evalNode" title="pageScope.z_0.htmlTable()"></div>
+
+<h3 class="pagebreak">Box Actions</h3>
+
+<script>
+    pageScope.d2_z_0_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'z_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.d2Alt_z_0_cycles = pageScope
+        .box2dAlt
+        .findActionByLabel( 'z_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+</script>
+
+A box action is a cycles expression of indexed points from the box,
+produced by comparing two specifications of the box,
+that can be applied to any collection of points from the box
+to swap them about.
+<br/>
+<br/>
+
+For any two dimensional box there is only one pair of distinct mutually inverse actions:
+<br/>
+<br/>
+For example:
+<table class="generalization-table">
+    <tr>
+        <th>Box</th>
+        <th>Comparison</th>
+        <th>Cycles</th>
+        <th>Radiance</th>
+    </tr>
+    <tr>
+        <td>
+            <span class="eval" title="pageScope.orb2d.specification()"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="compareBoxSpecificationsTable(
+                pageScope.bases2d,
+                true,
+                0
+            )"></span>
+        </td>
+        <td>
+            <span class="eval" title="pageScope
+                .d2_z_0_cycles
+                .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+                .join( ' ' )"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="pageScope
+                .x3dCycles( pageScope.d2_z_0_cycles, pageScope.cyclesView[ 'table' ] )"></span>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span class="eval" title="pageScope.orb2dAlt.specification()"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="compareBoxSpecificationsTable(
+                pageScope.bases2dAlt,
+                true,
+                0
+            )"></span>
+        </td>
+        <td>
+            <span class="eval" title="pageScope
+                .d2Alt_z_0_cycles
+                .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+                .join( ' ' )"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="pageScope
+                .x3dCycles( pageScope.d2Alt_z_0_cycles, pageScope.cyclesView[ 'table' ] )"></span>
+        </td>
+    </tr>
+</table>
+
+<br/>
+<br/>
+
+Noting that both the origin and terminal points are always fixed points,
+and on discarding the terminal point (i.e. truncating the box),
+the actions exactly match corresponding elements in
+the multiplicative group modulo <code>11</code>
+(the volume of the box minus 1).
+<br/>
+<br/>
+<span class="evalNode" title="pageScope.orb2d.htmlTable( [] )"></span>
+
+
+

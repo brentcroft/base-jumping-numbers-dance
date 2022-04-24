@@ -1052,7 +1052,7 @@ class BoxAction {
             [ 'Id Sum', [ true, false, true ] ],
             [ 'Order', [ true, false, true ] ],
             [ 'Radiance', [ true, true ] ],
-            [ 'Perimeter', [ true, true ] ],
+            [ 'Perimeter<sup>2</sup>', [ true, true ] ],
         ];
 
         const identityRow = [
@@ -1061,8 +1061,8 @@ class BoxAction {
             [ `<code>( ${ identityPointsSum } )</code>`, [] ],
             [ `<code>( ${ identityIdSum } )</code>`, [] ],
             [ `<code>1</code>`, [] ],
-            [ `<code>(${ this.identityEuclideanRadiance() })</code>`, [] ],
-            [ `<code>(${ this.identityEuclideanPerimeter() })</code>`, [] ],
+            [ `<code>0</code>`, [] ],
+            [ `<code>0</code>`, [] ],
         ];
 
         const footerRow = [
@@ -1071,7 +1071,7 @@ class BoxAction {
             [ `( ${ this.box.sum.join( ', ') } )`, [ 'sum-total' ] ],
             [ `${ this.box.indexSum }`, [ 'sum-total' ] ],
             [ `${ this.order }`, [ 'product-total' ] ],
-            [ `${ this.grossIndexRadiance() }`, [ 'sum-total' ] ],
+            [ `${ this.grossIndexPerimeter() }`, [ 'sum-total' ] ],
             [ `${ this.grossEuclideanPerimeter() }`, [ 'sum-total' ] ],
         ];
 
@@ -1093,8 +1093,8 @@ class BoxAction {
                             reify( "td", {}, [ reifyText( `( ${ orbit.sum.join( ', ' ) } )` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.getIdSum() }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.order }` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ orbit.indexRadiance() }` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ orbit.euclideanRadiance() }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.indexPerimeter() }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.euclideanPerimeter() }` ) ] ),
                         ]
                 ) ),
                 reify( "tr", {}, footerRow.map( f => reify( "td", { 'cssClass': f[1] }, [ reifyText( f[0] ) ] ) ) ),

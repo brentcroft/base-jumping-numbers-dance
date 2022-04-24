@@ -197,50 +197,64 @@ Comparing a specification with itself always produces a set of fixed points only
 
 <script>
     pageScope.cyclesView = {};
-    pageScope.cyclesView[ 'default' ] = { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
-    pageScope.cyclesView[ 'fixed' ] = { width: '300px', height: '300px', orientation: '-1 -1 0 0.5', position: '-4 3 7' };
+    pageScope.cyclesView[ 'default' ] = { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+    pageScope.cyclesView[ 'resizable' ] = { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+
+    pageScope.cyclesView[ 'short' ] = { width: '100%', height: '100%', orientation: '1 0 0 -1.6', position: '0 3.5 0' };
+
     pageScope.cyclesView[ 'table' ] = { width: '150px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' };
 
     pageScope.x3dCycles = ( cycles, param, x3dParam = pageScope.cyclesView[ 'default' ] ) => buildX3DomRootNode( getCyclesDiagram( cycles, param ), x3dParam );
 
 
     pageScope.pointsView = {};
-    pageScope.pointsView[ 'default' ] = { width: '100%', height: '90%', position: '1 0.5 7' };
+    pageScope.pointsView[ 'default' ] = { width: '100%', height: '90%', position: '1 0.5 6' };
+    pageScope.pointsView[ 'resizable' ] = { width: '100%', height: '90%', position: '1 0.5 7' };
     pageScope.pointsView[ 'fixed' ] = { width: '400px', height: '250px' };
 
     pageScope.x3dPoints = ( action, param, x3dParam = pageScope.pointsView[ 'default' ] ) => buildX3DomRootNode( getPointsDiagram( action, param ), x3dParam );
 </script>
-<h3 class="pagebreak">Radiance</h3>
 
-A cycles expression can be plotted as a radiance diagram,
-where all the fixed points occur on the same base index line,
-but each other cycle has its own points on its own parallel index line - the lines together making a stave.
-<br/>
-<br/>
+<h3 class="pagebreak">Box Action Cycles Diagrams: Radiance and Perimeter</h3>
+
+The cycles of a box action can be plotted as a radiance diagram,
+where all the fixed points occur on a common base index line,
+but every other cycle has its own points on its own parallel index line - the lines together making a stave.
+<div class="evalNode diagram-short" title="pageScope.x3dCycles( pageScope.z_0_cycles, { 'toggles': [] }, pageScope.cyclesView[ 'short' ] )"></div>
 
 Semi-circles, normal to the plane of the stave, connect adjacent points in each cycle,
-either above the stave, if the sign of the jump (i.e. difference) between the index values for adjacent points is positive.
+either above the stave,
+if the sign of the jump (i.e. difference) between the index values for adjacent points is positive,
+or below the stave, if the jump is negative - hence, on the diagram, the cycles rotate clockwise.
+
+<div class="evalNode diagram" title="pageScope.x3dCycles( pageScope.z_0_cycles )"></div>
+
 <ul>
-    <li>A cycle has a radiance equal to the sum of the absolute values of its jumps.</li>
-    <li>A cycles expression with only fixed points (an identity) has a radiance of 0.</li>
-    <li>A cycles expression has a radiance that is the sum of the radiance of its cycles.</li>
+    <li>The radiance of a cycle is the sum of the radii of all the semi-circles,
+        or equivalently, half the distance traversed along an index line in completing a cycle - fixed points have no radiance.</li>
+    <li>The radiance of a box action is the sum of the radiance of its cycles.</li>
 </ul>
 
-<div class="evalNode resizable diagram" title="pageScope.x3dCycles( pageScope.z_0_cycles )"></div>
 
-Or the points underlying the indices in the cycles can be projected on a coordinate grid in two dimensions
-with lines connecting adjacent points in each cycle to make a perimeter with a euclidean length.
+The points underlying the indices in the cycles can be projected onto a coordinate grid
+with lines connecting adjacent points in each cycle to make a perimeter with length - a distance per cycle, or velocity.
 <ul>
-    <li>A cycle with more than one point has a perimeter equal to the sum of the euclidean lengths of its lines.</li>
-    <li>A cycles expression with only fixed points (an identity) has a perimeter of 0.</li>
-    <li>A cycles expression has a perimeter that is the sum of the perimeters of its cycles.</li>
+    <li>The perimeter of a cycle is the sum of the euclidean distances between adjacent points - fixed points have no perimeter.</li>
+    <li>The perimeter of a box action is the sum of the perimeters of its cycles.</li>
 </ul>
 
-<div class="evalNode resizable diagram" title="pageScope.x3dPoints( pageScope.z_0, { toggles: [ 'lines' ] } )"></div>
+<div class="evalNode diagram" title="pageScope.x3dPoints( pageScope.z_0, { toggles: [ 'lines' ] } )"></div>
+
+<div class="pagebreak"></div>
+
+Summary details for a box action are tabulated as follows:
 
 <div class="evalNode" title="pageScope.z_0.htmlTable()"></div>
 
-<h3 class="pagebreak">Box Actions</h3>
+<br/>
+<br/>
+
+<h3>Box Actions</h3>
 
 <script>
     pageScope.d2_z_0_cycles = pageScope

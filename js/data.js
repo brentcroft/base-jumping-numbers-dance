@@ -38,7 +38,9 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
     }
     if ( children ) {
         try {
-            children.forEach( x => e.appendChild( x ) );
+            children
+                .filter( x => x )
+                .forEach( x => e.appendChild( x ) );
         } catch ( e ) {
             throw new Error( `Bad Child: tag=${ tag }, attr=${ attr }, children=${ children }`, { 'cause': e } );
         }

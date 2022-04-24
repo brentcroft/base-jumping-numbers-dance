@@ -1,6 +1,6 @@
 function getCyclesDiagram( cycles, param = {} ) {
 
-    const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10 } = param;
+    const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10, toggles = [ 'lines' ] } = param;
 
     if ( !Array.isArray( cycles ) ) {
         throw new Error( `Cycles is not an array: ${ cycles }` );
@@ -84,21 +84,23 @@ function getCyclesDiagram( cycles, param = {} ) {
                                     "transform", { "translation": `${ entry } 0 0` },
                                     [
                                         createSphereShape( `point-${ entry }`, 0.3, color , 0 ),
-                                        reify(
-                                            "transform", {
-                                                "translation": `${ halfJump } 0 0`,
-                                                "class": "orbit-line"
-                                            },
-                                            [
-                                                createTorusShape( {
-                                                        outerRadius: halfJump,
-                                                        size: 0.1,
-                                                        emissiveColor: color,
-                                                        transparency: 0,
-                                                        angle: PI,
-                                                        cssClass: "orbitation"
-                                                     } )
-                                            ] )
+                                        toggles.includes( 'lines' )
+                                            ? reify(
+                                                "transform", {
+                                                    "translation": `${ halfJump } 0 0`,
+                                                    "class": "orbit-line"
+                                                },
+                                                [
+                                                    createTorusShape( {
+                                                            outerRadius: halfJump,
+                                                            size: 0.1,
+                                                            emissiveColor: color,
+                                                            transparency: 0,
+                                                            angle: PI,
+                                                            cssClass: "orbitation"
+                                                         } )
+                                                ] )
+                                            : null
                                     ]
                                 );
                             }

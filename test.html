@@ -97,23 +97,26 @@
                     return reify(
                         "div",
                         {},
-                        value.map( result => reify( "div", {}, [
-                            reifyText( result[0].toString() ),
-                            result[1].htmlTable(),
-                            cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
+                        value.map( result => result[1] instanceof IndexCyclesAction
+                            ? reify( "div", {}, [
+                                reifyText( result[0].toString() ),
+                                result[1].htmlTable(),
+                                cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
+                                        buildX3DomRootNode(
+                                            getCyclesDiagram( result[1].getCycles() ),
+                                            cyclesView[ 'default' ]
+                                        )
+                                    ] ) : null,
+                                pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
                                     buildX3DomRootNode(
-                                        getCyclesDiagram( result[1].getCycles() ),
-                                        cyclesView[ 'default' ]
+                                        getPointsDiagram( result[1], { toggles: [ 'lines' ] } ),
+                                        pointsView[ 'default' ]
                                     )
-                                ] ) : null,
-                            pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
-                                buildX3DomRootNode(
-                                    getPointsDiagram( result[1], { toggles: [ 'lines' ] } ),
-                                    pointsView[ 'default' ]
-                                )
-                            ] ) : null
-                        ] ) )
-                   );
+                                ] ) : null
+                            ] )
+                            : reify( "div", {}, [ reifyText( result[1].toString() ) ] )
+                        )
+                    );
                 }
                 // otherwise
                 return reify(
@@ -248,12 +251,13 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
-    <label class="summaryLeft">cycles<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
-    <label class="summaryLeft">points<input type="checkbox" checked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">cycles<input type="checkbox" checked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">points<input type="checkbox" xchecked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="2">
-(2:3~5)
-(2:3|5)
+(3:5|1)
+(3:5|2)
+(3:5~2)
     </textarea>
 </body>
 </html>

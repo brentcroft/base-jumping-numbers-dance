@@ -134,7 +134,7 @@ class Orbit {
         return this
             .points
             .map( (x,i) => x.at(this.parent.key).radiant )
-            .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
+            .reduce( (a,c) => a + Math.abs( c ), 0 );
     }
 
     getJumps() {
@@ -146,7 +146,7 @@ class Orbit {
     indexPerimeter() {
         return this
             .getJumps()
-            .reduce( (a,c) => a + Math.abs( c ), 0 ) / 2;
+            .reduce( (a,c) => a + Math.abs( c ), 0 );
     }
 
     euclideanRadiance() {
@@ -157,11 +157,10 @@ class Orbit {
     }
 
     euclideanPerimeter() {
-        //const f = this.parent.box.eFactor;
         return this
             .points
             .map( (x,i) => distance2( x.coord, this.points[ ( i + 1 ) % this.order ].coord ) )
-            .reduce( (a,c) => a + c, 0 ) / 2;
+            .reduce( (a,c) => a + c, 0 );
     }
 
     torsion() {

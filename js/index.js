@@ -1053,8 +1053,8 @@ class BoxAction {
             [ 'Coord Sum', [ true, true ] ],
             [ 'Id Sum', [ true, false, true ] ],
             [ 'Order', [ true, false, true ] ],
-            [ 'Radiance', [ true, true ] ],
             [ 'Perimeter<sup>2</sup>', [ true, true ] ],
+            [ 'Radiance', [ true, true ] ],
         ];
 
         const identityRow = [
@@ -1075,8 +1075,8 @@ class BoxAction {
             [ `( ${ this.box.sum.join( ', ') } )`, [ 'sum-total' ] ],
             [ `${ this.box.indexSum }`, [ 'sum-total' ] ],
             [ `${ this.order }`, [ 'product-total' ] ],
-            [ `${ this.grossIndexPerimeter() }`, [ 'sum-total' ] ],
             [ `${ this.grossEuclideanPerimeter() }`, [ 'sum-total' ] ],
+            [ `${ this.grossIndexPerimeter() }`, [ 'sum-total' ] ],
         ];
 
         return reify(
@@ -1100,8 +1100,8 @@ class BoxAction {
                             reify( "td", {}, [ reifyText( `( ${ orbit.sum.join( ', ' ) } )` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.getIdSum() }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.order }` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ orbit.indexPerimeter() }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.euclideanPerimeter() }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ orbit.indexPerimeter() }` ) ] ),
                         ]
                 ) ),
                 reify( "tr", {}, footerRow.map( f => reify( "td", { 'cssClass': f[1] }, [ reifyText( f[0] ) ] ) ) ),

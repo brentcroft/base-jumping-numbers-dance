@@ -210,7 +210,7 @@ var arrayCompare = (a, b) => {
     return 0;
 };
 
-var arrayExactlyEquals = (a, b) => a.filter( (x,i) => x == b[i] ).length == a.length;
+var arrayExactlyEquals = (a, b) => a.length == b.length && a.filter( (x,i) => x == b[i] ).length == a.length;
 var arrayAlmostEqual = (a, b, c ) => a.filter( (x,i) => Math.abs( x - b[i] ) < c ).length == a.length;
 var arrayContains = (a, b) => Array.isArray(a) && Array.isArray(b) && b.every( v => a.includes( v ) );
 var arrayEquals = (a, b) => arrayContains( a, b ) && a.length === b.length;

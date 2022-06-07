@@ -116,11 +116,11 @@ function magnifyPoint( c, magnification ) {
     return point;
 }
 
-function offsetPoint( c, i, volume = 1 ) {
+function offsetPoint( c, k, volume = 1 ) {
     const point = {
-        id: ( c.id + ( i * volume ) ),
-        di: ( c.di + ( i * volume ) ),
-        coord: [ i, ...c.coord ]
+        id: ( c.id + ( k * volume ) ),
+        di: ( c.di + ( k * volume ) ),
+        coord: [ ...c.coord, k ]
     };
     point.toString = () => pointLabel( point );
     return point;
@@ -136,15 +136,14 @@ function expandCycles( cycles, copies = 1, harmonic = false ) {
 
     if ( harmonic ) {
         const template = cycles.map( cycle => cycle.map( c => magnifyPoint( c, copies ) ) );
-        for ( var i = 0; i < copies; i++ ) {
-            template.forEach( cycle => baseCycles.push( cycle.map( c => offsetPoint( c, i ) ) ) );
+        for ( var k = 0; k < copies; k++ ) {
+            template.forEach( cycle => baseCycles.push( cycle.map( c => offsetPoint( c, k ) ) ) );
         }
     } else {
-        for ( var i = 0; i < copies; i++ ) {
-            cycles.forEach( cycle => baseCycles.push( cycle.map( c => offsetPoint( c, i, volume ) ) ) );
+        for ( var k = 0; k < copies; k++ ) {
+            cycles.forEach( cycle => baseCycles.push( cycle.map( c => offsetPoint( c, k, volume ) ) ) );
         }
     }
-
     return baseCycles;
 }
 
@@ -196,3 +195,4 @@ function isCycles( value ) {
 function formatCycles( cycles ) {
     return cycles.map( cycle => "(" + cycle.map( p => p.id ).join(',') + ")" ).join( '' );
 }
+

@@ -1,0 +1,259 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/pagery.css">
+    <script type="text/javascript" src="js/x3dom.js"></script>
+    <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
+
+    <!-- model -->
+    <script type="text/javascript" src="js/toggles.js"></script>
+    <script type="text/javascript" src="js/data.js"></script>
+    <script type="text/javascript" src="js/orbits.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" src="js/group.js"></script>
+    <script type="text/javascript" src="js/group-extras.js"></script>
+    <script type="text/javascript" src="js/expression.js"></script>
+
+    <script type="text/javascript" src="js/clockfaces.js"></script>
+    <script type="text/javascript" src="js/orbitation.js"></script>
+
+    <script type="text/javascript" src="js/bitmap.js"></script>
+    <script type="text/javascript" src="js/glyphs.js"></script>
+
+    <script type="text/javascript" src="js/forces.js"></script>
+
+    <!-- ui -->
+    <script type="text/javascript" src="js/factors.js"></script>
+    <script type="text/javascript" src="js/colors.js"></script>
+    <script type="text/javascript" src="js/htmltable.js"></script>
+    <script type="text/javascript" src="js/3d.js"></script>
+
+    <script type="text/javascript" src="js/cycles-x3dom.js"></script>
+
+
+    <!-- page -->
+    <script type="text/javascript">
+        var instance = 0;
+        function sendResult( result, sourceElement, param = {} ) {
+            if ( !result ) {
+                return;
+            }
+            var tag = null;
+            var items = 0;
+            const excludes = param.excludes | [];
+
+            function decomposeValue( value ) {
+                return reify(
+                    "div",
+                    { class: 'summaryLeft' },
+                    [],
+                    [ d => d.innerHTML = value ]
+                );
+            }
+
+            function decomposeObject( label, value ) {
+                // do non-arrays first
+                return reify( "div", {}, [
+                    decomposeValue( label ),
+                    ...Object
+                        .entries( value )
+                        .filter( ([k,v]) => !excludes.includes( k ) )
+                        .filter( ([k,v]) => !Array.isArray( v ) )
+                        .map( ([k,v]) => decomposeValue( v ) ),
+                    ...Object
+                        .entries( value )
+                        .filter( ([k,v]) => !excludes.includes( k ) )
+                        .filter( ([k,v]) => Array.isArray( v ) )
+                        .map( ([k,v]) => decomposeArray( v ) )
+                ] );
+            }
+            function decomposeArray( value ) {
+                const firstElement = value[ 0 ];
+                const isNested = Array.isArray( firstElement );
+                if ( isNested && firstElement[0] instanceof Formula && firstElement[1] instanceof BoxAction ) {
+
+                    const cyclesView = {};
+                    cyclesView[ 'default' ] = { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+                    cyclesView[ 'resizable' ] = { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+                    cyclesView[ 'short' ] = { width: '100%', height: '100%', orientation: '1 0 0 -1.6', position: '0 3.5 0' };
+                    cyclesView[ 'table' ] = { width: '150px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' };
+
+                    const bases = firstElement[1].box.bases;
+                    const volume = firstElement[1].box.volume;
+                    console.log( `bases: ${ bases }` );
+
+                    const adjust = bases.slice( 0, 2 ).map( b => b - 1 ).join( ' ' )
+                    const backOff = ( volume + 5 ) / bases.slice( -1 )[0];
+
+                    const pointsView = {
+                        'default': { width: '100%', height: '100%', position: `${ adjust } ${ backOff }` }
+                    };
+
+                    console.log( `position: ${ pointsView['default'].position }` );
+
+                    const cyclesDiagram = document.getElementById( 'cyclesDiagramToggle' ).checked;
+                    const pointsDiagram = document.getElementById( 'pointsDiagramToggle' ).checked;
+
+                    return reify(
+                        "div",
+                        {},
+                        value.map( result => reify( "div", {}, [
+                            reifyText( result[0].toString() ),
+                            result[1].htmlTable(),
+                            cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
+                                    buildX3DomRootNode(
+                                        getCyclesDiagram( result[1].getCycles() ),
+                                        cyclesView[ 'default' ]
+                                    )
+                                ] ) : null,
+                            pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
+                                buildX3DomRootNode(
+                                    getPointsDiagram( result[1], { toggles: [ 'lines' ] } ),
+                                    pointsView[ 'default' ]
+                                )
+                            ] ) : null
+                        ] ) )
+                   );
+                }
+                // otherwise
+                return reify(
+                    "textarea", { class: 'scriptPanelTextArea', rows: isNested ? Math.min( 20, 1 + value.length ) : 2, disabled: 'disabled' }, [], [
+                        d => d.value = ( isNested
+                                ? value
+                                    .map( r => r
+                                        .map( a => String( a ).padStart( 2, ' ' ) )
+                                        .join( ', ' ) )
+                                    .join( '\n' )
+                                : Number.isInteger( firstElement )
+                                    ? value.join( ', ' )
+                                    : value.join( '\n' ))
+                    ] );
+            }
+
+            function decompose( result ) {
+                return Array.isArray( result )
+                    ? decomposeArray( result )
+                    : result instanceof Object
+                        ? decomposeObject( "", result )
+                        : decomposeValue( result );
+            }
+
+            const css = ( param.css || [] );
+            if ( !css.includes( 'rightFlow' ) ) {
+                css.push( 'leftFlow' );
+            }
+
+            const cssClasses = [ 'scriptPanelResult', ...css ];
+
+            var targetElement = reify(
+                "div",
+                { class: cssClasses.join( ',' ) },
+                [
+                    reify( "span", {}, [], [ s => s.innerHTML = `<br/><hr/><b>result:</b> ${ new Date().toISOString() }<br/>` ] ),
+                    decompose( result )
+                ]
+            );
+
+            sourceElement.parentNode.appendChild( targetElement );
+        }
+
+        function pagebreak() {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+
+            var targetElement = reify( "div", { class: 'pagebreak' }, [] );
+
+            sourceElement.parentNode.appendChild( targetElement );
+        }
+
+        function putHtml( result, param ) {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+            sendResult( result, sourceElement, param );
+        }
+
+        function calculate( script, sourceElement ) {
+            if ( document.getElementById( 'clearOnCalculate' ).checked ) {
+                clearResults();
+            }
+            const isFormula = document.getElementById( 'formulaToggle' ).checked;
+            try {
+                const result = isFormula
+                    ? evaluateFormulas( script )
+                    : eval( script );
+                putHtml( result );
+            } catch ( e ) {
+                putHtml( `<font color='red'>${ e }</font>` );
+                throw e;
+            }
+        }
+
+        function clearResults() {
+            document
+                .querySelectorAll( '.scriptPanelResult' )
+                .forEach( element => element.parentNode.removeChild( element ) );
+        }
+
+        function calculateNow() {
+            const sourceId = 'calculationScript';
+            const sourceElement = document.getElementById( sourceId );
+
+            calculate( sourceElement.value, 'calculationResult' );
+
+            x3dom.reload();
+        }
+
+    </script>
+    <style>
+        .scriptPanel {
+            width: 100%;
+        }
+        .scriptPanelResult {
+            margin: 10px;
+        }
+        .scriptPanelTextArea {
+            width: 100%;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: scroll;
+        }
+
+
+        .resizable {
+            overflow-wrap: normal;
+            overflow-x: scroll;
+        }
+        .leftFlow {
+           float: left;
+        }
+        .rightFlow {
+           float: right;
+        }
+
+        div input[ type=number ].decimal-input {
+            width: 150px;
+        }
+        td input[ type=number ].decimal-input {
+            width: 100%;
+        }
+
+        tr.selected td {
+            background: pink;
+        }
+
+    </style>
+</head>
+<body onload="calculateNow()">
+    <input type="button" value="eval" onclick="calculateNow()"/>
+    <input type="button" value="clear" onclick="clearResults()"/>
+    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
+    <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
+    <label class="summaryLeft">cycles<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">points<input type="checkbox" checked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
+    <br/>
+    <textarea id="calculationScript" class="scriptPanel" rows="2">
+(2:3~5)
+(2:3|5)
+    </textarea>
+</body>
+</html>

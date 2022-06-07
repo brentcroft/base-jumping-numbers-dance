@@ -1,0 +1,89 @@
+<script>
+
+    pageScope.bases2d = [ 5, 3 ];
+    pageScope.box2d = new BoxGroup( pageScope.bases2d, { toggles: [ 'all-indexes', 'all-layers' ] } );
+
+    pageScope.e_0_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'e_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0 = pageScope
+        .box2d
+        .findActionByLabel( 'z_0' );
+
+    pageScope.z_0i = pageScope
+        .box2d
+        .findActionByLabel( 'z_0i' );
+
+
+    pageScope.z_0_cycles = pageScope.z_0
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0i_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'z_0i' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+</script>
+
+<script>
+    pageScope.cyclesView = {};
+    pageScope.cyclesView[ 'default' ] = { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+    pageScope.cyclesView[ 'resizable' ] = { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+
+    pageScope.cyclesView[ 'short' ] = { width: '100%', height: '100%', orientation: '1 0 0 -1.6', position: '0 3.5 0' };
+
+    pageScope.cyclesView[ 'table' ] = { width: '150px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' };
+
+    pageScope.x3dCycles = ( cycles, param, x3dParam = pageScope.cyclesView[ 'default' ] ) => buildX3DomRootNode( getCyclesDiagram( cycles, param ), x3dParam );
+
+
+    pageScope.pointsView = {};
+    pageScope.pointsView[ 'default' ] = { width: '100%', height: '90%', position: '1 0.5 6' };
+    pageScope.pointsView[ 'resizable' ] = { width: '100%', height: '90%', position: '1 0.5 7' };
+    pageScope.pointsView[ 'fixed' ] = { width: '400px', height: '250px' };
+
+    pageScope.x3dPoints = ( action, param, x3dParam = pageScope.pointsView[ 'default' ] ) => buildX3DomRootNode( getPointsDiagram( action, param ), x3dParam );
+</script>
+
+<h2 class="pagebreak">Box Action Cycles Diagrams: Radiance and Perimeter</h2>
+
+The cycles of a box action can be plotted as a radiance diagram,
+where all the fixed points occur on a common base index line,
+but every other cycle has its own points on its own parallel index line - the lines together making a stave.
+<div class="evalNode diagram-short" title="pageScope.x3dCycles( pageScope.z_0_cycles, { 'toggles': [] }, pageScope.cyclesView[ 'short' ] )"></div>
+
+Semi-circles, normal to the plane of the stave, connect adjacent points in each cycle,
+either above the stave,
+if the sign of the jump (i.e. difference) between the index values for adjacent points is positive,
+or below the stave, if the jump is negative - hence, on a radiance diagram, the cycles implicitly rotate clockwise.
+
+<div class="evalNode diagram" title="pageScope.x3dCycles( pageScope.z_0_cycles )"></div>
+
+<ul>
+    <li>The radiance of a cycle is the sum of each radius of each semi-circle,
+        or equivalently, half the distance traversed along an index line in completing a cycle - fixed points have no radiance.</li>
+    <li>The radiance of a box action is the sum of the radiance of its cycles.</li>
+</ul>
+
+
+The points underlying the indices in the cycles can be projected onto a coordinate grid
+with lines connecting adjacent points in each cycle to make a perimeter with length - a distance per cycle, or velocity.
+<ul>
+    <li>The perimeter of a cycle is the sum of the euclidean distances between adjacent points - fixed points have no perimeter.</li>
+    <li>The perimeter of a box action is the sum of the perimeters of its cycles.</li>
+</ul>
+
+<div class="evalNode diagram" title="pageScope.x3dPoints( pageScope.z_0, { toggles: [ 'lines' ] } )"></div>
+
+<div class="pagebreak"></div>
+
+Summary details for a box action are tabulated as follows:
+
+<div class="evalNode" title="pageScope.z_0.htmlTable()"></div>
+
+Note that the perimeter squared is a distance per cycle squared - hence each cycle corresponds to a quantum of energy.
+<br/>

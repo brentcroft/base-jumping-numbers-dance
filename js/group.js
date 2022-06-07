@@ -237,14 +237,16 @@ class CompositionAction extends CompositeAction {
     indexPointFromCycles( point ) {
         var cycle = this
             .cycles
-            .find( cycle => cycle.find( c => c == point ) );
+            .find( c => Number.isInteger( c.find( c0 => c0 == point.id ) ) );
 
         if ( !cycle || cycle.length == 0 ) {
-            throw new Error( `No cycle for point: ${ point }` );
+            throw new Error( `No cycle for point: ${ point.id } = ${ point }` );
         }
 
-        const nextIndex = ( 1 + cycle.indexOf( point ) ) % cycle.length;
-        const endPoint = cycle[ nextIndex ];
+        const nextIndex = ( 1 + cycle.indexOf( point.id) ) % cycle.length;
+        const nextId = cycle[ nextIndex ];
+
+        const endPoint = this.box.points.find( p => p.id == nextId );
 
         // using common ids from leftAction
         const id = point.at( this.leftAction.key ).id;
@@ -305,14 +307,11 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     getPlaceValuesPermutationPair( cyclesObject ) {
-        const [ l, r, m ] = [
-            [ ...cyclesObject.leftBases ].filter( i => i > -1 ),
-            [ ...cyclesObject.rightBases ].filter( i => i > -1 ),
-            [ cyclesObject.multiplierBase ].filter( i => i > -1 )
-        ];
+        const [ l, r, m ] = cyclesObject.bases
+
         const [ leftPermKey, rightPermKey ] = cyclesObject.harmonic
-            ? [ [ ...m, ...r, ...l ], [ ...m, ...l, ...r ] ]
-            : [ [ ...r, ...l, ...m ], [ ...l, ...r, ...m ] ];
+            ? [ [ m, r, l ], [ m, l, r ] ]
+            : [ [ r, l, m ], [ l, r, m ] ];
 
         const [ leftPerm, rightPerm ] = [
             this.box.getPermVector( leftPermKey ),
@@ -338,29 +337,24 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     indexPoints( pair, cyclesObject ) {
-        const pointIndex = ( pair.leftState ^ this.harmonic )
-            ? pair.dix
-            : pair.idx;
-
-        const coordPerm = ( pair.leftState ^ this.harmonic )
-            ? pair.permPair[0]
-            : pair.permPair[1];
-
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle
                 .map( ( c, i ) => Number.isInteger( c )
                     ? [ c, cycle[ ( 1 + i ) % cycle.length, [] ] ]
                     : [ c.id, c.di, c.coord ] )
-                .map( ( [ id, di, coord ] ) => [ id, di, coordPerm.map( b => coord[b] ) ] )
-                .map( ( [ id, di, coord ] ) => this.indexPoint( pointIndex, id, di, coord ) ) );
+                .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
     }
 
     indexPoint( pointIndex, id, di, coord ) {
-        const point = pointIndex[ id ];
+        const point = pointIndex[ di ];
+
+        if ( !point ) {
+            throw new Error( `No point for di: ${ di }` );
+        }
         const partnerId = ( this.box.volume - id - 1 );
 
-        const reportBadCoords = false;
+        const reportBadCoords = true;
         if ( reportBadCoords && coord && !arrayExactlyEquals( coord, point.coord ) ) {
             const msg = `Matched point ${ point } has wrong coord; expected ${ coord }`;
             consoleLog( msg );

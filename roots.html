@@ -465,7 +465,7 @@ const param = {
 const orb = new Orbitation( bases, param );
 
 putOrbitationNode( orb, { css: [ 'resizable', 'leftFlow' ] } );
-putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: true } );
+putForceControls( orb, { css: [ 'rightFlow', 'summaryLeft' ], autoRun: false } );
 
 putDomNode( orb.htmlTable(), { css: [ 'rightFlow' ] } );
 putDomNode( reify( "span", { id: "selected-cycles" } ), { css: [ 'summaryLeft','leftFlow' ] } );

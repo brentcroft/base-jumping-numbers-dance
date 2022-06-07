@@ -238,10 +238,11 @@ class PermBox extends Box {
     }
 
     getPermVector( permKey ) {
+        const permId = permKey.map( k => this.bases.indexOf( k ) )
         return this.placeValuePermutations
-            .map( pvp => arrayExactlyEquals( permKey, pvp.perm )
+            .map( pvp => arrayExactlyEquals( permId, pvp.perm )
                   ? [ pvp, false ]
-                  : arrayExactlyEquals( permKey, pvp.antiPerm )
+                  : arrayExactlyEquals( permId, pvp.antiPerm )
                       ? [ pvp, true ]
                       : null )
             .find( x => x );
@@ -431,8 +432,8 @@ class BoxAction {
 
     getCycles() {
         return [
-            ...this.identities.map( o => o.points ),
-            ...this.orbits.map( o => o.points )
+            ...this.identities.map( o => o.points.map( p => p.at( this.key ).id ) ),
+            ...this.orbits.map( o => o.points.map( p => p.at( this.key ).id ) )
         ];
     }
 
@@ -1042,12 +1043,13 @@ class BoxAction {
 
         const initialPointsSum = new Array( this.box.rank ).fill( 0 );
         const identityPointsSum = this.identities ? this.identities.reduce( (a, p) => addition( a, p.points[0].coord ), initialPointsSum ) : 0;
-        const identityIdSum = this.identities ? this.identities.reduce( (a, p) => a + p.points[0].at( this.id ).id, 0 ) : 0;
+        const identityIdSum = this.identities ? this.identities.reduce( (a, p) => a + p.points[0].at( this.key ).id, 0 ) : 0;
         const identityIdSumGcd = gcd( maxIndex, identityIdSum );
 
         const headerRow = [
             [ 'Id', [ true ] ],
             [ 'Cycle', [] ],
+            //[ 'Cycle Coords', [] ],
             [ 'Coord Sum', [ true, true ] ],
             [ 'Id Sum', [ true, false, true ] ],
             [ 'Order', [ true, false, true ] ],
@@ -1057,7 +1059,8 @@ class BoxAction {
 
         const identityRow = [
             [ '<code>e</code>', [] ],
-            [ this.identities.map( orbit => `( ${ orbit.points[0].at( this.id ).id } )` ).join( ', ' ), [] ],
+            [ this.identities.map( orbit => `( ${ orbit.points[0].at( this.key ).id } )` ).join( ', ' ), [] ],
+            //[ this.identities.map( orbit => `(${ orbit.points[0].coord.join(', ') })` ).join( ', ' ), [] ],
             [ `<code>( ${ identityPointsSum } )</code>`, [] ],
             [ `<code>( ${ identityIdSum } )</code>`, [] ],
             [ `<code>1</code>`, [] ],
@@ -1068,6 +1071,7 @@ class BoxAction {
         const footerRow = [
             [ '', [] ],
             [ '', [] ],
+            //[ '', [] ],
             [ `( ${ this.box.sum.join( ', ') } )`, [ 'sum-total' ] ],
             [ `${ this.box.indexSum }`, [ 'sum-total' ] ],
             [ `${ this.order }`, [ 'product-total' ] ],
@@ -1088,8 +1092,11 @@ class BoxAction {
                         [
                             reify( "td", {}, [ reifyText( orbit.isSelfPartner() ? orbit.index : orbit.isFirstConjugate() ? orbit.index : `<sup>( ${ orbit.index } )</sup>` ) ] ),
                             reify( "td", { id: `${ tableId }.${ orbit.index }`, cssClass: [ 'orbit' ] }, [
-                                reifyText( `( ${ orbit.points.map( p => p.at( this.id ).id ).join( ', ' ) } )` )
+                                reifyText( `( ${ orbit.points.map( p => p.at( this.key ).id ).join( ', ' ) } )` )
                             ] ),
+//                            reify( "td", { id: `${ tableId }.${ orbit.index }`, cssClass: [ 'orbit' ] }, [
+//                                reifyText( orbit.points.map( p => `(${ p.coord.join( ', ' ) })` ) )
+//                            ] ),
                             reify( "td", {}, [ reifyText( `( ${ orbit.sum.join( ', ' ) } )` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.getIdSum() }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.order }` ) ] ),

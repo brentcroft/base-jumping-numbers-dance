@@ -27,13 +27,11 @@ const OPERATIONS = [
 ];
 
 const OPERATORS = {
-    '*': ( operator, left, right ) => new OperatorExpression( operator, left, right ),
-    '^': ( operator, left, right ) => new PowerExpression(operator, left, right),
-    ':': ( operator, left, right ) => new LiteralCyclesExpression( operator, left, right ),
-    '/': ( operator, left, right ) => new FractionCyclesExpression( operator, left, right ),
-    '#': ( operator, left, right ) => new CyclesExpression( operator, left, right ),
-    '|': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right ),
-    '~': ( operator, left, right ) => new CyclesExtensionExpression( operator, left, right )
+    '*': ( operator, left, right, boxGroup ) => new OperatorExpression( operator, left, right, boxGroup ),
+    '^': ( operator, left, right, boxGroup ) => new PowerExpression(operator, left, right, boxGroup ),
+    ':': ( operator, left, right, boxGroup ) => new LiteralCyclesExpression( operator, left, right, boxGroup ),
+    '|': ( operator, left, right, boxGroup ) => new CyclesExtensionExpression( operator, left, right, boxGroup ),
+    '~': ( operator, left, right, boxGroup ) => new CyclesExtensionExpression( operator, left, right , boxGroup)
 };
 
 /*
@@ -187,7 +185,7 @@ class Formula {
         this.formulaExpression = null;
         this.options = Object.assign(
             {
-                memoization: true
+                memoization: false
             },
             options
         );
@@ -579,10 +577,10 @@ class Formula {
      *   also returned as array.
      * @return {Number|Array} The evaluated result, or an array with results
      */
-    _evaluate(valueObj) {
+    _evaluate( valueObj, params = {} ) {
         // resolve multiple value objects recursively:
         if (valueObj instanceof Array) {
-            return valueObj.map((v) => this._evaluate(v));
+            return valueObj.map((v) => this._evaluate( v, params ));
         }
         let expr = this.getExpression();
         if (!(expr instanceof Expression)) {
@@ -594,19 +592,19 @@ class Formula {
             if (res !== null) {
                 return res;
             } else {
-                res = expr.evaluate({ ...this.boxGroup.getIndexMap(), ...valueObj });
-                this.storeInMemory(valueObj, res);
+                res = expr.evaluate( valueObj, params );
+                this.storeInMemory( valueObj, res );
                 return res;
             }
         }
 
-        return expr.evaluate( { ...this.boxGroup.getIndexMap(), ...valueObj } );
+        return expr.evaluate( valueObj, params );
     }
 
-    // todo: externalize work on boxGroup
-    evaluate(valueObj) {
+    evaluate( valueObj, params = {} ) {
 
-        const r = this._evaluate(valueObj);
+        const boxItems = this.boxGroup ? this.boxGroup.getIndexMap() : {}
+        const r = this._evaluate( { ...valueObj, ...params, ...boxItems } );
 
         function updateAlias( r, aliasText ) {
             if ( !r ) {
@@ -648,11 +646,15 @@ class Formula {
             // promote results
             const promoteResults = false;
 
-            const existingIndexes = this.boxGroup.findMatchingActions( r );
+            const existingIndexes = this.boxGroup
+                ? this.boxGroup.findMatchingActions( r )
+                : [];
 
             if ( existingIndexes.length == 0 ) {
-                this.boxGroup.removeEqualCompositeAction( r );
-                this.boxGroup.boxActions.push( r );
+                if ( this.boxGroup ) {
+                    this.boxGroup.removeEqualCompositeAction( r );
+                    this.boxGroup.boxActions.push( r );
+                }
                 return r;
             } else {
                 existingIndexes
@@ -806,7 +808,6 @@ class StringExpression extends Expression {
 class OperatorExpression extends Expression {
     constructor( operator, left, right, boxGroup ) {
         super();
-
         if ( !( operator in OPERATORS ) ) {
             throw new Error( `Operator not implemented: ${ this.left } "${operator}" ${ this.right }`);
         }
@@ -819,7 +820,7 @@ class OperatorExpression extends Expression {
     evaluate( params = {} ) {
         const leftAction = this.left.evaluate(params);
         const rightAction = this.right.evaluate(params);
-
+/*
         if ( this.boxGroup.compositionRules ) {
             if ( leftAction.structure && rightAction.structure ) {
                 //const boxAction = composeByStructure( leftAction, rightAction, this.boxGroup );
@@ -834,12 +835,14 @@ class OperatorExpression extends Expression {
                 }
             }
         }
-
+*/
         const alias = CompositionAction.compositeLabel( leftAction, rightAction );
 
-        var boxAction = this.boxGroup.findActionByAlias( alias );
-        if ( boxAction ) {
-            return boxAction;
+        if ( this.boxGroup ) {
+            const boxAction = this.boxGroup.findActionByAlias( alias );
+            if ( boxAction ) {
+                return boxAction;
+            }
         }
 
         if ( alias in params ) {
@@ -853,14 +856,14 @@ class OperatorExpression extends Expression {
         const subBox = leftAction.box;
 
         // may get replaced by equivalent box action
-        boxAction = new CompositionAction(
+        const boxAction = new CompositionAction(
             subBox,
             Math.round( Math.random() * 10000 + 1),
             leftAction,
             rightAction,
             true );
 
-        this.boxGroup.registerCompositeAction( alias, boxAction );
+        //this.extantBoxes.registerCompositeAction( alias, boxAction );
 
         // make immediately available by label
         params[ boxAction.label ] = boxAction;
@@ -870,37 +873,6 @@ class OperatorExpression extends Expression {
 
     toString() {
         return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
-    }
-}
-
-
-class CyclesExpression extends OperatorExpression {
-    constructor( operator, left, right, boxGroup ) {
-        super( operator, left, right, boxGroup );
-    }
-
-    evaluate( params = {} ) {
-        const leftBase = this.left.evaluate( params );
-        const rightBase = this.right.evaluate( params );
-
-        if ( ! ( Number.isInteger( leftBase ) && Number.isInteger( rightBase ) ) ) {
-            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
-        }
-
-        const leftCoprime = this.boxGroup.box.bases[ leftBase ];
-        const rightCoprime = this.boxGroup.box.bases[ rightBase ];
-
-        return {
-            literal: false,
-            leftBases: [ leftBase ],
-            leftCoprimes: [ leftCoprime ],
-            rightBases: [ rightBase ],
-            rightCoprimes: [ rightCoprime ]
-        };
-    }
-
-    toString() {
-        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
     }
 }
 
@@ -917,12 +889,7 @@ class LiteralCyclesExpression extends OperatorExpression {
         const allowNonBaseFactor = true;
 
         if ( Number.isInteger( leftCoprimes ) ) {
-            var f = leftCoprimes;
-
-            leftCoprimes = this.boxGroup.box.bases.includes( f )
-                ? [ f ]
-                : factorize( f, this.boxGroup.box.bases, allowNonBaseFactor );
-
+            leftCoprimes = [ leftCoprimes ];
         } else {
             if ( !leftCoprimes.leftCoprimes ) {
                 throw new Error( `Invalid left argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
@@ -932,11 +899,7 @@ class LiteralCyclesExpression extends OperatorExpression {
         }
 
         if ( Number.isInteger( rightCoprimes ) ) {
-            var f = rightCoprimes;
-            rightCoprimes = this.boxGroup.box.bases.includes( f )
-                ? [ f ]
-                : factorize( rightCoprimes, this.boxGroup.box.bases, allowNonBaseFactor );
-
+            rightCoprimes = [ rightCoprimes ];
         } else {
             if ( !rightCoprimes.leftCoprimes ) {
                 throw new Error( `Invalid right argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
@@ -945,14 +908,8 @@ class LiteralCyclesExpression extends OperatorExpression {
             rightCoprimes = [ ...rightCoprimes.leftCoprimes, ...rightCoprimes.rightCoprimes ];
         }
 
-        var leftBases = [];
-        var rightBases = [];
-
-        if ( !allowNonBaseFactor ) {
-            // todo: fails on duplicate factors
-            leftCoprimes.forEach( cp => leftBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
-            rightCoprimes.forEach( cp => rightBases.push( this.boxGroup.box.bases.indexOf( cp ) ) );
-        }
+        var leftBases = [...leftCoprimes];
+        var rightBases = [...rightCoprimes];
 
         return {
             literal: true,
@@ -961,54 +918,6 @@ class LiteralCyclesExpression extends OperatorExpression {
             rightBases: rightBases,
             rightCoprimes: rightCoprimes
         };
-    }
-
-    toString() {
-        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
-    }
-}
-
-class FractionCyclesExpression extends OperatorExpression {
-    constructor( operator, left, right, boxGroup ) {
-        super( operator, left, right, boxGroup );
-    }
-
-    evaluate( params = {} ) {
-        const volume = this.left.evaluate(params);
-        const stride = this.right.evaluate(params);
-
-        if ( !(Number.isInteger( volume ) ) || !(Number.isInteger( stride ) ) ) {
-            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
-        }
-
-        const cycles = expandCycles(
-            getMultiplicativeGroupMember( volume - 1, stride, false ),
-            1,
-            false );
-
-        const label = `(${ volume }${ this.operator }${ stride })`;
-
-        const subBox = extantBoxes.getBox( [ volume ] );
-
-        // may get replaced by equivalent box action
-        const boxAction = new IndexCyclesAction(
-            subBox,
-            Math.round( Math.random() * 10000 + 1),
-            label,
-            {
-                cycles: cycles,
-                leftBases: [ 0 ],
-                rightBases: []
-            } );
-
-        boxAction.boxGroup = this.boxGroup;
-
-        this.boxGroup.registerCompositeAction( label, boxAction );
-
-        // make immediately available by label
-        params[ label ] = boxAction;
-
-        return boxAction;
     }
 
     toString() {
@@ -1033,20 +942,24 @@ class CyclesExtensionExpression extends OperatorExpression {
 
         if ( cyclesObject.literal ) {
             cyclesObject.multiplier = multiplier;
-            cyclesObject.multiplierBase = this.boxGroup.box.bases.indexOf( multiplier );
+            cyclesObject.multiplierBase = multiplier;
         } else {
             cyclesObject.multiplierBase = multiplier;
-            cyclesObject.multiplier = this.boxGroup.box.bases[ multiplier ];
+            cyclesObject.multiplier = multiplier;
         }
 
         cyclesObject.harmonic = ( this.operator == '~' );
 
         const leftFactor = cyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
         const rightFactor = cyclesObject.rightCoprimes.reduce( ( a, c ) => a * c, 1 );
+        const truncated = false;
 
-        const cycles = getCycles( [ leftFactor, rightFactor ], 1, false, false );
-
-        cyclesObject.cycles = expandCycles( cycles, cyclesObject.multiplier, cyclesObject.harmonic );
+        cyclesObject.cycles = getCycles(
+            [ leftFactor, rightFactor ],
+            cyclesObject.multiplier,
+            cyclesObject.harmonic,
+            truncated
+        );
 
         const leftLabel = cyclesObject.leftCoprimes.length > 1
             ? `(${ cyclesObject.leftCoprimes.join( ':' ) })`
@@ -1064,8 +977,12 @@ class CyclesExtensionExpression extends OperatorExpression {
                 cyclesObject.multiplier
             ]
             .filter( b => b > 1 );
+
+        cyclesObject.bases = boxBases;
+
         const volume = boxBases.reduce( (a,c) => a * c, 1 );
 
+        // TODO: global ref to extantBoxes
         const subBox = extantBoxes.getBox( boxBases );
 
         // may get replaced by equivalent box action
@@ -1075,9 +992,10 @@ class CyclesExtensionExpression extends OperatorExpression {
             label,
             cyclesObject );
 
-        boxAction.boxGroup = this.boxGroup;
-
-        this.boxGroup.registerCompositeAction( label, boxAction );
+        if ( this.boxGroup ) {
+            boxAction.boxGroup = this.boxGroup;
+            this.boxGroup.registerCompositeAction( label, boxAction );
+        }
 
         // make immediately available by label
         params[ boxAction.label ] = boxAction;
@@ -1243,3 +1161,19 @@ Formula.PowerExpression = PowerExpression;
 Formula.ValueExpression = ValueExpression;
 Formula.VariableExpression = VariableExpression;
 Formula.FunctionExpression = FunctionExpression;
+
+function evaluateFormulas( lines, param = {} ) {
+    return lines
+        .split( /[\n\r ]+/ )
+        .filter( line => line.length > 0 )
+        .filter( line => line[0] != '#' )
+        .map( line => new Formula( null, line ) )
+        .map( f => {
+            try {
+                return [ f, f.evaluate( param ) ];
+            } catch ( e ) {
+                consoleLog( e );
+                return [ f, e ];
+            }
+        } );
+}

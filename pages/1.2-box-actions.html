@@ -1,0 +1,153 @@
+<script>
+
+    pageScope.bases2d = [ 5, 3 ];
+    pageScope.orb2d = new Orbitation( pageScope.bases2d, {} );
+    pageScope.box2d = new BoxGroup( pageScope.bases2d, { toggles: [ 'all-indexes', 'all-layers' ] } );
+
+
+    pageScope.bases2dAlt = [ 2, 6 ];
+    pageScope.orb2dAlt = new Orbitation( pageScope.bases2dAlt, { truncated: false } );
+    pageScope.box2dAlt = new BoxGroup( pageScope.bases2dAlt, { toggles: [ 'all-indexes', 'all-layers' ] } );
+
+    pageScope.e_0_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'e_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0 = pageScope
+        .box2d
+        .findActionByLabel( 'z_0' );
+
+    pageScope.z_0i = pageScope
+        .box2d
+        .findActionByLabel( 'z_0i' );
+
+
+    pageScope.z_0_cycles = pageScope.z_0
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.z_0i_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'z_0i' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+</script>
+
+<script>
+    pageScope.cyclesView = {};
+    pageScope.cyclesView[ 'default' ] = { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+    pageScope.cyclesView[ 'resizable' ] = { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
+
+    pageScope.cyclesView[ 'short' ] = { width: '100%', height: '100%', orientation: '1 0 0 -1.6', position: '0 3.5 0' };
+
+    pageScope.cyclesView[ 'table' ] = { width: '150px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' };
+
+    pageScope.x3dCycles = ( cycles, param, x3dParam = pageScope.cyclesView[ 'default' ] ) => buildX3DomRootNode( getCyclesDiagram( cycles, param ), x3dParam );
+
+
+    pageScope.pointsView = {};
+    pageScope.pointsView[ 'default' ] = { width: '100%', height: '90%', position: '1 0.5 6' };
+    pageScope.pointsView[ 'resizable' ] = { width: '100%', height: '90%', position: '1 0.5 7' };
+    pageScope.pointsView[ 'fixed' ] = { width: '400px', height: '250px' };
+
+    pageScope.x3dPoints = ( action, param, x3dParam = pageScope.pointsView[ 'default' ] ) => buildX3DomRootNode( getPointsDiagram( action, param ), x3dParam );
+</script>
+
+<hr/>
+
+<h2 class="pagebreak">Box Actions</h2>
+
+<script>
+    pageScope.d2_z_0_cycles = pageScope
+        .box2d
+        .findActionByLabel( 'z_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+
+    pageScope.d2Alt_z_0_cycles = pageScope
+        .box2dAlt
+        .findActionByLabel( 'z_0' )
+        .getCycles()
+        .map( cycle => cycle.map( point => point.id ) );
+</script>
+
+A box action is a cycles expression of indexed points from the box,
+produced by comparing two specifications of the box,
+that can be applied to any collection of points from the box
+to swap them about.
+<br/>
+<br/>
+
+For any two dimensional box there is only one pair of distinct mutually inverse actions:
+<br/>
+<br/>
+For example:
+<table class="generalization-table">
+    <tr>
+        <th>Box</th>
+        <th>Comparison</th>
+        <th>Cycles</th>
+        <th>Radiance</th>
+    </tr>
+    <tr>
+        <td>
+            <span class="eval" title="pageScope.orb2d.specification()"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="compareBoxSpecificationsTable(
+                pageScope.bases2d,
+                true,
+                0
+            )"></span>
+        </td>
+        <td>
+            <span class="eval" title="pageScope
+                .d2_z_0_cycles
+                .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+                .join( ' ' )"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="pageScope
+                .x3dCycles( pageScope.d2_z_0_cycles, pageScope.cyclesView[ 'table' ] )"></span>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span class="eval" title="pageScope.orb2dAlt.specification()"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="compareBoxSpecificationsTable(
+                pageScope.bases2dAlt,
+                true,
+                0
+            )"></span>
+        </td>
+        <td>
+            <span class="eval" title="pageScope
+                .d2Alt_z_0_cycles
+                .map( cycle => `( ${ cycle.join( ' ' ) } )` )
+                .join( ' ' )"></span>
+        </td>
+        <td>
+            <span class="evalNode" title="pageScope
+                .x3dCycles( pageScope.d2Alt_z_0_cycles, pageScope.cyclesView[ 'table' ] )"></span>
+        </td>
+    </tr>
+</table>
+
+<br/>
+<br/>
+
+Noting that both the origin and terminal points are always fixed points,
+and on discarding the terminal point (i.e. truncating the box),
+the actions exactly match corresponding elements in
+the multiplicative group modulo <code>11</code>
+(the volume of the box minus 1).
+<br/>
+<br/>
+<span class="evalNode" title="pageScope.orb2d.htmlTable( [] )"></span>
+
+
+

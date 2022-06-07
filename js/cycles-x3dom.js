@@ -70,8 +70,7 @@ function getCyclesDiagram( cycles, param = {} ) {
 
 
     // ORBITS
-    cycles
-        .filter( cycle => cycle.length > 1 )
+    orbits
         .map( ( cycle, cycleIndex ) => reify( "transform", { "translation": `0 0 ${ zOff * cycleIndex }` },
                 [
                     ...cycle

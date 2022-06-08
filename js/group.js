@@ -237,16 +237,16 @@ class CompositionAction extends CompositeAction {
     indexPointFromCycles( point ) {
         var cycle = this
             .cycles
-            .find( c => Number.isInteger( c.find( c0 => c0 == point.id ) ) );
+            .find( c => c.find( c0 => c0 == point ) );
 
         if ( !cycle || cycle.length == 0 ) {
             throw new Error( `No cycle for point: ${ point.id } = ${ point }` );
         }
 
-        const nextIndex = ( 1 + cycle.indexOf( point.id) ) % cycle.length;
-        const nextId = cycle[ nextIndex ];
+        const nextIndex = ( 1 + cycle.indexOf( point ) ) % cycle.length;
+        const nextPoint = cycle[ nextIndex ];
 
-        const endPoint = this.box.points.find( p => p.id == nextId );
+        const endPoint = this.box.points.find( p => p == nextPoint );
 
         // using common ids from leftAction
         const id = point.at( this.leftAction.key ).id;
@@ -337,12 +337,16 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     indexPoints( pair, cyclesObject ) {
+        const coordMap = cyclesObject.harmonic
+            ? pair.permPair[1]
+            : pair.permPair[0];
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle
                 .map( ( c, i ) => Number.isInteger( c )
                     ? [ c, cycle[ ( 1 + i ) % cycle.length, [] ] ]
                     : [ c.id, c.di, c.coord ] )
+                .map( ( [ id, di, coord ] ) => [ id, di, coordMap.map( b => coord[b] )  ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
     }
 

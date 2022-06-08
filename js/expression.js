@@ -838,6 +838,7 @@ class OperatorExpression extends Expression {
 */
         const alias = CompositionAction.compositeLabel( leftAction, rightAction );
 
+/*
         if ( this.boxGroup ) {
             const boxAction = this.boxGroup.findActionByAlias( alias );
             if ( boxAction ) {
@@ -848,7 +849,7 @@ class OperatorExpression extends Expression {
         if ( alias in params ) {
             return params[alias];
         }
-
+*/
         if ( leftAction.box != rightAction.box ) {
             throw new Error( `Cannot compose cycles from different boxes: ${ leftAction.box }, ${ rightAction.box }` );
         }
@@ -1164,7 +1165,8 @@ Formula.FunctionExpression = FunctionExpression;
 
 function evaluateFormulas( lines, param = {} ) {
     return lines
-        .split( /[\n\r ]+/ )
+        .split( /[\n\r]+/ )
+        .map( line => line.trim() )
         .filter( line => line.length > 0 )
         .filter( line => line[0] != '#' )
         .map( line => new Formula( null, line ) )

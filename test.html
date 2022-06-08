@@ -97,13 +97,13 @@
                     return reify(
                         "div",
                         {},
-                        value.map( result => result[1] instanceof IndexCyclesAction
+                        value.map( result => result[1] instanceof BoxAction
                             ? reify( "div", {}, [
                                 reifyText( result[0].toString() ),
                                 result[1].htmlTable(),
                                 cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
                                         buildX3DomRootNode(
-                                            getCyclesDiagram( result[1].getCycles() ),
+                                            getCyclesDiagram( result[1].getCycleIndexes() ),
                                             cyclesView[ 'default' ]
                                         )
                                     ] ) : null,

@@ -84,9 +84,13 @@ class ExtantBoxes {
         this.boxes = [];
     }
     getBox( bases ) {
-        var box = this.boxes.find( box => arrayExactlyEquals( box.bases, bases ) );
+
+        const canonicalBases = [...bases]
+        canonicalBases.sort();
+
+        var box = this.boxes.find( box => arrayExactlyEquals( box.bases, canonicalBases ) );
         if ( !box ) {
-            box = new PermBox( bases );
+            box = new PermBox( canonicalBases );
             this.boxes.push( box );
         }
         return box;
@@ -238,7 +242,13 @@ class PermBox extends Box {
     }
 
     getPermVector( permKey ) {
-        const permId = permKey.map( k => this.bases.indexOf( k ) )
+        // account for duplicate bases: first come first served
+        const tally = [...this.bases];
+        const permId = permKey.map( k => {
+            const b = tally.indexOf( k )
+            tally[b] = -1;
+            return b;
+        } );
         return this.placeValuePermutations
             .map( pvp => arrayExactlyEquals( permId, pvp.perm )
                   ? [ pvp, false ]
@@ -430,10 +440,17 @@ class BoxAction {
         this.orbits = [];
     }
 
-    getCycles() {
+    getCycleIndexes() {
         return [
             ...this.identities.map( o => o.points.map( p => p.at( this.key ).id ) ),
             ...this.orbits.map( o => o.points.map( p => p.at( this.key ).id ) )
+        ];
+    }
+
+    getCycles() {
+        return [
+            ...this.identities.map( o => o.points ),
+            ...this.orbits.map( o => o.points )
         ];
     }
 

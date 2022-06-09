@@ -313,9 +313,12 @@ class IndexCyclesAction extends CompositeAction {
             ? [ [ m, r, l ], [ m, l, r ] ]
             : [ [ r, l, m ], [ l, r, m ] ];
 
+        const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
+        const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
+
         const [ leftPerm, rightPerm ] = [
-            this.box.getPermVector( leftPermKey.filter( b => b > 1 ) ),
-            this.box.getPermVector( rightPermKey.filter( b => b > 1 ) )
+            this.box.getPermVector( leftPermBases ),
+            this.box.getPermVector( rightPermBases )
         ];
 
         if ( !leftPerm ) {
@@ -338,15 +341,16 @@ class IndexCyclesAction extends CompositeAction {
 
     indexPoints( pair, cyclesObject ) {
         const coordMap = cyclesObject.harmonic
-            ? pair.permPair[1]
-            : pair.permPair[0];
+            ? [...pair.permPair[1]]
+            : [...pair.permPair[0]];
+        //coordMap.reverse();
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle
                 .map( ( c, i ) => Number.isInteger( c )
                     ? [ c, cycle[ ( 1 + i ) % cycle.length, [] ] ]
                     : [ c.id, c.di, c.coord ] )
-                .map( ( [ id, di, coord ] ) => [ id, di, coordMap.map( b => coord[b] )  ] )
+                //.map( ( [ id, di, coord ] ) => [ id, di, coordMap.map( b => coord[b] )  ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
     }
 

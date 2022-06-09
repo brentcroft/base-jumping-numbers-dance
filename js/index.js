@@ -241,18 +241,21 @@ class PermBox extends Box {
             .filter( ( _, i ) => i < this.bases.length );
     }
 
-    getPermVector( permKey ) {
+    getBasePerm( bases ) {
         // account for duplicate bases: first come first served
         const tally = [...this.bases];
-        const permId = permKey.map( k => {
+        return bases.map( k => {
             const b = tally.indexOf( k )
             tally[b] = -1;
             return b;
         } );
+    }
+
+    getPermVector( basePerm ) {
         return this.placeValuePermutations
-            .map( pvp => arrayExactlyEquals( permId, pvp.perm )
+            .map( pvp => arrayExactlyEquals( basePerm, pvp.perm )
                   ? [ pvp, false ]
-                  : arrayExactlyEquals( permId, pvp.antiPerm )
+                  : arrayExactlyEquals( basePerm, pvp.antiPerm )
                       ? [ pvp, true ]
                       : null )
             .find( x => x );

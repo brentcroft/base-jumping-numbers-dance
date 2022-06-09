@@ -26,7 +26,7 @@ toggleKeys = {
     degenerates: 1,
     radiance: 0,
 
-    indexComposer: 1,
+    indexComposer: 0,
     autoCompose: 1,
 
     compositionRules: 1,

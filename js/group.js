@@ -287,8 +287,8 @@ class CompositionAction extends CompositeAction {
 
 class IndexCyclesAction extends CompositeAction {
 
-    constructor( box, id = 0, label, cyclesObject ) {
-        super( box, id, null, null );
+    constructor( id = 0, label, cyclesObject ) {
+        super( extantBoxes.getBox( cyclesObject.bases ), id, null, null );
         this.structure = {
             leftBases: cyclesObject.leftBases,
             rightBases: cyclesObject.rightBases,
@@ -300,14 +300,20 @@ class IndexCyclesAction extends CompositeAction {
         this.harmonic = cyclesObject.harmonic;
         this.label = label;
         this.symbols = [ this.pair.symbol ];
-        this.indexPoints( this.pair, cyclesObject );
-        this.initialise();
 
-        //consoleLog( `${ label } = ${ pair.symbol } = ${ pair }` );
+        this.badCoords = false;
+        this.indexPoints( this.pair, cyclesObject );
+
+        if ( this.badCoords ) {
+            consoleLog( `${ this.badCoords ? 'Bad [' + this.badCoords[2] + ']' : 'Good' } Coords : ` +  this.buildReport )
+            consoleLog( `  box point ${ this.badCoords[0] } != ${ this.badCoords[1] }` );
+        }
+
+        this.initialise();
     }
 
     getPlaceValuesPermutationPair( cyclesObject ) {
-        const [ l, r, m = 1 ] = cyclesObject.bases
+        const [ l, r, m = 1 ] = cyclesObject.bases;
 
         const [ leftPermKey, rightPermKey ] = cyclesObject.harmonic
             ? [ [ m, r, l ], [ m, l, r ] ]
@@ -327,12 +333,17 @@ class IndexCyclesAction extends CompositeAction {
             throw new Error( `No rightPerm found for: ${ rightPermKey } [${ cyclesObject.bases }]`);
         }
 
+        this.buildReport = `coordBases: ${ cyclesObject.bases }: ` +
+            `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +
+            `${ rightPerm[0].symbol }${ arrowUp( rightPerm[1] ) }` +
+            `${ cyclesObject.harmonic ? ' harmonic' : '' }`;
+
         return new PlaceValuesPermutationPair( null, this.box.bases,
             leftPerm[0], rightPerm[0],
             [
                 leftPerm[1],
                 rightPerm[1],
-                `${ leftPerm[1].leftState ? 'U' : 'D' }${ rightPerm[1].rightState ? 'U' : 'D' }`
+                `${ leftPerm[1] ? 'U' : 'D' }${ rightPerm[1] ? 'U' : 'D' }`
             ],
             null,
             cyclesObject.harmonic
@@ -340,17 +351,12 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     indexPoints( pair, cyclesObject ) {
-        const coordMap = cyclesObject.harmonic
-            ? [...pair.permPair[1]]
-            : [...pair.permPair[0]];
-        //coordMap.reverse();
         this.cycles = cyclesObject
             .cycles
             .map( cycle => cycle
                 .map( ( c, i ) => Number.isInteger( c )
                     ? [ c, cycle[ ( 1 + i ) % cycle.length, [] ] ]
                     : [ c.id, c.di, c.coord ] )
-                //.map( ( [ id, di, coord ] ) => [ id, di, coordMap.map( b => coord[b] )  ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
     }
 
@@ -362,10 +368,10 @@ class IndexCyclesAction extends CompositeAction {
         }
         const partnerId = ( this.box.volume - id - 1 );
 
-        const reportBadCoords = true;
-        if ( reportBadCoords && coord && !arrayExactlyEquals( coord, point.coord ) ) {
-            const msg = `Matched point ${ point } has wrong coord; expected ${ coord }`;
-            consoleLog( msg );
+        if ( coord && !arrayExactlyEquals( coord, point.coord ) ) {
+            if ( coord.length > 1 && coord[0] != coord[1] && coord[1] != coord[2] && coord[2] != coord[0] ) {
+                this.badCoords = [ point, coord, this.badCoords ? this.badCoords[2] + 1 : 1 ];
+            }
             //throw new Error( msg );
         }
 

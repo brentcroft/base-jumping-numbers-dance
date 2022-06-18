@@ -864,7 +864,9 @@ class OperatorExpression extends Expression {
             rightAction,
             true );
 
-        //this.extantBoxes.registerCompositeAction( alias, boxAction );
+        if ( this.boxGroup ) {
+            this.boxGroup.registerCompositeAction( alias, boxAction );
+        }
 
         // make immediately available by label
         params[ boxAction.label ] = boxAction;
@@ -887,15 +889,12 @@ class LiteralCyclesExpression extends OperatorExpression {
         var leftCoprimes = this.left.evaluate( params );
         var rightCoprimes = this.right.evaluate( params );
 
-        const allowNonBaseFactor = true;
-
         if ( Number.isInteger( leftCoprimes ) ) {
             leftCoprimes = [ leftCoprimes ];
         } else {
             if ( !leftCoprimes.leftCoprimes ) {
                 throw new Error( `Invalid left argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
             }
-            // todo: check losing info
             leftCoprimes = [ ...leftCoprimes.leftCoprimes, ...leftCoprimes.rightCoprimes ];
         }
 
@@ -905,7 +904,6 @@ class LiteralCyclesExpression extends OperatorExpression {
             if ( !rightCoprimes.leftCoprimes ) {
                 throw new Error( `Invalid right argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
             }
-            // todo: check losing info
             rightCoprimes = [ ...rightCoprimes.leftCoprimes, ...rightCoprimes.rightCoprimes ];
         }
 
@@ -949,6 +947,23 @@ class CyclesExtensionExpression extends OperatorExpression {
             cyclesObject.multiplier = multiplier;
         }
 
+        const leftLabel = cyclesObject.leftCoprimes.length > 1
+            ? `(${ cyclesObject.leftCoprimes.join( ':' ) })`
+            : `${ cyclesObject.leftCoprimes.length > 0 ? cyclesObject.leftCoprimes[0] : '1' }`;
+
+        const rightLabel = cyclesObject.rightCoprimes.length > 1
+            ? `(${ cyclesObject.rightCoprimes.join( ':' ) })`
+            : `${ cyclesObject.rightCoprimes.length > 0 ? cyclesObject.rightCoprimes[0] : '1' }`;
+
+        const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ cyclesObject.multiplier })`;
+
+        cyclesObject.bases = [
+                ...cyclesObject.leftCoprimes,
+                ...cyclesObject.rightCoprimes,
+                cyclesObject.multiplier
+            ]
+            .filter( b => b > 1 );
+
         cyclesObject.harmonic = ( this.operator == '~' );
 
         const leftFactor = cyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
@@ -962,33 +977,7 @@ class CyclesExtensionExpression extends OperatorExpression {
             truncated
         );
 
-        const leftLabel = cyclesObject.leftCoprimes.length > 1
-            ? `(${ cyclesObject.leftCoprimes.join( ':' ) })`
-            : `${ cyclesObject.leftCoprimes.length > 0 ? cyclesObject.leftCoprimes[0] : '1' }`;
-
-        const rightLabel = cyclesObject.rightCoprimes.length > 1
-            ? `(${ cyclesObject.rightCoprimes.join( ':' ) })`
-            : `${ cyclesObject.rightCoprimes.length > 0 ? cyclesObject.rightCoprimes[0] : '1' }`;
-
-        const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ cyclesObject.multiplier })`;
-
-        const boxBases = [
-                ...cyclesObject.leftCoprimes,
-                ...cyclesObject.rightCoprimes,
-                cyclesObject.multiplier
-            ]
-            .filter( b => b > 1 );
-
-        cyclesObject.bases = boxBases;
-
-        const volume = boxBases.reduce( (a,c) => a * c, 1 );
-
-        // TODO: global ref to extantBoxes
-        const subBox = extantBoxes.getBox( boxBases );
-
-        // may get replaced by equivalent box action
         const boxAction = new IndexCyclesAction(
-            subBox,
             Math.round( Math.random() * 10000 + 1),
             label,
             cyclesObject );

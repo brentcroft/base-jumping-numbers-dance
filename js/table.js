@@ -114,8 +114,8 @@ function sortTable( tableId, columnIndex, isNumber = false, isFraction = false, 
       y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
 
       if (y && !y.classList.contains("sum-total") ) {
-          var xT = x ? x.innerHTML : null;
-          var yT = y ? y.innerHTML : null;
+          var xT = x ? x.innerText : null;
+          var yT = y ? y.innerText : null;
 
           if ( xT && yT ) {
               xT = xT.toLowerCase();

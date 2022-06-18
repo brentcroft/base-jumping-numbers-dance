@@ -173,12 +173,29 @@ function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
     }
 }
 
+function normaliseCoordinates( cycles, bases ) {
+    const canonicalBases = [...bases]
+    canonicalBases.sort();
+    const perm = canonicalBases.map( b => bases.indexOf( b ) );
+    const transformCoord = ( coord ) => perm.map( p => coord[ p ] );
+    cycles
+        .forEach( cycle => cycle
+            .forEach ( point => {
+                const newCoord = transformCoord( point.coord );
+                point.coord = newCoord;
+            }) )
+}
+
 function getCycles( factors, copies = 1, harmonic = false, truncated = true ) {
     const [ coprime, cofactor ] = factors;
     const volume = factors.reduce( ( a, c ) => a * c, 1 );
     const terminal = volume - 1;
     const cycles = getMultiplicativeGroupMember( terminal, coprime, truncated );
-    return expandCycles( cycles, copies, harmonic );
+    const expandedCycles = expandCycles( cycles, copies, harmonic );
+
+    normaliseCoordinates( expandedCycles, [ coprime, cofactor,  copies ] );
+
+    return expandedCycles;
 }
 
 function isCycles( value ) {

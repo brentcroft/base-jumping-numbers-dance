@@ -211,7 +211,7 @@ class PermBox extends Box {
 
     buildPoints( place = 0, locusStack = [], points = [] ) {
         if ( place == this.rank ) {
-            const point = new Point( points.length, locusStack, this.centre );
+            const point = new Point( points.length, [...locusStack], this.centre );
             points.push( point );
         } else {
             for ( var i = 0; i < this.bases[place]; i++) {

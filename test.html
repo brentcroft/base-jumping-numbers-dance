@@ -80,7 +80,7 @@
 
                     const bases = firstElement[1].box.bases;
                     const volume = firstElement[1].box.volume;
-                    console.log( `bases: ${ bases }` );
+                    //console.log( `bases: ${ bases }` );
 
                     const adjust = bases.slice( 0, 2 ).map( b => b - 1 ).join( ' ' )
                     const backOff = ( volume + 5 ) / bases.slice( -1 )[0];
@@ -89,7 +89,7 @@
                         'default': { width: '100%', height: '100%', position: `${ adjust } ${ backOff }` }
                     };
 
-                    console.log( `position: ${ pointsView['default'].position }` );
+                    //console.log( `position: ${ pointsView['default'].position }` );
 
                     const cyclesDiagram = document.getElementById( 'cyclesDiagramToggle' ).checked;
                     const pointsDiagram = document.getElementById( 'pointsDiagramToggle' ).checked;

@@ -131,11 +131,15 @@
 
             <label title="include inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
             <label title="include harmonics">harmonics<input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
-            <label title="include degenerates">degenerates<input type="checkbox" id="degeneratesToggle" onchange="updatePage()"/></label> |
+            <label title="display column selection panel">columns<input type="checkbox" id="actionsColumnsToggle" onchange="showHideAll( ['actionsColumns'], this )"/></label> |
             <label title="generate radiance index">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
             <label title="display filter panel">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
             <label title="display composer panel">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label>
+
+            <div id="actionsColumns" style="display: none"></div>
         </div>
+
+
 
         <div id="monomialFilterControls" style="display: none" class="summaryLeft">
             Filter:

@@ -100,7 +100,9 @@
                         value.map( result => result[1] instanceof BoxAction
                             ? reify( "div", {}, [
                                 reifyText( result[0].toString() ),
-                                result[1].htmlTable(),
+                                reifyText( ' &rarr; ' ),
+                                result[1].htmlCycleIndexMonomial(),
+                                result[1].htmlTable( { 'caption': `Cycles: ${ result[0].toString() }` } ),
                                 cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
                                         buildX3DomRootNode(
                                             getCyclesDiagram( result[1].getCycleIndexes() ),

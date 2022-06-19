@@ -635,6 +635,40 @@ function buildOctahedralNavigator( boxGroup, param ) {
     }
 }
 
+function buildActionTableColumns( containerId) {
+    const target = document.getElementById( containerId );
+    target.innerText = '';
+    target.appendChild( reify( 'hr' ) );
+    Object
+        .entries( tableKeys )
+        //.filter( ([k,v]) => v == 1 )
+        .map( ([k,v]) => reify( 'label', {}, [
+            reifyText( k ),
+            reify(
+                'input',
+                {
+                    'type': 'checkbox',
+                    ...( v == 1 ? { 'checked': 'checked' } : {} )
+                },
+                [],
+                [
+                    input => input.onclick = () => {
+                        tableKeys[k] = input.checked ? 1 : 0;
+                        updatePage();
+                    }
+                ]
+            )
+        ] ) )
+        .forEach( label => {
+                target.appendChild( label );
+                target.appendChild( reifyText( " | " ) );
+            }
+        );
+
+    target.appendChild( reify( 'br' ) );
+}
+
+
 function getIndexedBox() {
     return indexedBox;
 }
@@ -671,6 +705,9 @@ function updatePage() {
     buildBoxLayersSelectors( indexedBox, param, "boxLayerFilterSelectors", true );
 
     buildCompositionSelectors( indexedBox, param );
+
+    buildActionTableColumns( 'actionsColumns' );
+
     rebuildIndexedBoxSummary( indexedBox, param );
 
     selectBoxAction();
@@ -739,6 +776,10 @@ function initPage( urlParam = true ) {
     if ( param.toggles.includes( 'colours' ) ) {
         showHideAll( ['colours'] );
     }
+    if ( param.toggles.includes( 'actionsColumns' ) ) {
+        showHideAll( [ 'actionsColumns' ] );
+    }
+
     if ( param.toggles.includes( 'products' ) ) {
         showHideAll( ['productsTable'] );
     }

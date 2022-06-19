@@ -606,22 +606,10 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
-    const optionalColumns = [ "stats", "monomial", "composition" ];
-
-    if ( toggles.includes( "minCols" ) ) {
-        optionalColumns.pop();
-        optionalColumns.pop();
-    }
-    if ( toggles.includes( "medCols" ) ) {
-        optionalColumns.pop();
-        optionalColumns.pop();
-        optionalColumns.pop();
-        optionalColumns.pop();
-        optionalColumns.push( "composition", "stats", "permutation-pair" );
-    }
-    if ( toggles.includes( "maxCols" ) ) {
-        optionalColumns.push( "permutation-pair", "place-values-pair", "identity-equation" );
-    }
+    const optionalColumns = Object
+        .entries( tableKeys )
+        .filter( ([k,v]) => v == 1 )
+        .map( ([k,v]) => k );
 
     const sep = ", ";
     const tableId = 'indexSummary_table';
@@ -648,7 +636,7 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
         dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Identity Surface</th>`;
     }
     if ( optionalColumns.includes( "monomial" ) ) {
-        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Cycle Monomial</th>`;
+        dataHtml += `<th onclick='sortTable( "${ tableId }", ${ columnId++ }, true )'>Monomial</th>`;
     }
 
     if ( optionalColumns.includes(  "stats" ) ) {

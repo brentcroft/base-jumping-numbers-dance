@@ -1,3 +1,12 @@
+tableKeys = {
+    "composition": 1,
+    "permutation-pair": 0,
+    "place-values-pair": 0,
+    "identity-equation": 0,
+    "monomial": 1,
+    "stats": 1,
+};
+
 //
 toggleKeys = {
 
@@ -12,18 +21,14 @@ toggleKeys = {
     fixedRad: 1,
     colours: 0,
 
-    minCols: 1,
-    medCols: 1,
-    maxCols: 0,
-
-
     monomialFilter: 1,
     boxActionNavigator: 0,
     boxActionZoom: 0,
 
     inverses: 1,
     harmonics: 1,
-    degenerates: 1,
+    //degenerates: 1,
+    actionsColumns: 0,
     radiance: 0,
 
     indexComposer: 0,
@@ -52,4 +57,4 @@ toggleKeys = {
     productBlankIdentity: 1,
     productCommuteIdentity: 1,
     multi: 0
-}
+};

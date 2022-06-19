@@ -1054,9 +1054,32 @@ class BoxAction {
         return this.grossIndexRadiance() - this.grossIndexPerimeter();
     }
 
+
+    htmlCycleIndexMonomial() {
+        return reify( "span", { 'class': 'monomial' }, [
+            ...( this.identities
+                ? [
+                    reify( "code", {}, [ reifyText( "e" ) ] ),
+                    reify( "sup", {}, [ reifyText( `${ this.identities.length }` ) ] ),
+                  ]
+                : [] ),
+            ...( this.cycleIndexMonomial
+                ? Object
+                    .entries( this.cycleIndexMonomial )
+                    .filter( ( [ k, e ] ) => k > 1 )
+                    .flatMap( ( [ k, e ] ) => [
+                        reify( "i", {}, [ reifyText( "a" ) ] ),
+                        reify( "sup", {}, [ reifyText( `${ e }` ) ] ),
+                        reify( "sub", { 'style': 'position: relative; left: -.5em;'}, [ reifyText( `${ k }` ) ] )
+                    ] )
+                : [] )
+        ] );
+    }
+
+
     htmlTable( param = {} ) {
 
-        const { tableId = `action-orbits-${ this.id }` } = param;
+        const { tableId = `action-orbits-${ this.id }`, caption = 'Cycles' } = param;
 
         const volume = this.box.volume;
         const maxIndex = volume - 1;
@@ -1103,7 +1126,7 @@ class BoxAction {
             "table",
              { 'cssClass': [ 'box-action' ] },
              [
-                reify( "caption", {}, [ reifyText( "Cycles" ) ] ),
+                reify( "caption", {}, [ reifyText( caption ) ] ),
                 reify( "tr", {}, headerRow.map( ( h, colIndex ) => reify( "th", {}, [ reifyText( h[0] ) ] ) ) ),
                 reify( "tr", {}, identityRow.map( ir => reify( "td", {}, [ reifyText( ir[0] ) ] ) ) ),
                 ...this.orbits.map( ( orbit, i ) => reify(

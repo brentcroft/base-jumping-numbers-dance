@@ -203,7 +203,10 @@ class PermBox extends Box {
         this.permCount = this.placeValuePermutations.length;
         this.pairCount = this.permCount  * (this.permCount - 1);
 
+        const coordPerm = canonicalCoordinateMap( this.bases );
+
         this.postProcessPoints( point => {
+            point.coord = coordPerm.map( p => point.coord[ p ] );
             this.placeValuePermutations.forEach( perm => perm.indexPoint( point ) );
         } );
     }
@@ -221,24 +224,6 @@ class PermBox extends Box {
             }
         }
         return points;
-    }
-
-    getPointAtCoord( coord ) {
-        return this.points.find( point => arrayExactlyEquals( coord, point.coord ) );
-    }
-
-    getPermKey( key ) {
-        // allocate and consume duplicate bases
-        const tally = {};
-        return key
-            .map( k => {
-                const fromIndex = ( k in tally )
-                    ? tally[ k ] + 1
-                    : 0;
-                tally[ k ] = this.bases.indexOf( k, fromIndex );
-                return tally[ k ];
-            } )
-            .filter( ( _, i ) => i < this.bases.length );
     }
 
     getBasePerm( bases ) {
@@ -691,6 +676,7 @@ class BoxAction {
             if ( tally[ i ]!= -1 ) {
                 const orbitId = this.orbits.length + 1;
 
+                //var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
                 var orbit = new Orbit( this, orbitId, extractOrbitCoordsAndTally( orbitId, i, this.idx, tally ) );
 
                 var identitiesTransposition = false;
@@ -1056,6 +1042,9 @@ class BoxAction {
 
 
     htmlCycleIndexMonomial() {
+        if ( this.cycles ) {
+            return this.cycles.htmlMonomial();
+        }
         return reify( "span", { 'class': 'monomial' }, [
             ...( this.identities
                 ? [

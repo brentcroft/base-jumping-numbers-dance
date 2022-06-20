@@ -287,22 +287,14 @@ class CompositionAction extends CompositeAction {
 
 class IndexCyclesAction extends CompositeAction {
 
-    constructor( id = 0, label, cyclesObject ) {
-        super( extantBoxes.getBox( cyclesObject.bases ), id, null, null );
-        this.structure = {
-            leftBases: cyclesObject.leftBases,
-            rightBases: cyclesObject.rightBases,
-            multiplierBases: [ cyclesObject.multiplierBase ],
-            harmonic: cyclesObject.harmonic
-        }
-        this.cyclesObject = cyclesObject;
-        this.pair = this.getPlaceValuesPermutationPair( cyclesObject );
-        this.harmonic = cyclesObject.harmonic;
+    constructor( id = 0, label, cycles, harmonic = false ) {
+        super( extantBoxes.getBox( cycles.getBases() ), id, null, null );
+        this.pair = this.getPlaceValuesPermutationPair( cycles, harmonic );
         this.label = label;
         this.symbols = [ this.pair.symbol ];
 
         this.badCoords = false;
-        this.indexPoints( this.pair, cyclesObject );
+        this.indexPoints( this.pair, cycles, harmonic );
 
         if ( this.badCoords ) {
             consoleLog( `${ this.badCoords ? 'Bad [' + this.badCoords[2] + ']' : 'Good' } Coords : ` +  this.buildReport )
@@ -312,10 +304,10 @@ class IndexCyclesAction extends CompositeAction {
         this.initialise();
     }
 
-    getPlaceValuesPermutationPair( cyclesObject ) {
-        const [ l, r, m = 1 ] = cyclesObject.bases;
+    getPlaceValuesPermutationPair( cycles, harmonic ) {
+        const [ l, r, m = 1 ] = cycles.getBases();
 
-        const [ leftPermKey, rightPermKey ] = cyclesObject.harmonic
+        const [ leftPermKey, rightPermKey ] = harmonic
             ? [ [ m, r, l ], [ m, l, r ] ]
             : [ [ r, l, m ], [ l, r, m ] ];
 
@@ -328,15 +320,15 @@ class IndexCyclesAction extends CompositeAction {
         ];
 
         if ( !leftPerm ) {
-            throw new Error( `No leftPerm found for: ${ leftPermKey } [${ cyclesObject.bases }]`);
+            throw new Error( `No leftPerm found for: ${ leftPermKey } [${ cycles.getBases() }]`);
         } else if ( !rightPerm ) {
-            throw new Error( `No rightPerm found for: ${ rightPermKey } [${ cyclesObject.bases }]`);
+            throw new Error( `No rightPerm found for: ${ rightPermKey } [${ cycles.getBases() }]`);
         }
 
-        this.buildReport = `coordBases: ${ cyclesObject.bases }: ` +
+        this.buildReport = `coordBases: ${ cycles.getBases() }: ` +
             `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +
             `${ rightPerm[0].symbol }${ arrowUp( rightPerm[1] ) }` +
-            `${ cyclesObject.harmonic ? ' harmonic' : '' }`;
+            `${ harmonic ? ' harmonic' : '' }`;
 
         return new PlaceValuesPermutationPair( null, this.box.bases,
             leftPerm[0], rightPerm[0],
@@ -346,17 +338,16 @@ class IndexCyclesAction extends CompositeAction {
                 `${ leftPerm[1] ? 'U' : 'D' }${ rightPerm[1] ? 'U' : 'D' }`
             ],
             null,
-            cyclesObject.harmonic
+            harmonic
         );
     }
 
-    indexPoints( pair, cyclesObject ) {
-        this.cycles = cyclesObject
-            .cycles
+    indexPoints( pair, cycles ) {
+        const perm = canonicalCoordinateMap( cycles.getBases() );
+        const transformToBoxCoord = ( coord ) => perm.map( p => coord[ p ] );
+        this.cycles = cycles
             .map( cycle => cycle
-                .map( ( c, i ) => Number.isInteger( c )
-                    ? [ c, cycle[ ( 1 + i ) % cycle.length, [] ] ]
-                    : [ c.id, c.di, c.coord ] )
+                .map( ( c, i ) => [ c.id, c.di, transformToBoxCoord( c.coord ) ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
     }
 
@@ -369,7 +360,8 @@ class IndexCyclesAction extends CompositeAction {
         const partnerId = ( this.box.volume - id - 1 );
 
         if ( coord && !arrayExactlyEquals( coord, point.coord ) ) {
-            if ( coord.length > 1 && coord[0] != coord[1] && coord[1] != coord[2] && coord[2] != coord[0] ) {
+            const lbc = this.badCoords ? this.badCoords[1] : [ 0, 0, 0 ];
+            if ( coord.length > 1 && ( coord[0] >= lbc[0] && coord[1] >= lbc[1] && coord[2] >= lbc[2] ) ) {
                 this.badCoords = [ point, coord, this.badCoords ? this.badCoords[2] + 1 : 1 ];
             }
             //throw new Error( msg );

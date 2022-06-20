@@ -405,7 +405,7 @@ function processFormula( indexedBox, compositionFormulasText ) {
                     }
                 } );
 
-            const report = results.map( r => `${ r[0] } = ${ isCycles( r[1] ) ? formatCycles( r[1] ) : r[1] }` ).join( "\n" );
+            const report = results.map( r => `${ r[0] } = ${ isCycles( r[1] ) ? r[1].cycleNotation() : r[1] }` ).join( "\n" );
             document.getElementById( 'summaryEditorResult' ).innerHTML = `${ report }`;
 
         } catch ( e ) {
@@ -665,9 +665,34 @@ function buildActionTableColumns( containerId) {
             }
         );
 
-    target.appendChild( reify( 'br' ) );
+    target.appendChild( reify(
+        'a',
+        {},
+        [ reifyText( '(all)' ) ],
+        [
+            a => a.onclick = () => {
+                Object
+                    .keys( tableKeys )
+                    .forEach( k => tableKeys[k] = 1 );
+                updatePage();
+            }
+        ]
+    ) );
+    target.appendChild( reifyText( " | " ) );
+    target.appendChild( reify(
+        'a',
+        {},
+        [ reifyText( '(none)' ) ],
+        [
+            a => a.onclick = () => {
+                Object
+                    .keys( tableKeys )
+                    .forEach( k => tableKeys[k] = 0 );
+                updatePage();
+            }
+        ]
+    ) );
 }
-
 
 function getIndexedBox() {
     return indexedBox;

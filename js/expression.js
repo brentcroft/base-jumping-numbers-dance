@@ -907,16 +907,12 @@ class LiteralCyclesExpression extends OperatorExpression {
             rightCoprimes = [ ...rightCoprimes.leftCoprimes, ...rightCoprimes.rightCoprimes ];
         }
 
+        const bases = [ leftCoprimes.reduce( (a,c) => a * c, 1 ), rightCoprimes.reduce( (a,c) => a * c, 1 ) ];
+
         var leftBases = [...leftCoprimes];
         var rightBases = [...rightCoprimes];
 
-        return {
-            literal: true,
-            leftBases: leftBases,
-            leftCoprimes: leftCoprimes,
-            rightBases: rightBases,
-            rightCoprimes: rightCoprimes
-        };
+        return CyclesArray.getCycles( bases );
     }
 
     toString() {
@@ -924,63 +920,27 @@ class LiteralCyclesExpression extends OperatorExpression {
     }
 }
 
-
-
 class CyclesExtensionExpression extends OperatorExpression {
     constructor( operator, left, right, boxGroup ) {
         super( operator, left, right, boxGroup );
     }
 
     evaluate( params = {} ) {
-        const cyclesObject = this.left.evaluate(params);
+        const cycles = this.left.evaluate(params);
         const multiplier = this.right.evaluate(params);
 
         if ( !(Number.isInteger( multiplier ) ) ) {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
-        if ( cyclesObject.literal ) {
-            cyclesObject.multiplier = multiplier;
-            cyclesObject.multiplierBase = multiplier;
-        } else {
-            cyclesObject.multiplierBase = multiplier;
-            cyclesObject.multiplier = multiplier;
-        }
-
-        const leftLabel = cyclesObject.leftCoprimes.length > 1
-            ? `(${ cyclesObject.leftCoprimes.join( ':' ) })`
-            : `${ cyclesObject.leftCoprimes.length > 0 ? cyclesObject.leftCoprimes[0] : '1' }`;
-
-        const rightLabel = cyclesObject.rightCoprimes.length > 1
-            ? `(${ cyclesObject.rightCoprimes.join( ':' ) })`
-            : `${ cyclesObject.rightCoprimes.length > 0 ? cyclesObject.rightCoprimes[0] : '1' }`;
-
-        const label = `(${ leftLabel }:${ rightLabel }${ this.operator }${ cyclesObject.multiplier })`;
-
-        cyclesObject.bases = [
-                ...cyclesObject.leftCoprimes,
-                ...cyclesObject.rightCoprimes,
-                cyclesObject.multiplier
-            ]
-            .filter( b => b > 1 );
-
-        cyclesObject.harmonic = ( this.operator == '~' );
-
-        const leftFactor = cyclesObject.leftCoprimes.reduce( ( a, c ) => a * c, 1 );
-        const rightFactor = cyclesObject.rightCoprimes.reduce( ( a, c ) => a * c, 1 );
-        const truncated = false;
-
-        cyclesObject.cycles = getCycles(
-            [ leftFactor, rightFactor ],
-            cyclesObject.multiplier,
-            cyclesObject.harmonic,
-            truncated
-        );
+        const label = `(${ cycles.getBases().join(':') }${ this.operator }${ multiplier })`;
+        const harmonic = ( this.operator == '~' );
 
         const boxAction = new IndexCyclesAction(
             Math.round( Math.random() * 10000 + 1),
             label,
-            cyclesObject );
+            cycles.expand( multiplier, harmonic ),
+            harmonic );
 
         if ( this.boxGroup ) {
             boxAction.boxGroup = this.boxGroup;

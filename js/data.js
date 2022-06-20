@@ -78,6 +78,19 @@ function reifyText( text, cssClass = [] ) {
     return reify( "span", { 'cssClass': cssClass }, [], [ c => c.innerHTML = text ] );
 }
 
+function canonicalCoordinateMap( bases ) {
+    const canonicalBases = [ ...bases ];
+    canonicalBases.sort();
+    const tally = [ ...bases ];
+    return canonicalBases
+        .map( k => {
+            const b = tally.indexOf( k )
+            tally[b] = -1;
+            return b;
+        } );
+}
+
+
 /**
 
 */

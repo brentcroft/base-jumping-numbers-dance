@@ -42,7 +42,7 @@ toggleKeys = {
     alternatePerms: 1,
 
 
-    chart3d: 0,
+    chart3d: 1,
 
     centres: 1,
     lines: 1,

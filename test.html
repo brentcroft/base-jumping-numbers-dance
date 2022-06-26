@@ -73,7 +73,7 @@
             function decomposeArray( value ) {
                 const firstElement = value[ 0 ];
                 const isNested = Array.isArray( firstElement );
-                if ( isNested && firstElement[0] instanceof Formula && firstElement[1] instanceof BoxAction ) {
+                if ( isNested && firstElement[0] instanceof Formula ) {
 
                     const cyclesView = {};
                     cyclesView[ 'default' ] = { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' };
@@ -81,47 +81,82 @@
                     cyclesView[ 'short' ] = { width: '100%', height: '100%', orientation: '1 0 0 -1.6', position: '0 3.5 0' };
                     cyclesView[ 'table' ] = { width: '150px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' };
 
-                    const bases = firstElement[1].box.bases;
-                    const volume = firstElement[1].box.volume;
-                    //console.log( `bases: ${ bases }` );
-
-                    const adjust = bases.slice( 0, 2 ).map( b => b - 1 ).join( ' ' )
-                    const backOff = ( volume + 5 ) / bases.slice( -1 )[0];
-
-                    const pointsView = {
-                        'default': { width: '100%', height: '100%', position: `${ adjust } ${ backOff }` }
-                    };
-
-                    //console.log( `position: ${ pointsView['default'].position }` );
-
                     const cyclesDiagram = document.getElementById( 'cyclesDiagramToggle' ).checked;
                     const pointsDiagram = document.getElementById( 'pointsDiagramToggle' ).checked;
 
-                    return reify(
-                        "div",
-                        {},
-                        value.map( result => result[1] instanceof BoxAction
-                            ? reify( "div", {}, [
-                                reifyText( result[0].toString() ),
-                                reifyText( ' &rarr; ' ),
-                                result[1].htmlCycleIndexMonomial(),
-                                result[1].htmlTable( { 'caption': `Cycles: ${ result[0].toString() }` } ),
-                                cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
+                    if ( firstElement[1] instanceof BoxAction ) {
+                        const bases = firstElement[1].box.bases;
+                        const volume = firstElement[1].box.volume;
+
+                        const adjust = bases.slice( 0, 2 ).map( b => b - 1 ).join( ' ' )
+                        const backOff = ( volume + 5 ) / bases.slice( -1 )[0];
+
+                        const pointsView = {
+                            'default': { width: '100%', height: '100%', position: `${ adjust } ${ backOff }` }
+                        };
+
+                        return reify(
+                            "div",
+                            {},
+                            value.map( result => result[1] instanceof BoxAction
+                                ? reify( "div", {}, [
+                                    reifyText( result[0].toString() ),
+                                    reifyText( ' &rarr; ' ),
+                                    result[1].htmlCycleIndexMonomial(),
+                                    result[1].htmlTable( { 'caption': `Cycles: ${ result[0].toString() }` } ),
+                                    cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
+                                            buildX3DomRootNode(
+                                                getCyclesDiagram( result[1].getCycleIndexes() ),
+                                                cyclesView[ 'default' ]
+                                            )
+                                        ] ) : null,
+                                    pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
                                         buildX3DomRootNode(
-                                            getCyclesDiagram( result[1].getCycleIndexes() ),
-                                            cyclesView[ 'default' ]
+                                            getPointsDiagram( result[1], { toggles: [ 'lines' ] } ),
+                                            pointsView[ 'default' ]
                                         )
-                                    ] ) : null,
-                                pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
-                                    buildX3DomRootNode(
-                                        getPointsDiagram( result[1], { toggles: [ 'lines' ] } ),
-                                        pointsView[ 'default' ]
-                                    )
-                                ] ) : null
-                            ] )
-                            : reify( "div", {}, [ reifyText( result[1].toString() ) ] )
-                        )
-                    );
+                                    ] ) : null
+                                ] )
+                                : reify( "div", {}, [ reifyText( result[1].toString() ) ] )
+                            )
+                        );
+                    } else if ( firstElement[1] instanceof CyclesArray ) {
+                        const bases = firstElement[1].getBases();
+                        const volume = firstElement[1].getVolume();
+
+                        const adjust = bases.slice( 0, 2 ).map( b => b - 1 ).join( ' ' )
+                        const backOff = ( volume + 5 ) / bases.slice( -1 )[0];
+
+                        const pointsView = {
+                            'default': { width: '100%', height: '100%', position: `${ adjust } ${ backOff }` }
+                        };
+
+                        return reify(
+                            "div",
+                            {},
+                            value.map( result => result[1] instanceof CyclesArray
+                                ? reify( "div", {}, [
+                                    reifyText( result[0].toString() ),
+                                    reifyText( ' &rarr; ' ),
+                                    result[1].htmlMonomial(),
+                                    result[1].htmlTable( { 'caption': `Cycles: ${ result[0].toString() }` } ),
+                                    cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
+                                            buildX3DomRootNode(
+                                                getCyclesDiagram( result[1] ),
+                                                cyclesView[ 'default' ]
+                                            )
+                                        ] ) : null,
+                                    pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
+                                        buildX3DomRootNode(
+                                            getPointsDiagram2( result[1] ),
+                                            pointsView[ 'default' ]
+                                        )
+                                    ] ) : null
+                                ] )
+                                : reify( "div", {}, [ reifyText( result[1].toString() ) ] )
+                            )
+                        );
+                    }
                 }
                 // otherwise
                 return reify(
@@ -186,8 +221,9 @@
             }
             const isFormula = document.getElementById( 'formulaToggle' ).checked;
             try {
+                const boxingFn = ( cycles ) => cycles.getAction();
                 const result = isFormula
-                    ? evaluateFormulas( script )
+                    ? evaluateFormulas( script, { 'box': boxingFn } )
                     : eval( script );
                 putHtml( result );
             } catch ( e ) {
@@ -257,7 +293,7 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
     <label class="summaryLeft">cycles<input type="checkbox" checked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
-    <label class="summaryLeft">points<input type="checkbox" xchecked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">points<input type="checkbox" checked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="2">
 (3:5|1)

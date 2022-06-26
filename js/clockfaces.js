@@ -86,7 +86,7 @@ function getBoxGroupMember( volume, coprime ) {
                     .coord
                     .push( i, j );
             } else {
-                const newCycle = [ point ];
+                const newCycle = new CycleArray( point );
                 var lastPoint = point;
                 var nextPoint = stubNextPoint( lastPoint, cofactor, terminal );
                 while ( nextPoint.id != point.id ) {

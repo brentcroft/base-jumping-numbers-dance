@@ -602,7 +602,7 @@ function composePermutations() {
     } );
     const extractNextLink = ( i ) => [ ...tallyIndex.splice( i, 1 ), ...index1.splice( i, 1 ) ];
 
-    const cycles = [];
+    const cycles = new CyclesArray();
     while ( tallyIndex.length > 0 ) {
         var link = extractNextLink( 0 );
         if ( link[0] == link[1] ) {

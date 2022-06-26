@@ -820,58 +820,20 @@ class OperatorExpression extends Expression {
     evaluate( params = {} ) {
         const leftAction = this.left.evaluate(params);
         const rightAction = this.right.evaluate(params);
-/*
-        if ( this.boxGroup.compositionRules ) {
-            if ( leftAction.structure && rightAction.structure ) {
-                //const boxAction = composeByStructure( leftAction, rightAction, this.boxGroup );
-                const boxAction = composeBySymbols( leftAction, rightAction, this.boxGroup );
-                if ( boxAction ) {
-                    return boxAction;
-                }
-            } else {
-                const boxAction = composeBySymbols( leftAction, rightAction, this.boxGroup );
-                if ( boxAction ) {
-                    return boxAction;
-                }
-            }
+
+        const leftCycles = this.leftAction instanceof BoxAction
+            ? this.leftAction.getCycles()
+            : this.leftAction;
+
+        const rightCycles = this.rightAction instanceof BoxAction
+            ? this.rightAction.getCycles()
+            : this.rightAction;
+
+        if ( leftAction instanceof CyclesArray  && rightAction instanceof CyclesArray ) {
+            return composeCyclesArrays( leftAction, rightAction );
+        } else {
+            throw new Error( `Either left [${ typeof leftAction }] or right [${ typeof rightAction }] is not a CyclesArray` );
         }
-*/
-        const alias = CompositionAction.compositeLabel( leftAction, rightAction );
-
-/*
-        if ( this.boxGroup ) {
-            const boxAction = this.boxGroup.findActionByAlias( alias );
-            if ( boxAction ) {
-                return boxAction;
-            }
-        }
-
-        if ( alias in params ) {
-            return params[alias];
-        }
-*/
-        if ( leftAction.box != rightAction.box ) {
-            throw new Error( `Cannot compose cycles from different boxes: ${ leftAction.box }, ${ rightAction.box }` );
-        }
-
-        const subBox = leftAction.box;
-
-        // may get replaced by equivalent box action
-        const boxAction = new CompositionAction(
-            subBox,
-            Math.round( Math.random() * 10000 + 1),
-            leftAction,
-            rightAction,
-            true );
-
-        if ( this.boxGroup ) {
-            this.boxGroup.registerCompositeAction( alias, boxAction );
-        }
-
-        // make immediately available by label
-        params[ boxAction.label ] = boxAction;
-
-        return boxAction;
     }
 
     toString() {
@@ -935,22 +897,11 @@ class CyclesExtensionExpression extends OperatorExpression {
 
         const label = `(${ cycles.getBases().join(':') }${ this.operator }${ multiplier })`;
         const harmonic = ( this.operator == '~' );
+        const expandedCycles = cycles.expand( multiplier, harmonic );
 
-        const boxAction = new IndexCyclesAction(
-            Math.round( Math.random() * 10000 + 1),
-            label,
-            cycles.expand( multiplier, harmonic ),
-            harmonic );
+        expandedCycles.setMeta( "label", label );
 
-        if ( this.boxGroup ) {
-            boxAction.boxGroup = this.boxGroup;
-            this.boxGroup.registerCompositeAction( label, boxAction );
-        }
-
-        // make immediately available by label
-        params[ boxAction.label ] = boxAction;
-
-        return boxAction;
+        return expandedCycles;
     }
 
     toString() {

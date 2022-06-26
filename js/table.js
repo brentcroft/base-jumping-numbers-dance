@@ -297,6 +297,11 @@ function renderCurrentActionTable( tableArgs ) {
                 continue;
             }
 
+//            const stats = orbit.points.stats( orbit.rank );
+//
+//            if ( orbit.points instanceof CycleArray ) {
+//                consoleLog( stats );
+//            }
 
             var orbitSpace = (orbit.isSelfPartner() && conj)
                 ? maxIndex * orbit.order / 2

@@ -287,14 +287,14 @@ class CompositionAction extends CompositeAction {
 
 class IndexCyclesAction extends CompositeAction {
 
-    constructor( id = 0, label, cycles, harmonic = false ) {
+    constructor( id = 0, cycles ) {
         super( extantBoxes.getBox( cycles.getBases() ), id, null, null );
-        this.pair = this.getPlaceValuesPermutationPair( cycles, harmonic );
-        this.label = label;
+        this.pair = this.getPlaceValuesPermutationPair( cycles );
+        this.label = cycles.getMeta( "label" );
         this.symbols = [ this.pair.symbol ];
 
         this.badCoords = false;
-        this.indexPoints( this.pair, cycles, harmonic );
+        this.indexPoints( this.pair, cycles );
 
         if ( this.badCoords ) {
             consoleLog( `${ this.badCoords ? 'Bad [' + this.badCoords[2] + ']' : 'Good' } Coords : ` +  this.buildReport )
@@ -304,10 +304,10 @@ class IndexCyclesAction extends CompositeAction {
         this.initialise();
     }
 
-    getPlaceValuesPermutationPair( cycles, harmonic ) {
+    getPlaceValuesPermutationPair( cycles ) {
         const [ l, r, m = 1 ] = cycles.getBases();
 
-        const [ leftPermKey, rightPermKey ] = harmonic
+        const [ leftPermKey, rightPermKey ] = cycles.isHarmonic()
             ? [ [ m, r, l ], [ m, l, r ] ]
             : [ [ r, l, m ], [ l, r, m ] ];
 
@@ -328,7 +328,7 @@ class IndexCyclesAction extends CompositeAction {
         this.buildReport = `coordBases: ${ cycles.getBases() }: ` +
             `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +
             `${ rightPerm[0].symbol }${ arrowUp( rightPerm[1] ) }` +
-            `${ harmonic ? ' harmonic' : '' }`;
+            `${ cycles.isHarmonic() ? ' harmonic' : '' }`;
 
         return new PlaceValuesPermutationPair( null, this.box.bases,
             leftPerm[0], rightPerm[0],
@@ -338,7 +338,7 @@ class IndexCyclesAction extends CompositeAction {
                 `${ leftPerm[1] ? 'U' : 'D' }${ rightPerm[1] ? 'U' : 'D' }`
             ],
             null,
-            harmonic
+            cycles.isHarmonic()
         );
     }
 

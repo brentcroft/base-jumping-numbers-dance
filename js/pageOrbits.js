@@ -405,7 +405,7 @@ function processFormula( indexedBox, compositionFormulasText ) {
                     }
                 } );
 
-            const report = results.map( r => `${ r[0] } = ${ isCycles( r[1] ) ? r[1].cycleNotation() : r[1] }` ).join( "\n" );
+            const report = results.map( r => `${ r[0] } = ${ isCycles( r[1] ) ? r[1].getCycleNotation() : r[1] }` ).join( "\n" );
             document.getElementById( 'summaryEditorResult' ).innerHTML = `${ report }`;
 
         } catch ( e ) {

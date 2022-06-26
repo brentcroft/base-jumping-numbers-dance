@@ -631,7 +631,7 @@ class BoxAction {
             }
 
             tally[ startIndex ] = -1;
-            const points = [ point ];
+            const points = new CycleArray( point );
 
             var di = point.at(indexId).di;
 

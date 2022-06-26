@@ -115,6 +115,7 @@ function getCyclesDiagram( cycles, param = {} ) {
 }
 
 
+
 function getPointsDiagram( action, param = {} ) {
 
     const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10, toggles = [ 'lines', 'grid', 'plane', 'centres' ] } = param;
@@ -294,6 +295,184 @@ function getPointsDiagram( action, param = {} ) {
                 )
             );
     }
+
+    return reify( "collision", { "enabled": false }, [ root ] );
+}
+
+
+function getPointsDiagram2( cycles, param = {} ) {
+
+    const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10, toggles = [ 'lines', 'grid', 'plane', 'centres' ] } = param;
+
+    const fixedPointTransparency = 0.1;
+    const colorBasePlane = new ColorBasePlane();
+
+    const [ p1, p2 ] = cycles.getDiagonal().map( coord => to3D( coord ) );
+    const scaleUnit = scale( scaleBase, scaleVolume / cycles.getVolume() );
+
+    const bases = cycles.getBases();
+    const centre = cycles.getCentre();
+
+    // move origin to system centre and scale by scaleUnit
+    const root = reify(
+        "transform", {
+            "translation": scale( to3D( centre ), -1 ).join( ' ' ),
+            "scale": scaleUnit.map( x => x==0 ? 1 : 1 / x ).join( ' ' )
+        } );
+
+    function appendGridChildren( grid ) {
+        const [ b0, b1, b2 ] = bases;
+        const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
+        const gridPointRadius = 0.05;
+
+        for ( var i = 0; i < b0; i++ ) {
+            for ( var j = 0; j < b1; j++ ) {
+                for ( var k = 0; k < b2; k++ ) {
+                    grid
+                        .appendChild(
+                            reify(
+                                "transform",
+                                {
+                                    "translation": [ i, j, k ].join( ' ' ),
+                                    "scale": scaleUnit.join( ' ' )
+                                },
+                                [
+                                    createSphereShape( `grid-point-${ [ i, j, k ].join( '.' ) }`, gridPointRadius, 'black', 0.10, `(${ [ i, j, k ].join( ',' ) })` ),
+                                    createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
+                                ]
+                            )
+                        );
+                }
+            }
+        }
+    }
+
+    // GRID
+    root
+        .appendChild(
+            reify(
+                "group",
+                {
+                    "class": "grid-coords",
+                    "render": toggles.includes( 'grid' )
+                },
+                [],
+                [ appendGridChildren ]
+            )
+        );
+
+
+    // PLANE
+    var currentDirection = [0,1,0];
+    currentDirection[ 1 ] = 1;
+    var planeColor = "black";
+    var planeTransparency = 0.95;
+
+    var planeItem = createPlaneItemWithNormal( {
+            centre: to3D( centre ),
+            planeNormal: to3D( cycles.getIdentityPlane().normal ),
+            scaleUnit: [1,1,1],
+            currentDirection: [0,1,0],
+            origin: [0,0,0],
+            size: [ bases[0], 0, bases[bases.length-1] ],
+            planeColor: planeColor,
+            planeTransparency: planeTransparency
+        } );
+
+    planeItem.setAttribute( "render", toggles.includes( 'plane' ) );
+    root.appendChild( planeItem );
+
+
+
+    // CENTRE LINES
+    try {
+        const cyclesStats = cycles.getStats();
+        const centrePoints = cyclesStats
+            .centrePoints
+            .map( x => reify(
+                            "transform",
+                            {
+                                "translation": to3D( x.point ).join( ' ' ),
+                                "scale": scaleUnit.join( ' ' )
+                            },
+                            [ createSphereShape( null, 0.1, "yellow", 0, `centre-${ x.point }` ) ]
+                        ) );
+
+        const centreLines = cyclesStats
+            .centreLines
+            .map( centreLine => createLineSetFromCoords( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), 0.5 ), "gray" ) );
+
+        const centreItems = reify( "group", { "class": "orbit-centre", "render": toggles.includes( 'centres' ) }, centrePoints.concat( centreLines ));
+
+        root.appendChild( centreItems );
+
+    } catch ( e ) {
+        console.log( e );
+    }
+
+    // FIXED POINTS
+    cycles
+        .getIdentities()
+        .forEach(
+            cycle => cycle
+                .map( point => {
+                    return {
+                            "id": "point-" + to3D( point.coord ).join( '.' ),
+                            "translation": to3D( point.coord ).join( ' ' ),
+                            "scale": scaleUnit.join( ' ' )
+                        };
+                    }
+                )
+                .forEach( identityPoint => root
+                    .appendChild(
+                        reify(
+                            "transform",
+                            identityPoint,
+                            [ createSphereShape( identityPoint.id, 0.1, "red", fixedPointTransparency, '' ) ] )
+                        )
+                    )
+                );
+
+
+    // ORBITS
+    cycles
+        .getOrbits()
+        .forEach( ( orbit, orbitIndex ) =>  {
+
+            const orbitColor = colorBasePlane.colorForIndex( orbitIndex );
+
+            const stats = orbit.getStats();
+
+            root
+                .appendChild(
+                    reify(
+                        "group",
+                        { "class": "orbit-line", "id": ("orbit." + orbitIndex ) },
+                        [
+                            createCylinderSet( orbit, orbitColor, { "scaleUnit": scaleUnit } ),
+                            reify(
+                                "transform",
+                                {
+                                    "translation": to3D( stats.centre ).join( ' ' ),
+                                    "scale": scaleUnit.join( ' ' )
+                                },
+                                [ createSphereShape( "orbit." + orbitIndex + ".0" , 0.09, "gray" ) ]
+                            ),
+                            ...orbit.map( ( point, pointIndex ) => reify(
+                                "transform",
+                                {
+                                    "translation": to3D( point.coord ).join( ' ' ),
+                                    "scale": scaleUnit.join( ' ' ),
+                                    "class": "orbitCoord",
+                                    "id": `orbitCoord.${ point.id }.${ pointIndex }`
+                                },
+                                [ createSphereShape( "orbit." + orbitIndex + "." + pointIndex, 0.07, orbitColor, 0, '' ) ] ) )
+                        ],
+                        //[ ( e ) => e.setAttribute( "render", toggles.includes( 'lines' ) ) ]
+                    )
+                );
+        } );
+
 
     return reify( "collision", { "enabled": false }, [ root ] );
 }

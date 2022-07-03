@@ -35,14 +35,17 @@ function getCyclesDiagram( cycles, param = {} ) {
                 },
                 [
                     // identity z-lines
-                    ...identities
-                        .map( cycle => reify( "transform", { "translation": `${ cycle[0] } 0 ${ zOff * -1 }` },
-                                [ createLineSet( [ [ 0, 0, 0 ], [ 0, 0, zOff * ( orbits.length ) ] ], "black", attr ) ]
+                    ...( orbits.length > 0 )
+                        ? identities
+                            .map( cycle => reify( "transform", { "translation": `${ cycle[0].id } 0 ${ zOff * -1 }` },
+                                    [ createLineSet( [ [ 0, 0, 0 ], [ 0, 0, zOff * ( orbits.length ) ] ], "black", attr ) ]
+                                )
                             )
-                        ),
+                        : [],
 
                     // identity x-line
                     createLineSet( [ [ 0, 0, zOff * ( -1 ) ], [ terminal, 0, zOff * ( -1 ) ] ], "black", attr ),
+
                     // orbit x-lines
                     ...orbits
                         .map( ( _, i ) => i )
@@ -60,10 +63,10 @@ function getCyclesDiagram( cycles, param = {} ) {
     identities
         .map( cycle => cycle[0] )
         .map( entry => reify( "transform", {
-                    "translation": `${ entry } 0 ${ -1 * zOff }`,
-                    "id": `identity.e.${ entry }`
+                    "translation": `${ entry.id } 0 ${ -1 * zOff }`,
+                    "id": `identity.e.${ entry.id }`
                 },
-                [ createSphereShape( `point-${ entry }`, 0.17, "red", 0.3 ) ]
+                [ createSphereShape( `point-${ entry.id }`, 0.17, "red", 0.3 ) ]
             )
         )
         .forEach( child => root.appendChild( child ) );
@@ -76,13 +79,13 @@ function getCyclesDiagram( cycles, param = {} ) {
                     ...cycle
                         .map( ( entry, entryIndex ) => {
                                 const nextEntry = cycle[ ( entryIndex + 1 ) % cycle.length ];
-                                const jump = ( nextEntry - entry );
+                                const jump = ( nextEntry.id - entry.id );
                                 const halfJump = jump / 2;
                                 const color = colorBasePlane.colorForIndex( cycleIndex + 1 );
                                 return reify(
-                                    "transform", { "translation": `${ entry } 0 0` },
+                                    "transform", { "translation": `${ entry.id } 0 0` },
                                     [
-                                        createSphereShape( `point-${ entry }`, 0.3, color , 0 ),
+                                        createSphereShape( `point-${ entry.id }`, 0.3, color , 0 ),
                                         toggles.includes( 'lines' )
                                             ? reify(
                                                 "transform", {
@@ -386,8 +389,8 @@ function getPointsDiagram2( cycles, param = {} ) {
 
     // CENTRE LINES
     try {
-        const cyclesStats = cycles.getStats();
-        const centrePoints = cyclesStats
+        const cyclesCentres = cycles.getCentres();
+        const centrePoints = cyclesCentres
             .centrePoints
             .map( x => reify(
                             "transform",
@@ -398,7 +401,7 @@ function getPointsDiagram2( cycles, param = {} ) {
                             [ createSphereShape( null, 0.1, "yellow", 0, `centre-${ x.point }` ) ]
                         ) );
 
-        const centreLines = cyclesStats
+        const centreLines = cyclesCentres
             .centreLines
             .map( centreLine => createLineSetFromCoords( extendLine( to3D( centreLine.points[0] ), to3D( centreLine.points[1] ), 0.5 ), "gray" ) );
 

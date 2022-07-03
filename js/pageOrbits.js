@@ -377,7 +377,7 @@ function processFormula( indexedBox, compositionFormulasText ) {
                 return getMultiplicativeGroupMember( terminal, stride, truncated );
             }
 
-            function box( label, base, cycles ) {
+            function box( id, cycles ) {
                 const boxAction = new IndexCyclesAction(
                     extantBoxes.getBox( [ base ] ),
                     Math.round( Math.random() * 10000 + 1),
@@ -403,7 +403,8 @@ function processFormula( indexedBox, compositionFormulasText ) {
                         consoleLog( e );
                         return [ f, e ];
                     }
-                } );
+                } )
+                .map( ([f,r]) => [ f, r instanceof CyclesArray ? r.getAction() : r ] );
 
             const report = results.map( r => `${ r[0] } = ${ isCycles( r[1] ) ? r[1].getCycleNotation() : r[1] }` ).join( "\n" );
             document.getElementById( 'summaryEditorResult' ).innerHTML = `${ report }`;

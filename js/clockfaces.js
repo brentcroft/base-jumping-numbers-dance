@@ -111,8 +111,18 @@ function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
     const volume = ( terminal + 1 );
     const cofactor = volume / stride;
     if ( Number.isInteger( cofactor ) ) {
-        return getBoxGroupMember( volume, cofactor )
-            .filter( cycle => !truncated || !cycle.find( c => c.id == terminal ) );
+
+        const cycles = getBoxGroupMember( volume, cofactor );
+
+        const [ l, r ] = cycles.getBases();
+        const permKeys = [ [ l, r ], [ r, l ] ];
+        cycles.setMetaData( {
+            harmonic: false,
+            permKeys: permKeys
+        } );
+
+        return cycles.filter( cycle => !truncated || !cycle.find( c => c.id == terminal ) );
+
     } else {
         // one-dimensional
         const cycles = getOrbits( getClockfaces( terminal, stride ) );

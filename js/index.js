@@ -230,7 +230,7 @@ class PermBox extends Box {
         // account for duplicate bases: first come first served
         const tally = [...this.bases];
         return bases.map( k => {
-            const b = tally.indexOf( k )
+            const b = tally.indexOf( k );
             tally[b] = -1;
             return b;
         } );
@@ -665,7 +665,8 @@ class BoxAction {
                 } catch ( e ) {
                     const msg = `Bad orbit: ${ indexId }/${ orbitId }; ${ alreadySeen }; ${ e }`;
                     consoleLog( msg );
-                    throw new Error( msg, { cause: e } );
+                    //throw new Error( msg, { cause: e } );
+                    break;
                 }
             }
             return points;

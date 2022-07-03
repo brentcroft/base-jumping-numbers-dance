@@ -3,6 +3,66 @@ const pointId = ( point ) => point.id;
 const pointCoord = ( point ) => `(${ point.coord.join( "," ) })`;
 const pointLabel = pointId;
 
+const equalsCoord = ( p1, p2 ) => arrayExactlyEquals( p1.coord, p2.coord );
+
+
+class Coord extends Array {
+    key() {
+        return this.join('.');
+    }
+
+    equals( other ) {
+        return this === other || arrayExactlyEquals( this, other );
+    }
+
+    toString() {
+        return `(${this.join(',')})`;
+    }
+}
+
+class Coords {
+
+    static boxes = {};
+
+    static getCoords( bases ) {
+        const canonicalBases = new Coord(...bases);
+        canonicalBases.sort();
+        var box = Coords.boxes[ canonicalBases.key() ];
+        if ( box ) {
+            return box;
+        }
+        box = new Coords( canonicalBases );
+        Coords.boxes[ canonicalBases.key() ] = box;
+        return box;
+    }
+
+    static buildCoordMap( bases, place = 0, locusStack = [], coordMap = {} ) {
+        if ( place == bases.length ) {
+            const coord = new Coord(...locusStack);
+            coordMap[coord.key()] = coord;
+        } else {
+            for ( var i = 0; i < bases[place]; i++) {
+                locusStack.push( i );
+                Coords.buildCoordMap( bases, place + 1, locusStack, coordMap );
+                locusStack.pop();
+            }
+        }
+        return coordMap;
+    }
+
+    constructor( bases ) {
+        this.bases = bases;
+        this.rank = bases.length;
+        this.coordMap = Coords.buildCoordMap( bases );
+    }
+
+    getCoord( coord = [] ) {
+        return this.coordMap[ coord.join('.') ];
+    }
+}
+
+
+
 
 function isCycles( value ) {
     return value instanceof CyclesArray;
@@ -10,8 +70,51 @@ function isCycles( value ) {
 
 class CycleArray extends Array {
 
+
+    getPointIndex( coord ) {
+        for ( var i = 0; i < this.length; i++ ) {
+            if ( this[i].coord.equals(coord) ) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    asCoords() {
+        return this.map( p => p.coord ).join('');
+    }
+
+    getNextPoint( i ) {
+        return this[ ( i + 1 ) % this.length ];
+    }
+
     getCycleNotation() {
         return `(${ this.map( p => p.id ).join( ', ' ) })`;
+    }
+
+    equals( other ) {
+        if (!( other instanceof CycleArray ) ) {
+            return false;
+        }
+        if ( this.length != other.length ) {
+            return false;
+        }
+
+        var pointCoord = this[0].coord;
+        const [ otherPoint, offset ] = otherPoints
+            .map( ( p, i ) => [ p, i ] )
+            .find( ( [ p, i ] ) => arrayExactlyEquals( p.coord,pointCoord ) );
+
+         if ( !offset ) {
+             return false;
+         }
+
+        for ( var i = 0; i < otherPoints.length; i++ ) {
+            if ( !arrayExactlyEquals( this[i].coord,otherPoints[ ( i + offset ) % otherPoints.length ].coord ) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     getStats() {
@@ -20,11 +123,12 @@ class CycleArray extends Array {
         const order = this.length;
         const centre = new Array( rank ).fill( 0 );
         const coordSum = new Array( rank ).fill( 0 );
+
         this
             .map( point => point.coord )
             .forEach( coord => coord.forEach( (c,i) => coordSum[i] += c ) );
 
-        coordSum
+        centre
             .forEach( ( s, i ) => {
                 centre[i] = s / order;
             } );
@@ -38,10 +142,13 @@ class CycleArray extends Array {
             .map( (point,i) => distance2( point.coord, this[ ( i + 1 ) % order ].coord ) )
             .reduce( (a,c) => a + c, 0 );
 
+        const idSum = this.reduce( (a,point) => a + point.id, 0 );
+
         return {
             //cycle: this,
             order: order,
             centre: centre,
+            idSum: idSum,
             coordSum: coordSum,
             gcd: coordSum.reduce( gcd ),
             lcm: coordSum.reduce( lcm ),
@@ -58,7 +165,12 @@ class CyclesArray extends Array {
         const volume = factors.reduce( ( a, c ) => a * c, 1 );
         const terminal = volume - 1;
         const truncated = false;
-        return getMultiplicativeGroupMember( terminal, coprime, truncated );
+        const cycles = getMultiplicativeGroupMember( terminal, coprime, truncated );
+
+        //cycles.canonicalize();
+        cycles.normaliseCoordinates();
+
+        return cycles;
     }
 
     static magnifyPoint( c, magnification ) {
@@ -96,6 +208,49 @@ class CyclesArray extends Array {
         }
         super.push( ...items );
     }
+
+    duplicate() {
+        return this.map( cycle => new CycleArray(...cycle) );
+    }
+
+    canonicalize() {
+        function ios( cycle ) {
+            var l = 0;
+            for (var i = 1; i < cycle.length; i++) {
+                if ( cycle[ i ].id < cycle[ l ].id ) {
+                    l = i;
+                }
+            }
+            return l;
+        }
+        this.forEach( cycle => rotateArray( cycle, ios( cycle ) ) );
+        this.sort( ( a, b ) => a[0].id - b[0].id );
+    }
+
+    normaliseCoordinates() {
+        if ( this.getMeta( 'perm') ) {
+            throw new Error("Called twice!");
+        } else {
+            const perm = canonicalCoordinateMap( this.getBases() );
+            const coords = Coords.getCoords( this.getBases() );
+            const transformCoord = ( coord ) => coords.getCoord( perm.map( p => coord[ p ] ) );
+            this.forEach( cycle => cycle.forEach( point => point.coord = transformCoord( point.coord ) ) );
+            this.setMeta( 'perm', perm );
+            this.setMeta( 'box', coords );
+        }
+    }
+
+    getCycleAndIndex( coord ) {
+        for ( var i = 0; i < this.length; i++ ) {
+            const cycle = this[i];
+            const pointIndex = cycle.getPointIndex( coord );
+            if ( pointIndex > -1 ) {
+                return [ cycle, pointIndex ];
+            }
+        }
+        throw new Error( `The supplied coord ${ coord } does not exist in any cycle.` );
+    }
+
 
     getOrigin() {
         return this[0][0];
@@ -165,7 +320,6 @@ class CyclesArray extends Array {
         return this.filter( cycle => cycle.length > 1 );
     }
 
-
     getAction( id ) {
         return new IndexCyclesAction( id ? id : Math.round( Math.random() * 10000 + 1), this );
     }
@@ -178,10 +332,10 @@ class CyclesArray extends Array {
         return this.map( cycle => "(" + cycle.map( p => p.id ).join(',') + ")" ).join( '' );
     }
 
-    getStats() {
-        const stats = this.getMeta( 'stats' );
-        if ( stats ) {
-            return stats;
+    getCentres() {
+        const centres = this.getMeta( 'centres' );
+        if ( centres ) {
+            return centres;
         }
 
         const allowance = 0.00000000001;
@@ -250,9 +404,11 @@ class CyclesArray extends Array {
             cycleStats.centreRef = centrePoints.length - 1;
         }
 
-        this.forEach( cycle => assignCentreRef( cycle.getStats() ) );
+        this
+            .filter( cycle => cycle.length > 1 )
+            .forEach( cycle => assignCentreRef( cycle.getStats() ) );
 
-        return this.setMeta( 'stats', {
+        return this.setMeta( 'centres', {
             centreLines: centreLines,
             centrePoints: centrePoints
         } );
@@ -264,22 +420,41 @@ class CyclesArray extends Array {
             return plane;
         }
 
-        const bases = this.getBases();
-        
-        const placesReverse = placeValuesReverseArray( bases );
-        const placesForward = [...placesReverse].map( i => -1 * i );
+        const { centreLines, centrePoints } = this.getCentres();
 
+        if ( centreLines.length > 1 ) {
 
-        // establish identity plane
-        const identityPlane = placesForward.map( ( x, i ) => x - placesReverse[i] );
-        const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
-        const identityPlaneNormal = displacement( this.getOrigin().coord, identityPlane );
+            const diagonal = centreLines[0].points;
+            const otherLine = centreLines[ centreLines.length - 1 ].points;
 
-        return this.setMeta( 'identityPlane', {
-            coord: identityPlane,
-            gcd: identityPlaneGcd,
-            normal: identityPlaneNormal
-        } );
+            // establish identity plane
+            const identityPlane = otherLine.map( ( coord, i ) => subtraction( coord, diagonal[i] ) );
+            const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
+            const identityPlaneNormal = displacement( this.getOrigin().coord, identityPlane );
+
+            return this.setMeta( 'identityPlane', {
+                coord: identityPlane,
+                gcd: identityPlaneGcd,
+                normal: identityPlaneNormal
+            } );
+
+        } else {
+            const bases = this.getBases();
+
+            const placesReverse = placeValuesReverseArray( bases );
+            const placesForward = [...placesReverse].map( i => -1 * i );
+
+            // establish identity plane
+            const identityPlane = placesForward.map( ( x, i ) => x - placesReverse[i] );
+            const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
+            const identityPlaneNormal = displacement( this.getOrigin().coord, identityPlane );
+
+            return this.setMeta( 'identityPlane', {
+                coord: identityPlane,
+                gcd: identityPlaneGcd,
+                normal: identityPlaneNormal
+            } );
+        }
     }
 
 
@@ -308,14 +483,25 @@ class CyclesArray extends Array {
                 this.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k, volume ) ) ) );
             }
         }
-        cycles.setMetaData( { harmonic: true } );
+
+        const [ l, r, m = 1 ] = cycles.getBases();
+        const permKeys = harmonic
+                ? [ [ m, r, l ], [ m, l, r ] ]
+                : [ [ r, l, m ], [ l, r, m ] ];
+
+        cycles.setMetaData( {
+            harmonic: harmonic,
+            permKeys: permKeys
+        } );
+
+        cycles.normaliseCoordinates();
+
         return cycles;
     }
 
     htmlMonomial() {
         return reify( "span", { 'class': 'monomial' }, Object
             .entries( this.monomial() )
-            .filter( ( [ k, e ] ) => k > 1 )
             .flatMap( ( [ k, e ] ) => [
                 reify( "i", {}, [ reifyText( k == 1 ? "e" : "a" )  ] ),
                 reify( "sup", {}, [ reifyText( `${ e }` ) ] ),
@@ -328,7 +514,7 @@ class CyclesArray extends Array {
 
     htmlTable( param = {} ) {
 
-        const { caption = 'Cycles' } = param;
+        const { coords = false } = param;
 
         const volume = this.getVolume();
         const maxIndex = volume - 1;
@@ -346,10 +532,9 @@ class CyclesArray extends Array {
 
         const headerRow = [
             [ 'Id', [ true ] ],
-            [ 'Cycle', [] ],
-            //[ 'Cycle Coords', [] ],
+            coords ? [ 'Cycle Coords', [] ] : [ 'Cycle', [] ],
             [ 'Coord Sum', [ true, true ] ],
-            //[ 'Id Sum', [ true, false, true ] ],
+            [ 'Id Sum', [ true, false, true ] ],
             [ 'Order', [ true, false, true ] ],
             [ 'Perimeter<sup>2</sup>', [ true, true ] ],
             [ 'Radiance', [ true, true ] ],
@@ -357,10 +542,11 @@ class CyclesArray extends Array {
 
         const identityRow = [
             [ '<code>e</code>', [] ],
-            [ identities.map( cycle => `( ${ cycle[0].id } )` ).join( ', ' ), [] ],
-            //[ this.identities.map( orbit => `(${ orbit.points[0].coord.join(', ') })` ).join( ', ' ), [] ],
+            coords
+                ? [ identities.map( cycle => cycle.asCoords() ).join( ', ' ), [] ]
+                : [ identities.map( cycle => cycle.getCycleNotation() ).join( ', ' ), [] ],
             [ `<code>( ${ identityPointsSum } )</code>`, [] ],
-            //[ `<code>( ${ identityIdSum } )</code>`, [] ],
+            [ `<code>( ${ identityIdSum } )</code>`, [] ],
             [ `<code>1</code>`, [] ],
             [ `<code>0</code>`, [] ],
             [ `<code>0</code>`, [] ],
@@ -372,7 +558,7 @@ class CyclesArray extends Array {
             "table",
              { 'cssClass': [ 'box-action' ] },
              [
-                reify( "caption", {}, [ reifyText( caption ) ] ),
+                reify( "caption", {}, [ reifyText( `${ this.getMeta('label') } &rarr; ` ), this.htmlMonomial() ] ),
                 reify( "tr", {}, headerRow.map( ( h, colIndex ) => reify( "th", {}, [ reifyText( h[0] ) ] ) ) ),
                 reify( "tr", {}, identityRow.map( ir => reify( "td", {}, [ reifyText( ir[0] ) ] ) ) ),
                 ...orbits
@@ -383,10 +569,12 @@ class CyclesArray extends Array {
                         [
                             reify( "td", {}, [ reify( "sup", {}, [ reifyText( `${ orbit.length }` ) ] ) ] ),
                             reify( "td", { cssClass: [ 'orbit' ] }, [
-                                reifyText( orbit.getCycleNotation() )
+                                coords
+                                    ? reifyText( orbit.asCoords() )
+                                    : reifyText( orbit.getCycleNotation() )
                             ] ),
                             reify( "td", {}, [ reifyText( `( ${ stats.coordSum.join( ', ' ) } )` ) ] ),
-                            //reify( "td", {}, [ reifyText( `${ orbit.getIdSum() }` ) ] ),
+                            reify( "td", {}, [ reifyText( `${ stats.idSum }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.length }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ stats.euclideanPerimeter }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ stats.indexPerimeter }` ) ] ),
@@ -395,65 +583,87 @@ class CyclesArray extends Array {
                 //reify( "tr", {}, footerRow.map( f => reify( "td", { 'cssClass': f[1] }, [ reifyText( f[0] ) ] ) ) ),
              ] );
     }
-}
 
-function composeCyclesArrays() {
-    const args = [ ...arguments ];
-    const p0 = args[ 0 ];
-    var p1 = args.pop();
 
-    while ( args.length > 1 ) {
-        const nextPair = [ p1, args.pop() ];
-        p1 = composePermutations( ...nextPair );
-    }
+    compose() {
+        const args = [ ...arguments ];
 
-    if ( !( p0 instanceof CyclesArray && p1 instanceof CyclesArray ) ) {
-        throw new Error( `Can only compose CyclesArrays: p0=${ typeof p0 }, p1=${ typeof p1 }` );
-    }
+        const rightCycles = this;
+        var leftCycles = args.pop();
 
-    // build tally index of terms
-    const tallyIndex = [];
-    p0.forEach( c0 => tallyIndex.push( ...c0.filter( x => !tallyIndex.includes( x ) ) ) );
-    p1.forEach( c0 => tallyIndex.push( ...c0.filter( x => !tallyIndex.includes( x ) ) ) );
-    tallyIndex.sort();
-
-    const p1Copy = p1.map( x => [...x]);
-
-    // build next row from tallyIndex to p1
-    const index1 = tallyIndex.map( i => {
-        var engagedCycle = p1.find( c1 => c1.includes( i ) );
-
-        var stageValue = i;
-
-        if ( engagedCycle ) {
-            const j = engagedCycle.indexOf( i );
-            stageValue = engagedCycle[ ( j + 1 ) % engagedCycle.length ];
+        if ( !( leftCycles instanceof CyclesArray && rightCycles instanceof CyclesArray ) ) {
+            throw new Error( `Can only compose CyclesArrays: leftCycles=${ typeof leftCycles }, rightCycles=${ typeof rightCycles }` );
         }
 
-        engagedCycle = p0.find( c0 => c0.includes( stageValue ) );
+        const leftBox = leftCycles.getMeta('box');
+        const rightBox = rightCycles.getMeta('box');
 
-        if ( engagedCycle ) {
-            const j = engagedCycle.indexOf( stageValue );
-            stageValue = engagedCycle[ ( j + 1 ) % engagedCycle.length ];
+        if ( !( leftBox == rightBox ) ) {
+            throw new Error( "Can only compose CyclesArrays with points from the same box" );
         }
-        return stageValue;
-    } );
-    const extractNextLink = ( i ) => [ ...tallyIndex.splice( i, 1 ), ...index1.splice( i, 1 ) ];
 
-    const cycles = new CyclesArray();
-    while ( tallyIndex.length > 0 ) {
-        var link = extractNextLink( 0 );
-        if ( link[0] == link[1] ) {
-            cycles.push( new CycleArray( link[0] ) );
-        } else {
-            const cycle = new CycleArray( link[0] );
-            while ( link[1] != cycle[0] ) {
-                link = extractNextLink( tallyIndex.indexOf( link[1] ) );
-                cycle.push( link[0] );
+
+        const composedPoints = rightCycles
+            .flatMap( cycle => cycle.map( ( point, id ) => {
+                var nextPoint = cycle.getNextPoint( id );
+                const nextCoord = nextPoint.coord;
+                const [ leftCycle, lpi ] = leftCycles.getCycleAndIndex( nextCoord );
+                const lpn = leftCycle.getNextPoint( lpi );
+                const lpnCoord = lpn.coord ;
+                const [ rpc, rpin ] = rightCycles.getCycleAndIndex( lpnCoord );
+                nextPoint = rpc[rpin];
+                return [ point, nextPoint ];
+            } ) );
+
+        function composeCycle( cycle, composedPoint ) {
+            const [ point, nextPoint ] = composedPoint;
+
+            var index = composedPoints.indexOf( composedPoint );
+            if (index !== -1) {
+                composedPoints.splice(index, 1);
+            } else {
+                throw new Error( `Composed point not found in graph: ${ composedPoint }`);
             }
+
+            cycle.push( { "id": point.di, "di": nextPoint.di, "coord": point.coord } );
+
+            if ( cycle[0].coord.equals( nextPoint.coord ) ) {
+                return cycle;
+            }
+
+            const [ nextComposedPoint ] = composedPoints.filter( ([rp,rpc]) => rp.coord.equals( nextPoint.coord ) );
+
+            if ( !nextComposedPoint ){
+                 throw new Error( `Composed point not found in graph for coord: ${ nextPoint.coord }`);
+             }
+
+            return composeCycle( cycle, nextComposedPoint );
+        }
+
+        const cycles = new CyclesArray();
+        while ( composedPoints.length > 0 ) {
+            const cycle = composeCycle( new CycleArray(), composedPoints[0] );
+            // TODO: explain
+            rotateArray( cycle, -1 );
             cycles.push( cycle );
         }
-    }
 
-    return canonicalizePermutation( cycles, 0 );
+        const rPerm = rightCycles.getMeta('perm');
+        const lPerm = leftCycles.getMeta('perm');
+
+        cycles.setMetaData( {
+            'harmonic': false,
+            'perm': rPerm.map( b => lPerm[b] ),
+            'box': rightBox,
+            'permKeys': [ leftCycles.getBases(), rightCycles.getBases() ]
+        } );
+
+        cycles.canonicalize();
+
+        while ( args.length > 0 ) {
+            cycles = cycles.compose( ...args );
+        }
+
+        return cycles;
+    }
 }

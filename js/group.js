@@ -219,7 +219,7 @@ class CompositionAction extends CompositeAction {
             ? this.rightAction
             : this.rightAction.getCycles();
 
-        this.cycles = composePermutations( leftCycles, rightCycles );
+        this.cycles = rightCycles.compose( leftCycles );
 
         if ( autoInit ) {
             this.indexPointsFromCycles();
@@ -288,28 +288,31 @@ class CompositionAction extends CompositeAction {
 class IndexCyclesAction extends CompositeAction {
 
     constructor( id = 0, cycles ) {
+        //super( cycles.getMeta('box'), id, null, null );
         super( extantBoxes.getBox( cycles.getBases() ), id, null, null );
+
+
         this.pair = this.getPlaceValuesPermutationPair( cycles );
-        this.label = cycles.getMeta( "label" );
+        this.label = cycles.getMeta( "label" ) || this.pair.label;
         this.symbols = [ this.pair.symbol ];
 
         this.badCoords = false;
         this.indexPoints( this.pair, cycles );
 
         if ( this.badCoords ) {
-            consoleLog( `${ this.badCoords ? 'Bad [' + this.badCoords[2] + ']' : 'Good' } Coords : ` +  this.buildReport )
-            consoleLog( `  box point ${ this.badCoords[0] } != ${ this.badCoords[1] }` );
+            const msg = `Bad Coords: ${ this.label }: `
+                +  this.buildReport
+                + `  box point ${ this.badCoords[0] } != ${ this.badCoords[1] }`;
+
+            consoleLog( msg );
+            //throw new Error( msg );
         }
 
         this.initialise();
     }
 
     getPlaceValuesPermutationPair( cycles ) {
-        const [ l, r, m = 1 ] = cycles.getBases();
-
-        const [ leftPermKey, rightPermKey ] = cycles.isHarmonic()
-            ? [ [ m, r, l ], [ m, l, r ] ]
-            : [ [ r, l, m ], [ l, r, m ] ];
+        const [ leftPermKey, rightPermKey ] = cycles.getMeta( 'permKeys' );
 
         const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
         const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
@@ -320,9 +323,9 @@ class IndexCyclesAction extends CompositeAction {
         ];
 
         if ( !leftPerm ) {
-            throw new Error( `No leftPerm found for: ${ leftPermKey } [${ cycles.getBases() }]`);
+            throw new Error( `No leftPerm found for: ${ leftPermBases } [${ cycles.getBases() }]`);
         } else if ( !rightPerm ) {
-            throw new Error( `No rightPerm found for: ${ rightPermKey } [${ cycles.getBases() }]`);
+            throw new Error( `No rightPerm found for: ${ rightPermBases } [${ cycles.getBases() }]`);
         }
 
         this.buildReport = `coordBases: ${ cycles.getBases() }: ` +
@@ -364,7 +367,6 @@ class IndexCyclesAction extends CompositeAction {
             if ( coord.length > 1 && ( coord[0] >= lbc[0] && coord[1] >= lbc[1] && coord[2] >= lbc[2] ) ) {
                 this.badCoords = [ point, coord, this.badCoords ? this.badCoords[2] + 1 : 1 ];
             }
-            //throw new Error( msg );
         }
 
         const pointIndexData = {

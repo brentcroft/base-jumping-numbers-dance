@@ -629,9 +629,41 @@ class Formula {
             }
         }
 
+        function maybeSwapForExistingAction( boxGroup, boxAction ) {
+           const existingIndexes = boxGroup
+                ? boxGroup.findMatchingActions( boxAction )
+                : [];
+
+            if ( existingIndexes.length == 0 ) {
+                if ( boxGroup ) {
+                    boxGroup.removeEqualCompositeAction( boxAction );
+                    boxGroup.boxActions.push( boxAction );
+                }
+                return boxAction;
+            } else {
+                existingIndexes
+                    .forEach( existingIndex => {
+                        if ( `e ${ OPERATIONS[0] } ${ existingIndex }` == aliasText ) {
+                            //
+                        } else {
+                            updateAlias( existingIndex, boxAction.label );
+                        }
+                        copySymbols( existingIndex, boxAction );
+                    } );
+
+                return existingIndexes[0];
+            }
+        }
+
         const aliasText = this.getExpressionString();
 
-        if ( r instanceof CompositeAction || r instanceof FlatAction || r instanceof RootAction ) {
+        if ( r instanceof CyclesArray ) {
+            if ( r.getMeta("permKey")) {
+                return maybeSwapForExistingAction( this.boxGroup, r.getAction() );
+            } else {
+                return r;
+            }
+        } else if ( r instanceof CompositeAction || r instanceof FlatAction || r instanceof RootAction ) {
 
             if ( r instanceof CompositeAction ) {
                 if ( !r.label ) {
@@ -818,22 +850,13 @@ class OperatorExpression extends Expression {
     }
 
     evaluate( params = {} ) {
-        const leftAction = this.left.evaluate(params);
-        const rightAction = this.right.evaluate(params);
+        const leftCycles = this.left.evaluate(params);
+        const rightCycles = this.right.evaluate(params);
 
-        const leftCycles = this.leftAction instanceof BoxAction
-            ? this.leftAction.getCycles()
-            : this.leftAction;
-
-        const rightCycles = this.rightAction instanceof BoxAction
-            ? this.rightAction.getCycles()
-            : this.rightAction;
-
-        if ( leftAction instanceof CyclesArray  && rightAction instanceof CyclesArray ) {
-            return composeCyclesArrays( leftAction, rightAction );
-        } else {
-            throw new Error( `Either left [${ typeof leftAction }] or right [${ typeof rightAction }] is not a CyclesArray` );
+        if ( !( leftCycles instanceof CyclesArray  && rightCycles instanceof CyclesArray ) ) {
+            throw new Error( `Either left [${ typeof leftCycles }] or right [${ typeof rightCycles }] is not a CyclesArray` );
         }
+        return rightCycles.compose( leftCycles );
     }
 
     toString() {
@@ -1072,7 +1095,11 @@ function evaluateFormulas( lines, param = {} ) {
         .map( line => new Formula( null, line ) )
         .map( f => {
             try {
-                return [ f, f.evaluate( param ) ];
+                const result = [ f, f.evaluate( param ) ];
+                if ( result[1] instanceof CyclesArray ) {
+                    result[1].setMeta( 'label', result[0].toString());
+                }
+                return result;
             } catch ( e ) {
                 consoleLog( e );
                 return [ f, e ];

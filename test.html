@@ -112,7 +112,7 @@
                                         ] ) : null,
                                     pointsDiagram ? reify( "div", { "class": "points-diagram" }, [
                                         buildX3DomRootNode(
-                                            getPointsDiagram( result[1], { toggles: [ 'lines' ] } ),
+                                            getPointsDiagram( result[1] ),
                                             pointsView[ 'default' ]
                                         )
                                     ] ) : null
@@ -136,10 +136,7 @@
                             {},
                             value.map( result => result[1] instanceof CyclesArray
                                 ? reify( "div", {}, [
-                                    reifyText( result[0].toString() ),
-                                    reifyText( ' &rarr; ' ),
-                                    result[1].htmlMonomial(),
-                                    result[1].htmlTable( { 'caption': `Cycles: ${ result[0].toString() }` } ),
+                                    result[1].htmlTable( { 'coords': document.getElementById( 'coordsToggle' ).checked } ),
                                     cyclesDiagram ? reify( "div", { "class": "cycles-diagram" }, [
                                             buildX3DomRootNode(
                                                 getCyclesDiagram( result[1] ),
@@ -293,12 +290,13 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
     <label class="summaryLeft">cycles<input type="checkbox" checked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
-    <label class="summaryLeft">points<input type="checkbox" checked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">points<input type="checkbox" xchecked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">coords<input type="checkbox" xchecked="checked" id="coordsToggle" onclick="calculateNow()"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="2">
-(3:5|1)
-(3:5|2)
-(3:5~2)
+(4:10)
+(4:2|5)*(4:5|2)
+
     </textarea>
 </body>
 </html>

@@ -567,7 +567,7 @@ class CyclesArray extends Array {
                         "tr",
                         {},
                         [
-                            reify( "td", {}, [ reify( "sup", {}, [ reifyText( `${ orbit.length }` ) ] ) ] ),
+                            reify( "td", {}, [ reify( "sup", {}, [ reifyText( `${ i }` ) ] ) ] ),
                             reify( "td", { cssClass: [ 'orbit' ] }, [
                                 coords
                                     ? reifyText( orbit.asCoords() )

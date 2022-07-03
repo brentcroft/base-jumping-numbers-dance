@@ -527,8 +527,8 @@ function getOctahedralItems( boxGroup, param ) {
                     )
                 );
         } );
-
-    return reify( "collision", { "enabled": false }, [ root ] );
+    return root;
+    //return reify( "collision", { "enabled": false }, [ root ] );
 }
 
 function getOctahedralCellItems( boxGroup, selectedBoxAction ) {
@@ -575,8 +575,8 @@ function getOctahedralCellItems( boxGroup, selectedBoxAction ) {
                     ) );
         }
     } );
-
-    return reify( "collision", { "enabled": false }, [ root ] );
+    return root;
+    //return reify( "collision", { "enabled": false }, [ root ] );
 }
 
 function getCylinderData( point, linkPoint, attr = {} ) {

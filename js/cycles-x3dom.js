@@ -27,7 +27,7 @@ function getCyclesDiagram( cycles, param = {} ) {
     root
         .appendChild(
             reify(
-                "collision",
+                "group",
                 {
                     "class": "stave",
                     "enabled": false,
@@ -111,7 +111,7 @@ function getCyclesDiagram( cycles, param = {} ) {
         .forEach( child => root.appendChild( child ) );
 
     return reify(
-        "collision",
+        "group",
         { "enabled": false },
         [ reify( "transform", { "scale": `${ scaleUnit.join( ' ' ) }` }, [ root ] ) ]
     );
@@ -299,7 +299,7 @@ function getPointsDiagram( action, param = {} ) {
             );
     }
 
-    return reify( "collision", { "enabled": false }, [ root ] );
+    return reify( "group", { "enabled": false }, [ root ] );
 }
 
 
@@ -436,16 +436,38 @@ function getPointsDiagram2( cycles, param = {} ) {
                     )
                 );
 
+    const tryNurbs = false;
 
     // ORBITS
     cycles
         .getOrbits()
         .forEach( ( orbit, orbitIndex ) =>  {
-
             const orbitColor = colorBasePlane.colorForIndex( orbitIndex );
-
             const stats = orbit.getStats();
-
+            if (tryNurbs) {
+                const nurbsShape = reify( 'shape', {}, [
+                        reify(
+                            "NurbsCurve",
+                            {
+                                'order': orbit.length,
+                                'tessellation': orbit.length * 10,
+                                'weight': orbit.map( p => '1' ).join( ' ' )
+                            },
+                            [
+                                reify(
+                                    'coordinate', {
+                                        'point': orbit
+                                            .map( p => to3D( p.coord ).join( ' ' ) ).join( ' ' ) + " " + to3D( orbit[0].coord ).join( ' ' )
+                                    },
+                                    [] )
+                            ] ),
+                            reify( 'appearance', {}, [
+                                reify( 'material', { emissiveColor: orbitColor } )
+                            ] )
+                        ] );
+                root
+                    .appendChild( nurbsShape );
+            } else {
             root
                 .appendChild(
                     reify(
@@ -471,11 +493,12 @@ function getPointsDiagram2( cycles, param = {} ) {
                                 },
                                 [ createSphereShape( "orbit." + orbitIndex + "." + pointIndex, 0.07, orbitColor, 0, '' ) ] ) )
                         ],
-                        //[ ( e ) => e.setAttribute( "render", toggles.includes( 'lines' ) ) ]
+                        [ ( e ) => e.setAttribute( "render", toggles.includes( 'lines' ) ) ]
                     )
                 );
+            }
         } );
 
 
-    return reify( "collision", { "enabled": false }, [ root ] );
+    return reify( "group", { "enabled": false }, [ root ] );
 }

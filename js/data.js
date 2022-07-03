@@ -80,7 +80,7 @@ function reifyText( text, cssClass = [] ) {
 
 function canonicalCoordinateMap( bases ) {
     const canonicalBases = [ ...bases ];
-    canonicalBases.sort();
+    canonicalBases.sort( (a,b) => a - b );
     const tally = [ ...bases ];
     return canonicalBases
         .map( k => {

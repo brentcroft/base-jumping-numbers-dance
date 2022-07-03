@@ -658,7 +658,7 @@ class Formula {
         const aliasText = this.getExpressionString();
 
         if ( r instanceof CyclesArray ) {
-            if ( r.getMeta("permKey")) {
+            if ( r.getMeta("permKeys") && this.boxGroup ) {
                 return maybeSwapForExistingAction( this.boxGroup, r.getAction() );
             } else {
                 return r;

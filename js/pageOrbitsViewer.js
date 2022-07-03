@@ -164,7 +164,7 @@ function getBasePlaneItems( currentAction, toggles ) {
     root
         .appendChild(
             reify(
-                "Collision",
+                "group",
                 {
                     "class": "grid-coords",
                     "enabled": false,
@@ -294,7 +294,7 @@ function getBasePlaneItems( currentAction, toggles ) {
             );
     }
 
-    return reify( "collision", { "enabled": false }, [ root ] );
+    return reify( "group", { "enabled": false }, [ root ] );
 }
 
 
@@ -360,7 +360,7 @@ function getBasePlaneCycles( currentAction, toggles ) {
     root
         .appendChild(
             reify(
-                "collision",
+                "group",
                 {
                     "class": "grid-coords",
                     "enabled": false,
@@ -507,7 +507,7 @@ function getBasePlaneCycles( currentAction, toggles ) {
     }
 
     return reify(
-        "collision",
+        "group",
         { "enabled": false },
         [ reify( "transform", { "scale": `${ scaleUnit.join( ' ' ) }` }, [ root ] ) ]
     );

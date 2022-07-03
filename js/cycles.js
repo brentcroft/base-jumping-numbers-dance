@@ -26,7 +26,7 @@ class Coords {
 
     static getCoords( bases ) {
         const canonicalBases = new Coord(...bases);
-        canonicalBases.sort();
+        canonicalBases.sort( ( a, b ) => a - b );
         var box = Coords.boxes[ canonicalBases.key() ];
         if ( box ) {
             return box;
@@ -84,9 +84,15 @@ class CycleArray extends Array {
         return this.map( p => p.coord ).join('');
     }
 
+    getPreviousPoint( i ) {
+        return this[ ( i + this.length - 1 ) % this.length ];
+    }
+
     getNextPoint( i ) {
         return this[ ( i + 1 ) % this.length ];
     }
+
+
 
     getCycleNotation() {
         return `(${ this.map( p => p.id ).join( ', ' ) })`;
@@ -167,7 +173,7 @@ class CyclesArray extends Array {
         const truncated = false;
         const cycles = getMultiplicativeGroupMember( terminal, coprime, truncated );
 
-        //cycles.canonicalize();
+        cycles.canonicalize();
         cycles.normaliseCoordinates();
 
         return cycles;
@@ -644,6 +650,15 @@ class CyclesArray extends Array {
         while ( composedPoints.length > 0 ) {
             const cycle = composeCycle( new CycleArray(), composedPoints[0] );
             // TODO: explain
+            if ( cycle.length > 1 ) {
+                const coord = cycle[0].coord;
+                cycle.forEach( ( point, i ) => {
+                    const nextPoint = cycle.getNextPoint( i );
+                    point.coord = ( i == cycle.length - 1 )
+                        ? coord
+                        : nextPoint.coord ;
+                } );
+            }
             rotateArray( cycle, -1 );
             cycles.push( cycle );
         }

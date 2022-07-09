@@ -577,10 +577,10 @@ class Formula {
      *   also returned as array.
      * @return {Number|Array} The evaluated result, or an array with results
      */
-    _evaluate( valueObj, params = {} ) {
+    _evaluate( valueObj, param = {} ) {
         // resolve multiple value objects recursively:
         if (valueObj instanceof Array) {
-            return valueObj.map((v) => this._evaluate( v, params ));
+            return valueObj.map((v) => this._evaluate( v, param ));
         }
         let expr = this.getExpression();
         if (!(expr instanceof Expression)) {
@@ -592,19 +592,19 @@ class Formula {
             if (res !== null) {
                 return res;
             } else {
-                res = expr.evaluate( valueObj, params );
+                res = expr.evaluate( valueObj, param );
                 this.storeInMemory( valueObj, res );
                 return res;
             }
         }
 
-        return expr.evaluate( valueObj, params );
+        return expr.evaluate( valueObj, param );
     }
 
-    evaluate( valueObj, params = {} ) {
+    evaluate( valueObj, param = {} ) {
 
         const boxItems = this.boxGroup ? this.boxGroup.getIndexMap() : {}
-        const r = this._evaluate( { ...valueObj, ...params, ...boxItems } );
+        const r = this._evaluate( { ...valueObj, ...param, ...boxItems } );
 
         function updateAlias( r, aliasText ) {
             if ( !r ) {
@@ -618,49 +618,27 @@ class Formula {
             }
         }
 
-        function copySymbols( existingIndex, r ) {
-            if ( existingIndex.symbols ) {
-                r
-                    .symbols
-                    .filter( symbol => !existingIndex.symbols.includes( symbol ) )
-                    .forEach( symbol => existingIndex.symbols.push( symbol ) );
-            } else {
-                existingIndex.symbols = [ ...r.symbols ];
-            }
-        }
-
         function maybeSwapForExistingAction( boxGroup, cycles ) {
-           const existingIndexes = boxGroup
-                ? boxGroup.findMatchingCycles( cycles )
-                : [];
-
-            if ( existingIndexes.length == 0 ) {
+            const existingIndex = boxGroup.findMatchingCycle( cycles, param );
+            if ( existingIndex ) {
+                if ( `e ${ OPERATIONS[0] } ${ existingIndex }` != aliasText ) {
+                    updateAlias( existingIndex, cycles.getMeta('label') );
+                }
+                return existingIndex;
+            } else {
                 const boxAction = cycles.getAction();
                 if ( boxGroup ) {
                     boxGroup.removeEqualCompositeAction( boxAction );
                     boxGroup.boxActions.push( boxAction );
                 }
                 return boxAction;
-            } else {
-                existingIndexes
-                    .forEach( existingIndex => {
-                        if ( `e ${ OPERATIONS[0] } ${ existingIndex }` == aliasText ) {
-                            //
-                        } else {
-                            updateAlias( existingIndex, cycles.getMeta('label') );
-                        }
-                        //copySymbols( existingIndex, cycles );
-                    } );
-
-                return existingIndexes[0];
             }
         }
 
         const aliasText = this.getExpressionString();
 
         if ( r instanceof CyclesArray ) {
-            //r.setMeta( 'label', aliasText );
-            if ( r.getMeta("permKeys") && this.boxGroup ) {
+            if ( this.boxGroup ) {
                 return maybeSwapForExistingAction( this.boxGroup, r );
             } else {
                 return r;
@@ -693,12 +671,9 @@ class Formula {
             } else {
                 existingIndexes
                     .forEach( existingIndex => {
-                        if ( `e ${ OPERATIONS[0] } ${ existingIndex }` == aliasText ) {
-                            //
-                        } else {
+                        if ( `e ${ OPERATIONS[0] } ${ existingIndex }` != aliasText ) {
                             updateAlias( existingIndex, r.label );
                         }
-                        copySymbols( existingIndex, r );
                     } );
 
                 if ( promoteResults ) {

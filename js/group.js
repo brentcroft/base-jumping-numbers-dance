@@ -304,7 +304,7 @@ class IndexCyclesAction extends CompositeAction {
                 +  this.buildReport
                 + `  box point ${ this.badCoords[0] } != ${ this.badCoords[1] }`;
 
-            consoleLog( msg );
+            //consoleLog( msg );
             //throw new Error( msg );
         }
 
@@ -576,8 +576,8 @@ class BoxGroup {
         return this.boxActions.filter( p => p.equals( boxAction ) );
     }
 
-    findMatchingCycles( cycles ) {
-        return this.boxActions.filter( boxAction => boxAction.getCycles().equals( cycles ) );
+    findMatchingCycle( cycles, param ) {
+        return this.boxActions.find( boxAction => boxAction.getCycles().equals( cycles, param ) );
     }
 
     removeEqualCompositeAction( boxAction ) {

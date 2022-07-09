@@ -394,11 +394,30 @@ function processFormula( indexedBox, compositionFormulasText ) {
                 indexedBox.registerCompositeAction( label, boxAction );
             }
 
+            //{ sameEuclideanPerimeter = true, sameIndexPerimeter = true }
+
+            const sameEuclideanPerimeter = !isToggle( 'ignoreEuclideanPerimeters' );
+            const sameIndexPerimeter = !isToggle( 'ignoreIndexPerimeters' );
+
+            const param = {
+                sameEuclideanPerimeter: sameEuclideanPerimeter,
+                sameIndexPerimeter: sameIndexPerimeter
+            };
+
+
             const results = compositionFormulaLines
                 .map( ft => new Formula( indexedBox, ft ) )
                 .map( f => {
                     try {
-                        return [ f, f.evaluate( { box: box, Gm: Gm, bb: bb, root: root, flat: flat, dump: dump, label: label } ) ];
+                        return [ f, f.evaluate( {
+                            box: box,
+                            Gm: Gm,
+                            bb: bb,
+                            root: root,
+                            flat: flat,
+                            dump: dump,
+                            label: label
+                        }, param ) ];
                     } catch ( e ) {
                         consoleLog( e );
                         return [ f, e ];

@@ -436,6 +436,9 @@ class BoxAction {
     }
 
     getCycles() {
+        if ( this.cycles ) {
+            return this.cycles;
+        }
         const cycles = new CyclesArray();
         const key = this.key;
         [ ...this.identities, ...this.orbits ]
@@ -450,8 +453,15 @@ class BoxAction {
              } ) ) )
             .forEach( cycle => cycles.push( cycle ) );
 
-        cycles.setMeta('label', this.label );
         cycles.canonicalize();
+
+        cycles.setMetaData( {
+            'label': this.label,
+            'permKeys': this.pair.permPair,
+        } );
+
+        this.cycles = cycles;
+
         return cycles;
     }
 

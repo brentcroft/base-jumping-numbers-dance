@@ -204,46 +204,42 @@ class CyclesArray extends Array {
 
 
 
-    equals( other ) {
-        if (!( other instanceof CyclesArray ) ) {
-            return false;
-        }
-        if ( this.length != other.length ) {
+    equals( other, param = {} ) {
+        if (!( other instanceof CyclesArray ) || this.length != other.length ) {
             return false;
         }
 
-        const enforceSameEuclideanPerimeter = true;
-        const enforceSameIndexPerimeter = true;
+        const { sameEuclideanPerimeter = true, sameIndexPerimeter = true } = param;
 
-        const matchedCycles = [ ...this ]
-            .filter( cycle => {
-                const [ otherCycle, offset ] = other.getCycleAndIndex( cycle[0].coord );
-                if ( !cycle.equals( otherCycle ) ) {
-                    return false;
-                }
+        const totalEuclidean = [ 0, 0 ];
+        const totalIndex = [ 0, 0 ];
 
-                const cycleStats = cycle.getStats();
-                const otherCycleStats = otherCycle.getStats();
+        for ( var i = 0; i < this.length; i++ ) {
+            const cycle = this[i];
 
-                if ( enforceSameEuclideanPerimeter ) {
-                    if ( cycleStats.euclideanPerimeter != otherCycleStats.euclideanPerimeter ) {
-                        consoleLog( `${ this } != ${ other }; euclidean-perimeter: ${ cycleStats.euclideanPerimeter } != ${ otherCycleStats.euclideanPerimeter }`);
-                        return false;
-                    }
-                }
-                if ( enforceSameIndexPerimeter ) {
-                    if ( cycleStats.indexPerimeter != otherCycleStats.indexPerimeter ) {
-                        //consoleLog( `${ this } != ${ other }; index-perimeter: ${ cycleStats.indexPerimeter } != ${ otherCycleStats.indexPerimeter }`);
-                        return false;
-                    }
-                }
-                return true;
-            } );
+            const [ otherCycle, offset ] = other.getCycleAndIndex( cycle[0].coord );
+            if ( !cycle.equals( otherCycle ) ) {
+                return false;
+            }
 
-        if ( matchedCycles.length != this.length ) {
-            return false;
+            const cycleStats = cycle.getStats();
+            const otherCycleStats = otherCycle.getStats();
+
+            totalEuclidean[0] += cycleStats.euclideanPerimeter;
+            totalEuclidean[1] += otherCycleStats.euclideanPerimeter;
+
+            totalIndex[0] += cycleStats.indexPerimeter;
+            totalIndex[1] += otherCycleStats.indexPerimeter;
         }
-        return true;
+
+        if ( totalEuclidean[0] != totalEuclidean[1] && sameEuclideanPerimeter ) {
+            consoleLog( `${ this } != ${ other }; euclidean-perimeter: ${ totalEuclidean[0] } != ${ totalEuclidean[1] }` );
+            return false;
+        } else if ( totalIndex[0] != totalIndex[1] && sameIndexPerimeter ) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 
@@ -521,38 +517,6 @@ class CyclesArray extends Array {
         return monomial;
     }
 
-    expand( copies = 1, harmonic = false ) {
-        if ( copies < 2 ) {
-            return this;
-        }
-        const cycles = new CyclesArray();
-        if ( harmonic ) {
-            const template = this.map( cycle => cycle.map( c => CyclesArray.magnifyPoint( c, copies ) ) );
-            for ( var k = 0; k < copies; k++ ) {
-                template.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k ) ) ) );
-            }
-        } else {
-            const volume = this.getVolume();
-            for ( var k = 0; k < copies; k++ ) {
-                this.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k, volume ) ) ) );
-            }
-        }
-
-        const [ l, r, m = 1 ] = cycles.getBases();
-        const permKeys = harmonic
-                ? [ [ m, r, l ], [ m, l, r ] ]
-                : [ [ r, l, m ], [ l, r, m ] ];
-
-        cycles.setMetaData( {
-            harmonic: harmonic,
-            permKeys: permKeys
-        } );
-
-        cycles.normaliseCoordinates();
-
-        return cycles;
-    }
-
     htmlMonomial() {
         return reify( "span", { 'class': 'monomial' }, Object
             .entries( this.monomial() )
@@ -612,7 +576,12 @@ class CyclesArray extends Array {
             "table",
              { 'cssClass': [ 'box-action' ] },
              [
-                reify( "caption", {}, [ reifyText( `${ this.getMeta('label') } &rarr; ` ), this.htmlMonomial() ] ),
+                reify( "caption", {}, [
+                    reifyText( `${ this.getMeta('label') } &rarr; ` ),
+                    this.htmlMonomial(),
+                    reify("br"),
+                    reifyText( `(${ this.getMeta( 'perm' ) }) &rarr; [${ this.getMeta( 'permKeys' ).map(pk=>pk.join('x') ).join('/') }]` )
+                ] ),
                 reify( "tr", {}, headerRow.map( ( h, colIndex ) => reify( "th", {}, [ reifyText( h[0] ) ] ) ) ),
                 reify( "tr", {}, identityRow.map( ir => reify( "td", {}, [ reifyText( ir[0] ) ] ) ) ),
                 ...orbits
@@ -636,6 +605,42 @@ class CyclesArray extends Array {
                 ) ),
                 //reify( "tr", {}, footerRow.map( f => reify( "td", { 'cssClass': f[1] }, [ reifyText( f[0] ) ] ) ) ),
              ] );
+    }
+
+
+    expand( copies = 1, harmonic = false ) {
+        if ( copies < 2 ) {
+            return this;
+        }
+        const cycles = new CyclesArray();
+        if ( harmonic ) {
+            const template = this.map( cycle => cycle.map( c => CyclesArray.magnifyPoint( c, copies ) ) );
+            for ( var k = 0; k < copies; k++ ) {
+                template.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k ) ) ) );
+            }
+        } else {
+            const volume = this.getVolume();
+            for ( var k = 0; k < copies; k++ ) {
+                this.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k, volume ) ) ) );
+            }
+        }
+
+        const [ l, r, m = 1 ] = cycles.getBases();
+//        const permKeys = harmonic
+//                ? [ [ m, r, l ], [ m, l, r ] ]
+//                : [ [ r, l, m ], [ l, r, m ] ];
+        const permKeys = harmonic
+                ? [ [ m, l, r ], [ m, r, l ] ]
+                : [ [ l, r, m ], [ r, l, m ] ];
+
+        cycles.setMetaData( {
+            harmonic: harmonic,
+            permKeys: permKeys
+        } );
+
+        cycles.normaliseCoordinates();
+
+        return cycles;
     }
 
 
@@ -716,7 +721,7 @@ class CyclesArray extends Array {
         const lPerm = leftCycles.getMeta('perm');
         const lPermKeys = leftCycles.getMeta('permKeys');
 
-        const permKeys = [ rPermKeys[0], [...lPermKeys[1] ].reverse() ];
+        const permKeys = [ rPermKeys[0], [...lPermKeys[1] ] ];
 
         cycles.setMetaData( {
             'label': `${ leftCycles.getMeta( 'label' ) }*${ rightCycles.getMeta( 'label' ) }`,

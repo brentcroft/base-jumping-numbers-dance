@@ -436,10 +436,23 @@ class BoxAction {
     }
 
     getCycles() {
-        return [
-            ...this.identities.map( o => o.points ),
-            ...this.orbits.map( o => o.points )
-        ];
+        const cycles = new CyclesArray();
+        const key = this.key;
+        [ ...this.identities, ...this.orbits ]
+            .map( o => o.points )
+            .map( points => new CycleArray( ...points.map( point => {
+                const p = point.at( key );
+                return {
+                    'id': p.id,
+                    'di': p.di,
+                    'coord': new Coord( ...point.coord )
+                };
+             } ) ) )
+            .forEach( cycle => cycles.push( cycle ) );
+
+        cycles.setMeta('label', this.label );
+        cycles.canonicalize();
+        return cycles;
     }
 
     getLabel() {

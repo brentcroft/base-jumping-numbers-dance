@@ -293,14 +293,15 @@
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
-    <label class="summaryLeft">cycles<input type="checkbox" xchecked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
-    <label class="summaryLeft">points<input type="checkbox" checked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">cycles<input type="checkbox" checked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">points<input type="checkbox" xchecked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
     <label class="summaryLeft">coords<input type="checkbox" checked="checked" id="coordsToggle" onclick="calculateNow()"/></label>
     <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="2">
-(4:10)
+    <textarea id="calculationScript" class="scriptPanel" rows="4">
+(4:5|2)
+(4:2|5)
 (4:2|5)*(4:5|2)
-
-    </textarea>
+(4:10)
+</textarea>
 </body>
 </html>

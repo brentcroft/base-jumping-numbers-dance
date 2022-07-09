@@ -12,6 +12,7 @@ class Coord extends Array {
     }
 
     equals( other ) {
+        //return this === other;
         return this === other || arrayExactlyEquals( this, other );
     }
 
@@ -61,15 +62,11 @@ class Coords {
     }
 }
 
-
-
-
 function isCycles( value ) {
     return value instanceof CyclesArray;
 }
 
 class CycleArray extends Array {
-
 
     getPointIndex( coord ) {
         for ( var i = 0; i < this.length; i++ ) {
@@ -80,10 +77,6 @@ class CycleArray extends Array {
         return -1;
     }
 
-    asCoords() {
-        return this.map( p => p.coord ).join('');
-    }
-
     getPreviousPoint( i ) {
         return this[ ( i + this.length - 1 ) % this.length ];
     }
@@ -92,7 +85,9 @@ class CycleArray extends Array {
         return this[ ( i + 1 ) % this.length ];
     }
 
-
+    asCoords() {
+        return this.map( p => p.coord ).join('');
+    }
 
     getCycleNotation() {
         return `(${ this.map( p => p.id ).join( ', ' ) })`;
@@ -107,16 +102,16 @@ class CycleArray extends Array {
         }
 
         var pointCoord = this[0].coord;
-        const [ otherPoint, offset ] = otherPoints
+        const [ otherPoint, offset ] = other
             .map( ( p, i ) => [ p, i ] )
-            .find( ( [ p, i ] ) => arrayExactlyEquals( p.coord,pointCoord ) );
+            .find( ( [ p, i ] ) => arrayExactlyEquals( p.coord, pointCoord ) );
 
-         if ( !offset ) {
+         if ( !otherPoint ) {
              return false;
          }
 
-        for ( var i = 0; i < otherPoints.length; i++ ) {
-            if ( !arrayExactlyEquals( this[i].coord,otherPoints[ ( i + offset ) % otherPoints.length ].coord ) ) {
+        for ( var i = 0; i < other.length; i++ ) {
+            if ( !arrayExactlyEquals( this[i].coord, other[ ( i + offset ) % other.length ].coord ) ) {
                 return false;
             }
         }
@@ -206,6 +201,51 @@ class CyclesArray extends Array {
 //        }
 //        super( ...items );
 //    }
+
+
+
+    equals( other ) {
+        if (!( other instanceof CyclesArray ) ) {
+            return false;
+        }
+        if ( this.length != other.length ) {
+            return false;
+        }
+
+        const enforceSameEuclideanPerimeter = true;
+        const enforceSameIndexPerimeter = true;
+
+        const matchedCycles = [ ...this ]
+            .filter( cycle => {
+                const [ otherCycle, offset ] = other.getCycleAndIndex( cycle[0].coord );
+                if ( !cycle.equals( otherCycle ) ) {
+                    return false;
+                }
+
+                const cycleStats = cycle.getStats();
+                const otherCycleStats = otherCycle.getStats();
+
+                if ( enforceSameEuclideanPerimeter ) {
+                    if ( cycleStats.euclideanPerimeter != otherCycleStats.euclideanPerimeter ) {
+                        consoleLog( `${ this } != ${ other }; euclidean-perimeter: ${ cycleStats.euclideanPerimeter } != ${ otherCycleStats.euclideanPerimeter }`);
+                        return false;
+                    }
+                }
+                if ( enforceSameIndexPerimeter ) {
+                    if ( cycleStats.indexPerimeter != otherCycleStats.indexPerimeter ) {
+                        //consoleLog( `${ this } != ${ other }; index-perimeter: ${ cycleStats.indexPerimeter } != ${ otherCycleStats.indexPerimeter }`);
+                        return false;
+                    }
+                }
+                return true;
+            } );
+
+        if ( matchedCycles.length != this.length ) {
+            return false;
+        }
+        return true;
+    }
+
 
     push( ...items ) {
         const nonCycles = items.filter( item => !( item instanceof CycleArray ) );
@@ -302,7 +342,14 @@ class CyclesArray extends Array {
     }
 
     getBases() {
-        return this.getTerminal().coord.map( i => i + 1 );
+        var bases = this.getMeta( 'bases' );
+        if ( bases ) {
+            return bases;
+        } else {
+            bases = this.getTerminal().coord.map( i => i + 1 );
+            this.setMeta( 'bases', bases );
+            return bases
+        }
     }
 
     isHarmonic() {
@@ -335,7 +382,8 @@ class CyclesArray extends Array {
     }
 
     toString() {
-        return this.map( cycle => "(" + cycle.map( p => p.id ).join(',') + ")" ).join( '' );
+        return this.getMeta('label');
+        //return this.map( cycle => "(" + cycle.map( p => p.id ).join(',') + ")" ).join( '' );
     }
 
     getCentres() {
@@ -664,13 +712,18 @@ class CyclesArray extends Array {
         }
 
         const rPerm = rightCycles.getMeta('perm');
+        const rPermKeys = rightCycles.getMeta('permKeys');
         const lPerm = leftCycles.getMeta('perm');
+        const lPermKeys = leftCycles.getMeta('permKeys');
+
+        const permKeys = [ rPermKeys[0], [...lPermKeys[1] ].reverse() ];
 
         cycles.setMetaData( {
+            'label': `${ leftCycles.getMeta( 'label' ) }*${ rightCycles.getMeta( 'label' ) }`,
             'harmonic': false,
             'perm': rPerm.map( b => lPerm[b] ),
             'box': rightBox,
-            'permKeys': [ leftCycles.getBases(), rightCycles.getBases() ]
+            'permKeys': permKeys
         } );
 
         cycles.canonicalize();

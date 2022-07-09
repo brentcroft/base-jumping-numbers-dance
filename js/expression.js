@@ -629,12 +629,13 @@ class Formula {
             }
         }
 
-        function maybeSwapForExistingAction( boxGroup, boxAction ) {
+        function maybeSwapForExistingAction( boxGroup, cycles ) {
            const existingIndexes = boxGroup
-                ? boxGroup.findMatchingActions( boxAction )
+                ? boxGroup.findMatchingCycles( cycles )
                 : [];
 
             if ( existingIndexes.length == 0 ) {
+                const boxAction = cycles.getAction();
                 if ( boxGroup ) {
                     boxGroup.removeEqualCompositeAction( boxAction );
                     boxGroup.boxActions.push( boxAction );
@@ -646,9 +647,9 @@ class Formula {
                         if ( `e ${ OPERATIONS[0] } ${ existingIndex }` == aliasText ) {
                             //
                         } else {
-                            updateAlias( existingIndex, boxAction.label );
+                            updateAlias( existingIndex, cycles.getMeta('label') );
                         }
-                        copySymbols( existingIndex, boxAction );
+                        //copySymbols( existingIndex, cycles );
                     } );
 
                 return existingIndexes[0];
@@ -658,8 +659,9 @@ class Formula {
         const aliasText = this.getExpressionString();
 
         if ( r instanceof CyclesArray ) {
+            //r.setMeta( 'label', aliasText );
             if ( r.getMeta("permKeys") && this.boxGroup ) {
-                return maybeSwapForExistingAction( this.boxGroup, r.getAction() );
+                return maybeSwapForExistingAction( this.boxGroup, r );
             } else {
                 return r;
             }
@@ -871,33 +873,9 @@ class LiteralCyclesExpression extends OperatorExpression {
     }
 
     evaluate( params = {} ) {
-        var leftCoprimes = this.left.evaluate( params );
-        var rightCoprimes = this.right.evaluate( params );
-
-        if ( Number.isInteger( leftCoprimes ) ) {
-            leftCoprimes = [ leftCoprimes ];
-        } else {
-            if ( !leftCoprimes.leftCoprimes ) {
-                throw new Error( `Invalid left argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
-            }
-            leftCoprimes = [ ...leftCoprimes.leftCoprimes, ...leftCoprimes.rightCoprimes ];
-        }
-
-        if ( Number.isInteger( rightCoprimes ) ) {
-            rightCoprimes = [ rightCoprimes ];
-        } else {
-            if ( !rightCoprimes.leftCoprimes ) {
-                throw new Error( `Invalid right argument for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
-            }
-            rightCoprimes = [ ...rightCoprimes.leftCoprimes, ...rightCoprimes.rightCoprimes ];
-        }
-
-        const bases = [ leftCoprimes.reduce( (a,c) => a * c, 1 ), rightCoprimes.reduce( (a,c) => a * c, 1 ) ];
-
-        var leftBases = [...leftCoprimes];
-        var rightBases = [...rightCoprimes];
-
-        return CyclesArray.getCycles( bases );
+        const leftCoprime = this.left.evaluate( params );
+        const rightCoprime = this.right.evaluate( params );
+        return CyclesArray.getCycles( [ leftCoprime, rightCoprime ] );
     }
 
     toString() {

@@ -328,7 +328,8 @@ class IndexCyclesAction extends CompositeAction {
             throw new Error( `No rightPerm found for: ${ rightPermBases } [${ cycles.getBases() }]`);
         }
 
-        this.buildReport = `coordBases: ${ cycles.getBases() }: ` +
+        this.buildReport = `perm: ${ cycles.getMeta('perm') }: ` +
+            `permKeys: [( ${ leftPermKey }), (${ rightPermKey }) ]: ` +
             `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +
             `${ rightPerm[0].symbol }${ arrowUp( rightPerm[1] ) }` +
             `${ cycles.isHarmonic() ? ' harmonic' : '' }`;
@@ -346,18 +347,16 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     indexPoints( pair, cycles ) {
-        const perm = canonicalCoordinateMap( cycles.getBases() );
-        const transformToBoxCoord = ( coord ) => perm.map( p => coord[ p ] );
         this.cycles = cycles
             .map( cycle => cycle
-                .map( ( c, i ) => [ c.id, c.di, transformToBoxCoord( c.coord ) ] )
+                .map( ( c, i ) => [ c.id, c.di, c.coord ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
     }
 
     indexPoint( pointIndex, id, di, coord ) {
         const point = pointIndex[ di ];
 
-        if ( !point ) {
+        if ( !point && point != -1) {
             throw new Error( `No point for di: ${ di }` );
         }
         const partnerId = ( this.box.volume - id - 1 );
@@ -575,6 +574,10 @@ class BoxGroup {
 
     findMatchingActions( boxAction ) {
         return this.boxActions.filter( p => p.equals( boxAction ) );
+    }
+
+    findMatchingCycles( cycles ) {
+        return this.boxActions.filter( boxAction => boxAction.getCycles().equals( cycles ) );
     }
 
     removeEqualCompositeAction( boxAction ) {

@@ -534,7 +534,7 @@ class BoxAction {
                     }
                 }
                 if ( offset > 0 ) {
-                    if ( !this.ignoreOrbitOffsets ) {
+                    if ( !this.ignoreCycleOffsets ) {
                         const key = `${ offset }/${ orbit.order }`;
                         orbitOffsetMessages[key] = (key in orbitOffsetMessages)
                             ? orbitOffsetMessages[key] + 1

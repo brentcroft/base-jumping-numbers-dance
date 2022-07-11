@@ -78,7 +78,7 @@ function getBoxGroupMember( volume, coprime ) {
         for ( var j = 0; j < coprime; j++ ) {
 
             const point = createPoint( i, j, coprime, cofactor );
-            const cycle = cycles.find( cycle => cycle.find( p => p.id == point.id ) );
+            const cycle = cycles.find( cycle => cycle.find( p => p.id === point.id ) );
 
             if ( cycle ) {
                 cycle
@@ -111,17 +111,27 @@ function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
     const volume = ( terminal + 1 );
     const cofactor = volume / stride;
     if ( Number.isInteger( cofactor ) ) {
-
         const cycles = getBoxGroupMember( volume, cofactor );
 
-        const [ l, r ] = cycles.getBases();
-        const permKeys = [ [ l, r ], [ r, l ] ];
-        cycles.setMetaData( {
-            harmonic: false,
-            permKeys: permKeys
-        } );
+        if ( truncated ) {
+            return cycles.filter( cycle => !cycle.find( c => c.id == terminal ) );
+        } else {
 
-        return cycles.filter( cycle => !truncated || !cycle.find( c => c.id == terminal ) );
+            const permPair = (stride < cofactor)
+                ? [ [ 1, 0 ], [ 0, 1 ] ]
+                : [ [ 0, 1 ], [ 1, 0 ] ];
+
+            const [ l, r ] = cycles.getBases();
+            const permKeys = [ [ l, r ], [ r, l ] ];
+            cycles.setMetaData( {
+                harmonic: false,
+                label: `(${ stride }:${ cofactor })`,
+                permPair: permPair,
+                permKeys: permKeys
+            } );
+
+            return cycles;
+        }
 
     } else {
         // one-dimensional

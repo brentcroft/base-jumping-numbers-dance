@@ -1,6 +1,6 @@
 tableKeys = {
     "composition": 1,
-    "permutation-pair": 0,
+    "permutation-pair": 1,
     "place-values-pair": 0,
     "identity-equation": 0,
     "monomial": 1,
@@ -11,8 +11,8 @@ tableKeys = {
 toggleKeys = {
 
     actions: 1,
-    cycles: 1,
-    chart: 1,
+    cycles: 0,
+    chart: 0,
     more: 0,
 
     globalIds: 0,
@@ -34,11 +34,11 @@ toggleKeys = {
     indexComposer: 0,
     autoCompose: 1,
 
-    compositionRules: 1,
+    compositionRules: 0,
     showCompositions: 0,
     ignoreEuclideanPerimeters: 0,
-    ignoreIndexPerimeters: 0,
-    ignoreOrbitOffsets: 1,
+    ignoreIndexPerimeters: 1,
+    ignoreCycleOffsets: 1,
     alternatePerms: 1,
 
 

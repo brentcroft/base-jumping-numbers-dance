@@ -304,7 +304,7 @@ class IndexCyclesAction extends CompositeAction {
                 +  this.buildReport
                 + `  box point ${ this.badCoords[0] } != ${ this.badCoords[1] }`;
 
-            //consoleLog( msg );
+            consoleLog( msg );
             //throw new Error( msg );
         }
 
@@ -312,15 +312,21 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     getPlaceValuesPermutationPair( cycles ) {
-        const [ leftPermKey, rightPermKey ] = cycles.getMeta( 'permKeys' );
+//        const [ leftPermKey, rightPermKey ] = cycles.getMeta( 'permKeys' );
+//
+//        const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
+//        const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
 
-        const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
-        const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
+        const permPair = cycles.getMeta( 'permPair' );
 
         const [ leftPerm, rightPerm ] = [
-            this.box.getPermVector( leftPermBases ),
-            this.box.getPermVector( rightPermBases )
+            this.box.getPermVector( permPair[0] ),
+            this.box.getPermVector( permPair[1] )
         ];
+//        const [ leftPerm, rightPerm ] = [
+//            this.box.getPermVector( leftPermBases ),
+//            this.box.getPermVector( rightPermBases )
+//        ];
 
         if ( !leftPerm ) {
             throw new Error( `No leftPerm found for: ${ leftPermBases } [${ cycles.getBases() }]`);
@@ -328,13 +334,13 @@ class IndexCyclesAction extends CompositeAction {
             throw new Error( `No rightPerm found for: ${ rightPermBases } [${ cycles.getBases() }]`);
         }
 
-        this.buildReport = `perm: ${ cycles.getMeta('perm') }: ` +
-            `permKeys: [( ${ leftPermKey }), (${ rightPermKey }) ]: ` +
-            `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +
+        this.buildReport = `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +
             `${ rightPerm[0].symbol }${ arrowUp( rightPerm[1] ) }` +
             `${ cycles.isHarmonic() ? ' harmonic' : '' }`;
 
-        return new PlaceValuesPermutationPair( null, this.box.bases,
+        return new PlaceValuesPermutationPair(
+            null,
+            this.box.bases,
             leftPerm[0], rightPerm[0],
             [
                 leftPerm[1],
@@ -347,7 +353,7 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     indexPoints( pair, cycles ) {
-        this.cycles = cycles
+        cycles
             .map( cycle => cycle
                 .map( ( c, i ) => [ c.id, c.di, c.coord ] )
                 .map( ( [ id, di, coord ] ) => this.indexPoint( pair.dix, id, di, coord ) ) );
@@ -356,7 +362,7 @@ class IndexCyclesAction extends CompositeAction {
     indexPoint( pointIndex, id, di, coord ) {
         const point = pointIndex[ di ];
 
-        if ( !point && point != -1) {
+        if ( !point || point == -1) {
             throw new Error( `No point for di: ${ di }` );
         }
         const partnerId = ( this.box.volume - id - 1 );
@@ -398,13 +404,13 @@ class BoxGroup {
         [
             this.alternatePerms,
             this.compositionRules,
-            this.ignoreOrbitOffsets,
+            this.ignoreCycleOffsets,
             this.ignoreIndexPerimeters,
             this.ignoreEuclideanPerimeters
         ] = [
             toggles.includes( "alternatePerms" ),
             toggles.includes( "compositionRules" ),
-            toggles.includes( "ignoreOrbitOffsets" ),
+            toggles.includes( "ignoreCycleOffsets" ),
             toggles.includes( "ignoreIndexPerimeters" ),
             toggles.includes( "ignoreEuclideanPerimeters" )
         ];
@@ -558,7 +564,7 @@ class BoxGroup {
         this.boxActions.forEach( plane => {
             plane.ignoreEuclideanPerimeters = this.ignoreEuclideanPerimeters;
             plane.ignoreIndexPerimeters = this.ignoreIndexPerimeters;
-            plane.ignoreOrbitOffsets = this.ignoreOrbitOffsets;
+            plane.ignoreCycleOffsets = this.ignoreCycleOffsets;
             plane.boxGroup = this;
         } );
 
@@ -577,7 +583,14 @@ class BoxGroup {
     }
 
     findMatchingCycle( cycles, param ) {
-        return this.boxActions.find( boxAction => boxAction.getCycles().equals( cycles, param ) );
+        try {
+            return this
+                .boxActions
+                .find( boxAction => boxAction.getCycles().equals( cycles, param ) );
+        } catch( e ) {
+            consoleLog( `Cycles not found: ` + e );
+            return null;
+        }
     }
 
     removeEqualCompositeAction( boxAction ) {

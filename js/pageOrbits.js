@@ -363,14 +363,15 @@ function processFormula( indexedBox, compositionFormulasText ) {
                 if ( !arguments || arguments.length < 1 ) {
                     return 1;
                 }
-                const baseId = arguments[0];
+                const baseId = arguments[0].getVolume();
                 const remainder = Array.prototype.slice.call(arguments).slice( 1 )
                 if ( baseId < 0 ) {
                     throw new Error( `bb(): baseId must be greater than 0: ${ baseId }` );
                 } else if ( baseId > ( indexedBox.box.bases.length - 1 ) ) {
                     throw new Error( `bb(): baseId must be less than ${ indexedBox.box.bases.length }: ${ baseId }` );
                 }
-                return indexedBox.box.bases[ baseId ] * bb( ...remainder );
+                const t = indexedBox.box.bases[ baseId ];
+                return CyclesArray.getIdentityCycles( t );
             }
 
             function Gm( terminal, stride, truncated = true ) {
@@ -473,10 +474,7 @@ function updateJson() {
         conj: isToggle('conj'),
         globalIds: isToggle('globalIds'),
         jumps: isToggle('jumps'),
-        perms: !isToggle('coords'),
-        minCols: isToggle('minCols'),
-        maxCols: isToggle('maxCols'),
-        medCols: isToggle('medCols')
+        perms: !isToggle('coords')
     };
 
     renderCurrentActionTable( tableArgs );
@@ -655,12 +653,12 @@ function buildOctahedralNavigator( boxGroup, param ) {
     }
 }
 
-function buildActionTableColumns( containerId) {
+function buildActionTableColumns( containerId, keys ) {
     const target = document.getElementById( containerId );
     target.innerText = '';
     target.appendChild( reify( 'hr' ) );
     Object
-        .entries( tableKeys )
+        .entries( keys )
         //.filter( ([k,v]) => v == 1 )
         .map( ([k,v]) => reify( 'label', {}, [
             reifyText( k ),
@@ -673,7 +671,7 @@ function buildActionTableColumns( containerId) {
                 [],
                 [
                     input => input.onclick = () => {
-                        tableKeys[k] = input.checked ? 1 : 0;
+                        keys[k] = input.checked ? 1 : 0;
                         updatePage();
                     }
                 ]
@@ -692,8 +690,8 @@ function buildActionTableColumns( containerId) {
         [
             a => a.onclick = () => {
                 Object
-                    .keys( tableKeys )
-                    .forEach( k => tableKeys[k] = 1 );
+                    .keys( keys )
+                    .forEach( k => keys[k] = 1 );
                 updatePage();
             }
         ]
@@ -706,8 +704,8 @@ function buildActionTableColumns( containerId) {
         [
             a => a.onclick = () => {
                 Object
-                    .keys( tableKeys )
-                    .forEach( k => tableKeys[k] = 0 );
+                    .keys( keys )
+                    .forEach( k => keys[k] = 0 );
                 updatePage();
             }
         ]
@@ -751,7 +749,8 @@ function updatePage() {
 
     buildCompositionSelectors( indexedBox, param );
 
-    buildActionTableColumns( 'actionsColumns' );
+    buildActionTableColumns( 'actionsColumns', actionColumnKeys );
+    buildActionTableColumns( 'cyclesColumns', cyclesColumnKeys );
 
     rebuildIndexedBoxSummary( indexedBox, param );
 

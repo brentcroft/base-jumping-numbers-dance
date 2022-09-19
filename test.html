@@ -8,6 +8,7 @@
     <!-- model -->
     <script type="text/javascript" src="js/toggles.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
+    <script type="text/javascript" src="js/reify.js"></script>
 
     <script type="text/javascript" src="js/cycles.js"></script>
 
@@ -302,17 +303,25 @@
     </style>
 </head>
 <body onload="calculateNow()">
+    <div class="menu noprint">
+        <a href="index.html" title="Thinking inside the box">doc</a>
+        <a href="orbits.html" title="Box Group Laboratory">lab</a>
+        <a href="roots.html" title="Multiplicative Groups">groups</a>
+        <a href="test.html" title="Test formulas">test</a>
+    </div>
     <input type="button" value="eval" onclick="calculateNow()"/>
     <input type="button" value="clear" onclick="clearResults()"/>
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
-    <label class="summaryLeft">tables<input type="checkbox" xchecked="checked" id="drawTableToggle" onclick="calculateNow()"/></label>
-    <label class="summaryLeft">cycles<input type="checkbox" xchecked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">tables<input type="checkbox" checked="checked" id="drawTableToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">cycles<input type="checkbox" checked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
     <label class="summaryLeft">points<input type="checkbox" xchecked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
     <label class="summaryLeft">coords<input type="checkbox" xchecked="checked" id="coordsToggle" onclick="calculateNow()"/></label>
     <br/>
     <textarea id="calculationScript" class="scriptPanel" rows="4">
-(3:5|2)
+2:4:5
+    </textarea>
+<!--
 (3:5~2)
 (5:3|2)
 (5:3~2)
@@ -336,9 +345,6 @@
 (3:2|5)*(3:5|2)
 (3:5|2)*(3:2|5)
 (2:3|5)*(5:3|2)
-    </textarea>
-<!--
-
 
 -->
 </body>

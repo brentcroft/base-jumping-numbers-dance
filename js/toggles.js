@@ -1,10 +1,19 @@
-tableKeys = {
+actionColumnKeys = {
     "composition": 1,
     "permutation-pair": 1,
     "place-values-pair": 0,
     "identity-equation": 0,
     "monomial": 1,
     "stats": 1,
+};
+
+cyclesColumnKeys = {
+    "line": 1,
+    "centre": 1,
+    "maxEPer": 0,
+    "tension": 0,
+    "maxIPer": 0,
+    "torsion": 0
 };
 
 //
@@ -52,6 +61,7 @@ toggleKeys = {
 
     scale3d: 0,
 
+    cyclesColumns: 0,
     products: 0,
     productByOrbits: 1,
     productBlankIdentity: 1,

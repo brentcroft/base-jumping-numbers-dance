@@ -387,7 +387,7 @@ class Formula {
                         //Still within number, store and continue
                         tmp += char;
                         if (act === lastChar) {
-                            expressions.push(new ValueExpression(tmp));
+                            expressions.push(new LiteralIdentityExpression(tmp));
                             state = 0;
                         }
                     } else {
@@ -396,7 +396,7 @@ class Formula {
                             // just a single '-' means: a variable could follow (e.g. like in 3*-x), we convert it to -1: (3*-1x)
                             tmp = -1;
                         }
-                        expressions.push(new ValueExpression(tmp));
+                        expressions.push(new LiteralIdentityExpression(tmp));
                         tmp = '';
                         state = 0;
                         act--;
@@ -603,8 +603,11 @@ class Formula {
 
     evaluate( valueObj, param = {} ) {
 
-        const boxItems = this.boxGroup ? this.boxGroup.getIndexMap() : {}
-        const r = this._evaluate( { ...valueObj, ...param, ...boxItems } );
+        const boxItems = this.boxGroup ? this.boxGroup.getIndexMap() : {};
+        const boxBases = {};
+        this.boxGroup.box.bases.forEach( (b,i) => boxBases[`b${i}`] = CyclesArray.getIdentityCycles( b ) );
+
+        const r = this._evaluate( { ...valueObj, ...param, ...boxItems, ...boxBases } );
 
         function updateAlias( r, aliasText ) {
             if ( !r ) {
@@ -841,18 +844,27 @@ class OperatorExpression extends Expression {
     }
 }
 
-class LiteralCyclesExpression extends OperatorExpression {
+class LiteralIdentityExpression extends ValueExpression {
+    constructor( value ) {
+        super( value );
+    }
+    evaluate( params = {} ) {
+        return CyclesArray.getIdentityCycles( this.value );
+    }
+    toString() {
+        return `[${this.value}]`;
+    }
+}
 
+class LiteralCyclesExpression extends OperatorExpression {
     constructor( operator, left, right, boxGroup ) {
         super( operator, left, right, boxGroup );
     }
-
     evaluate( params = {} ) {
-        const leftCoprime = this.left.evaluate( params );
-        const rightCoprime = this.right.evaluate( params );
-        return CyclesArray.getCycles( [ leftCoprime, rightCoprime ] );
+        const leftCycles = this.left.evaluate( params );
+        const rightCycles = this.right.evaluate( params );
+        return rightCycles.twist(leftCycles);
     }
-
     toString() {
         return `${this.left.toString()}${this.operator}${this.right.toString()}`;
     }
@@ -865,13 +877,14 @@ class CyclesExtensionExpression extends OperatorExpression {
 
     evaluate( params = {} ) {
         const cycles = this.left.evaluate(params);
-        const multiplier = this.right.evaluate(params);
+        const rightCycles = this.right.evaluate(params);
+        const multiplier = rightCycles.getVolume();
 
         if ( !(Number.isInteger( multiplier ) ) ) {
             throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
         }
 
-        const label = `(${ cycles.getBases().join(':') }${ this.operator }${ multiplier })`;
+        const label = `(${ cycles.getMeta( "label" ) }${ this.operator }${ multiplier })`;
         const harmonic = ( this.operator == '~' );
         const expandedCycles = cycles.expand( multiplier, harmonic );
 
@@ -895,7 +908,7 @@ class PowerExpression extends Expression {
     }
 
     evaluate(params = {}) {
-        const exp = Number( this.exponent.evaluate(params) );
+        const exp = Number( this.exponent.evaluate(params).getVolume() );
         const start = this.base.evaluate(params);
         var locus = start;
 

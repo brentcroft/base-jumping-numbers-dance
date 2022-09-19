@@ -169,26 +169,16 @@ function getCycleIndexMonomialHtml( currentAction ) {
 
 
 function renderCurrentActionTable( tableArgs ) {
-
     const {
         containerId, currentAction, cellClick, clearClick, totalClick, midi = false,
-        conj = false, perms = false, jumps = false, globalIds = false,
-        minCols = false, maxCols = false, medCols = false
+        conj = false, perms = false, jumps = false, globalIds = false
     } = tableArgs;
 
-    //consoleLog( `orbits.table: ${ containerId }: id=${ currentAction.id }` );
-
-    const optionalColumns = [ "maxEPer", "maxIPer" ];
-
-    if ( minCols ) {
-        optionalColumns.splice( 0, optionalColumns.length );
-    }
-    if ( medCols ) {
-        optionalColumns.push( "line", "centre"  );
-    }
-    if ( maxCols ) {
-        optionalColumns.push( "tension", "torsion" );
-    }
+    // TODO: reference to cyclesColumnKeys
+    const optionalColumns = Object
+        .entries( cyclesColumnKeys )
+        .filter( ([k,v]) => v == 1 )
+        .map( ([k,v]) => k );
 
     const gid = globalIds
         ? ( point ) => point.id
@@ -611,8 +601,9 @@ function drawBoxSummaryTable( indexedBox, containerId, param ) {
     const selectedIndex = param.actionIndex || -1;
     const toggles = param.toggles || [];
 
+    // TODO: reference to actionColumnKeys
     const optionalColumns = Object
-        .entries( tableKeys )
+        .entries( actionColumnKeys )
         .filter( ([k,v]) => v == 1 )
         .map( ([k,v]) => k );
 

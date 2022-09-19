@@ -10,7 +10,7 @@
     <!-- model -->
     <script type="text/javascript" src="js/toggles.js"></script>
     <script type="text/javascript" src="js/data.js"></script>
-
+    <script type="text/javascript" src="js/reify.js"></script>
     <script type="text/javascript" src="js/cycles.js"></script>
 
 
@@ -39,8 +39,9 @@
 <body id="testContainer001" onload="initPage()">
     <div class="menu noprint">
         <a href="index.html" title="Thinking inside the box">doc</a>
-        <a title="Box Group Laboratory">lab</a>
+        <a href="orbits.html" title="Box Group Laboratory">lab</a>
         <a href="roots.html" title="Multiplicative Groups">groups</a>
+        <a href="test.html" title="Test formulas">test</a>
     </div>
 
     <div>
@@ -75,9 +76,6 @@
             <div id="more-options" style="display: none">
                 <hr/>
                 <label title="show x3dom navigator">box-action-navigator<input type="checkbox" id="boxActionNavigatorToggle" onchange="showHideAll( [ 'boxActionNavigator' ] ); updatePage()"/></label> |
-                <label title="minimal columns">min-cols<input type="checkbox" id="minColsToggle" onchange="updatePage()"/></label> |
-                <label title="composition and symbolic columns">med-cols<input type="checkbox" id="medColsToggle" onchange="updatePage()"/></label> |
-                <label title="maximal columns">max-cols<input type="checkbox" id="maxColsToggle" onchange="updatePage()"/></label> |
                 <label title="radiance excludes terminal fixed points">fixed-rad<input type="checkbox" id="fixedRadToggle" onchange="updatePage()"/></label> |
                 <label title="colours">colours<input type="checkbox" id="coloursToggle" onchange="showHideAll( ['colours'], this )"/></label>
 
@@ -135,11 +133,10 @@
 
             <label title="include inverses">inverses<input type="checkbox" id="inversesToggle" onchange="updatePage()"/></label> |
             <label title="include harmonics">harmonics<input type="checkbox" id="harmonicsToggle" onchange="updatePage()"/></label> |
-            <label title="display column selection panel">columns<input type="checkbox" id="actionsColumnsToggle" onchange="showHideAll( ['actionsColumns'], this )"/></label> |
             <label title="generate radiance index">radiance<input type="checkbox" id="radianceToggle" onchange="updatePage()"/></label> |
             <label title="display filter panel">filter<input type="checkbox" id="monomialFilterToggle" onchange="showHideAll( ['monomialFilterControls'], this )"/></label> |
-            <label title="display composer panel">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label>
-
+            <label title="display composer panel">composer<input type="checkbox" id="indexComposerToggle" onchange="showHideAll( ['indexComposer'], this )"/></label> |
+            <label title="display column selection panel">columns<input type="checkbox" id="actionsColumnsToggle" onchange="showHideAll( ['actionsColumns'], this )"/></label>
             <div id="actionsColumns" style="display: none"></div>
         </div>
 
@@ -216,6 +213,8 @@
             <label title="display global ids">global ids <input type="checkbox" id="globalIdsToggle" onchange="selectBoxAction()"/></label> |
             <label title="rollup orbits with their conjugates">conj.<input type="checkbox" id="conjToggle" onchange="updateJson()"/></label> |
             <label title="display coordinates instead of ids">coords<input type="checkbox" id="coordsToggle" onchange="updateJson()"/></label>
+            <label title="display column selection panel">columns<input type="checkbox" id="cyclesColumnsToggle" onchange="showHideAll( ['cyclesColumns'], this )"/></label>
+            <div id="cyclesColumns" style="display: none"></div>
         </div>
         <div id="sample_cs_b_10_m_2_table" style="display: none"></div>
     </div>

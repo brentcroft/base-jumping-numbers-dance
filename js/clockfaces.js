@@ -147,5 +147,3 @@ function getMultiplicativeGroupMember( terminal, stride, truncated = true ) {
         return cycles;
     }
 }
-
-

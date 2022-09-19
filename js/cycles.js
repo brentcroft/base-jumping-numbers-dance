@@ -26,7 +26,8 @@ class Coords {
     static boxes = {};
 
     static getCoords( bases ) {
-        const canonicalBases = new Coord(...bases);
+        const canonicalBases = new Coord(bases.length);
+        bases.forEach((b,i)=>canonicalBases[i]=b);
         canonicalBases.sort( ( a, b ) => a - b );
         var box = Coords.boxes[ canonicalBases.key() ];
         if ( box ) {
@@ -39,7 +40,8 @@ class Coords {
 
     static buildCoordMap( bases, place = 0, locusStack = [], coordMap = {} ) {
         if ( place == bases.length ) {
-            const coord = new Coord(...locusStack);
+            const coord = new Coord(locusStack.length);
+            locusStack.forEach((b,i)=>coord[i]=b);
             coordMap[coord.key()] = coord;
         } else {
             for ( var i = 0; i < bases[place]; i++) {
@@ -70,7 +72,7 @@ class CycleArray extends Array {
 
     getPointIndex( coord ) {
         for ( var i = 0; i < this.length; i++ ) {
-            if ( this[i].coord.equals(coord) ) {
+            if ( arrayExactlyEquals( this[i].coord, coord ) ) {
                 return i;
             }
         }
@@ -186,6 +188,35 @@ class CyclesArray extends Array {
         return cycles;
     }
 
+    static getIdentityCycles( volume ) {
+        const terminal = volume - 1;
+        const identityCycles = new CyclesArray();
+
+        const box = Coords.getCoords([volume]);
+
+        for (var i = 0; i < volume;i++){
+            const identityCycle = new CycleArray();
+            identityCycle.push(
+                {
+                    id: i,
+                    di: i,
+                    coord: [ i ]
+                } );
+            identityCycles.push( identityCycle);
+        }
+        identityCycles.setMetaData( {
+            harmonic: false,
+            label: `${ volume }`,
+            permPair: [ [ 0 ], [ 0 ] ],
+            permKeys: [ [ volume ], [  volume ] ]
+        } );
+
+        identityCycles.canonicalize();
+        identityCycles.normaliseCoordinates();
+
+        return identityCycles;
+    }
+
 //
 //    constructor( ...items ) {
 //        const nonCycles = items.filter( item => !( item instanceof CycleArray ) );
@@ -261,6 +292,11 @@ class CyclesArray extends Array {
         this.sort( ( a, b ) => a[0].id - b[0].id );
     }
 
+    denormalizeCoord( coord ) {
+        const permInv = this.getMeta( 'permInv' );
+        return permInv.map( i => coord[i] );
+    }
+
     normaliseCoordinates() {
         if ( this.getMeta( 'perm') ) {
             throw new Error("Called twice!");
@@ -295,7 +331,11 @@ class CyclesArray extends Array {
     }
 
     getTerminal() {
-        return this[ this.length - 1 ][0];
+        try {
+            return this[ this.length - 1 ][0];
+        } catch (e) {
+            throw e;
+        }
     }
 
     getDiagonal() {
@@ -312,8 +352,17 @@ class CyclesArray extends Array {
     }
 
     setMetaData( data = {} ) {
+        try {
+            const terminal = this.getTerminal();
+            terminal.meta = data;
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    hasMeta( key ) {
         const terminal = this.getTerminal();
-        terminal.meta = data;
+        return terminal.meta && key in terminal.meta;
     }
 
     getMeta( key ) {
@@ -529,7 +578,7 @@ class CyclesArray extends Array {
         return reify( "div",{}, [
             reifyText( this.getMeta('label') ),
             reifyText( " = " ),
-            reifyText( this.getMeta( 'permPair' ).map( p => `[${p}]`).join(':') ),
+            reifyText( this.hasMeta( 'permPair' ) ? this.getMeta( 'permPair' ).map( p => `[${p}]`).join(':') : "no-perm-pair" ),
             reifyText( " &rarr; " ),
             this.htmlMonomial(),
             reify("br"),
@@ -629,6 +678,79 @@ class CyclesArray extends Array {
         point.toString = () => pointLabel( point );
         return point;
     }
+    static stubNextPoint( lastPoint, cofactor, terminal ) {
+        const point = {
+            id: lastPoint.di,
+            di: ( lastPoint.di * cofactor ) % terminal,
+            coord: []
+        };
+        point.toString = () => pointLabel( point );
+        return point;
+    }
+
+    twist( leftCycles ) {
+
+        const rightCycles = this;
+        const bases = [ ...leftCycles.getBases(), ...rightCycles.getBases() ];
+
+        const p_fwd = placeValuesForwardArray( bases, 0 );
+        const p_rev = placeValuesReverseArray( bases, 0 );
+        const indexFwd = ( coord ) => p_fwd.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+        const indexRev = ( coord ) => p_rev.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
+
+        const ids = new CycleArray( leftCycles.getVolume() * rightCycles.getVolume() );
+
+        leftCycles.forEach( (leftCycle, i) => {
+            leftCycle.forEach( (leftPoint, j) => {
+                rightCycles.forEach( rightCycle => {
+                    rightCycle.forEach( rightPoint => {
+                        const leftCoord = leftCycles.denormalizeCoord( leftPoint.coord );
+                        const rightCoord = rightCycles.denormalizeCoord( rightPoint.coord );
+                        const coord = [ ...leftCoord, ...rightCoord ];
+                        const point = {
+                            id: indexRev(coord),
+                            di: indexFwd(coord),
+                            coord: coord
+                        };
+                        ids[point.id] = point;
+                    });
+                } );
+            });
+        });
+
+        const cycles = new CyclesArray();
+        const usedId = {id:-1};
+        ids.forEach( cyclePoint => {
+            if ( cyclePoint.id >= 0 ) {
+                 const newCycle = new CycleArray( cyclePoint );
+                 var lastPoint = cyclePoint;
+                 var nextPoint = ids[lastPoint.di];
+                 ids[nextPoint.id] = usedId;
+                 while ( nextPoint.id != cyclePoint.id ) {
+                     newCycle.push( nextPoint );
+                     lastPoint = nextPoint;
+                     nextPoint = ids[lastPoint.di];
+                     ids[nextPoint.id] = usedId;
+                 }
+                 cycles.push( newCycle );
+            }
+        });
+
+        const permPair = [ [ 0, 1 ], [ 1, 0 ] ];
+
+        const permKeys = [ ...bases, ...[...bases].reverse() ];
+        cycles.setMetaData( {
+            harmonic: false,
+            label: `(${ leftCycles.getMeta('label') }:${ rightCycles.getMeta('label') })`,
+            permPair: permPair,
+            permKeys: permKeys
+        } );
+
+        cycles.canonicalize();
+        cycles.normaliseCoordinates();
+        return cycles;
+    }
+
 
     expand( copies = 1, harmonic = false ) {
         if ( copies < 2 ) {
@@ -654,27 +776,29 @@ class CyclesArray extends Array {
 
         cycles.normaliseCoordinates();
 
-        const permInv = cycles.getMeta('permInv' );
+        if ( cycles.hasMeta('permInv' ) && this.hasMeta('permPair') ) {
+            const permInv = cycles.getMeta('permInv' );
 
-        const [ ppl, ppr ] = this.getMeta('permPair');
-        const permPair = harmonic
-            ? [
-                [ permInv[ppl.length], ...ppl.map(p=>permInv[p]) ],
-                [ permInv[ppr.length], ...ppr.map(p=>permInv[p]) ]
-              ]
-            : [
-                [...ppl.map(p=>permInv[p]), permInv[ppl.length] ],
-                [...ppr.map(p=>permInv[p]), permInv[ppr.length] ]
-            ];
+            const [ ppl, ppr ] = this.getMeta('permPair');
+            const permPair = harmonic
+                ? [
+                    [ permInv[ppl.length], ...ppl.map(p=>permInv[p]) ],
+                    [ permInv[ppr.length], ...ppr.map(p=>permInv[p]) ]
+                  ]
+                : [
+                    [...ppl.map(p=>permInv[p]), permInv[ppl.length] ],
+                    [...ppr.map(p=>permInv[p]), permInv[ppr.length] ]
+                ];
 
-        Object
-            .assign(
-                cycles.getMetaData(),
-                {
-                    harmonic: harmonic,
-                    permPair: permPair,
-                    permKeys: permKeys
-                } );
+            Object
+                .assign(
+                    cycles.getMetaData(),
+                    {
+                        harmonic: harmonic,
+                        permPair: permPair,
+                        permKeys: permKeys
+                    } );
+        }
 
         return cycles;
     }
@@ -752,37 +876,41 @@ class CyclesArray extends Array {
             cycles.push( cycle );
         }
 
-        const rPerm = rightCycles.getMeta('perm');
-        const rPermKeys = rightCycles.getMeta('permKeys');
-        const lPerm = leftCycles.getMeta('perm');
-        const lPermKeys = leftCycles.getMeta('permKeys');
+        try {
+            const rPerm = rightCycles.getMeta('perm');
+            const rPermKeys = rightCycles.getMeta('permKeys');
+            const lPerm = leftCycles.getMeta('perm');
+            const lPermKeys = leftCycles.getMeta('permKeys');
 
-        const permKeys = [ lPermKeys[1], rPermKeys[0] ];
+            //const permKeys = [ lPermKeys[1], rPermKeys[0] ];
 
-        const lpp = leftCycles.getMeta('permPair');
-        const rpp = rightCycles.getMeta('permPair');
+            const lpp = leftCycles.getMeta('permPair');
+            const rpp = rightCycles.getMeta('permPair');
 
-        const permPair = [
-            [...lpp[1]].reverse(),
-            rpp[1]
-        ];
+            const permPair = [
+                [...lpp[1]].reverse(),
+                rpp[1]
+            ];
 
-        // TODO: figure out a better solution
-        // not clear if this picks up all cases
-        // and what if it's meant to be an identity
-        if ( arrayExactlyEquals( permPair[0], permPair[1] ) ) {
-            permPair[0] = lpp[0];
-            permPair[1] = rpp[0].reverse();
+            // TODO: figure out a better solution
+            // not clear if this picks up all cases
+            // and what if it's meant to be an identity
+            if ( arrayExactlyEquals( permPair[0], permPair[1] ) ) {
+                permPair[0] = lpp[0];
+                permPair[1] = rpp[0].reverse();
+            }
+
+            cycles.setMetaData( {
+                'label': `${ leftCycles.getMeta( 'label' ) }*${ rightCycles.getMeta( 'label' ) }`,
+                'harmonic': false,
+                'perm': rPerm.map( b => lPerm[b] ),
+                'box': rightBox,
+                //'permKeys': permKeys,
+                'permPair': permPair
+            } );
+        } catch (e) {
+            //console.log(e);
         }
-
-        cycles.setMetaData( {
-            'label': `${ leftCycles.getMeta( 'label' ) }*${ rightCycles.getMeta( 'label' ) }`,
-            'harmonic': false,
-            'perm': rPerm.map( b => lPerm[b] ),
-            'box': rightBox,
-            'permKeys': permKeys,
-            'permPair': permPair
-        } );
 
         cycles.canonicalize();
 

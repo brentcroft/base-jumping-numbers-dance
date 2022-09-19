@@ -605,7 +605,9 @@ class Formula {
 
         const boxItems = this.boxGroup ? this.boxGroup.getIndexMap() : {};
         const boxBases = {};
-        this.boxGroup.box.bases.forEach( (b,i) => boxBases[`b${i}`] = CyclesArray.getIdentityCycles( b ) );
+        if (this.boxGroup) {
+            this.boxGroup.box.bases.forEach( (b,i) => boxBases[`b${i}`] = CyclesArray.getIdentityCycles( b ) );
+        }
 
         const r = this._evaluate( { ...valueObj, ...param, ...boxItems, ...boxBases } );
 

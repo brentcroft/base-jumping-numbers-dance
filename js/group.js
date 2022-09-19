@@ -312,10 +312,10 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     getPlaceValuesPermutationPair( cycles ) {
-//        const [ leftPermKey, rightPermKey ] = cycles.getMeta( 'permKeys' );
-//
-//        const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
-//        const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
+        const [ leftPermKey, rightPermKey ] = cycles.getMeta( 'permKeys' );
+
+        const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
+        const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
 
         const permPair = cycles.getMeta( 'permPair' );
 
@@ -573,8 +573,8 @@ class BoxGroup {
 
     getIndexMap() {
         const keys = {};
-        this.boxActions.forEach( p => keys[ p.label ] = p );
-        this.compositeActions.forEach( p => keys[ p.label ] = p );
+        this.boxActions.forEach( p => keys[ p.label ] = p.getCycles() );
+        this.compositeActions.forEach( p => keys[ p.label ] = p.getCycles() );
         return keys;
     }
 

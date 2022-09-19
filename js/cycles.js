@@ -736,14 +736,18 @@ class CyclesArray extends Array {
             }
         });
 
-        const permPair = [ [ 0, 1 ], [ 1, 0 ] ];
+        const [ l0, l1 ] = leftCycles.getMeta('permPair')
+        const [ r0, r1 ] = rightCycles.getMeta('permPair')
 
-        const permKeys = [ ...bases, ...[...bases].reverse() ];
+        const basis = l0.length;
+        const x1 = [ ...l0, ...r0.map(r => r + basis) ];
+        const y1 = [ ...[...x1].reverse() ];
+
         cycles.setMetaData( {
             harmonic: false,
             label: `(${ leftCycles.getMeta('label') }:${ rightCycles.getMeta('label') })`,
-            permPair: permPair,
-            permKeys: permKeys
+            permPair: [ x1, y1 ],
+            permKeys: [ [...bases], [...bases].reverse() ]
         } );
 
         cycles.canonicalize();
@@ -882,7 +886,7 @@ class CyclesArray extends Array {
             const lPerm = leftCycles.getMeta('perm');
             const lPermKeys = leftCycles.getMeta('permKeys');
 
-            //const permKeys = [ lPermKeys[1], rPermKeys[0] ];
+            const permKeys = [ lPermKeys[1], rPermKeys[0] ];
 
             const lpp = leftCycles.getMeta('permPair');
             const rpp = rightCycles.getMeta('permPair');
@@ -905,11 +909,11 @@ class CyclesArray extends Array {
                 'harmonic': false,
                 'perm': rPerm.map( b => lPerm[b] ),
                 'box': rightBox,
-                //'permKeys': permKeys,
+                'permKeys': permKeys,
                 'permPair': permPair
             } );
         } catch (e) {
-            //console.log(e);
+            console.log(e);
         }
 
         cycles.canonicalize();

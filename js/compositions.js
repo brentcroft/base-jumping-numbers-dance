@@ -300,23 +300,7 @@ var SYMBOLIC_COMPOSITIONS = [
     },
     { "clear": [], 'bases':
         [
-            "b1 : b2 | b0 | b3; ",
-            "b1 : b2 ~ b0 | b3; ",
-            "b2 : b1 | b0 | b3; ",
-            "b2 : b1 ~ b0 | b3; ",
-
-
-            "b0 : b1 | b2 | b3; ",
-            "b0 : b1 ~ b2 | b3; ",
-
-            "b1 : b0 | b2 | b3; ",
-            "b1 : b0 ~ b2 | b3; ",
-
-            "b0 : b2 | b1 | b3; ",
-            "b0 : b2 ~ b1 | b3; ",
-
-            "b2 : b0 | b1 | b3; ",
-            "b2 : b0 ~ b1 | b3; ",
+            "(b0:b1:b2:b3) * (b3:b2:b1:b0)",
         ]
     },
     { "clear": [] },

@@ -431,7 +431,7 @@ class BoxAction {
     getCycleIndexes() {
         return [
             ...this.identities.map( o => o.points.map( p => p.at( this.key ).id ) ),
-            ...this.orbits.map( o => o.points.map( p => p.at( this.key ).id ) )(b0:b1:b2:b3) * (b3:b2:b1:b0)
+            ...this.orbits.map( o => o.points.map( p => p.at( this.key ).id ) )
         ];
     }
 

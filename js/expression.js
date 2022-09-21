@@ -854,7 +854,7 @@ class LiteralIdentityExpression extends ValueExpression {
         return CyclesArray.getIdentityCycles( this.value );
     }
     toString() {
-        return `[${this.value}]`;
+        return `${this.value}`;
     }
 }
 

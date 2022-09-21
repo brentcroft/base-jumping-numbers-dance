@@ -62,8 +62,8 @@ class LiteralPermutation {
         this.dix = new Array( volume ).fill( -1 );
         this.perm = [ 0 ];
         this.antiPerm = [ 0 ];
-        this.placeValues = placeValuesPermutation( bases, this.perm );
-        this.antiPlaceValues = placeValuesPermutation( bases, this.antiPerm );
+        this.placeValues = placeValuesPermutation( [volume], this.perm );
+        this.antiPlaceValues = placeValuesPermutation( [volume], this.antiPerm );
         this.symbol = "?";
     }
 
@@ -189,10 +189,24 @@ class PermBox extends Box {
                 break;
 
             case 4:
+//                const pvps = [];
+//                permutations(perm)
+//                    .forEach( p => {
+//                        if ( pvps.find( pvp => !( arrayExactlyEquals( p,  pvp.perm ) ||
+//                            arrayExactlyEquals( p,  pvp.antiPerm ) ) ) ) {
+//                        } else {
+//                            pvps.push( new PlaceValuesPermutation( pvps.length, p, this.bases, this.volume ) );
+//                        }
+//                    });
+//
+//                this.placeValuePermutations = pvps;
+
                 seedPerms.push( [ perm[0], perm[2], perm[1], perm[3] ] );
+                seedPerms.push( [ perm[0], perm[1], perm[3], perm[2] ] );
 
                 this.placeValuePermutations = seedPerms
                     .flatMap( seedPerm => seedPerm.map( (_,i) => [...rotateArray( [...seedPerm], i ) ] ) )
+                    //.sort( numericArraySorter )
                     .map( (p,i) => new PlaceValuesPermutation( i, p, this.bases, this.volume ) );
 
                 break;

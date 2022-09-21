@@ -312,26 +312,16 @@ class IndexCyclesAction extends CompositeAction {
     }
 
     getPlaceValuesPermutationPair( cycles ) {
-        const [ leftPermKey, rightPermKey ] = cycles.getMeta( 'permKeys' );
-
-        const leftPermBases = this.box.getBasePerm( leftPermKey.filter( b => b > 1 ) );
-        const rightPermBases = this.box.getBasePerm( rightPermKey.filter( b => b > 1 ) );
-
         const permPair = cycles.getMeta( 'permPair' );
-
         const [ leftPerm, rightPerm ] = [
             this.box.getPermVector( permPair[0] ),
             this.box.getPermVector( permPair[1] )
         ];
-//        const [ leftPerm, rightPerm ] = [
-//            this.box.getPermVector( leftPermBases ),
-//            this.box.getPermVector( rightPermBases )
-//        ];
 
         if ( !leftPerm ) {
-            throw new Error( `No leftPerm found for: ${ leftPermBases } [${ cycles.getBases() }]`);
+            throw new Error( `No leftPerm found for: ${ permPair } [${ cycles.getBases() }]`);
         } else if ( !rightPerm ) {
-            throw new Error( `No rightPerm found for: ${ rightPermBases } [${ cycles.getBases() }]`);
+            throw new Error( `No rightPerm found for: ${ permPair } [${ cycles.getBases() }]`);
         }
 
         this.buildReport = `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }` +

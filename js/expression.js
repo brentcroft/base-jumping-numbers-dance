@@ -865,7 +865,7 @@ class LiteralCyclesExpression extends OperatorExpression {
     evaluate( params = {} ) {
         const leftCycles = this.left.evaluate( params );
         const rightCycles = this.right.evaluate( params );
-        return rightCycles.twist(leftCycles);
+        return rightCycles.extrude(leftCycles, true);
     }
     toString() {
         return `${this.left.toString()}${this.operator}${this.right.toString()}`;
@@ -878,21 +878,22 @@ class CyclesExtensionExpression extends OperatorExpression {
     }
 
     evaluate( params = {} ) {
-        const cycles = this.left.evaluate(params);
+        const leftCycles = this.left.evaluate(params);
         const rightCycles = this.right.evaluate(params);
-        const multiplier = rightCycles.getVolume();
 
-        if ( !(Number.isInteger( multiplier ) ) ) {
-            throw new Error( `Invalid arguments for operator: ${this.left.toString()} ${this.operator} ${this.right.toString()}` );
-        }
-
-        const label = `(${ cycles.getMeta( "label" ) }${ this.operator }${ multiplier })`;
         const harmonic = ( this.operator == '~' );
-        const expandedCycles = cycles.expand( multiplier, harmonic );
+        const doExpand = false;
+        const label = `(${ leftCycles.getMeta( "label" ) }${ this.operator }${ rightCycles.getMeta( "label" ) })`;
 
-        expandedCycles.setMeta( "label", label );
-
-        return expandedCycles;
+        if ( doExpand ) {
+            const expandedCycles = leftCycles.expand( rightCycles.getVolume(), harmonic );
+            expandedCycles.setMeta( "label", label );
+            return expandedCycles;
+        } else {
+            const extrudedCycles = rightCycles.extrude( leftCycles, harmonic );
+            extrudedCycles.setMeta( "label", label );
+            return extrudedCycles;
+        }
     }
 
     toString() {

@@ -331,7 +331,19 @@ class CyclesArray extends Array {
                 //throw new Exception("who threw this");
                 this.setMeta( 'permPair', [ perm, [...perm].reverse() ] );
             }
-            this.setMeta( 'box', box );
+
+            if (!this.hasMeta( 'placesForward')) {
+                const p_fwd = placeValuesForwardArray( bases, 0 );
+                const p_rev = placeValuesReverseArray( bases, 0 );
+                this.setMeta( 'placesForward', p_fwd );
+                this.setMeta( 'placesReverse', p_rev );
+                const ip_coord = p_fwd.map( ( x, i ) => x - p_rev[i] );
+                this.setMeta( 'identityPlane', {
+                    coord: ip_coord,
+                    gcd: Math.abs( gcda( ip_coord ) ),
+                    normal: displacement( this.getOrigin().coord, ip_coord )
+                } );
+            }
         }
     }
 
@@ -703,24 +715,57 @@ class CyclesArray extends Array {
         return point;
     }
 
-    twist( leftCycles ) {
 
+    extrude( leftCycles, twist = false ) {
         const rightCycles = this;
-        const bases = [ ...leftCycles.getBases(), ...rightCycles.getBases() ];
+        const leftBases = [...leftCycles.getBases()];
+        const rightBases = [...rightCycles.getBases()];
+        const bases = [ ...leftBases, ...rightBases ];
 
-        const p_fwd = placeValuesForwardArray( bases, 0 );
-        const p_rev = placeValuesReverseArray( bases, 0 );
+        // tally each base to account for duplicates
+        const tallyX = [...bases];
+        const tallyY = [...bases];
+        const tallyAllocate = ( b, antiPerm ) => {
+            const tally = antiPerm == 1
+                ? tallyX
+                : tallyY;
+            const i = tally.indexOf(b);
+            tally[i] = -1;
+            return i;
+        };
+
+        const lcpp = leftCycles.getMeta('permPair');
+        const rcpp = rightCycles.getMeta('permPair');
+
+        const [ lcAntiPerm, lcPerm ] = lcpp
+            .map( x => x.map( i => leftBases[i] ) )
+            .map( (x, antiPerm) => x.map( i => tallyAllocate( i, antiPerm ) ) );
+
+        const [ rcAntiPerm, rcPerm ] = rcpp
+            .map( x => x.map( i => rightBases[i] ) )
+            .map( (x, antiPerm) => x.map( i => tallyAllocate( i, antiPerm ) ) );
+
+        const perm = [...lcPerm, ...rcPerm];
+        const antiPerm = twist
+            ? [...lcAntiPerm, ...rcAntiPerm ].reverse()
+            : [...lcAntiPerm, ...rcAntiPerm ];
+
+        const p_fwd = placeValuesPermutation( bases, perm );
+        const p_rev = placeValuesPermutation( bases, antiPerm );
+        const ip_coord = p_fwd.map( ( x, i ) => x - p_rev[i] );
+
         const indexFwd = ( coord ) => p_fwd.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
         const indexRev = ( coord ) => p_rev.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
 
+        // intermediate cycles array
         const ids = new CycleArray( leftCycles.getVolume() * rightCycles.getVolume() );
 
-        leftCycles.forEach( (leftCycle, i) => {
-            leftCycle.forEach( (leftPoint, j) => {
-                rightCycles.forEach( rightCycle => {
-                    rightCycle.forEach( rightPoint => {
+        rightCycles.forEach( rightCycle => {
+            rightCycle.forEach( rightPoint => {
+                const rightCoord = rightPoint.coord;
+                leftCycles.forEach( leftCycle => {
+                    leftCycle.forEach( leftPoint => {
                         const leftCoord = leftCycles.denormalizeCoord( leftPoint.coord );
-                        const rightCoord = rightCycles.denormalizeCoord( rightPoint.coord );
                         const coord = [ ...leftCoord, ...rightCoord ];
                         const point = {
                             id: indexRev(coord),
@@ -728,11 +773,12 @@ class CyclesArray extends Array {
                             coord: coord
                         };
                         ids[point.id] = point;
-                    });
+                    } );
                 } );
-            });
+            } );
         });
 
+        // output cycles array
         const cycles = new CyclesArray();
         const usedId = {id:-1};
         ids.forEach( cyclePoint => {
@@ -752,22 +798,18 @@ class CyclesArray extends Array {
         });
 
         cycles.canonicalize();
-
-        // establish identity plane
-        // since by construction its (fwd-rev)
-        const identityPlane = p_fwd.map( ( x, i ) => x - p_rev[i] );
-        const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
-        const identityPlaneNormal = displacement( cycles.getOrigin().coord, identityPlane );
-
         cycles.setMetaData( {
-            harmonic: false,
-            label: `(${ leftCycles.getMeta('label') }:${ rightCycles.getMeta('label') })`,
+            label: `(${ leftCycles.getMeta('label') }${twist?':':'|'}${ rightCycles.getMeta('label') })`,
+            permPair: [ antiPerm, perm ],
+            placesForward: p_fwd,
+            placesReverse: p_rev,
             identityPlane: {
-               coord: identityPlane,
-               gcd: identityPlaneGcd,
-               normal: identityPlaneNormal
-           }
+                coord: ip_coord,
+                gcd: Math.abs( gcda( ip_coord ) ),
+                normal: displacement( this.getOrigin().coord, ip_coord )
+            }
         } );
+
 
         cycles.normaliseCoordinates();
         cycles.updateSymbols();

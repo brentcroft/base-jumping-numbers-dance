@@ -9,7 +9,7 @@ function getCyclesDiagram( cycles, param = {} ) {
     const fixedPointTransparency = 0.1;
     const colorBasePlane = new ColorBasePlane();
 
-    // assume all fixed points are present - and appending 1 for terminal
+    // assume all fixed points are present
     const volume = cycles.reduce( ( a, cycle ) => a + cycle.length, 0 );
     const terminal = ( volume - 1 );
     const indexCentre = terminal / 2;
@@ -303,7 +303,7 @@ function getPointsDiagram( action, param = {} ) {
 }
 
 
-function getPointsDiagram2( cycles, param = {} ) {
+function getCyclesPointsDiagram( cycles, param = {} ) {
 
     const { scaleBase = [ 1, 1, 1 ], scaleVolume = 10, toggles = [ 'lines', 'grid', 'plane', 'centres' ] } = param;
 
@@ -316,6 +316,7 @@ function getPointsDiagram2( cycles, param = {} ) {
     const bases = cycles.getBases();
     const centre = cycles.getCentre();
 
+
     // move origin to system centre and scale by scaleUnit
     const root = reify(
         "transform", {
@@ -324,7 +325,7 @@ function getPointsDiagram2( cycles, param = {} ) {
         } );
 
     function appendGridChildren( grid ) {
-        const [ b0, b1, b2 ] = bases;
+        const [ b0, b1, b2 ] = to3D( bases );
         const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
         const gridPointRadius = 0.05;
 
@@ -375,7 +376,7 @@ function getPointsDiagram2( cycles, param = {} ) {
             centre: to3D( centre ),
             planeNormal: to3D( cycles.getIdentityPlane().normal ),
             scaleUnit: [1,1,1],
-            currentDirection: [0,1,0],
+            currentDirection: [0,0,1],
             origin: [0,0,0],
             size: [ bases[0], 0, bases[bases.length-1] ],
             planeColor: planeColor,

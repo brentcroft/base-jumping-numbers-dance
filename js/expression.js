@@ -27,11 +27,10 @@ const OPERATIONS = [
 ];
 
 const OPERATORS = {
-    '*': ( operator, left, right, boxGroup ) => new OperatorExpression( operator, left, right, boxGroup ),
+    '*': ( operator, left, right, boxGroup ) => new CompositionExpression( operator, left, right, boxGroup ),
     '^': ( operator, left, right, boxGroup ) => new PowerExpression(operator, left, right, boxGroup ),
-    ':': ( operator, left, right, boxGroup ) => new LiteralCyclesExpression( operator, left, right, boxGroup ),
-    '|': ( operator, left, right, boxGroup ) => new CyclesExtensionExpression( operator, left, right, boxGroup ),
-    '~': ( operator, left, right, boxGroup ) => new CyclesExtensionExpression( operator, left, right , boxGroup)
+    ':': ( operator, left, right, boxGroup ) => new DirectProductExpression( operator, left, right, boxGroup ),
+    '|': ( operator, left, right, boxGroup ) => new DirectProductExpression( operator, left, right, boxGroup )
 };
 
 /*
@@ -387,7 +386,7 @@ class Formula {
                         //Still within number, store and continue
                         tmp += char;
                         if (act === lastChar) {
-                            expressions.push(new LiteralIdentityExpression(tmp));
+                            expressions.push(new IdentityExpression(tmp));
                             state = 0;
                         }
                     } else {
@@ -396,7 +395,7 @@ class Formula {
                             // just a single '-' means: a variable could follow (e.g. like in 3*-x), we convert it to -1: (3*-1x)
                             tmp = -1;
                         }
-                        expressions.push(new LiteralIdentityExpression(tmp));
+                        expressions.push(new IdentityExpression(tmp));
                         tmp = '';
                         state = 0;
                         act--;
@@ -831,22 +830,12 @@ class OperatorExpression extends Expression {
         this.boxGroup = boxGroup;
     }
 
-    evaluate( params = {} ) {
-        const leftCycles = this.left.evaluate(params);
-        const rightCycles = this.right.evaluate(params);
-
-        if ( !( leftCycles instanceof CyclesArray  && rightCycles instanceof CyclesArray ) ) {
-            throw new Error( `Either left [${ typeof leftCycles }] or right [${ typeof rightCycles }] is not a CyclesArray` );
-        }
-        return rightCycles.compose( leftCycles );
-    }
-
     toString() {
         return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
     }
 }
 
-class LiteralIdentityExpression extends ValueExpression {
+class IdentityExpression extends ValueExpression {
     constructor( value ) {
         super( value );
     }
@@ -858,21 +847,7 @@ class LiteralIdentityExpression extends ValueExpression {
     }
 }
 
-class LiteralCyclesExpression extends OperatorExpression {
-    constructor( operator, left, right, boxGroup ) {
-        super( operator, left, right, boxGroup );
-    }
-    evaluate( params = {} ) {
-        const leftCycles = this.left.evaluate( params );
-        const rightCycles = this.right.evaluate( params );
-        return rightCycles.extrude(leftCycles, true);
-    }
-    toString() {
-        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
-    }
-}
-
-class CyclesExtensionExpression extends OperatorExpression {
+class CompositionExpression extends OperatorExpression {
     constructor( operator, left, right, boxGroup ) {
         super( operator, left, right, boxGroup );
     }
@@ -880,20 +855,7 @@ class CyclesExtensionExpression extends OperatorExpression {
     evaluate( params = {} ) {
         const leftCycles = this.left.evaluate(params);
         const rightCycles = this.right.evaluate(params);
-
-        const harmonic = ( this.operator == '~' );
-        const doExpand = false;
-        const label = `(${ leftCycles.getMeta( "label" ) }${ this.operator }${ rightCycles.getMeta( "label" ) })`;
-
-        if ( doExpand ) {
-            const expandedCycles = leftCycles.expand( rightCycles.getVolume(), harmonic );
-            expandedCycles.setMeta( "label", label );
-            return expandedCycles;
-        } else {
-            const extrudedCycles = rightCycles.extrude( leftCycles, harmonic );
-            extrudedCycles.setMeta( "label", label );
-            return extrudedCycles;
-        }
+        return rightCycles.compose( leftCycles );
     }
 
     toString() {
@@ -902,6 +864,21 @@ class CyclesExtensionExpression extends OperatorExpression {
 }
 
 
+class DirectProductExpression extends OperatorExpression {
+    constructor( operator, left, right, boxGroup ) {
+        super( operator, left, right, boxGroup );
+    }
+
+    evaluate( params = {} ) {
+        const leftCycles = this.left.evaluate(params);
+        const rightCycles = this.right.evaluate(params);
+        return rightCycles.directProduct( leftCycles, this.operator == ":" );
+    }
+
+    toString() {
+        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
+    }
+}
 
 class PowerExpression extends Expression {
     constructor(base = null, exponent = null) {

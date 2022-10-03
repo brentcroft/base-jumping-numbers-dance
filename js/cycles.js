@@ -716,13 +716,13 @@ class CyclesArray extends Array {
     }
 
 
-    extrude( leftCycles, twist = false ) {
+    directProduct( leftCycles, twist = false ) {
         const rightCycles = this;
         const leftBases = [...leftCycles.getBases()];
         const rightBases = [...rightCycles.getBases()];
         const bases = [ ...leftBases, ...rightBases ];
 
-        // tally each base to account for duplicates
+        // tally each base to account for any duplicates
         const tallyX = [...bases];
         const tallyY = [...bases];
         const tallyAllocate = ( b, antiPerm ) => {
@@ -762,7 +762,7 @@ class CyclesArray extends Array {
 
         rightCycles.forEach( rightCycle => {
             rightCycle.forEach( rightPoint => {
-                const rightCoord = rightPoint.coord;
+                const rightCoord = rightCycles.denormalizeCoord( rightPoint.coord );
                 leftCycles.forEach( leftCycle => {
                     leftCycle.forEach( leftPoint => {
                         const leftCoord = leftCycles.denormalizeCoord( leftPoint.coord );
@@ -809,68 +809,10 @@ class CyclesArray extends Array {
                 normal: displacement( this.getOrigin().coord, ip_coord )
             }
         } );
-
-
         cycles.normaliseCoordinates();
         cycles.updateSymbols();
         return cycles;
     }
-
-
-    expand( copies = 1, harmonic = false ) {
-        if ( copies < 2 ) {
-            return this;
-        }
-        const cycles = new CyclesArray();
-        if ( harmonic ) {
-            const template = this.map( cycle => cycle.map( c => CyclesArray.magnifyPoint( c, copies ) ) );
-            for ( var k = 0; k < copies; k++ ) {
-                template.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k ) ) ) );
-            }
-        } else {
-            const volume = this.getVolume();
-            for ( var k = 0; k < copies; k++ ) {
-                this.forEach( cycle => cycles.push( cycle.map( c => CyclesArray.offsetPoint( c, k, volume ) ) ) );
-            }
-        }
-
-        Object
-            .assign(
-                cycles.getMetaData(),
-                {
-                    harmonic: harmonic
-                } );
-
-        cycles.normaliseCoordinates();
-
-        if ( true ) {
-            const permInv = cycles.getMeta('permInv' );
-
-            const [ ppl, ppr ] = this.getMeta('permPair');
-            const permPair = harmonic
-                ? [
-                    [ permInv[ppl.length], ...ppl.map(p=>permInv[p]) ],
-                    [ permInv[ppr.length], ...ppr.map(p=>permInv[p]) ]
-                  ]
-                : [
-                    [...ppl.map(p=>permInv[p]), permInv[ppl.length] ],
-                    [...ppr.map(p=>permInv[p]), permInv[ppr.length] ]
-                ];
-
-            Object
-                .assign(
-                    cycles.getMetaData(),
-                    {
-                        harmonic: harmonic,
-                        permPair: permPair
-                    } );
-        }
-
-        cycles.updateSymbols();
-
-        return cycles;
-    }
-
 
     compose() {
         const args = [ ...arguments ];

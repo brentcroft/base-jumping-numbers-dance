@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/pagery.css">
+    <script type="text/javascript" src="js/reify.js"></script>
+    <script type="text/javascript" src="js/odometer.js"></script>
+    <script type="text/javascript" src="js/odometer-dom.js"></script>
+
+    <script>
+        function runScenario() {
+            const box = new Box( new Odometer( [
+                    new Dial( '2', arrayOfIndexes( 2 ) ),
+                    new Dial( '3', arrayOfIndexes( 3 ) ),
+                    new Dial( '4', arrayOfIndexes( 4 ) ),
+                    new Dial( '5', arrayOfIndexes( 5 ) )
+                ]
+            ) );
+
+            document.getElementById( 'boxPerms' ).appendChild( box.permBox.pointsDomNode() );
+            document.getElementById( 'boxActions' ).appendChild( box.actionsDomNode() );
+            //document.getElementById( 'boxPoints' ).appendChild( box.pointsDomNode() );
+
+            box.testPermBox();
+        }
+    </script>
+</head>
+<body onload="runScenario()">
+    <hr/>
+    <div id="boxPerms"></div>
+    <hr/>
+    <div id="boxActions"></div>
+    <hr/>
+    <div id="boxPoints"></div>
+</body>
+</html>

@@ -10,15 +10,79 @@
         function runScenario() {
             const box = new Box( new Odometer( [
                     new Dial( '2', arrayOfIndexes( 2 ) ),
-                    new Dial( '3', arrayOfIndexes( 3 ) ),
+<!--                    new Dial( '3', arrayOfIndexes( 3 ) ),-->
                     new Dial( '4', arrayOfIndexes( 4 ) ),
-                    new Dial( '5', arrayOfIndexes( 5 ) )
+                    new Dial( '5', arrayOfIndexes( 5 ) ),
+<!--                    new Dial( '6', arrayOfIndexes( 6 ) ),-->
                 ]
             ) );
 
-            document.getElementById( 'boxPerms' ).appendChild( box.permBox.pointsDomNode() );
-            document.getElementById( 'boxActions' ).appendChild( box.actionsDomNode() );
-            //document.getElementById( 'boxPoints' ).appendChild( box.pointsDomNode() );
+            const permColumns = [ '#', 'label', 'alias', 'monomial', 'cycles' ]
+            const columns = [ '#', 'label', 'alias', 'monomial', 'cycles' ];
+
+
+<!--            const permPairs = [-->
+<!--                [ box.permBox[4], box.permBox[0] ],-->
+<!--                [ box.permBox[1], box.permBox[4] ],-->
+<!--                [ box.permBox[1], box.permBox[0] ],-->
+<!--                [ box.permBox[3], box.permBox[2] ],-->
+<!--                [ box.permBox[4], box.permBox[2] ],>-->
+<!--            ];-->
+
+            const permPairs = pairs( box.permBox ).flatMap( p => [ p, [p[1], p[0] ] ] );
+            const compositions = permPairs.map( pp => compose( pp[0], pp[1] ) );
+            const twists = permPairs.map( pp => twist( pp[0], pp[1] ) );
+
+            compositions.sort( (a1, a2) => arrayReverseCompare( a1.label(), a2.label() ) );
+            twists.sort( (a1, a2) => arrayReverseCompare( a1.label(), a2.label() ) );
+
+            compositions.forEach( cycles => {
+                const others = [];
+<!--                others.push( ...twists.filter( twist => twist != cycles  && arrayExactlyEquals( cycles.index, twist.index ) ) );-->
+                others.push( ...compositions.filter( composition => composition !== cycles && arrayExactlyEquals( cycles.index, composition.index ) ) );
+                if ( others && others.length > 0 ) {
+                    cycles.others = others;
+                }
+            } );
+
+            twists.forEach( cycles => {
+                const others = [];
+                others.push( ...twists.filter( twist => twist != cycles && arrayExactlyEquals( cycles.index, twist.index ) ) );
+                others.push( ...compositions.filter( composition => composition !== cycles && arrayExactlyEquals( cycles.index, composition.index ) ) );
+                if ( others && others.length > 0 ) {
+                    cycles.others = others;
+                }
+            } );
+
+            box.permBox.forEach( perm => {
+                const others = [];
+                others.push( ...twists.filter( twist => twist != perm.cycles && arrayExactlyEquals( perm.cycles.index, twist.index ) ) );
+<!--                others.push( ...compositions.filter( composition => composition !== perm.cycles && arrayExactlyEquals( perm.cycles.index, composition.index ) ) );-->
+                if ( others && others.length > 0 ) {
+                    perm.cycles.others = others;
+                }
+            } );
+
+
+            document.getElementById( 'boxPerms' ).appendChild(
+                box.permBox.pointsDomNode( box.permBox, permColumns )
+            );
+
+
+            document.getElementById( 'boxCompositions' ).appendChild( reify( 'div', {}, [
+                box.cyclesDomNode( compositions, columns )
+            ] ) );
+
+            document.getElementById( 'boxActions' ).appendChild( reify( 'div', {}, [
+                box.cyclesDomNode( twists, columns )
+            ] ) );
+
+
+            const actions = permPairs.map( pp => compose( pp[0], pp[1] ) );
+
+            document.getElementById( 'boxPoints' ).appendChild( reify( 'div', {}, [
+                box.cyclesDomNode( [ twist( actions[0], actions[1] ) ], columns ),
+            ] ) );
 
             box.testPermBox();
         }
@@ -27,6 +91,8 @@
 <body onload="runScenario()">
     <hr/>
     <div id="boxPerms"></div>
+    <hr/>
+    <div id="boxCompositions"></div>
     <hr/>
     <div id="boxActions"></div>
     <hr/>

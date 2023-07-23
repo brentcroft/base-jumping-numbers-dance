@@ -42,7 +42,7 @@ function rotateReverseArray( array, times = 1 ) {
     return array;
 }
 
-function pairs( list ) {
+function pairs2( list ) {
     if (list.length < 2) {
         return [];
     }
@@ -52,32 +52,40 @@ function pairs( list ) {
     return p;
 }
 
-var factorial = n => !(n > 1) ? 1 : factorial(n - 1) * n;
-var gcd = (a, b) => a ? gcd( b % a, a) : b;
-var lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
+function pairs( list, includeIdentities = true ) {
+    const p = [];
+    if ( includeIdentities ) {
+        list.forEach( l1 => p.push( [ l1, l1 ] ) );
+    }
+    list.forEach( l1 => list.forEach( l2 => l1===l2 ? 0 : p.push( [ l1, l2 ] ) ) );
+    return p;
+}
+
+const factorial = n => !(n > 1) ? 1 : factorial(n - 1) * n;
+const gcd = (a, b) => a ? gcd( b % a, a) : b;
+const lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
+
+const PI = 3.1415926;
+const TWO_PI = 2 * PI;
 
 const displacement      = ( p1, p2 ) => p2.map( (p,i) => p - p1[i] );
 const euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v, 0 )
 const distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
+const scale             = ( p, s ) => p.map( x => x * s );
 
 function cycles( source ) {
     const ri = [...source.index];
-
     const cycles = new Cycles();
     cycles.key = source.key;
-
     for ( var i = 0; i < ri.length; i++ ) {
-
         const startId = i;
         var nextId = ri[startId];
         if (nextId < 0) {
             continue;
         }
-
         const cycle = new Cycle();
         cycle.push( startId );
         ri[startId] = -1;
-
         while ( nextId != startId ) {
             cycle.push( nextId );
             const lastId = nextId;
@@ -91,118 +99,51 @@ function cycles( source ) {
         cycle.stats = {};
         cycles.push( cycle );
     };
-
     cycles.index = [...source.index];
     cycles.canonicalize();
     return cycles;
 }
 
-const maybeBracket = ( t ) => t.length > 3 ? `(${ t })` : t;
+const maybeBracket = ( t ) => Array.isArray(t) && t.length > 3 ? `(${ t })` : t;
 
-function compose( leftCycles, rightCycles ) {
-    const ri = [...rightCycles.index];
-    const li = leftCycles.index;
-
-    const cycles = new Cycles();
-    cycles.key = `${ maybeBracket( leftCycles.label() ) }*${ maybeBracket( rightCycles.label() ) }`;
-
+function inverse( source ) {
+    const key = `${ source.key }^-1`;
+    const idx = source.index;
+    const index = new Array( idx.length );
+    for ( var i = 0; i < idx.length; i++ ) {
+        index[i] = idx.indexOf(i);
+    }
+    return cycles( { 'index': index , 'key': key} );
+}
+function compose( leftSource, rightSource, twist = false ) {
+    const key = `${ maybeBracket( leftSource.key ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.key ) }`;
+    const ri = [...rightSource.index];
+    const li = leftSource.index;
     const index = new Array( ri.length );
-
     for ( var i = 0; i < ri.length; i++ ) {
-
-        const startId = i;
-        var nextId = ri[startId];
-        if (nextId < 0) {
-            continue;
-        } else {
-            ri[startId] = -1;
-        }
-
-        const cycle = new Cycle();
-        cycle.push( startId );
-
-        // apply left cycles
-        nextId = li[nextId];
-        index[startId] = nextId;
-
-        while ( nextId != startId ) {
-            cycle.push( nextId );
-            const lastId = nextId;
-            nextId = ri[ lastId ];
-            if (nextId < 0) {
-                throw new Error( `Right index does not contain next id: ${ lastId }` );
-            } else {
-                ri[lastId] = -1;
-            }
-            const endId = li[nextId];
-            if (endId < 0) {
-                throw new Error( `Left index does not contain next id: ${ nextId }` );
-            }
-
-            nextId = endId;
-            index[lastId] = endId;
-        }
-
-        cycle.stats = {};
-        cycles.push( cycle );
-    };
-
-    cycles.index = index;
-    cycles.canonicalize();
-    return cycles;
+        var nextId = ri[i];
+        index[i] = twist ? li.indexOf(nextId) : li[nextId];
+    }
+    return cycles( { 'index': index , 'key': key} );
 }
-
-
-function twist( leftCycles, rightCycles ) {
-    const leftIndex = [...leftCycles.index];
-    const rightIndex = [...rightCycles.index];
-
-    const cycles = new Cycles();
-    const index = new Array( rightIndex.length );
-    cycles.permPair = [
-        {'index': leftCycles.index, 'label': maybeBracket( leftCycles.key ) },
-        {'index': rightCycles.index, 'label': maybeBracket( rightCycles.key ) }
-    ];
-    cycles.key = `${ leftCycles.label() }:${ rightCycles.label() }`;
-
-    for ( var i = 0; i < leftIndex.length; i++ ) {
-        var startId = leftIndex[i];
-        if (startId < 0) {
-            continue;
-        } else {
-            leftIndex[i] = -1;
-        }
-
-        const cycle = new Cycle();
-        cycle.push( startId );
-
-        var nextId = rightIndex[i];
-        index[startId] = nextId;
-
-        while ( nextId != startId ) {
-            cycle.push( nextId );
-            const lastId = nextId;
-            const j = leftIndex.indexOf( nextId );
-            if (j < 0) {
-                throw new Error( `Left index does not contain next id: ${ lastId }` );
-            } else {
-                leftIndex[j] = -1;
-            }
-            nextId = rightIndex[j];
-            index[lastId] = nextId;
-        }
-
-        cycle.stats = {};
-        cycles.push( cycle );
+function product( leftSource, rightSource, twist = false ) {
+    const key = `${ maybeBracket( leftSource.key ) }|${ maybeBracket( rightSource.key ) }`;
+    const ri = rightSource.index;
+    const li = leftSource.index;
+    const index = [];
+    for ( var i = 0; i < ri.length; i++ ) {
+        const offset = twist
+            ? ri[i] * li.length
+            : ri.indexOf(i) * li.length;
+        const x = li.map( j => j + offset );
+        index.push( ...x );
     };
-    cycles.index = index;
-    cycles.canonicalize();
-    return cycles;
+    return cycles( { 'index': index , 'key': key} );
 }
+/**
 
 
-
-// a sequence of symbols
+*/
 class Dial extends Array {
 
     constructor( label, symbols ) {
@@ -229,6 +170,7 @@ class Odometer extends Array {
         super( arguments.length > 0 &&  Number.isInteger( arguments[0] ) ? arguments[0] : 0 );
         if ( Array.isArray(dials) ) {
             this.push( ...dials );
+            this.bases = dials.map( dial => dial.length );
         }
     }
 
@@ -271,10 +213,6 @@ class Odometer extends Array {
     increment( coord ) {
         this.incrementLeftToRight( coord );
     }
-
-    toString() {
-        return this.map( (d, i) => `${ d }` ).join( '\n' );
-    }
 }
 
 // each setting represents an index construction
@@ -306,8 +244,6 @@ class Point extends Array {
     }
 }
 
-
-// a sequence of Point
 class AbstractBox extends Array {
 
     constructor( odometer ) {
@@ -328,21 +264,18 @@ class AbstractBox extends Array {
             this.odometer.increment( coord );
         }
     }
-
-    toString() {
-        return this.map( (p, i) => `${ i }: ${ p }` ).join( '\n' );
-    }
 }
 
 class FactorialBox extends AbstractBox {
     //static ROTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
     static LABELS = [
         [ '🠇', '🠅'],
-        [ 'α', 'γ', 'β' ],
+        [ 'α', 'β', 'γ' ],
         [ '♤', '♡', '♢', '♧' ],
         [ '1', '2', '3', '4', '5' ],
         [ 'A', 'B', 'C', 'D', 'E', 'F' ],
-     ];
+    ];
+    // TODO: understand mapping from factorial coords to label scheme
     static LABEL_MAPS = [
         // 2D
         [],
@@ -387,7 +320,7 @@ class FactorialBox extends AbstractBox {
         }
     }
 
-    depermute( list, perm ) {
+    unpermute( list, perm ) {
         for ( var i = perm.length - 1; i >= 0; i-- ) {
             if (perm[i] > 0) {
                 const b = list.slice( 0, i + 2 );
@@ -401,23 +334,30 @@ class FactorialBox extends AbstractBox {
         const coord = point;
         var labelCoord = [...coord];
         const labelMap = FactorialBox.LABEL_MAPS[ coord.length - 1 ]
-        labelMap.forEach( m => {
-            if ( arrayExactlyEquals( coord, m[0] ) ) {
-                labelCoord = m[1];
-            } else if ( arrayExactlyEquals( coord, m[1] ) ) {
-                labelCoord = m[0];
-            }
-        } );
+        if (labelMap) {
+            labelMap.forEach( m => {
+                if ( arrayExactlyEquals( coord, m[0] ) ) {
+                    labelCoord = m[1];
+                } else if ( arrayExactlyEquals( coord, m[1] ) ) {
+                    labelCoord = m[0];
+                }
+            } );
+        }
         point.labelCoord = labelCoord;
     }
 
     makeLabel( coord ) {
         const label = [];
-        for ( var i = 0; i < coord.length; i++ ) {
-            const p = coord[i];
-            const labels = FactorialBox.LABELS[i];
-            label.push( labels[p] );
+        if ( coord.length == 0 ) {
+            label.push( '#' )
+        } else {
+            for ( var i = 0; i < coord.length; i++ ) {
+                const p = coord[i];
+                const labels = FactorialBox.LABELS[i];
+                label.push( labels[p] );
+            }
         }
+        // label goes in reverse to factorial coord
         return label.reverse();
     }
 
@@ -442,7 +382,7 @@ class FactorialBox extends AbstractBox {
             point.perm = perm;
 
             const antiPerm = arrayOfIndexes( width );
-            this.depermute( antiPerm, point );
+            this.unpermute( antiPerm, point );
             point.antiPerm = antiPerm;
 
             const bases = [...dialLengths];
@@ -450,7 +390,7 @@ class FactorialBox extends AbstractBox {
             point.bases = bases;
 
             const placeValues = this.placeValues( bases );
-            this.depermute( placeValues, point );
+            this.unpermute( placeValues, point );
             point.placeValues = placeValues;
 
             point.index = [];
@@ -465,10 +405,6 @@ class FactorialBox extends AbstractBox {
                 point.inverse = this.find( p => arrayExactlyEquals( p.bases, inverseBases ) );
             }
         } );
-    }
-
-    toString() {
-        return this.map( (p, i) => `${ i }: (${ p }) [${ p.bases }] [${ p.placeValues }] [${ p.index }]` ).join( '\n' );
     }
 }
 
@@ -524,7 +460,6 @@ class Cycle extends Array {
         const idSum = this.reduce( (a,index) => a + index, 0 );
 
         return {
-            //cycle: this,
             order: order,
             centre: centre,
             idSum: idSum,
@@ -535,7 +470,6 @@ class Cycle extends Array {
             euclideanPerimeter: euclideanPerimeter
         }
     }
-
 }
 
 class Cycles extends Array {
@@ -543,17 +477,6 @@ class Cycles extends Array {
     constructor() {
         super( arguments.length > 0 && Number.isInteger( arguments[0] ) ? arguments[0] : 0 );
         this.key = "";
-    }
-
-    cycleAndIndex( coord ) {
-        for ( var i = 0; i < this.length; i++ ) {
-            const cycle = this[i];
-            const pointIndex = cycle.getPointIndex( coord );
-            if ( pointIndex > -1 ) {
-                return [ cycle, pointIndex ];
-            }
-        }
-        throw new Error( `The supplied coord ${ coord } does not exist in any cycle.` );
     }
 
     canonicalize() {
@@ -571,13 +494,12 @@ class Cycles extends Array {
         this.sort( comparator );
     }
 
-    index() {
-        const l = this.reduce( (a,c) => a + c.length, 0);
-        const idx = new Array(l);
-        this.forEach( cycle => cycle.forEach( (index, i) => {
-            idx[index] = idx[ cycle[i + 1 % cycle.length ] ];
-        } ) );
-        this.idx = idx;
+    identities() {
+        return this.filter( cycle => cycle.length == 1);
+    }
+
+    orbits() {
+        return this.filter( cycle => cycle.length != 1);
     }
 
     permPairLabel() {
@@ -636,20 +558,25 @@ class Cycles extends Array {
                     : reify( "sub", { 'style': 'position: relative; left: -.5em;'}, [ reifyText( `${ k }` ) ] )
             ] ) );
     }
-
-    compose( leftCycles ) {
-        return compose( this, leftCycles );
-    }
-
-    twist( leftCycles ) {
-        return twist( this, leftCycles );
-    }
 }
 
-
-
-// a sequence of Point
 class Box extends AbstractBox {
+
+    static boxes = {};
+
+    static list() {
+        return Object.values( Box.boxes );
+    }
+
+    static of( bases ) {
+        const canonicalBases = [...bases].sort();
+        const key = canonicalBases.join( '.' );
+        if (!( key in Box.boxes )) {
+            const box = new Box( new Odometer( canonicalBases.map( (b,i) => new Dial( `${i}`, arrayOfIndexes( b ) ) ) ) );
+            Box.boxes[key] = box;
+        }
+        return Box.boxes[key];
+    }
 
     constructor( odometer ) {
         super( arguments.length > 0 && Number.isInteger( arguments[0] ) ? arguments[0] : odometer );
@@ -657,9 +584,7 @@ class Box extends AbstractBox {
             this.permBox = new FactorialBox( this.odometer );
             this.volume = this.odometer.volume();
             this.buildPoints();
-
             this.indexPoints();
-            //this.buildActions();
         }
     }
 
@@ -669,102 +594,19 @@ class Box extends AbstractBox {
 
     indexPoints() {
         this.forEach( point => {
-            const indexes = [];
             this.permBox.forEach( perm => {
                 const id = this.indexPoint( point, perm.placeValues );
                 perm.index.push( id );
-                indexes.push( id );
             } );
-            point.indexes = indexes;
         } );
-
         this.permBox.forEach( perm => {
             perm.cycles = cycles( perm );
         } );
     }
 
-    buildCycles( permPair, op = ":" ) {
-        const leftIndex = [...permPair[0].index];
-        const rightIndex = permPair[1].index;
-
-        const cycles = new Cycles();
-        const index = new Array( this.length );
-        cycles.permPair = permPair;
-        cycles.key = permPair[0].label() + op + permPair[1].label();
-
-        const points = this;
-
-        for ( var i = 0; i < leftIndex.length; i++ ) {
-            var startId = leftIndex[i];
-            if (startId < 0) {
-                continue;
-            } else {
-                leftIndex[i] = -1;
-            }
-
-            const cycle = new Cycle();
-            cycle.push( startId );
-
-            var nextId = rightIndex[i];
-            index[startId] = nextId;
-
-            while ( nextId != startId ) {
-                cycle.push( nextId );
-                const lastId = nextId;
-                const j = leftIndex.indexOf( nextId );
-//                const j = leftIndex[ nextId ];
-                if (j < 0) {
-                    continue;
-                }
-                leftIndex[j] = -1;
-                nextId = rightIndex[j];
-                index[lastId] = nextId;
-            }
-
-            cycle.stats = cycle.getStats( points );
-
-            cycles.push( cycle );
-        };
-        cycles.index = index;
-        cycles.box = this;
-        cycles.canonicalize();
-        return cycles;
+    actions() {
+        return this.permBox.flatMap( pl => this.permBox.map( pr => compose( pl, pr, true ) ) );
     }
-
-    inverseCycles( inverseCycles ) {
-        const cycles = new Cycles();
-        cycles.permPair = [ inverseCycles.permPair[1], inverseCycles.permPair[0] ];
-        cycles.key = permPair[1].label() + op + permPair[0].label();
-        inverseCycles.forEach( cycle => {
-            cycles.push( [...cycle].reverse() );
-        } );
-        cycles.canonicalize();
-        cycles.box = this;
-        return cycles;
-    }
-
-    buildActions() {
-        this.actions = [];
-//        this
-//            .permBox
-//            .map( p => [ p, p ] )
-//            .forEach( identity => {
-//                const cycles = this.buildCycles( identity );
-//                this.actions.push( cycles );
-//            } );
-        pairs( this.permBox )
-            .forEach( permPair => {
-                const cycles = this.buildCycles( permPair );
-                this.actions.push( cycles );
-                this.actions.push( this.inverseCycles( cycles ) );
-            } );
-    }
-
-
-    toString() {
-        return this.actions.map( (cycles, i) => `${ i }:(${ cycles.monomial() })` ).join( '\n\n' );
-    }
-
 
     testPermBox() {
         this.forEach( point => {
@@ -772,11 +614,15 @@ class Box extends AbstractBox {
                 .forEach( permPoint => {
                     const roundTrip = [...point];
                     this.permBox.permute( roundTrip, permPoint );
-                    this.permBox.depermute( roundTrip, permPoint );
+                    this.permBox.unpermute( roundTrip, permPoint );
                     if ( !arrayExactlyEquals( point, roundTrip ) ) {
                         throw ( `Failed round trip: ${ point } !=  ${ roundTrip }` );
                     }
-                } )
+                } );
         } );
     }
 }
+
+
+
+//Box.of( [2, 3, 5, 7 ] ).testPermBox();

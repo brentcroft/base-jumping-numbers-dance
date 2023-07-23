@@ -37,7 +37,7 @@ function getCyclesDiagram( cycles, param = {} ) {
                     // identity z-lines
                     ...( orbits.length > 0 )
                         ? identities
-                            .map( cycle => reify( "transform", { "translation": `${ cycle[0].id } 0 ${ zOff * -1 }` },
+                            .map( cycle => reify( "transform", { "translation": `${ cycle[0] } 0 ${ zOff * -1 }` },
                                     [ createLineSet( [ [ 0, 0, 0 ], [ 0, 0, zOff * ( orbits.length ) ] ], "black", attr ) ]
                                 )
                             )
@@ -63,10 +63,10 @@ function getCyclesDiagram( cycles, param = {} ) {
     identities
         .map( cycle => cycle[0] )
         .map( entry => reify( "transform", {
-                    "translation": `${ entry.id } 0 ${ -1 * zOff }`,
-                    "id": `identity.e.${ entry.id }`
+                    "translation": `${ entry } 0 ${ -1 * zOff }`,
+                    "id": `identity.e.${ entry }`
                 },
-                [ createSphereShape( `point-${ entry.id }`, 0.17, "red", 0.3 ) ]
+                [ createSphereShape( `point-${ entry }`, 0.17, "red", 0.3 ) ]
             )
         )
         .forEach( child => root.appendChild( child ) );
@@ -79,13 +79,13 @@ function getCyclesDiagram( cycles, param = {} ) {
                     ...cycle
                         .map( ( entry, entryIndex ) => {
                                 const nextEntry = cycle[ ( entryIndex + 1 ) % cycle.length ];
-                                const jump = ( nextEntry.id - entry.id );
+                                const jump = ( nextEntry - entry );
                                 const halfJump = jump / 2;
                                 const color = colorBasePlane.colorForIndex( cycleIndex + 1 );
                                 return reify(
-                                    "transform", { "translation": `${ entry.id } 0 0` },
+                                    "transform", { "translation": `${ entry } 0 0` },
                                     [
-                                        createSphereShape( `point-${ entry.id }`, 0.3, color , 0 ),
+                                        createSphereShape( `point-${ entry }`, 0.3, color , 0 ),
                                         toggles.includes( 'lines' )
                                             ? reify(
                                                 "transform", {

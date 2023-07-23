@@ -79,14 +79,18 @@ table.box-action {
     text-align: center;
     font-size: 90%;
     #width: 700px;
+    #border-left: dotted black 1px;
+    #border-bottom: dotted black 1px;
 }
 
 td {
     vertical-align: top
 }
 
-
-table.box-action caption {}
+table.box-action caption {
+    border-top: dashed black 1px;
+    font-weight: bold;
+}
 
 table.box-action tr { vertical-align: top; background: Ivory; }
 table.box-action tr:nth-child(even) {}

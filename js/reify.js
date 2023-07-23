@@ -21,6 +21,9 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
         });
     }
     if ( children ) {
+        if ( !Array.isArray(children) ) {
+            throw new Error( `Children is not an array: tag=${ tag }, attr=${ attr }, children=${ children }` );
+        }
         try {
             children
                 .filter( x => x )
@@ -30,14 +33,14 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
         }
     }
     if ( ops ) {
+        if ( !Array.isArray(ops) ) {
+            throw new Error( `Ops is not an array: tag=${ tag }, attr=${ attr }, ops=${ ops }` );
+        }
         ops.forEach( x => x( e ) );
     }
     return e;
 }
 
-/**
-
-*/
 function reifyData( tag, data ) {
     return reify(
         tag,
@@ -62,7 +65,3 @@ function reifyText( text, cssClass = [] ) {
     return reify( "span", { 'cssClass': cssClass }, [], [ c => c.innerHTML = text ] );
 }
 
-
-function reifyHtml( html, cssClass = [] ) {
-    return reify( "span", { 'cssClass': cssClass }, [], [ c => c.innerHTML = html ] );
-}

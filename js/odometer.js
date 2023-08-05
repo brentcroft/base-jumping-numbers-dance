@@ -1,5 +1,6 @@
 
 const arrayExactlyEquals = (a, b) => a.length == b.length && a.filter( (x,i) => x == b[i] ).length == a.length;
+const arrayIntersection = (a,b) => a.filter(v => b.includes(v));
 const arrayOfIndexes = ( n ) => new Array( n ).fill( 0 ).map( (x,i) => i );
 const arrayCompare = (a, b) => {
     for ( i = b.length - 1; i >= 0; i-- ) {
@@ -68,15 +69,57 @@ const lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
 const PI = 3.1415926;
 const TWO_PI = 2 * PI;
 
+const addition          = ( p1, p2 ) => p2.map( (p,i) => p + p1[i] );
+const subtraction       = ( p1, p2 ) => p1.map( (p,i) => p - p2[i] );
 const displacement      = ( p1, p2 ) => p2.map( (p,i) => p - p1[i] );
 const euclideanDistance2 = ( p ) => p.map( d => d**2 ).reduce( (a,v) => a + v, 0 )
 const distance2          = ( p1, p2 ) => euclideanDistance2( displacement( p1, p2 ) );
 const scale             = ( p, s ) => p.map( x => x * s );
+const dotProduct        = ( p1, p2 ) => p2.map( (x,i) => x * p1[i] ).reduce( (a,c) => a + c, 0 );
+const crossProduct      = ( p1, p2 ) => [
+      p1[1] * p2[2] - p1[2] * p2[1],
+      p1[2] * p2[0] - p1[0] * p2[2],
+      p1[0] * p2[1] - p1[1] * p2[0]
+];
+const gcda = (a) => {
+    let result = a[0];
+    for (let i = 1; i < a.length; i++) {
+        result = gcd(a[i], result);
+        if(result == 1) {
+            return 1;
+        }
+    }
+    return result;
+};
+const normalize = (d) => {
+    const ed = Math.sqrt( euclideanDistance2( d ) );
+    return d.map( x => x / ed );
+};
+const unitDisplacement  = ( p1, p2 ) => normalize( displacement( p1, p2 ) );
+function extendLine( p1, p2, scale = 0 ) {
+
+    const v = displacement( p1, p2 );
+    const r = Math.sqrt( euclideanDistance2( v ) );
+
+    if ( r == 0 ) {
+        return [ p1, p2 ];
+    }
+
+    const d = v.map( (x,i) => ( scale * x / r ) );
+
+    const p0 = p1.map( (p, i) => p - d[i] );
+    const p3 = p2.map( (p, i) => p + d[i] );
+
+    return [ p0, p1, p2, p3 ];
+}
 
 function cycles( source ) {
     const ri = [...source.index];
     const cycles = new Cycles();
     cycles.key = source.key;
+    cycles.permPair = source.sources;
+    cycles.box = source.box;
+    cycles.parity = source.parity;
     for ( var i = 0; i < ri.length; i++ ) {
         const startId = i;
         var nextId = ri[startId];
@@ -113,32 +156,57 @@ function inverse( source ) {
     for ( var i = 0; i < idx.length; i++ ) {
         index[i] = idx.indexOf(i);
     }
-    return cycles( { 'index': index , 'key': key} );
+    return cycles( {
+        'index': index,
+        'key': key,
+        'sources': [ source ],
+        'box': source.box,
+        'parity': !source.parity
+    } );
 }
-function compose( leftSource, rightSource, twist = false ) {
-    const key = `${ maybeBracket( leftSource.key ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.key ) }`;
-    const ri = [...rightSource.index];
+
+function parity( p0, p1 ) {
+    return (p0 && p1) || (!p0 && !p1);
+}
+
+function compose( leftSource, rightSource, twist = false, box ) {
+    const ri = rightSource.index;
     const li = leftSource.index;
     const index = new Array( ri.length );
     for ( var i = 0; i < ri.length; i++ ) {
-        var nextId = ri[i];
-        index[i] = twist ? li.indexOf(nextId) : li[nextId];
+        var nextId = twist ? ri.indexOf(i) : ri[i];
+        index[i] = li[nextId];
     }
-    return cycles( { 'index': index , 'key': key} );
+    return cycles( {
+        'index': index,
+        'key': `${ maybeBracket( leftSource.key ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.key ) }`,
+        'sources': [ leftSource, rightSource, twist ],
+        'box': box,
+        'parity': twist
+            ? parity(leftSource.parity, !rightSource.parity)
+            : parity(leftSource.parity, rightSource.parity)
+    } );
 }
-function product( leftSource, rightSource, twist = false ) {
-    const key = `${ maybeBracket( leftSource.key ) }|${ maybeBracket( rightSource.key ) }`;
+function product( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
     const li = leftSource.index;
     const index = [];
     for ( var i = 0; i < ri.length; i++ ) {
-        const offset = twist
-            ? ri[i] * li.length
-            : ri.indexOf(i) * li.length;
-        const x = li.map( j => j + offset );
+        const nextOffset = twist
+            ? ri.indexOf(i) * li.length
+            : ri[i] * li.length;
+        const x = li.map( j => j + nextOffset );
         index.push( ...x );
     };
-    return cycles( { 'index': index , 'key': key} );
+    return cycles( {
+        'index': index ,
+        'key': `${ maybeBracket( leftSource.key ) }${ twist ? '~' : '|' }${ maybeBracket( rightSource.key ) }`,
+        'sources': [ leftSource, rightSource, twist ],
+        'box': box,
+        'parity': twist
+            ? parity(leftSource.parity, !rightSource.parity)
+            : parity(leftSource.parity, rightSource.parity)
+    } );
 }
 /**
 
@@ -270,7 +338,7 @@ class FactorialBox extends AbstractBox {
     //static ROTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
     static LABELS = [
         [ '🠇', '🠅'],
-        [ 'α', 'β', 'γ' ],
+        [ 'α', 'γ', 'β' ],
         [ '♤', '♡', '♢', '♧' ],
         [ '1', '2', '3', '4', '5' ],
         [ 'A', 'B', 'C', 'D', 'E', 'F' ],
@@ -398,6 +466,8 @@ class FactorialBox extends AbstractBox {
             this.calculateLabelCoord( point );
 
             point.key = this.makeLabel( point.labelCoord ).join('');
+
+            point.parity = -1 * point[0];
         } );
         this.forEach( point => {
             if (!point.inverse) {
@@ -433,6 +503,9 @@ class Cycle extends Array {
     }
 
     getStats( points ) {
+        if ( Object.hasOwn( this, '$stats' ) ) {
+            return this.$stats;
+        }
         const rank = points[0].length;
 
         const order = this.length;
@@ -459,7 +532,7 @@ class Cycle extends Array {
 
         const idSum = this.reduce( (a,index) => a + index, 0 );
 
-        return {
+        this.$stats = {
             order: order,
             centre: centre,
             idSum: idSum,
@@ -468,7 +541,77 @@ class Cycle extends Array {
             lcm: coordSum.reduce( lcm ),
             indexPerimeter: indexPerimeter,
             euclideanPerimeter: euclideanPerimeter
-        }
+        };
+        return this.$stats;
+    }
+
+    equations( cycles ) {
+        const equations  = [];
+        const bases = [...cycles.box.odometer.bases];
+        const order = cycles.order();
+
+        bases.forEach( (base, baseIndex) => {
+
+            const C = cycles.C()[baseIndex];
+
+            // the coefficients formed by picking a place from each underlying point
+            const cycleCoefficients = this.map( id => cycles.box[ id ][baseIndex] );
+            if (cycleCoefficients) {
+
+                const localParity = baseIndex % 2 == 0;
+
+                const rightToLeft = (cycles.parity && !localParity) || (!cycles.parity && localParity)
+
+                if (rightToLeft) {
+                    // right to left
+                    cycleCoefficients.reverse();
+                }
+
+                const coefficients = [];
+                const repeats = order / this.length;
+                for (var i = 0; i < repeats; i++) {
+                    coefficients.push(...cycleCoefficients);
+                }
+                var acc = 0;
+                var placeValue = 1;
+
+                coefficients.forEach( (coefficient, place) => {
+                    acc = acc + (coefficient * placeValue);
+                    placeValue = placeValue * base;
+                } );
+
+                if (!rightToLeft) {
+                    coefficients.reverse();
+                }
+
+                const factor = this[ cycles.parity ? 0 : this.length - 1 ];
+                var error = ( acc / factor / C );
+                if (error == 1) {
+                    error = null;
+                }
+
+                equations.push( { 'acc': acc, 'base': base, 'coeffs': coefficients, 'factor': factor, 'C': C, 'error': error } );
+            } else {
+                console.log( `No cycle coordinates: ${ this }` );
+            }
+        } );
+
+        return equations;
+    }
+    htmlEquations( cycles ) {
+        return reify( "span", { 'class': 'equation' }, this.equations( cycles )
+            .flatMap( ( {'acc': acc, 'base': base, 'coeffs': coeffs, 'factor': factor, 'C': C, 'error': error } ) => [
+                ...coeffs.flatMap( (c,i) => [
+                    reify( "b", {}, [ reifyText( `${ c }` ) ] ),
+                ] ),
+                reify( "sub", {}, [ reifyText( `${ base }` ) ] ),
+                reify( "b", {}, [ reifyText( ` = ${ acc }` ) ] ),
+                reify( "i", {}, [
+                    reifyText( ` ${ factor } x ${ C }` ),
+                    error ? reify( "span", { 'class': 'error' }, [ reifyText( ` x ${ error }` ) ] ) : null,
+                ] ),
+                reify( "br" )
+            ] ) );
     }
 }
 
@@ -500,6 +643,38 @@ class Cycles extends Array {
 
     orbits() {
         return this.filter( cycle => cycle.length != 1);
+    }
+
+    C() {
+        if (!Object.hasOwn('$C')) {
+            const C = [];
+            const order = this.order();
+            const terminalCoords = this.getTerminal();
+            this.box.odometer.bases.forEach( (base, baseIndex) => {
+                const terminalCoord = terminalCoords[baseIndex];
+                const coeffs = [];
+                for (var i = 0; i < order; i++) {
+                    coeffs.push( terminalCoord );
+                }
+                var acc1 = 0;
+                var basePower1 = 1;
+                coeffs.forEach( (coeff, place) => {
+                    acc1 = acc1 + (coeff * basePower1);
+                    basePower1 = basePower1 * base;
+                } );
+                const factor = this.box.length - 1;
+                C.push( Math.round( 100 * acc1 / factor ) / 100 );
+            } );
+            this.$C = C;
+        }
+        return this.$C;
+    }
+
+    order() {
+        if (!Object.hasOwn('$order')) {
+            this.$order = gcda( this.map( a => a.length ).filter( a => a > 1 ) );
+        }
+        return this.$order;
     }
 
     permPairLabel() {
@@ -558,6 +733,177 @@ class Cycles extends Array {
                     : reify( "sub", { 'style': 'position: relative; left: -.5em;'}, [ reifyText( `${ k }` ) ] )
             ] ) );
     }
+    getRank() {
+        return this.box.odometer.length;
+    }
+    getBases() {
+        return this.box.odometer.bases;
+    }
+    getVolume() {
+        return this.box.length;
+    }
+    getOrigin() {
+        return this.box[0];
+    }
+    getTerminal() {
+        return this.box[this.box.length - 1];
+    }
+    getDiagonal() {
+        return [ this.getOrigin(), this.getTerminal() ];
+    }
+    getCentre() {
+        return this.getTerminal().map( c => c/2 );
+    }
+
+    getStats() {
+        if( Object.hasOwn( this, '$stats' ) ) {
+            return this.$stats;
+        }
+        this.$stats = this
+            .map( cycle => {
+                const stats = cycle.getStats(this.box);
+                return stats;
+            } )
+            .filter( stats => stats != null )
+            .reduce( (a,c) => {
+                a.idSum += c.idSum;
+                a.coordSum = addition( a.coordSum, c.coordSum );
+                a.indexPerimeter += c.indexPerimeter;
+                a.euclideanPerimeter += c.euclideanPerimeter;
+                return a;
+            },
+            {
+                idSum: 0,
+                coordSum: new Array(this.getRank()).fill(0),
+                indexPerimeter: 0,
+                euclideanPerimeter: 0
+            } );
+        return this.$stats;
+    }
+
+    getCentres() {
+        if ( Object.hasOwn( 'centres' ) ) {
+            return this.centres;
+        }
+
+        const allowance = 0.00000000001;
+        const boxCentre = this.getCentre();
+
+        var centreLines = [
+            { "points": this.getDiagonal(), "unit": unitDisplacement( ...this.getDiagonal() ), "pd": 0 }
+        ];
+        var centrePoints = [
+            { "point": [0,0,0], "lineRef": 0, "hyp2": 0 }
+        ];
+
+        function assignCentreRef( cycleStats ) {
+            const centreDist = distance2( centrePoints[0].point, cycleStats.centre );
+            if ( centreDist < allowance ) {
+                cycleStats.centreRef = 0;
+                return;
+            }
+            for ( var i = 1; i < centrePoints.length; i++) {
+                const d = distance2( centrePoints[i].point, cycleStats.centre );
+                if ( d < allowance ) {
+                    cycleStats.centreRef = i;
+                    return;
+                }
+            }
+
+            // new centre
+            function getCentreLineRef( centre ) {
+                var cpd = perpendicularDistance( centre, centreLines[0].points, centreLines[0].unit );
+                if ( cpd < allowance ) {
+                    return 0;
+                }
+
+                const unit = displacement( centre, centre );
+                const scaledUnit = scale( unitDisplacement( centre, boxCentre ), 1 );
+
+                for ( var i = 1; i < centreLines.length; i++) {
+                    const pd = perpendicularDistance( centre, centreLines[i].points, centreLines[i].unit );
+                    if ( pd < allowance ) {
+                        if ( cpd > centreLines[i].pd ) {
+                            centreLines[i].points = [
+                                subtraction( subtraction( boxCentre, unit ), scaledUnit),
+                                addition( addition( boxCentre, unit ), scaledUnit)
+                            ];
+                        }
+                        return i;
+                    }
+                }
+
+                const points = [
+                    subtraction( subtraction( boxCentre, unit ), scaledUnit),
+                    addition( addition( boxCentre, unit ), scaledUnit)
+                ];
+
+                centreLines.push( { "points": points, "unit": unitDisplacement( centre, boxCentre ), "pd": cpd }  );
+                return centreLines.length - 1;
+            }
+
+            centrePoints.push( {
+                "point": cycleStats.centre,
+                "lineRef": getCentreLineRef( cycleStats.centre ),
+                "hyp2": centreDist
+            } );
+
+            cycleStats.centreRef = centrePoints.length - 1;
+        }
+
+        this
+            .filter( cycle => cycle.length > 1 )
+            .forEach( cycle => assignCentreRef( cycle.getStats(this.box) ) );
+
+        this.centres = {
+            centreLines: centreLines,
+            centrePoints: centrePoints
+        };
+
+        return this.centres;
+    }
+
+    getIdentityPlane() {
+        const { centreLines, centrePoints } = this.getCentres();
+
+        if ( centreLines.length > 1 ) {
+
+            const diagonal = centreLines[0].points;
+            const otherLine = centreLines[ centreLines.length - 1 ].points;
+
+            // establish identity plane
+            const identityPlane = otherLine.map( ( coord, i ) => subtraction( coord, diagonal[i] ) );
+            const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
+            const identityPlaneNormal = displacement( this.getOrigin(), identityPlane );
+
+            this.identityPlane = {
+                coord: identityPlane,
+                gcd: identityPlaneGcd,
+                normal: identityPlaneNormal
+            };
+            return this.identityPlane;
+
+        } else {
+            const bases = this.getBases();
+
+            const placesReverse = this.permPair[0].placeValues;
+
+//            const placesReverse = placeValuesReverseArray( bases );
+            const placesForward = [...placesReverse].map( i => -1 * i );
+
+            // establish identity plane
+            const identityPlane = placesForward.map( ( x, i ) => x - placesReverse[i] );
+            const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
+            const identityPlaneNormal = displacement( this.getOrigin(), identityPlane );
+
+            this.identityPlane = {
+                coord: identityPlane,
+                gcd: identityPlaneGcd,
+                normal: identityPlaneNormal
+            };
+            return this.identityPlane;
+        }
+    }
 }
 
 class Box extends AbstractBox {
@@ -565,11 +911,38 @@ class Box extends AbstractBox {
     static boxes = {};
 
     static list() {
-        return Object.values( Box.boxes );
+        const values = Object.values( Box.boxes );
+        const boxComparator = ( b0, b1 ) => {
+            if ( b0.odometer.bases.length == b1.odometer.bases.length ) {
+                return arrayCompare( b0.odometer.bases, b1.odometer.bases );
+            } else {
+                return b0.odometer.bases.length - b1.odometer.bases.length;
+            }
+        };
+        values.sort( boxComparator );
+        return values;
+    }
+
+    static clear() {
+        Object.keys( Box.boxes ).forEach( key => {
+            delete Box.boxes[ key ];
+        } );
+    }
+
+    static identifySources( source ) {
+        return source.box.actions()
+            .filter( action => action != source )
+            .filter( action => arrayExactlyEquals( source.index, action.index ) );
+//        return Box
+//            .list()
+//            .filter( box => box.volume == source.index.length )
+//            .flatMap( box => box.actions() )
+//            .filter( action => action != source )
+//            .filter( action => arrayExactlyEquals( source.index, action.index ) );
     }
 
     static of( bases ) {
-        const canonicalBases = [...bases].sort();
+        const canonicalBases = [...bases].filter( b => b!=1).sort();
         const key = canonicalBases.join( '.' );
         if (!( key in Box.boxes )) {
             const box = new Box( new Odometer( canonicalBases.map( (b,i) => new Dial( `${i}`, arrayOfIndexes( b ) ) ) ) );
@@ -585,6 +958,7 @@ class Box extends AbstractBox {
             this.volume = this.odometer.volume();
             this.buildPoints();
             this.indexPoints();
+            this.actionsCache = [];
         }
     }
 
@@ -601,11 +975,45 @@ class Box extends AbstractBox {
         } );
         this.permBox.forEach( perm => {
             perm.cycles = cycles( perm );
+            const inversePerm = inverse( perm );
+            const candidate = this.permBox.find( p => arrayExactlyEquals( p.index, inversePerm.index ) );
+            perm.inverse = candidate;
         } );
     }
 
     actions() {
-        return this.permBox.flatMap( pl => this.permBox.map( pr => compose( pl, pr, true ) ) );
+        if ( this.actionsCache.length == 0 ) {
+            this.actionsCache = this.permBox.flatMap( pr => this.permBox
+                .filter( pl => pl != pr )
+                .map( pl => compose( pl, pr, true, this ) ) );
+
+            // assign inverses
+            const inverseOf = ( idx ) => {
+                const index = new Array( idx.length );
+                for ( var i = 0; i < idx.length; i++ ) {
+                    index[i] = idx.indexOf(i);
+                }
+                return index;
+            };
+
+            this.actionsCache.forEach( a0 => {
+                if (!Object.hasOwn( a0, 'inverse' )) {
+                    const dix = inverseOf( a0.index );
+                    const a1 = this.actionsCache
+                        .filter( a => !Object.hasOwn( a, 'inverse' ) )
+                        .find( a => arrayExactlyEquals( a.index, dix ) );
+                    if (a1) {
+                        a0.inverse = a1;
+                        a1.inverse = a0;
+                    } else {
+//                        a0.inverse = null;
+//                        throw new Error(`Inverse not found: ${a0.label()}`);
+                    }
+                }
+            } );
+
+        }
+        return this.actionsCache;
     }
 
     testPermBox() {

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8"/>
@@ -18,69 +19,95 @@
     <script type="text/javascript" src="js/odometer-expression.js"></script>
 
     <script>
-        const permColumns = [ '#', 'label', 'alias', 'monomial', 'index' ];
-        const columnsNoDiagram = [ '#', 'label', 'alias', 'monomial', 'cycles' ];
-        const columns = [ '#', 'label', 'alias', 'monomial', 'cycles', 'diagram' ];
 
-<!--        function runScenario() {-->
-<!--            Box.of( [ 2 ] );-->
-<!--            Box.of( [ 5 ] );-->
-<!--            Box.of( [ 2, 5 ] );-->
-<!--            document.getElementById( 'boxPerms' ).appendChild( reify( 'div', {}, [-->
-<!--                ...Box.list().map( box => box.permBox.pointsDomNode( permColumns, `Indexes of [${ box.odometer.bases }]` ) ),-->
-<!--                Box.of( [ 2, 4, 5 ] ).permBox.pointsDomNode( permColumns )-->
-<!--            ] ) );-->
-<!--            document.getElementById( 'boxActions' ).appendChild( reify( 'div', {},-->
-<!--                Box.list().map( box => box.cyclesDomNode( columnsNoDiagram ) )-->
-<!--            ) );-->
-<!--            document.getElementById( 'boxCompositions' ).appendChild( reify( 'div', {},-->
-<!--                [-->
-<!--                    cyclesDomNode( [ product( Box.of([4,5]).permBox[1], Box.of([2]).permBox[0], false ) ], columns ),-->
-<!--                    cyclesDomNode( [ compose( Box.of([2,4,5]).permBox[2], Box.of([2,4,5]).permBox[4], true ) ], columns ),-->
-<!--                ]-->
-<!--            ) );-->
-<!--            x3dom.reload();-->
-<!--        }-->
+        function byId( id ) {
+            return document.getElementById(id);
+        }
+
+        const permColumns = [ '#', 'label', 'alias', 'monomial', 'Xindex', 'perm', 'anti-perm', 'cycles', 'bases', 'place-values', 'Xdiagram', 'inverse', 'Xmatch' ];
+        const columnsNoDiagram = [ '#', 'label', 'others', 'alias', 'monomial', 'cycles', 'inverse', 'Xindex', 'Xdiagram' ];
+        const columnsActions = [ '#', 'label', 'Xalias', 'others', 'monomial', 'cycles', 'inverse', 'diagram', 'Xequations', 'perms' ];
+        const columnsResults = [ '#', 'label', 'alias', 'others', 'monomial', 'cycles', 'Xindex', 'diagram', 'Xequations', 'perms', 'parity', 'perimeter', 'radiance' ];
+
+        function getMonomialFilter() {
+            if( byId( 'monomialFilterToggle' ).checked ) {
+                return JSON.parse( byId( 'monomialFilter' ).value );
+            }
+            return null;
+        };
+
+
+        function drawActionsTables() {
+
+            const indexOfDiagram = columnsActions.indexOf('diagram');
+            if ( byId('cyclesDiagramToggle').checked ) {
+                if ( indexOfDiagram < 0 ) {
+                    columnsActions.push( 'diagram' );
+                }
+            } else {
+                if ( indexOfDiagram > -1 ) {
+                    columnsActions[indexOfDiagram] = 'Xdiagram';
+                }
+            }
+
+//            byId( 'boxPerms' ).appendChild( reify( 'div', { 'class': 'expressionScriptResult' }, [
+//                ...Box.list().map( box => box.permBox.pointsDomNode( permColumns, `Indexes of [${ box.odometer.bases }]` ) ),
+//            ] ) );
+
+            byId( 'boxActions' ).appendChild( reify( 'div', { 'class': 'expressionScriptResult' },
+                Box
+                    .list()
+                    .filter( box => box.actions().length > 0 )
+                    .map( box => box.cyclesDomNode( columnsActions, null, getMonomialFilter(), byId( 'boxCycles' ) ) )
+            ) );
+        }
 
         function putHtml( result, param ) {
-            if ( result instanceof Cycles ) {
-                const cols = document.getElementById( 'cyclesDiagramToggle' ).checked
-                    ? columns
-                    : columnsNoDiagram;
-                document
+            const container = document
                     .getElementById( 'expressionScript' )
-                    .parentNode
-                    .appendChild( reify( 'div', { 'class': 'expressionScriptResult' }, [ cyclesDomNode( [ result ], cols ) ] ) );
+                    .parentNode;
+            if ( result[1] instanceof Cycles ) {
+                const cols = columnsResults;
+                container.appendChild( reify( 'div', { 'class': 'expressionScriptResult' }, [ cyclesDomNode( [ result[1] ], cols, null, null, byId( 'boxCycles' ) ) ] ) );
+            } else {
+                container.appendChild( reify( 'div', { 'class': 'expressionScriptError' }, [ reifyText( '<br>' + result[0] + ' ' + result[1] ) ] ) );
             }
         }
 
         function clearResults() {
             document
+                .querySelectorAll( '.expressionScriptError' )
+                .forEach( element => element.parentNode.removeChild( element ) );
+            document
                 .querySelectorAll( '.expressionScriptResult' )
                 .forEach( element => element.parentNode.removeChild( element ) );
+            Box.clear();
         }
 
         function calculate( script, sourceElement ) {
-            if ( document.getElementById( 'clearOnCalculate' ).checked ) {
-                clearResults();
-            }
-            const isFormula = document.getElementById( 'formulaToggle' ).checked;
+            const isFormula = byId( 'formulaToggle' ).checked;
             try {
                 const result = isFormula
                     ? evaluateFormulas( script )
                     : eval( script );
-                result.forEach( r => putHtml( r[1] ) );
+                result.forEach( r => putHtml( r ) );
             } catch ( e ) {
-                putHtml( `<font color='red'>${ e }</font>` );
+                console.log( `Error processing script: ${ e }` );
+                putHtml( [ e, '' ] );
                 throw e;
             }
         }
 
         function calculateNow() {
+            if ( byId( 'clearOnCalculate' ).checked ) {
+                clearResults();
+            }
             const sourceId = 'expressionScript';
-            const sourceElement = document.getElementById( sourceId );
+            const sourceElement = byId( sourceId );
 
             calculate( sourceElement.value, 'calculationResult' );
+
+            //drawActionsTables();
 
             x3dom.reload();
         }
@@ -92,10 +119,57 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
     <label class="summaryLeft">cycles<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+
+    <label for="monomialFilter">
+        <label for="monomialFilterToggle">Monomial: <input type="checkbox" checked="checked" id="monomialFilterToggle" onclick="calculateNow()"></label>
+        <input type="text" value='{ "1": 4, "6": 6 }' id="monomialFilter"></label>
     <br/>
-    <textarea id="expressionScript" class="expressionScriptPanel" rows="6">#
-(2 % 4)
-(4 % 2)
+    <label for="expressionScript">
+    <textarea id="expressionScript" class="expressionScriptPanel" rows="6" cols="100">#
+#(2:2)
+#2:3
+#3:2
+#(2~(2:2))*((2:2)~2))
+4:10
+10:4
+
+
+#a0 = ((4:2)~5)
+#a0h = (5~(4:2))
+
+#a1 = (2~(5:4))
+#a1h = ((5:4)~2)
+
+#a0 * a1
+#a0h * a1h
+#2:4
+#((2:4)~5)
+#((4:2)~5)
+#(5~(4:2))
+#(5~(2:4))
+#4:2
+#((4:2)~5)
+#4:5
+#((4:5)|2)
+#5:4
+#((5:4)~2)
+#((4:2)~5)*(2~(5:4))
+#(5~(4:2))*((5:4)~2)
+
+(4~(5:2))*((4:2)~5)*(2~(5:4))
+((4~(5:2))*((4:2)~5))*(2~(5:4))
+#(2 : 4) ~ 5
+#(4 : 2) ~ 5
+#5 ~ (2 : 4)
+#5 ~ (4 : 2)
     </textarea>
+    </label>
+    <hr>
+    <div id="boxPerms"></div>
+    <div id="boxActions"></div>
+    <br/>
+    <div id="boxDiagram" style="resize: both; overflow: auto; width: 1200px; height: 300px;"></div>
+    <br/>
+    <div id="boxCycles"></div>
 </body>
 </html>

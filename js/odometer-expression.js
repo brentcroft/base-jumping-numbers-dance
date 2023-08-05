@@ -5,11 +5,14 @@ const OPERATIONS = [
 ];
 
 const OPERATORS = {
-    '*': ( operator, left, right ) => new CompositionExpression( operator, left, right ),
-    '^': ( operator, left, right ) => new PowerExpression(operator, left, right ),
     '%': ( operator, left, right ) => new TwoDimensionalExpression( operator, left, right ),
-    ':': ( operator, left, right ) => new DirectProductExpression( operator, left, right ),
-    '|': ( operator, left, right ) => new DirectProductExpression( operator, left, right )
+    '=': ( operator, left, right ) => new AssignmentExpression( operator, left, right ),
+
+    '*': ( operator, left, right ) => new CompositionExpression( operator, left, right ),
+    ':': ( operator, left, right ) => new CompositionExpression( operator, left, right ),
+    '|': ( operator, left, right ) => new DirectProductExpression( operator, left, right ),
+    '~': ( operator, left, right ) => new DirectProductExpression( operator, left, right ),
+    '^': ( operator, left, right ) => new PowerExpression(operator, left, right ),
 };
 
 
@@ -374,32 +377,28 @@ class Formula {
      *   also returned as array.
      * @return {Number|Array} The evaluated result, or an array with results
      */
-    _evaluate( valueObj, param = {} ) {
-        // resolve multiple value objects recursively:
-        if (valueObj instanceof Array) {
-            return valueObj.map((v) => this._evaluate( v, param ));
-        }
+    _evaluate( param = {} ) {
         let expr = this.getExpression();
         if (!(expr instanceof Expression)) {
             throw new Error('No expression set: Did you init the object with a Formula?');
         }
 
         if (this.options.memoization) {
-            let res = this.resultFromMemory(valueObj);
+            let res = this.resultFromMemory(param);
             if (res !== null) {
                 return res;
             } else {
-                res = expr.evaluate( valueObj, param );
-                this.storeInMemory( valueObj, res );
+                res = expr.evaluate( param );
+                this.storeInMemory( param, res );
                 return res;
             }
         }
 
-        return expr.evaluate( valueObj, param );
+        return expr.evaluate( param );
     }
 
-    evaluate( valueObj, param = {} ) {
-        const r = this._evaluate( { ...valueObj, ...param } );
+    evaluate( param = {} ) {
+        const r = this._evaluate( param );
         return r;
     }
 
@@ -438,9 +437,8 @@ class Formula {
         return new Formula(formula, options).evaluate(valueObj);
     }
 }
-
 class Expression {
-    static createOperatorExpression(operator, left, right, boxGroup) {
+    static createOperatorExpression(operator, left, right) {
         if ( operator in OPERATORS ) {
             return OPERATORS[ operator ]( operator, left, right );
         }
@@ -455,7 +453,6 @@ class Expression {
         return '';
     }
 }
-
 class BracketExpression extends Expression {
     constructor(expr) {
         super();
@@ -471,8 +468,6 @@ class BracketExpression extends Expression {
         return `(${this.innerExpression.toString()})`;
     }
 }
-
-
 class ListExpression extends Expression {
     constructor(expr) {
         super();
@@ -488,8 +483,6 @@ class ListExpression extends Expression {
         return `(${this.innerExpression.toString()})`;
     }
 }
-
-
 class ValueExpression extends Expression {
     constructor(value) {
         super();
@@ -505,7 +498,6 @@ class ValueExpression extends Expression {
         return String(this.value);
     }
 }
-
 class StringExpression extends Expression {
     constructor(value) {
         super();
@@ -518,9 +510,8 @@ class StringExpression extends Expression {
         return String(this.value);
     }
 }
-
 class OperatorExpression extends Expression {
-    constructor( operator, left, right, boxGroup ) {
+    constructor( operator, left, right ) {
         super();
         if ( !( operator in OPERATORS ) ) {
             throw new Error( `Operator not implemented: ${ this.left } "${operator}" ${ this.right }`);
@@ -528,14 +519,11 @@ class OperatorExpression extends Expression {
         this.operator = operator;
         this.left = left;
         this.right = right;
-        this.boxGroup = boxGroup;
     }
-
     toString() {
-        return `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+        return `${this.left.toString()}${this.operator}${this.right.toString()}`;
     }
 }
-
 class IdentityExpression extends ValueExpression {
     constructor( value ) {
         super( value );
@@ -547,20 +535,44 @@ class IdentityExpression extends ValueExpression {
         return `${this.value}`;
     }
 }
-class CompositionExpression extends OperatorExpression {
-    constructor( operator, left, right, boxGroup ) {
-        super( operator, left, right, boxGroup );
+class AssignmentExpression extends OperatorExpression {
+    constructor( operator, left, right ) {
+        super( operator, left, right );
     }
-
     evaluate( params = {} ) {
-        const leftCycles = this.left.evaluate(params);
-        const rightCycles = this.right.evaluate(params);
-        return compose( leftCycles, rightCycles );
+        const value = this.right.evaluate(params);
+        params[ this.left.varName ] = value;
+        value.key = this.left.varName;
+        return value;
+    }
+}
+class CompositionExpression extends OperatorExpression {
+    constructor( operator, left, right ) {
+        super( operator, left, right );
+    }
+    evaluate( params = {} ) {
+        const twist = this.operator == ':';
+        const [ l, r ] = [ this.left.evaluate(params), this.right.evaluate(params) ];
+        if (Number.isInteger( l ) && Number.isInteger( r )) {
+            const b = Box.of([l,r]);
+            const [ i0, i1 ] = [ l > r ? 1 : 0, l > r ? 0 : 1 ];
+            const cycles = compose( b.permBox[i0], b.permBox[i1], twist, b );
+            cycles.parity = l > r;
+            return cycles;
+        }
+        if (Number.isInteger( l ) || Number.isInteger( r )) {
+            throw new Error( `Cannot compose items of different degree: l=${l}, r=${r}` );
+        }
+        if (l.index.length != r.index.length ) {
+            throw new Error( `Cannot compose items of different degree: l=${l}, r=${r}` );
+        }
+        const cycles = compose( l, r, twist, r.box );
+        return cycles;
     }
 }
 class TwoDimensionalExpression extends OperatorExpression {
-    constructor( operator, left, right, boxGroup ) {
-        super( operator, left, right, boxGroup );
+    constructor( operator, left, right ) {
+        super( operator, left, right );
     }
 
     evaluate( params = {} ) {
@@ -568,23 +580,32 @@ class TwoDimensionalExpression extends OperatorExpression {
         const r = this.right.evaluate(params);
         const b = Box.of([l,r]);
         const [ i0, i1 ] = [ l > r ? 1 : 0, l > r ? 0 : 1 ];
-        return compose( b.permBox[i0], b.permBox[i1], true )
+        return compose( b.permBox[i0], b.permBox[i1], true, b );
     }
 }
 class DirectProductExpression extends OperatorExpression {
-    constructor( operator, left, right, boxGroup ) {
-        super( operator, left, right, boxGroup );
+    constructor( operator, left, right ) {
+        super( operator, left, right );
     }
     evaluate( params = {} ) {
+        const twist = this.operator == '~';
         var l = this.left.evaluate(params);
+        const bases = [];
         if (Number.isInteger( l )) {
+            bases.push( l );
             l = Box.of( [ l ] ).permBox[0];
+        } else {
+            bases.push( ...l.box.odometer.bases );
         }
         var r = this.right.evaluate(params);
         if (Number.isInteger( r )) {
+            bases.push( r );
             r = Box.of( [ r ] ).permBox[0];
+        } else {
+            bases.push( ...r.box.odometer.bases );
         }
-        return product( l, r, this.operator == ':' )
+        const cycles = product( l, r, twist, Box.of( bases ) );
+        return cycles;
     }
 }
 class PowerExpression extends Expression {
@@ -595,20 +616,24 @@ class PowerExpression extends Expression {
     }
     evaluate(params = {}) {
         const exp = Number( this.exponent.evaluate(params) );
-        const start = this.base.evaluate(params);
+        var start = this.base.evaluate(params);
+        if (Number.isInteger( start )) {
+            start = Box.of( [ 1, start ] ).permBox[0];
+        }
+
         var locus = start;
 
         if ( exp < 1 ) {
             const invStart = inverse( start );
             var locus = invStart;
             for ( var i = -1; i > exp; i-- ) {
-                locus = compose( invStart, locus );
+                locus = compose( invStart, locus, false, locus.box );
             }
         } else if ( exp == 1 ) {
             //
         } else if ( exp > 0 ) {
             for ( var i = 1; i < exp; i++ ) {
-                locus = compose( start, locus );
+                locus = compose( start, locus, false, locus.box );
             }
         }
         return locus;
@@ -660,8 +685,6 @@ class VariableExpression extends Expression {
         var result = params[ this.varName ];
         if ( result !== undefined ) {
             return result;
-        } else if ( "e" == this.varName && params[this.varName+"_0"] !== undefined) {
-            return params[this.varName+"_0"];
         } else {
             throw new Error('Cannot evaluate ' + this.varName + ': No value given');
         }

@@ -637,9 +637,9 @@ function createCylinderSet( points, emissiveColor, attr = {} ){
             // move to midpoint a to b
             // insert cylinder shape
 
-            const height = Math.sqrt( distance2( to3D( b.coord ), to3D( a.coord ) ) );
-            const diff = subtraction( to3D( b.coord ), to3D( a.coord ) );
-            const centre = addition( to3D( a.coord ), scale( diff, 0.5 ) );
+            const height = Math.sqrt( distance2( to3D( b ), to3D( a ) ) );
+            const diff = subtraction( to3D( b ), to3D( a ) );
+            const centre = addition( to3D( a ), scale( diff, 0.5 ) );
 
             const unitNormal = normalize( diff );
             var rotationAxis = unitDisplacement( origin, crossProduct( currentDirection, unitNormal ) );

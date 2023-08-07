@@ -1,4 +1,6 @@
-
+function arrowUp( parity ) {
+    return parity ? '🠅' : '🠇';
+}
 const arrayExactlyEquals = (a, b) => a.length == b.length && a.filter( (x,i) => x == b[i] ).length == a.length;
 const arrayIntersection = (a,b) => a.filter(v => b.includes(v));
 const arrayOfIndexes = ( n ) => new Array( n ).fill( 0 ).map( (x,i) => i );
@@ -87,6 +89,16 @@ const gcda = (a) => {
         result = gcd(a[i], result);
         if(result == 1) {
             return 1;
+        }
+    }
+    return result;
+};
+const lcma = (a) => {
+    let result = a[0];
+    for (let i = 1; i < a.length; i++) {
+        result = lcm(a[i], result);
+        if(result == 0) {
+            return 0;
         }
     }
     return result;
@@ -527,7 +539,7 @@ class Cycle extends Array {
             .reduce( (a,c) => a + c, 0 );
 
         const euclideanPerimeter = this
-            .map( (index,i) => distance2( points[index], points[ ( i + 1 ) % order ] ) )
+            .map( (index,i) => distance2( points[index], points[ this[ ( i + 1 ) % order ] ] ) )
             .reduce( (a,c) => a + c, 0 );
 
         const idSum = this.reduce( (a,index) => a + index, 0 );
@@ -550,7 +562,9 @@ class Cycle extends Array {
         const bases = [...cycles.box.odometer.bases];
         const order = cycles.order();
 
-        bases.forEach( (base, baseIndex) => {
+        bases.forEach( (base, bI) => {
+
+            const baseIndex = bI;//(bases.length -1 - bI);
 
             const C = cycles.C()[baseIndex];
 
@@ -558,12 +572,11 @@ class Cycle extends Array {
             const cycleCoefficients = this.map( id => cycles.box[ id ][baseIndex] );
             if (cycleCoefficients) {
 
-                const localParity = baseIndex % 2 == 0;
+                const localParity = (baseIndex % 2) == 0;
 
-                const rightToLeft = (cycles.parity && !localParity) || (!cycles.parity && localParity)
+                const rightToLeft = (cycles.parity && !localParity) || (!cycles.parity && localParity);
 
                 if (rightToLeft) {
-                    // right to left
                     cycleCoefficients.reverse();
                 }
 
@@ -580,7 +593,8 @@ class Cycle extends Array {
                     placeValue = placeValue * base;
                 } );
 
-                if (!rightToLeft) {
+                const reverseCoefficients = true;
+                if (reverseCoefficients) {
                     coefficients.reverse();
                 }
 
@@ -605,10 +619,11 @@ class Cycle extends Array {
                     reify( "b", {}, [ reifyText( `${ c }` ) ] ),
                 ] ),
                 reify( "sub", {}, [ reifyText( `${ base }` ) ] ),
-                reify( "b", {}, [ reifyText( ` = ${ acc }` ) ] ),
+                reify( "b", {}, [ reifyText( ` = ${ acc } ` ) ] ),
                 reify( "i", {}, [
-                    reifyText( ` ${ factor } x ${ C }` ),
-                    error ? reify( "span", { 'class': 'error' }, [ reifyText( ` x ${ error }` ) ] ) : null,
+                    error
+                        ? reify( "span", { 'class': 'error' }, [ reifyText( ` (${ factor } x ${ C.toFixed(2) } x ${ error.toFixed(2) })` ) ] )
+                        : reifyText( ` (${ factor } x ${ C })` ),
                 ] ),
                 reify( "br" )
             ] ) );
@@ -646,11 +661,14 @@ class Cycles extends Array {
     }
 
     C() {
-        if (!Object.hasOwn('$C')) {
+        if (!Object.hasOwn( this, '$C')) {
             const C = [];
             const order = this.order();
             const terminalCoords = this.getTerminal();
-            this.box.odometer.bases.forEach( (base, baseIndex) => {
+            const bases = this.box.odometer.bases;
+            bases.forEach( (base, bI) => {
+
+                const baseIndex = bI; //(bases.length -1 - bI);
                 const terminalCoord = terminalCoords[baseIndex];
                 const coeffs = [];
                 for (var i = 0; i < order; i++) {
@@ -663,7 +681,7 @@ class Cycles extends Array {
                     basePower1 = basePower1 * base;
                 } );
                 const factor = this.box.length - 1;
-                C.push( Math.round( 100 * acc1 / factor ) / 100 );
+                C.push( acc1 / factor );
             } );
             this.$C = C;
         }
@@ -671,8 +689,8 @@ class Cycles extends Array {
     }
 
     order() {
-        if (!Object.hasOwn('$order')) {
-            this.$order = gcda( this.map( a => a.length ).filter( a => a > 1 ) );
+        if (!Object.hasOwn(this,'$order')) {
+            this.$order = lcma( this.map( a => a.length ).filter( a => a > 1 ) );
         }
         return this.$order;
     }
@@ -691,13 +709,11 @@ class Cycles extends Array {
 
     perms() {
         try {
-            return "["
-                + this.permPair[0].perm.join(',')
-                + "]:["
-                + this.permPair[1].perm.join(',')
-                + "]";
+            return this.permPair
+                .filter( p => Array.isArray(p) )
+                .map( p => `[${ p.perm }]`).join(',');
         } catch ( e ) {
-            return "";
+            return null;
         }
     }
 
@@ -782,8 +798,8 @@ class Cycles extends Array {
     }
 
     getCentres() {
-        if ( Object.hasOwn( 'centres' ) ) {
-            return this.centres;
+        if ( Object.hasOwn( this, '$centres' ) ) {
+            return this.$centres;
         }
 
         const allowance = 0.00000000001;
@@ -855,12 +871,12 @@ class Cycles extends Array {
             .filter( cycle => cycle.length > 1 )
             .forEach( cycle => assignCentreRef( cycle.getStats(this.box) ) );
 
-        this.centres = {
+        this.$centres = {
             centreLines: centreLines,
             centrePoints: centrePoints
         };
 
-        return this.centres;
+        return this.$centres;
     }
 
     getIdentityPlane() {
@@ -933,16 +949,12 @@ class Box extends AbstractBox {
         return source.box.actions()
             .filter( action => action != source )
             .filter( action => arrayExactlyEquals( source.index, action.index ) );
-//        return Box
-//            .list()
-//            .filter( box => box.volume == source.index.length )
-//            .flatMap( box => box.actions() )
-//            .filter( action => action != source )
-//            .filter( action => arrayExactlyEquals( source.index, action.index ) );
     }
 
     static of( bases ) {
-        const canonicalBases = [...bases].filter( b => b!=1).sort();
+        const canonicalBases = [...bases].filter( b => b != 1 );
+        canonicalBases.sort( (a,b) => b - a );
+
         const key = canonicalBases.join( '.' );
         if (!( key in Box.boxes )) {
             const box = new Box( new Odometer( canonicalBases.map( (b,i) => new Dial( `${i}`, arrayOfIndexes( b ) ) ) ) );
@@ -985,7 +997,12 @@ class Box extends AbstractBox {
         if ( this.actionsCache.length == 0 ) {
             this.actionsCache = this.permBox.flatMap( pr => this.permBox
                 .filter( pl => pl != pr )
-                .map( pl => compose( pl, pr, true, this ) ) );
+                .map( pl => {
+                    const c = compose( pl, pr, true, this );
+                    c.parity = arrayCompare( pl.perm, pr.perm ) > 0;
+                    return c;
+                } ) );
+
 
             // assign inverses
             const inverseOf = ( idx ) => {

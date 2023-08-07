@@ -1,4 +1,36 @@
 
+function showHideCSS( selector ) {
+    document
+        .querySelectorAll( selector )
+        .forEach( c => {
+            var s = c.style.display;
+            if ( s == '' ) {
+                c.style.display  =  'none';
+            } else {
+                c.style.display  =  '';
+            }
+        } );
+}
+
+function showHide( id, control ) {
+    const force = control ? control.checked ? 1 : -1 : 0;
+    var c = document.getElementById( id );
+    if ( c ) {
+        var s = c.style.display;
+        if ( ( force && force != -1 ) || s != '' ) {
+            c.style.display  =  '';
+        } else {
+            c.style.display  =  'none';
+        }
+    }
+}
+
+function showHideAll( ids = [], control ) {
+    ids.forEach( id => showHide( id, control ) );
+}
+
+
+
 Cycles.prototype.cyclesView = {
     'normal': { orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
     'default': { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
@@ -215,9 +247,10 @@ FactorialBox.prototype.pointsDomNode = function(
 
 function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles', 'diagram' ], caption = null, monomialFilter = null, cyclesContainer = null ) {
     const allColumns = [
-        'label',
+        'box', 'label',
         'others', 'alias', 'inverse', 'perms', 'parity', 'place-values',
-        'monomial', 'perimeter', 'radiance', 'equations', 'index', 'cycles', 'diagram' ];
+        'C',
+        'monomial', 'volume', 'order', 'perimeter', 'radiance', 'equations', 'index', 'cycles', 'diagram' ];
     const columns = [ '#', ...arrayIntersection( allColumns, cols ) ];
 
     const otherLabel = ( source ) => {
@@ -225,6 +258,12 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
         return actions.length == 0
             ? ''
             : `${ actions.map( action => action.label()).join('=') }`;
+    };
+    const otherPerm = ( source ) => {
+        const actions = Box.identifySources( source );
+        return actions.length == 0
+            ? ''
+            : actions[0].perms();
     };
     const maybeDisplay = (label, domFn) => columns.includes( label ) ? domFn() : null;
 
@@ -259,6 +298,8 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
                 const monomialFilter = document.getElementById('monomialFilter');
                 if ( monomialFilter ) {
                     monomialFilter.value = ( JSON.stringify( cycles.monomial() ) );
+                    monomialFilterDisplay.innerHTML = '';
+                    monomialFilterDisplay.appendChild( cycles.htmlMonomial() );
                 }
                 const cyclesDiagram = document.getElementById('boxDiagram');
                 if ( cyclesDiagram ) {
@@ -270,12 +311,17 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
        };
     };
 
-    return reify(
+    const tableRenderer = (actions) => reify(
         'table',
         { 'class': 'box-action' },
         [
             caption ? reify( 'caption',{}, [ reifyText( caption ) ] ) : null,
-            reify( 'tr', {}, columns.map( column => reify( 'th', {}, [ reifyText( column ) ] ) ) ),
+            reify(
+                'tr',
+                {},
+                [ '#', ...arrayIntersection( allColumns, columns ) ]
+                    .map( column => reify( 'th', {}, [ reifyText( column ) ] ) )
+            ),
             ...actions
                 .filter( cycles => !monomialFilter || monomialFilterMatches( cycles.monomial(), monomialFilter ) )
                 .map( (cycles, i) => reify(
@@ -283,14 +329,18 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
                     {},
                     [
                         reify( 'td', {}, [ reifyText( `${ i }` ) ] ),
+                        maybeDisplay( 'box', () => reify( 'td', {}, [ reifyText( `[${ cycles.getBases() }]` ) ] ) ),
                         maybeDisplay( 'label', () => reify( 'td', {}, [ reifyText( `${ cycles.label() }` ) ] ) ),
                         maybeDisplay( 'others', () => reify( 'td', {}, [ reifyText( otherLabel( cycles ) ) ] ) ),
                         maybeDisplay( 'alias', () => reify( 'td', {}, [ cycles.alias ? reifyText( cycles.alias ) : null ] ) ),
                         maybeDisplay( 'inverse', () => reify( 'td', {}, [ reifyText( `${ cycles.inverse ? cycles.inverse.label() : '-' }` ) ] ) ),
                         maybeDisplay( 'perms', () => reify( 'td', {}, [ reifyText( `${ cycles.perms() }` ) ] ) ),
-                        maybeDisplay( 'parity', () => reify( 'td', {}, [ reifyText( `${ cycles.parity }` ) ] ) ),
+                        maybeDisplay( 'parity', () => reify( 'td', {}, [ reifyText( `${ arrowUp( cycles.parity ) }` ) ] ) ),
                         maybeDisplay( 'place-values', () => reify( 'td', {}, [ reifyText( `${ cycles.placeValuePair() }` ) ] ) ),
+                        maybeDisplay( 'C', () => reify( 'td', {}, [ reifyText( `${ cycles.C() }` ) ] ) ),
                         maybeDisplay( 'monomial', () => reify( 'td', {}, [ cycles.htmlMonomial() ] ) ),
+                        maybeDisplay( 'volume', () => reify( 'td', {}, [ reifyText( `${ cycles.getVolume() }` ) ] ) ),
+                        maybeDisplay( 'order', () => reify( 'td', {}, [ reifyText( `${ cycles.order() }` ) ] ) ),
                         maybeDisplay( 'perimeter', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().euclideanPerimeter }` ) ] ) ),
                         maybeDisplay( 'radiance', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().indexPerimeter }` ) ] ) ),
                         maybeDisplay( 'equations', () => reify( 'td', {}, [ cycles.htmlEquations() ] ) ),
@@ -310,6 +360,36 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
             )
         ]
     );
+
+    const tableContainer = reify( 'div', {}, [ tableRenderer(actions) ] );
+
+    const columnSelectors = allColumns
+        .map( column => reify( 'label', { 'class': 'columnSelector' }, [
+            reifyText( column ),
+            reify( 'input', { 'type': 'checkbox', 'checked': ( columns.includes( column ) ? 'checked' : '' ) }, [], [
+                c => c.onchange = () => {
+                    if ( !c.checked && columns.includes( column ) ) {
+                        columns.splice( columns.indexOf(column), 1 );
+                        tableContainer.innerHTML = '';
+                        tableContainer.appendChild( tableRenderer( actions ) );
+
+                    } else if ( c.checked && !columns.includes( column ) ) {
+                        columns.push( column );
+                        tableContainer.innerHTML = '';
+                        tableContainer.appendChild( tableRenderer( actions ) );
+                    }
+                }
+            ] )
+        ] ) );
+
+
+    return reify( 'div', {}, [
+        reify('div', {}, [
+            reify( 'label', { 'class': 'columnSelector' }, [ reifyText( 'columns: ' ) ] ),
+            ...columnSelectors
+        ] ),
+        tableContainer
+    ]);
 }
 
 

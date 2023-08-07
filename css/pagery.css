@@ -74,10 +74,16 @@ li { padding-top: 5px; padding-bottom: 5px; }
     height: 400px;
 }
 
+
+label.columnSelector {
+    font-size: 80%;
+}
+
 table.box-action {
     border-top: solid 0px black;
     text-align: center;
     font-size: 90%;
+    width: 100%;
     #width: 700px;
     #border-left: dotted black 1px;
     #border-bottom: dotted black 1px;

@@ -2,6 +2,8 @@
 <html>
 <head>
     <meta charset="utf-8"/>
+
+
     <link rel="stylesheet" href="css/pagery.css">
     <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
 
@@ -12,7 +14,9 @@
     <script type="text/javascript" src="js/colors.js"></script>
     <script type="text/javascript" src="js/cycles-x3dom.js"></script>
 
-
+    <script type="text/javascript" src="js/nearley/moo.js"></script>
+    <script type="text/javascript" src="js/nearley/grammar.js"></script>
+    <script type="text/javascript" src="js/nearley/nearly.js"></script>
 
     <script type="text/javascript" src="js/odometer.js"></script>
     <script type="text/javascript" src="js/odometer-dom.js"></script>
@@ -26,51 +30,68 @@
 
         const permColumns = [ '#', 'label', 'alias', 'monomial', 'Xindex', 'perm', 'anti-perm', 'cycles', 'bases', 'place-values', 'Xdiagram', 'inverse', 'Xmatch' ];
         const columnsNoDiagram = [ '#', 'label', 'others', 'alias', 'monomial', 'cycles', 'inverse', 'Xindex', 'Xdiagram' ];
-        const columnsActions = [ '#', 'label', 'Xalias', 'others', 'monomial', 'cycles', 'inverse', 'diagram', 'Xequations', 'perms' ];
-        const columnsResults = [ '#', 'label', 'alias', 'others', 'monomial', 'cycles', 'Xindex', 'diagram', 'Xequations', 'perms', 'parity', 'perimeter', 'radiance' ];
+        const columnsActions = [
+            '#',
+            'box',
+            'label', 'Xalias', 'others',
+            'monomial', 'Xcycles', 'Xinverse',
+            'diagram', 'Xequations',
+            'Xperms', 'parity', 'perimeter', 'radiance', 'order', 'volume'
+        ];
+        const columnsResults = [
+            'box',
+            'label', 'alias', 'others',
+            'box',
+            'monomial', 'Xcycles', 'Xindex', 'Xdiagram', 'Xequations',
+            'Xperms', 'parity', 'perimeter', 'radiance', 'order', 'volume'
+        ];
 
         function getMonomialFilter() {
             if( byId( 'monomialFilterToggle' ).checked ) {
-                return JSON.parse( byId( 'monomialFilter' ).value );
+                return JSON.parse( byId( 'monomialFilter' ).value || null );
             }
             return null;
         };
 
 
         function drawActionsTables() {
-
-            const indexOfDiagram = columnsActions.indexOf('diagram');
-            if ( byId('cyclesDiagramToggle').checked ) {
-                if ( indexOfDiagram < 0 ) {
-                    columnsActions.push( 'diagram' );
+            if ( byId('actionsTableToggle').checked ) {
+                const indexOfDiagram = columnsActions.indexOf('diagram');
+                if ( byId('cyclesDiagramToggle').checked ) {
+                    if ( indexOfDiagram < 0 ) {
+                        columnsActions.push( 'diagram' );
+                    }
+                } else {
+                    if ( indexOfDiagram > -1 ) {
+                        columnsActions[indexOfDiagram] = 'Xdiagram';
+                    }
                 }
+
+                const actions = Box
+                        .list()
+                        .filter( box => box.actions().length > 0 )
+                        .flatMap( box => box.actions() );
+
+                byId( 'boxActions' ).appendChild( reify(
+                    'div',
+                    { 'class': 'expressionScriptResult' },
+                    [ cyclesDomNode( actions, columnsActions, 'Box Actions', getMonomialFilter(), byId( 'boxCycles' ) ) ]
+
+                ) );
             } else {
-                if ( indexOfDiagram > -1 ) {
-                    columnsActions[indexOfDiagram] = 'Xdiagram';
-                }
+                byId( 'boxActions' ).innerHTML = '';
             }
-
-//            byId( 'boxPerms' ).appendChild( reify( 'div', { 'class': 'expressionScriptResult' }, [
-//                ...Box.list().map( box => box.permBox.pointsDomNode( permColumns, `Indexes of [${ box.odometer.bases }]` ) ),
-//            ] ) );
-
-            byId( 'boxActions' ).appendChild( reify( 'div', { 'class': 'expressionScriptResult' },
-                Box
-                    .list()
-                    .filter( box => box.actions().length > 0 )
-                    .map( box => box.cyclesDomNode( columnsActions, null, getMonomialFilter(), byId( 'boxCycles' ) ) )
-            ) );
         }
 
-        function putHtml( result, param ) {
+        function putHtml( actions, param ) {
             const container = document
                     .getElementById( 'expressionScript' )
                     .parentNode;
-            if ( result[1] instanceof Cycles ) {
+            if ( actions[0] instanceof Cycles ) {
                 const cols = columnsResults;
-                container.appendChild( reify( 'div', { 'class': 'expressionScriptResult' }, [ cyclesDomNode( [ result[1] ], cols, null, null, byId( 'boxCycles' ) ) ] ) );
+                container.appendChild( reify( 'div', { 'class': 'expressionScriptResult' }, [ cyclesDomNode( actions, cols, 'Expression Results', getMonomialFilter(), byId( 'boxCycles' ) ) ] ) );
             } else {
-                container.appendChild( reify( 'div', { 'class': 'expressionScriptError' }, [ reifyText( '<br>' + result[0] + ' ' + result[1] ) ] ) );
+                container.appendChild( reify( 'div', { 'class': 'expressionScriptError' }, [ reifyText( '<br>' + actions ) ] ) );
             }
         }
 
@@ -87,10 +108,10 @@
         function calculate( script, sourceElement ) {
             const isFormula = byId( 'formulaToggle' ).checked;
             try {
-                const result = isFormula
-                    ? evaluateFormulas( script )
+                const cycles = isFormula
+                    ? new Operation( script ).evaluate()
                     : eval( script );
-                result.forEach( r => putHtml( r ) );
+                putHtml( cycles );
             } catch ( e ) {
                 console.log( `Error processing script: ${ e }` );
                 putHtml( [ e, '' ] );
@@ -107,69 +128,106 @@
 
             calculate( sourceElement.value, 'calculationResult' );
 
-            //drawActionsTables();
+            drawActionsTables();
 
             x3dom.reload();
         }
+        const expressions = {
+            'blank': [
+            ],
+            'unit-boxes': [
+                '2:2',
+                '3:2',
+                '4:2',
+                '3:3',
+                '4:3',
+                '7:2',
+                '5:3',
+                '4:4',
+                '6:3',
+                '5:4',
+                '7:3',
+                '11:2',
+                '6:4',
+                '5:5',
+            ],
+            'V-40': [
+                '(20:2)',
+                '(10:4)',
+                '(5:8)',
+                '5~(4:2)',
+                '(5:4)~2',
+                '(5~(4:2))*((5:4)~2)'
+            ],
+            'rotations': [
+                '(2:4)',
+                '(2:4)~5',
+                '(4:2)~5',
+                '5~(4:2)',
+                '5~(2:4)',
+            ],
+            'compounds': [
+                '((4:2)~5)*(2~(5:4))',
+                '(5~(4:2))*((5:4)~2)',
+
+                '(4~(5:2))*((4:2)~5)*(2~(5:4))',
+                '((4~(5:2))*((4:2)~5))*(2~(5:4))',
+            ]
+        };
+        function renderExpressionLinks() {
+            const expressionScript = byId('expressionScript');
+            byId('expressions').appendChild(
+                reify('div',{}, Object
+                        .entries( expressions )
+                        .map( ([key, group], i) => reify( 'label', {}, [
+                                reifyText( i > 0 ? ' | ' : '' ),
+                                reify( 'a', {}, [ reifyText( key ) ], [
+                                        c => c.onclick = (event) => {
+                                                expressionScript.innerHTML = group.join('\n');
+                                                calculateNow();
+                                            }
+                                    ] ),
+                        ] ) ) ) );
+        }
     </script>
 </head>
-<body onload="calculateNow()">
+<body onload="renderExpressionLinks(); calculateNow()">
     <input type="button" value="eval" onclick="calculateNow()"/>
     <input type="button" value="clear" onclick="clearResults()"/>
-    <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
-    <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
-    <label class="summaryLeft">cycles<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
-
+    <label class="summaryLeft">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
+    <label class="summaryLeft">formula:<input type="checkbox" checked="checked" id="formulaToggle"/></label>
+    <label class="summaryLeft">diagram:<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">boxes:<input type="checkbox" id="actionsTableToggle" onclick="drawActionsTables()"/></label>
     <label for="monomialFilter">
-        <label for="monomialFilterToggle">Monomial: <input type="checkbox" checked="checked" id="monomialFilterToggle" onclick="calculateNow()"></label>
-        <input type="text" value='{ "1": 4, "6": 6 }' id="monomialFilter"></label>
+        <label for="monomialFilterToggle">filter:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()"></label>
+        <input type="hidden" id="monomialFilter">
+        <span  id="monomialFilterDisplay"></span>
+    </label>
     <br/>
+
+    <div id="expressions"></div>
+    <br/>
+
     <label for="expressionScript">
     <textarea id="expressionScript" class="expressionScriptPanel" rows="6" cols="100">#
-#(2:2)
-#2:3
-#3:2
-#(2~(2:2))*((2:2)~2))
-4:10
-10:4
-
-
-#a0 = ((4:2)~5)
-#a0h = (5~(4:2))
-
-#a1 = (2~(5:4))
-#a1h = ((5:4)~2)
-
-#a0 * a1
-#a0h * a1h
-#2:4
-#((2:4)~5)
-#((4:2)~5)
-#(5~(4:2))
-#(5~(2:4))
-#4:2
-#((4:2)~5)
-#4:5
-#((4:5)|2)
-#5:4
-#((5:4)~2)
-#((4:2)~5)*(2~(5:4))
-#(5~(4:2))*((5:4)~2)
-
-(4~(5:2))*((4:2)~5)*(2~(5:4))
-((4~(5:2))*((4:2)~5))*(2~(5:4))
-#(2 : 4) ~ 5
-#(4 : 2) ~ 5
-#5 ~ (2 : 4)
-#5 ~ (4 : 2)
+(20:2)
+(10:4)
+(8:5)
+4|(5:2)
+(2:5)|4
+(5~(4:2))*((5:4)~2)
     </textarea>
     </label>
-    <hr>
+    <br/>
+
     <div id="boxPerms"></div>
     <div id="boxActions"></div>
     <br/>
-    <div id="boxDiagram" style="resize: both; overflow: auto; width: 1200px; height: 300px;"></div>
-    <br/>
+
     <div id="boxCycles"></div>
+    <br/>
+
+    <div id="boxDiagram" style="border: solid black 1px; resize: both; overflow: auto; width: 800px; height: 300px;"></div>
+    <br/>
 </body>
 </html>

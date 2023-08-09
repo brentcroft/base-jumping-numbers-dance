@@ -31,8 +31,6 @@ function id(x) { return x[0]; }
     const trimTree = ( a ) => {
 		if ( a == null ) {
 			return null;
-		} else if ( Number.isInteger( a ) ) {
-			return a;
 		} else if ( Array.isArray( a ) ) {
 			const candidate = a
 				.map( b => trimTree( b ) )
@@ -49,8 +47,6 @@ function id(x) { return x[0]; }
 			return null;
 		} else if ( 'comma' == a.type ) {
 			return null;
-		} else if ( 'colon' == a.type ) {
-			return null;
 		} else if ( 'number' == a.type ) {
 			return parseInt( a.text );
 		} else {
@@ -59,8 +55,8 @@ function id(x) { return x[0]; }
 	};
 	const buildTuple = ( d ) => {
 		const t = trimTree(d);
-		if (Array.isArray(t) ) {
-			return t.splice( 1, t.length - 2 );
+		if (Array.isArray(t) && t.length == 10 ) {
+			return [t[1],...t[2]];
 		}
 		return t;
 	};
@@ -73,29 +69,10 @@ function id(x) { return x[0]; }
 	};
 	const buildBox = ( d ) => {
 		const t = trimTree(d);
-		if (Array.isArray(t) && t.length == 2 ) {
-			if (Array.isArray(t[1])) {
-				return { 'op': 'box', 'bases': [ t[0], ...t[1] ] };
-			} else {
-				return { 'op': 'box', 'bases': [ t[0], t[1] ] };
-			
-			}
-		} else {
-			return { 'op': 'box', 'bases': [ t ] };
+		if (Array.isArray(t) && t.length == 4 ) {
+			return { 'op': 'box', 'bases': [t[1],...t[2]] };
 		}
-	};
-	const buildIndex = ( d ) => {
-		const t = trimTree(d);
-		if ( Array.isArray( t ) ) {
-			return { 'op': 'index', 'box': t[0], 'perms': t[1] };
-//		} else if ( 'box' == t.op ) {
-//			// TODO: lookup box and identify perms by decoding base presentation
-//			const lPerm = t.bases.map((_,i) => i );
-//			const rPerm = [...lPerm].reverse();
-//			return { 'op': 'index', 'box': t, 'perms': [lPerm,rPerm] };
-		} else {
-			return { 'op': 'index', 'box': t };
-		}
+		return t;
 	};
 var grammar = {
     Lexer: lexer,
@@ -122,8 +99,10 @@ var grammar = {
     {"name": "content$ebnf$3", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": id},
     {"name": "content$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "content", "symbols": ["content$ebnf$1", "expression", "content$ebnf$2", "content$ebnf$3"]},
+    {"name": "expression$subexpression$1", "symbols": ["box"]},
     {"name": "expression$subexpression$1", "symbols": ["cycles"]},
     {"name": "expression$subexpression$1", "symbols": ["brackets"]},
+    {"name": "expression$subexpression$1", "symbols": [(lexer.has("number") ? {type: "number"} : number)]},
     {"name": "expression", "symbols": ["expression$subexpression$1"]},
     {"name": "operation$subexpression$1", "symbols": ["twist"]},
     {"name": "operation$subexpression$1", "symbols": ["compose"]},
@@ -131,37 +110,12 @@ var grammar = {
     {"name": "operation$subexpression$1", "symbols": ["product"]},
     {"name": "operation$subexpression$1", "symbols": ["product2"]},
     {"name": "operation", "symbols": ["operation$subexpression$1"]},
-    {"name": "cycles$subexpression$1", "symbols": ["index"]},
     {"name": "cycles$subexpression$1", "symbols": ["compose"]},
     {"name": "cycles$subexpression$1", "symbols": ["twist"]},
     {"name": "cycles$subexpression$1", "symbols": ["power"]},
     {"name": "cycles$subexpression$1", "symbols": ["product"]},
     {"name": "cycles$subexpression$1", "symbols": ["product2"]},
     {"name": "cycles", "symbols": ["cycles$subexpression$1"]},
-    {"name": "brackets$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "brackets$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "brackets$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "brackets$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "cycles", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess":  d => {
-        	const t = trimTree(d)
-        	return t[1];
-        } },
-    {"name": "index$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "index$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "index$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "index$ebnf$1$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "index$ebnf$1$subexpression$1", "symbols": ["index$ebnf$1$subexpression$1$ebnf$1", "tuple", "index$ebnf$1$subexpression$1$ebnf$2", "tuple"]},
-    {"name": "index$ebnf$1", "symbols": ["index$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "index$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "index", "symbols": ["box", "index$ebnf$1"], "postprocess": buildIndex},
-    {"name": "box$ebnf$1", "symbols": []},
-    {"name": "box$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "box$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "box$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "box$ebnf$1$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "box$ebnf$1$subexpression$1", "symbols": ["box$ebnf$1$subexpression$1$ebnf$1", (lexer.has("colon") ? {type: "colon"} : colon), "box$ebnf$1$subexpression$1$ebnf$2", (lexer.has("number") ? {type: "number"} : number)]},
-    {"name": "box$ebnf$1", "symbols": ["box$ebnf$1$subexpression$1", "box$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "box", "symbols": [(lexer.has("number") ? {type: "number"} : number), "box$ebnf$1"], "postprocess": buildBox},
     {"name": "power$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "power$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "power$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
@@ -176,7 +130,7 @@ var grammar = {
     {"name": "twist$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "twist$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "twist$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "twist", "symbols": [(lexer.has("number") ? {type: "number"} : number), "twist$ebnf$1", (lexer.has("colon") ? {type: "colon"} : colon), (lexer.has("colon") ? {type: "colon"} : colon), "twist$ebnf$2", (lexer.has("number") ? {type: "number"} : number)], "postprocess": d => buildOp( d, 'twist' )},
+    {"name": "twist", "symbols": [(lexer.has("number") ? {type: "number"} : number), "twist$ebnf$1", (lexer.has("colon") ? {type: "colon"} : colon), "twist$ebnf$2", (lexer.has("number") ? {type: "number"} : number)], "postprocess": d => buildOp( d, 'twist' )},
     {"name": "product$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "product$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "product$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
@@ -187,6 +141,28 @@ var grammar = {
     {"name": "product2$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "product2$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "product2", "symbols": ["expression", "product2$ebnf$1", (lexer.has("pipe") ? {type: "pipe"} : pipe), "product2$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'product2' )},
+    {"name": "brackets$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "brackets$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "brackets$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "brackets$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "operation", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess":  d => {
+        	const t = trimTree(d)
+        	return t[1];
+        } },
+    {"name": "box$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "box$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "box$ebnf$2", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": id},
+    {"name": "box$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "box$ebnf$3", "symbols": []},
+    {"name": "box$ebnf$3$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "box$ebnf$3$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "box$ebnf$3$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "box$ebnf$3$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "box$ebnf$3$subexpression$1", "symbols": ["box$ebnf$3$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "box$ebnf$3$subexpression$1$ebnf$2", (lexer.has("number") ? {type: "number"} : number)]},
+    {"name": "box$ebnf$3", "symbols": ["box$ebnf$3$subexpression$1", "box$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "box$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "box$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "box", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "box$ebnf$1", "box$ebnf$2", "box$ebnf$3", "box$ebnf$4", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildBox},
     {"name": "tuple$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "tuple$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "tuple$ebnf$2", "symbols": []},

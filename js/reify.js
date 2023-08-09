@@ -26,7 +26,7 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
         }
         try {
             children
-                .filter( x => x )
+                .filter( x => x != null )
                 .forEach( x => e.appendChild( x ) );
         } catch ( e ) {
             throw new Error( `Bad Child: tag=${ tag }, attr=${ attr }, children=${ children }`, { 'cause': e } );
@@ -36,7 +36,9 @@ function reify( tag, attr = {}, children = [], ops = [] ) {
         if ( !Array.isArray(ops) ) {
             throw new Error( `Ops is not an array: tag=${ tag }, attr=${ attr }, ops=${ ops }` );
         }
-        ops.forEach( x => x( e ) );
+        ops
+            .filter( x => x != null )
+            .forEach( x => x( e ) );
     }
     return e;
 }

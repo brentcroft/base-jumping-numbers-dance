@@ -35,14 +35,49 @@ class Operation {
             return;
         }
         const op = leaf.op;
+        const maybeBrackets = (s) => s.startsWith('(') && s.endsWith(')')
+            ? s
+            : `(${s})`
         switch ( op ) {
+            case "index":
+            {
+                const specifiedBases = leaf.box.bases;
+                const box = Box.of( specifiedBases );
+                var perms = null;
+                if (Object.hasOwn( leaf, 'perms' ) ) {
+                    perms = [
+                        box.permBox.find( point => arrayExactlyEquals( leaf.perms[0], point.perm ) ),
+                        box.permBox.find( point => arrayExactlyEquals( leaf.perms[1], point.perm ) )
+                    ];
+                } else {
+                    const tally = [...specifiedBases];
+                    const perm0 = box.odometer.bases.map( (b,i) => {
+                        const v = tally.indexOf(b);
+                        tally[v] = -1;
+                        return v;
+                    });
+                    const perm1 = [...perm0].reverse();
+                    perms = [
+                        box.permBox.find( point => arrayExactlyEquals( perm0, point.perm ) ),
+                        box.permBox.find( point => arrayExactlyEquals( perm1, point.perm ) )
+                    ];
+                }
+                const cycles = compose( perms[0], perms[1], true, box );
+                cycles.permPair = perms;
+                cycles.alias = specifiedBases.join(':');
+//                cycles.parity = l > r;
+                return cycles;
+            }
+
             case "compose":
             {
                 const l = this.processTree( leaf.l );
                 const r = this.processTree( leaf.r );
                 const cycles = compose( l, r, false, r.box );
+                cycles.alias = `${ maybeBrackets( l.alias ) }*${ maybeBrackets( r.alias ) }`;
                 return cycles;
             }
+
             case "twist":
             {
                 const l = leaf.l;
@@ -56,7 +91,7 @@ class Operation {
 
             case "product":
             {
-                const twist = true;
+                const twist = false;
                 var l = Number.isInteger( leaf.l ) ? leaf.l : this.processTree( leaf.l );
                 var r = Number.isInteger( leaf.r ) ? leaf.r : this.processTree( leaf.r );
                 const bases = [];
@@ -73,6 +108,7 @@ class Operation {
                     bases.push( ...r.box.odometer.bases );
                 }
                 const cycles = product( l, r, twist, Box.of( bases ) );
+                cycles.alias = `${ l.alias }~${ r.alias }`;
                 return cycles;
             }
 
@@ -95,6 +131,7 @@ class Operation {
                     bases.push( ...r.box.odometer.bases );
                 }
                 const cycles = product( l, r, twist, Box.of( bases ) );
+                cycles.alias = `${ l.alias }|${ r.alias }`;
                 return cycles;
             }
 

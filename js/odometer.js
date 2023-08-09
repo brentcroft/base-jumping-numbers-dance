@@ -952,9 +952,16 @@ class Box extends AbstractBox {
     }
 
     static identifySources( source ) {
-        return source.box.actions()
-            .filter( action => action != source )
-            .filter( action => arrayExactlyEquals( source.index, action.index ) );
+        const sortedBoxes = Box.list();
+        const candidates = sortedBoxes.length == 0
+           ? []
+           : sortedBoxes
+               .filter( box => box.volume == source.index.length )
+               .flatMap( box => box.actions() )
+               .filter( action => action != source )
+               .filter( action => action.label() != source.label() )
+               .filter( action => arrayExactlyEquals( source.index, action.index ) );
+        return candidates;
     }
 
     static of( bases ) {

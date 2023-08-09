@@ -64,7 +64,7 @@ Cycles.prototype.htmlSummary = function() {
       ] );
 };
 Cycles.prototype.htmlTableColumns = [ 'orbit', 'id-sum', 'coords-sum', 'order', 'per2', 'rad' ];
-Cycles.prototype.htmlTableDiagramOptions = [];
+Cycles.prototype.htmlTableDiagramOptions = [ 'lines', 'grid', 'centres' ];
 Cycles.prototype.htmlTable = function() {
 
     const bases = this.getBases();
@@ -211,14 +211,14 @@ Cycles.prototype.htmlTable = function() {
             ] )
         ] ) );
 
-    const allDiagramOptions = [ '3d' ];
+    const allDiagramOptions = [ '3d', 'lines', 'grid', 'centres', 'plane' ];
     const diagramOptions = arrayIntersection( allDiagramOptions, this.htmlTableDiagramOptions );
     const replaceDiagram = () => {
         diagramContainer.innerHTML = '';
         diagramContainer.appendChild(
             diagramOptions.includes( '3d' )
-                ? this.x3dBoxes()
-                : this.x3dCycles( param = { 'toggles': ['lines'] }, view = 'resizable' )
+                ? this.x3dBoxes( param = { 'toggles': diagramOptions }, view = 'default' )
+                : this.x3dCycles( param = { 'toggles': diagramOptions }, view = 'default' )
         );
     };
     const diagramOptionsSelectors = allDiagramOptions
@@ -363,10 +363,12 @@ FactorialBox.prototype.pointsDomNode = function(
     );
 }
 
-
+const actionsHtmlTableSelectedIndex = [ 0 ];
 const actionsHtmlTableColumns = [
     'box',
-    'label', 'alias', 'others',
+    'label',
+    'alias',
+    'match',
     'box',
     'monomial',
     'parity',
@@ -380,9 +382,10 @@ const actionsHtmlTableColumns = [
 
 function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
     const allColumns = [
-        'box', 'label',
-        'others',
+        'box',
         'alias',
+        'label',
+        'match',
         'inverse',
         'perms',
         'parity',
@@ -428,7 +431,7 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
     const tableContainer = reify( 'div' );
     const cyclesContainer = reify( 'div' );
 
-    const onRowSelectionFactory = ( cycles, source ) => {
+    const onRowSelectionFactory = ( rowNo, cycles, source ) => {
         return ( event ) => {
             const classList = source.classList;
 
@@ -437,11 +440,13 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                 if ( cyclesContainer ) {
                     cyclesContainer.innerHTML = '';
                 }
+                actionsHtmlTableSelectedIndex[0] = 0;
             } else {
                 tableContainer
                     .querySelectorAll( '.selected' )
                     .forEach( s => s.classList.remove('selected'));
                 classList.add( 'selected' );
+                actionsHtmlTableSelectedIndex[0] = rowNo;
 
                 if ( cyclesContainer ) {
                     cyclesContainer.innerHTML = '';
@@ -476,14 +481,15 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                 .map( (cycles, i) => reify(
                     'tr',
                     {
-                        'id': `orbit-${ i }`
+                        'id': `orbit-${ i }`,
+                        'class': i == actionsHtmlTableSelectedIndex[0] ? 'default-selection' : ''
                     },
                     [
                         reify( 'td', {}, [ reifyText( `${ i }` ) ] ),
-                        maybeDisplay( 'box', () => reify( 'td', {}, [ reifyText( `[${ cycles.getBases() }]` ) ] ) ),
-                        maybeDisplay( 'label', () => reify( 'td', {}, [ reifyText( `${ cycles.label() }` ) ] ) ),
-                        maybeDisplay( 'others', () => reify( 'td', {}, [ reifyText( otherLabel( cycles ) ) ] ) ),
+                        maybeDisplay( 'box', () => reify( 'td', {}, [ reifyText( `[${ cycles.getBases().join(':') }]` ) ] ) ),
                         maybeDisplay( 'alias', () => reify( 'td', {}, [ cycles.alias ? reifyText( cycles.alias ) : null ] ) ),
+                        maybeDisplay( 'label', () => reify( 'td', {}, [ reifyText( `${ cycles.label() }` ) ] ) ),
+                        maybeDisplay( 'match', () => reify( 'td', {}, [ reifyText( otherLabel( cycles ) ) ] ) ),
                         maybeDisplay( 'inverse', () => reify( 'td', {}, [ reifyText( `${ cycles.inverse ? cycles.inverse.label() : '-' }` ) ] ) ),
                         maybeDisplay( 'perms', () => reify( 'td', {}, [ reifyText( `${ cycles.perms() }` ) ] ) ),
                         maybeDisplay( 'parity', () => reify( 'td', {}, [ reifyText( `${ arrowUp( cycles.parity ) }` ) ] ) ),
@@ -507,7 +513,7 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                         maybeDisplay( 'diagram', () => reify( 'td', {}, [ cycles.x3dCycles() ] ) ),
                     ],
                     [
-                        c => c.onclick = onRowSelectionFactory( cycles, c )
+                        c => c.onclick = onRowSelectionFactory( i, cycles, c )
                     ]
                 )
             )

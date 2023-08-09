@@ -62,6 +62,10 @@
                     { 'class': 'expressionScriptResult' },
                     [ cyclesDomNode( actions, 'Expression Results', getMonomialFilter(), byId( 'boxCycles' ) ) ]
                 ) );
+                expressionResults
+                    .querySelectorAll( 'tr.default-selection' )
+                    .forEach( element => element.click() );
+
             } else {
                 container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( actions ) ] ) );
             }
@@ -89,6 +93,7 @@
             } catch ( e ) {
                 console.log( `Error processing script: ${ e }` );
                 putHtml( e );
+                throw e;
             }
         }
         function calculateNow() {
@@ -144,16 +149,13 @@
                 '(10:4)^6',
             ],
             'V-40': [
-                '(20:2)',
-                '(10:4)',
-                '(5:8)',
-                '5~(4:2)',
-                '(5:4)~2',
-                '(5~(4:2))*((5:4)~2)',
-                '2:2~2:5',
-                '2:2~5:2',
-                '2:5~2:2',
-                '5:2~2:2',
+<!--                '(20:2)',-->
+<!--                '(10:4)',-->
+<!--                '(5:8)',-->
+                '5:4~2; 2:5~4; 4:2~5',
+                '5:4:2; 2:5:4; 4:2:5',
+                '(4~5:2) * (4:2~5) * (2~5:4)',
+<!--                '2:2:2:5',-->
             ],
             '3x5x7': [
                 '3:5~7; 7:3~5;  5:7~3',
@@ -192,7 +194,12 @@
     <label for="expressionScript" id="expressionScriptLabel" style="display: none">
         <hr/>
         <span id="expressionsLibrary"></span>
-        <textarea id="expressionScript" class="expressionScriptPanel" rows="2" cols="100" oninput="calculateNow()">3:5~7; 7:3~5; 5:7~3; (7:3~5)*(5:3~7); 15:7; 21:5; 3:35</textarea>
+        <textarea id="expressionScript" class="expressionScriptPanel" rows="2" cols="100" oninput="calculateNow()">
+5:4~2; 2:5~4; 4:2~5
+2~5:4; 4~2:5; 5~4:2
+20:2; 4:10; 8:5
+5:4:2; 2:5:4; 4:2:5
+(4~5:2) * (4:2~5) * (2~5:4)</textarea>
     </label>
 
     <hr/>

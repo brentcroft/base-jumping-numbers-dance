@@ -100,14 +100,16 @@ class ExtantBoxes {
 var extantBoxes = new ExtantBoxes();
 
 
-class Box {
+class Box extends AbstractBox {
     constructor( bases ) {
-        this.bases = [...bases];
+        super( bases );
+
         this.init();
     }
 
     init() {
         this.rank = this.bases.length;
+
         this.volume = getVolume( this.bases );
 
         this.indexRadiance = getIndexRadiance( this.volume );
@@ -141,7 +143,7 @@ class Box {
     getJson() {
         return {
             bases: [...this.bases],
-            coordSum: this.sum,
+            coordsSum: this.sum,
             idSum: this.indexSum
         };
     }
@@ -263,7 +265,7 @@ class PermBox extends Box {
     getJson() {
         return {
             bases: [...this.bases],
-            coordSum: this.sum,
+            coordsSum: this.sum,
             idSum: this.indexSum,
             perms: this.permCount,
             pairs: this.pairCount

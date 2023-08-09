@@ -25,7 +25,7 @@ function id(x) { return x[0]; }
         rsquare:    ']',
         lcurly:     '{',
         rcurly:     '}',
-        NL:    { match: /\n/, lineBreaks: true },
+        NL:    { match: /\n|;+/, lineBreaks: true },
 	});
 
     const trimTree = ( a ) => {
@@ -34,7 +34,7 @@ function id(x) { return x[0]; }
 		} else if ( Array.isArray( a ) ) {
 			const candidate = a
 				.map( b => trimTree( b ) )
-				.filter( b => b )
+				.filter( b => b != null )
 				.filter( b => (!Array.isArray(b) || b.length > 0) );
 			return Array.isArray(candidate) && candidate.length == 1
 				? candidate[0]
@@ -45,16 +45,32 @@ function id(x) { return x[0]; }
 			return null;
 		} else if ( 'comment' == a.type ) {
 			return null;
+		} else if ( 'comma' == a.type ) {
+			return null;
 		} else if ( 'number' == a.type ) {
 			return parseInt( a.text );
 		} else {
 			return a;
 		}
 	};
-	const buildOp = ( d, op ) => { 
-		const t = trimTree(d);	
+	const buildTuple = ( d ) => {
+		const t = trimTree(d);
+		if (Array.isArray(t) && t.length == 10 ) {
+			return [t[1],...t[2]];
+		}
+		return t;
+	};
+	const buildOp = ( d, op ) => {
+		const t = trimTree(d);
 		if (Array.isArray(t) && t.length == 3 ) {
-			return { 'op': op, 'l': t[0], 'r': t[2] }; 
+			return { 'op': op, 'l': t[0], 'r': t[2] };
+		}
+		return t;
+	};
+	const buildBox = ( d ) => {
+		const t = trimTree(d);
+		if (Array.isArray(t) && t.length == 4 ) {
+			return { 'op': 'box', 'bases': [t[1],...t[2]] };
 		}
 		return t;
 	};
@@ -129,9 +145,9 @@ var grammar = {
     {"name": "brackets$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "brackets$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "brackets$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "operation", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess":  d => { 
-        	const t = trimTree(d)	
-        	return t[1]; 
+    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "operation", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess":  d => {
+        	const t = trimTree(d)
+        	return t[1];
         } },
     {"name": "box$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "box$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -146,7 +162,19 @@ var grammar = {
     {"name": "box$ebnf$3", "symbols": ["box$ebnf$3$subexpression$1", "box$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "box$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "box$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "box", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "box$ebnf$1", "box$ebnf$2", "box$ebnf$3", "box$ebnf$4", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": trimTree}
+    {"name": "box", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "box$ebnf$1", "box$ebnf$2", "box$ebnf$3", "box$ebnf$4", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildBox},
+    {"name": "tuple$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "tuple$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "tuple$ebnf$2", "symbols": []},
+    {"name": "tuple$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "tuple$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "tuple$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "tuple$ebnf$2$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "tuple$ebnf$2$subexpression$1", "symbols": ["tuple$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "tuple$ebnf$2$subexpression$1$ebnf$2", (lexer.has("number") ? {type: "number"} : number)]},
+    {"name": "tuple$ebnf$2", "symbols": ["tuple$ebnf$2$subexpression$1", "tuple$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "tuple$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "tuple$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "tuple", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "tuple$ebnf$1", (lexer.has("number") ? {type: "number"} : number), "tuple$ebnf$2", "tuple$ebnf$3", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildTuple}
 ]
   , ParserStart: "main"
 }

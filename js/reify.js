@@ -61,7 +61,6 @@ function reifyInput( label, attr = { type: 'text' }, onChangeValue ) {
         ] ) ] );
 }
 
-function reifyText( text, cssClass = [] ) {
-    return reify( "span", { 'cssClass': cssClass }, [], [ c => c.innerHTML = text ] );
+function reifyText( text, attr = {}, ops = [] ) {
+    return reify( "span", attr, [], [ c => c.innerHTML = text, ...ops ] );
 }
-

@@ -21,7 +21,7 @@
         rsquare:    ']',
         lcurly:     '{',
         rcurly:     '}',
-        NL:    { match: /\n/, lineBreaks: true },
+        NL:    { match: /\n|;+/, lineBreaks: true },
 	});
 
     const trimTree = ( a ) => {
@@ -30,7 +30,7 @@
 		} else if ( Array.isArray( a ) ) {
 			const candidate = a
 				.map( b => trimTree( b ) )
-				.filter( b => b )
+				.filter( b => b != null )
 				.filter( b => (!Array.isArray(b) || b.length > 0) );
 			return Array.isArray(candidate) && candidate.length == 1
 				? candidate[0]
@@ -41,16 +41,32 @@
 			return null;
 		} else if ( 'comment' == a.type ) {
 			return null;
+		} else if ( 'comma' == a.type ) {
+			return null;
 		} else if ( 'number' == a.type ) {
 			return parseInt( a.text );
 		} else {
 			return a;
 		}
 	};
+	const buildTuple = ( d ) => {
+		const t = trimTree(d);
+		if (Array.isArray(t) && t.length == 10 ) {
+			return [t[1],...t[2]];
+		}
+		return t;
+	};
 	const buildOp = ( d, op ) => {
 		const t = trimTree(d);
 		if (Array.isArray(t) && t.length == 3 ) {
 			return { 'op': op, 'l': t[0], 'r': t[2] };
+		}
+		return t;
+	};
+	const buildBox = ( d ) => {
+		const t = trimTree(d);
+		if (Array.isArray(t) && t.length == 4 ) {
+			return { 'op': 'box', 'bases': [t[1],...t[2]] };
 		}
 		return t;
 	};
@@ -83,4 +99,6 @@ brackets -> %lparen %WS:? operation %WS:? %rparen  {% d => {
 	const t = trimTree(d)
 	return t[1];
 } %}
-box -> %lsquare %WS:? %number:? (%WS:? %comma %WS:? %number):* %WS:? %rsquare {% trimTree %}
+box -> %lsquare %WS:? %number:? (%WS:? %comma %WS:? %number):* %WS:? %rsquare {% buildBox %}
+tuple -> %lsquare %WS:? %number (%WS:? %comma %WS:? %number):* %WS:? %rsquare {% buildTuple %}
+

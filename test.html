@@ -10,6 +10,7 @@
     <script type="text/javascript" src="js/data.js"></script>
     <script type="text/javascript" src="js/reify.js"></script>
 
+    <script type="text/javascript" src="js/box.js"></script>
     <script type="text/javascript" src="js/cycles.js"></script>
 
     <script type="text/javascript" src="js/orbits.js"></script>
@@ -44,7 +45,7 @@
             }
             var tag = null;
             var items = 0;
-            const excludes = param.excludes | [];
+            const excludes = param.excludes || [];
 
             function decomposeValue( value ) {
                 return reify(
@@ -56,20 +57,22 @@
             }
 
             function decomposeObject( label, value ) {
-                // do non-arrays first
-                return reify( "div", {}, [
-                    decomposeValue( label ),
-                    ...Object
-                        .entries( value )
-                        .filter( ([k,v]) => !excludes.includes( k ) )
-                        .filter( ([k,v]) => !Array.isArray( v ) )
-                        .map( ([k,v]) => decomposeValue( v ) ),
-                    ...Object
-                        .entries( value )
-                        .filter( ([k,v]) => !excludes.includes( k ) )
-                        .filter( ([k,v]) => Array.isArray( v ) )
-                        .map( ([k,v]) => decomposeArray( v ) )
-                ] );
+                console.log( `typeof value = ${ typeof value}` );
+                return decomposeValue( value );
+
+<!--                return reify( "div", {}, [-->
+<!--                    decomposeValue( label ),-->
+<!--                    ...Object-->
+<!--                        .entries( value )-->
+<!--                        .filter( ([k,v]) => !excludes.includes( k ) )-->
+<!--                        .filter( ([k,v]) => !Array.isArray( v ) )-->
+<!--                        .map( ([k,v]) => decomposeValue( v ) ),-->
+<!--                    ...Object-->
+<!--                        .entries( value )-->
+<!--                        .filter( ([k,v]) => !excludes.includes( k ) )-->
+<!--                        .filter( ([k,v]) => Array.isArray( v ) )-->
+<!--                        .map( ([k,v]) => decomposeArray( v ) )-->
+<!--                ] );-->
             }
             function decomposeArray( value ) {
                 const firstElement = value[ 0 ];
@@ -188,7 +191,7 @@
                 return Array.isArray( result )
                     ? decomposeArray( result )
                     : result instanceof Object
-                        ? decomposeObject( "", result )
+                        ? decomposeObject( "object", result )
                         : decomposeValue( result );
             }
 
@@ -314,14 +317,12 @@
     <label class="summaryLeft">clear on calculate<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     <label class="summaryLeft">formula<input type="checkbox" checked="checked" id="formulaToggle"/></label>
     <label class="summaryLeft">tables<input type="checkbox" checked="checked" id="drawTableToggle" onclick="calculateNow()"/></label>
-    <label class="summaryLeft">cycles<input type="checkbox" Xchecked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
+    <label class="summaryLeft">cycles<input type="checkbox" xchecked="checked" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
     <label class="summaryLeft">points<input type="checkbox" xchecked="checked" id="pointsDiagramToggle" onclick="calculateNow()"/></label>
     <label class="summaryLeft">coords<input type="checkbox" xchecked="checked" id="coordsToggle" onclick="calculateNow()"/></label>
     <br/>
-    <textarea id="calculationScript" class="scriptPanel" rows="8">
-((4:2)|5)
-((4:5)|2)
-((4:2)|5)*((4:5)|2)
+    <textarea id="calculationScript" class="scriptPanel" rows="6">
+2:3|5
     </textarea>
 <!--
 (2:3)|5
@@ -331,6 +332,22 @@
 ((4:2)|5)
 ((4:5)|2)
 ((4:2)|5)*((4:5)|2)
+
+
+(4:5|2)
+(2|(4:5))
+(5:4|2)
+(2|(5:4))
+
+(5:2|4)
+(4|(5:2))
+(2:5|4)
+(4|(2:5))
+
+(2:4|5)
+(5|(2:4))
+(4:2|5)
+(5|(4:2))
 
 
 3:5

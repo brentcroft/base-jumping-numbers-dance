@@ -330,6 +330,7 @@ class AbstractBox extends Array {
         super( arguments.length > 0 &&  Number.isInteger( arguments[0] ) ? arguments[0] : 0 );
         if ( Array.isArray(odometer) ) {
             this.odometer = odometer;
+            this.centre = this.odometer.bases.map( b => b / 2);
         }
     }
 
@@ -522,11 +523,11 @@ class Cycle extends Array {
 
         const order = this.length;
         const centre = new Array( rank ).fill( 0 );
-        const coordSum = new Array( rank ).fill( 0 );
+        const coordsSum = new Array( rank ).fill( 0 );
 
         this
             .map( index => points[index] )
-            .forEach( coord => coord.forEach( (c,i) => coordSum[i] += c ) );
+            .forEach( coord => coord.forEach( (c,i) => coordsSum[i] += c ) );
 
         centre
             .forEach( ( s, i ) => {
@@ -548,9 +549,9 @@ class Cycle extends Array {
             order: order,
             centre: centre,
             idSum: idSum,
-            coordSum: coordSum,
-            gcd: coordSum.reduce( gcd ),
-            lcm: coordSum.reduce( lcm ),
+            coordsSum: coordsSum,
+            gcd: coordsSum.reduce( gcd ),
+            lcm: coordsSum.reduce( lcm ),
             indexPerimeter: indexPerimeter,
             euclideanPerimeter: euclideanPerimeter
         };
@@ -622,7 +623,7 @@ class Cycle extends Array {
                 reify( "b", {}, [ reifyText( ` = ${ acc } ` ) ] ),
                 reify( "i", {}, [
                     error
-                        ? reify( "span", { 'class': 'error' }, [ reifyText( ` (${ factor } x ${ C.toFixed(2) } x ${ error.toFixed(2) })` ) ] )
+                        ? reify( "span", { 'class': '' }, [ reifyText( `(${ primeFactorsHtml( acc ) })` ) ] )
                         : reifyText( ` (${ factor } x ${ C })` ),
                 ] ),
                 reify( "br" )
@@ -690,7 +691,7 @@ class Cycles extends Array {
 
     order() {
         if (!Object.hasOwn(this,'$order')) {
-            this.$order = lcma( this.map( a => a.length ).filter( a => a > 1 ) );
+            this.$order = lcma( this.map( a => a.length ) );
         }
         return this.$order;
     }
@@ -768,7 +769,8 @@ class Cycles extends Array {
         return [ this.getOrigin(), this.getTerminal() ];
     }
     getCentre() {
-        return this.getTerminal().map( c => c/2 );
+        return this.getTerminal().map( b => b / 2 );
+//        return this.box.centre;
     }
 
     getStats() {
@@ -783,14 +785,14 @@ class Cycles extends Array {
             .filter( stats => stats != null )
             .reduce( (a,c) => {
                 a.idSum += c.idSum;
-                a.coordSum = addition( a.coordSum, c.coordSum );
+                a.coordsSum = addition( a.coordsSum, c.coordsSum );
                 a.indexPerimeter += c.indexPerimeter;
                 a.euclideanPerimeter += c.euclideanPerimeter;
                 return a;
             },
             {
                 idSum: 0,
-                coordSum: new Array(this.getRank()).fill(0),
+                coordsSum: new Array(this.getRank()).fill(0),
                 indexPerimeter: 0,
                 euclideanPerimeter: 0
             } );
@@ -880,6 +882,10 @@ class Cycles extends Array {
     }
 
     getIdentityPlane() {
+        if ( Object.hasOwn( this, '$identityPlane' ) ) {
+            return this.$identityPlane;
+        }
+
         const { centreLines, centrePoints } = this.getCentres();
 
         if ( centreLines.length > 1 ) {
@@ -892,12 +898,12 @@ class Cycles extends Array {
             const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
             const identityPlaneNormal = displacement( this.getOrigin(), identityPlane );
 
-            this.identityPlane = {
+            this.$identityPlane = {
                 coord: identityPlane,
                 gcd: identityPlaneGcd,
                 normal: identityPlaneNormal
             };
-            return this.identityPlane;
+            return this.$identityPlane;
 
         } else {
             const bases = this.getBases();
@@ -912,12 +918,12 @@ class Cycles extends Array {
             const identityPlaneGcd = Math.abs( gcda( identityPlane ) );
             const identityPlaneNormal = displacement( this.getOrigin(), identityPlane );
 
-            this.identityPlane = {
+            this.$identityPlane = {
                 coord: identityPlane,
                 gcd: identityPlaneGcd,
                 normal: identityPlaneNormal
             };
-            return this.identityPlane;
+            return this.$identityPlane;
         }
     }
 }
@@ -952,7 +958,8 @@ class Box extends AbstractBox {
     }
 
     static of( bases ) {
-        const canonicalBases = [...bases].filter( b => b != 1 );
+//        const canonicalBases = [...bases].filter( b => b != 1 );
+        const canonicalBases = [...bases];
         canonicalBases.sort( (a,b) => b - a );
 
         const key = canonicalBases.join( '.' );

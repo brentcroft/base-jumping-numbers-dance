@@ -34,7 +34,7 @@ function showHideAll( ids = [], control ) {
 Cycles.prototype.cyclesView = {
     'normal': { orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
     'default': { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
-    'resizable': { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
+    'resizable': { width: '100%', height: '100%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
     'short': { width: '100%', height: '100%', orientation: '1 0 0 -1.6', position: '0 3.5 0' },
     'table': { width: '200px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' },
 };
@@ -44,11 +44,11 @@ Cycles.prototype.x3dCycles = function( param = { 'toggles': ['lines'] }, view = 
 }
 
 Cycles.prototype.boxesView = {
-    'default': { width: '100%', height: '90%', orientation: '-1 -1 0 0.5', position: '-3.5 2.4 7' },
+    'default': { width: '100%', height: '92%', orientation: '0 0 0 1', position: '0 2 20' },
     'table': { width: '200px', height: '100px', orientation: '0 0 0 1', position: '0 0 10' },
 };
 
-Cycles.prototype.x3dBoxes = function( param = { 'toggles': ['lines'] }, view = 'default' ) {
+Cycles.prototype.x3dBoxes = function( param = { 'toggles': ['lines', 'grid', 'plane', 'centres'] }, view = 'default' ) {
     return buildX3DomRootNode( getCyclesPointsDiagram( this, param ), this.boxesView[ view ] );
 }
 
@@ -63,100 +63,218 @@ Cycles.prototype.htmlSummary = function() {
          this.htmlMonomial()
       ] );
 };
+Cycles.prototype.htmlTableColumns = [ 'orbit', 'id-sum', 'coords-sum', 'order', 'per2', 'rad' ];
+Cycles.prototype.htmlTableDiagramOptions = [];
+Cycles.prototype.htmlTable = function() {
 
-Cycles.prototype.htmlTable = function( param = {} ) {
+    const bases = this.getBases();
+    const volume = this.getVolume();
+    const maxIndex = volume - 1;
 
-        const { coords = false } = param;
+    const initialPointsSum = new Array( this.getRank() ).fill( 0 );
 
-        const bases = this.getBases();
-        const volume = this.getVolume();
-        const maxIndex = volume - 1;
+    const identities =  this.identities();
+    const identityPointsSum = identities
+        .map( cycle => this.box[cycle[0]] )
+        .reduce( (a, coord) => addition( a, coord ), initialPointsSum );
+    const identityIdSum = identities
+        .map( cycle => cycle[0] )
+        .reduce( (a, id) => a + id, 0 );
+    const identityIdSumGcd = gcd( maxIndex, identityIdSum );
 
-        const initialPointsSum = new Array( this.getRank() ).fill( 0 );
+    const allColumns = [ 'orbit', 'id-sum', 'coords', 'coords-sum', 'order', 'per2', 'rad', 'equations' ];
+    const columns = [ '#', ...arrayIntersection( allColumns, this.htmlTableColumns ) ];
 
-        const identities =  this.identities();
-        const identityPointsSum = identities
-            .map( cycle => this.box[cycle[0]] )
-            .reduce( (a, coord) => addition( a, coord ), initialPointsSum );
-        const identityIdSum = identities
-            .map( cycle => cycle[0] )
-            .reduce( (a, id) => a + id, 0 );
-        const identityIdSumGcd = gcd( maxIndex, identityIdSum );
+    const maybeDisplay = (label, domFn) => this.htmlTableColumns.includes( label ) ? domFn() : null;
 
-        const headerRow = [
-            [ 'Id', [ true ] ],
-            [ 'Cycle', [] ],
-            [ 'Id Sum', [ true, false, true ] ],
-            coords ? [ 'Cycle Coords', [] ] : null,
-            [ 'Coord Sum', [ true, true ] ],
-            [ 'Order', [ true, false, true ] ],
-            [ 'Perimeter<sup>2</sup>', [ true, true ] ],
-            [ 'Radiance', [ true, true ] ],
-            [ 'Equations', [ true, true ] ],
-        ];
 
-        const identityRow = [
-            reifyText( '<code>e</code>' ),
-            reifyText( identities.map( cycle => `(${ cycle })` ).join( ', ' ) ),
-            reifyText( `<code>${ identityIdSum }</code>` ),
-            coords
-                ? reifyText( identities.map( cycle => cycle.map( c => `(${ this.box[c] })` ) ).join( ', ' ) )
-                : null,
-            reifyText( `<code>${ identityPointsSum }</code>` ),
-            reifyText( `<code>1</code>` ),
-            reifyText( `<code>0</code>` ),
-            reifyText( `<code>0</code>` ),
-            identities[identities.length-1].htmlEquations( this ),
-//            ...identities.flatMap( i => [ i.htmlEquations( this ), reify( 'br' ) ] ),
-        ];
+    const tableContainer = reify( 'div' );
+    const diagramContainer = reify( 'div', { 'style': 'border: solid black 1px; resize: both; overflow: auto; width: 100%; height: 300px;' } );
 
-        const totals = this.getStats();
+    const showOrbit = ( orbitId ) => {
+        const orbits = diagramContainer.querySelectorAll( ".orbit-line" );
+        orbits.forEach( orbitElement => {
+            if ( !orbitId ) {
+                orbitElement.setAttribute( "render", true );
+                orbitElement.classList.remove("selected");
+            } else if ( orbitId == orbitElement.id ) {
+                if ( orbitElement.classList.contains( "selected" ) ) {
+                    orbitElement.setAttribute( "render", false );
+                    orbitElement.classList.remove("selected");
+                } else {
+                    orbitElement.setAttribute( "render", true );
+                    orbitElement.classList.add("selected");
+                }
+            } else if ( 'orbit.e' == orbitElement.id ) {
+                orbitElement.setAttribute( "render", true );
+                orbitElement.classList.remove("selected");
+            } else {
+                orbitElement.setAttribute( "render", false );
+                orbitElement.classList.remove("selected");
+            }
+        });
+    }
 
-        const footerRow = [
-            reifyText( '' ),
-            reifyText( '' ),
-            reifyText( `<code>${ totals.idSum }</code>` ),
-            coords
-                ? reifyText( '' )
-                : null,
-            reifyText( `<code>${ totals.coordSum }</code>` ),
-            reifyText( `<code>${ this.order() }</code>` ),
-            reifyText( `<code>${ totals.euclideanPerimeter }</code>` ),
-            reifyText( `<code>${ totals.indexPerimeter }</code>` ),
-            reifyText( '' )
-        ];
-
-        const orbits =  this.filter( cycle => cycle.length > 1 );
-
-        return reify(
-            "table",
-             { 'cssClass': [ 'box-action' ] },
-             [
-                reify( "caption", {}, [ this.htmlSummary() ] ),
-                reify( "tr", {}, headerRow.filter(h => h != null ).map( ( h, colIndex ) => reify( "th", {}, [ reifyText( h[0] ) ] ) ) ),
-                reify( "tr", {}, identityRow.filter(h => h != null ).map( ir => reify( "td", {}, [ ir ] ) ) ),
-                ...orbits
-                    .map( orbit => [ orbit, orbit.getStats( this.box ) ] )
-                    .map( ( [ orbit, stats ], i ) => reify(
-                        "tr",
-                        {},
-                        [
-                            reify( "td", {}, [ reify( "sup", {}, [ reifyText( `${ i + 1 }` ) ] ) ] ),
-                            reify( "td", { cssClass: [ 'orbit' ] }, [ reifyText( `${ orbit }` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ stats.idSum }` ) ] ),
-                            coords
-                                ? reify( "td", { cssClass: [ 'orbit' ] }, [ reifyText( orbit.map( c => `(${ this.box[c] })` ) ) ] )
-                                : null,
-                            reify( "td", {}, [ reifyText( `(${ stats.coordSum.join( ', ' ) })` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ orbit.length }` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ stats.euclideanPerimeter }` ) ] ),
-                            reify( "td", {}, [ reifyText( `${ stats.indexPerimeter }` ) ] ),
-                            reify( "td", {}, [ orbit.htmlEquations( this ) ] )
-                        ]
-                ) ),
-                reify( "tr", {}, footerRow.map( row => reify( "td", { 'cssClass': 'totals' }, [ row ] ) ) ),
-             ] );
+    const onRowSelectionFactory = ( source ) => {
+        return ( event ) => {
+            const classList = source.classList;
+            if ( classList.contains( 'selected' ) ) {
+                classList.remove( 'selected' );
+            } else {
+                tableContainer
+                    .querySelectorAll( '.selected' )
+                    .forEach( s => s.classList.remove('selected'));
+                if ( source.id ) {
+                    classList.add( 'selected' );
+                }
+            }
+            showOrbit( source.id );
+       };
     };
+
+    const identityRow = () => [
+        reifyText( '<code>e</code>' ),
+        maybeDisplay( 'orbit', () => reifyText( identities.map( cycle => `(${ cycle })` ).join( ', ' ) ) ),
+        maybeDisplay( 'id-sum', () => reifyText( `<code>${ identityIdSum }</code>` ) ),
+        maybeDisplay( 'coords', () => reifyText( identities.map( cycle => cycle.map( c => `(${ this.box[c] })` ) ).join( ', ' ) ) ),
+        maybeDisplay( 'coords-sum', () => reifyText( `<code>(${ identityPointsSum })</code>` ) ),
+        maybeDisplay( 'order', () => reifyText( `<code>1</code>` ) ),
+        maybeDisplay( 'per2', () => reifyText( `<code>0</code>` ) ),
+        maybeDisplay( 'rad', () => reifyText( `<code>0</code>` ) ),
+        maybeDisplay( 'equations', () => identities[identities.length-1].htmlEquations( this ) ),
+    ].filter( h => h );
+
+    const totals = this.getStats();
+
+    const footerRow = () => [
+        reifyText( '' ),
+        maybeDisplay( 'orbit', () => reifyText( '' ) ),
+        maybeDisplay( 'id-sum', () => reifyText( `<code>${ totals.idSum }</code>`, { 'class': 'sum-total' } ) ),
+        maybeDisplay( 'coords', () => reifyText( '' ) ) ,
+        maybeDisplay( 'coords-sum', () => reifyText( `<code>${ totals.coordsSum }</code>`, { 'class': 'sum-total' } ) ),
+        maybeDisplay( 'order', () => reifyText( `<code>${ this.order() }</code>`, { 'class': 'sum-total' } ) ),
+        maybeDisplay( 'per2', () => reifyText( `<code>${ totals.euclideanPerimeter }</code>`, { 'class': 'sum-total' } ) ),
+        maybeDisplay( 'rad', () => reifyText( `<code>${ totals.indexPerimeter }</code>`, { 'class': 'sum-total' } ) ),
+        maybeDisplay( 'equations', () => reifyText( '' ) )
+    ].filter(h => h );
+
+
+    const tableRenderer = (orbits) => reify(
+        "table",
+         { 'cssClass': [ 'box-action' ] },
+         [
+            reify( "caption", {}, [ this.htmlSummary() ] ),
+            reify( 'tr', {}, [ '#', ...arrayIntersection( allColumns, columns ) ].map( column => reify( 'th', {}, [ reifyText( column ) ] ) ) ),
+            reify( "tr", { 'id': 'orbit.e' }, identityRow().map( ir => reify( "td", {}, [ ir ] ) ), [ c => c.onclick = onRowSelectionFactory( c ) ] ),
+            ...orbits
+                .map( orbit => [ orbit, orbit.getStats( this.box ) ] )
+                .map( ( [ orbit, stats ], i ) => reify(
+                    "tr",
+                    { 'id': `orbit.${ i }` },
+                    [
+                        reify( "td", {}, [ reify( "sup", {}, [ reifyText( `${ i + 1 }` ) ] ) ] ),
+                        maybeDisplay( 'orbit', () => reify( "td", { cssClass: [ 'orbit' ] }, [ reifyText( `(${ orbit })` ) ] ) ),
+                        maybeDisplay( 'id-sum', () => reify( "td", {}, [ reifyText( `${ stats.idSum }` ) ] ) ),
+                        maybeDisplay( 'coords', () => reify( "td", { cssClass: [ 'orbit' ] }, [ reifyText( orbit.map( c => `(${ this.box[c] })` ) ) ] ) ),
+                        maybeDisplay( 'coords-sum', () => reify( "td", {}, [ reifyText( `(${ stats.coordsSum.join( ', ' ) })` ) ] ) ),
+                        maybeDisplay( 'order', () => reify( "td", {}, [ reifyText( `${ orbit.length }` ) ] ) ),
+                        maybeDisplay( 'per2', () => reify( "td", {}, [ reifyText( `${ stats.euclideanPerimeter }` ) ] ) ),
+                        maybeDisplay( 'rad', () => reify( "td", {}, [ reifyText( `${ stats.indexPerimeter }` ) ] ) ),
+                        maybeDisplay( 'equations', () => reify( "td", {}, [ orbit.htmlEquations( this ) ] ) )
+                    ],
+                    [ c => c.onclick = onRowSelectionFactory( c ) ]
+            ) ),
+            reify( "tr", {}, footerRow().map( col => reify( "td", {}, [ col ] ) ), [ c => c.onclick = onRowSelectionFactory( c ) ] ),
+         ] );
+    const orbits =  this.filter( cycle => cycle.length > 1 );
+    const columnSelectors = allColumns
+        .map( (column,i) => reify( 'label', { 'class': 'columnSelector' }, [
+            i == 0 ? null : reifyText( '| ' ),
+            reifyText( column ),
+            reify( 'input', { 'type': 'checkbox', 'checked': ( columns.includes( column ) ? 'checked' : '' ) }, [], [
+                c => c.onchange = () => {
+                    if ( !c.checked && this.htmlTableColumns.includes( column ) ) {
+                        this.htmlTableColumns.splice( this.htmlTableColumns.indexOf(column), 1 );
+                        columns.length = 0;
+                        columns.push( '#', ...arrayIntersection( allColumns, this.htmlTableColumns ) );
+                        tableContainer.innerHTML = '';
+                        tableContainer.appendChild( tableRenderer( orbits ) );
+
+                    } else if ( c.checked && !this.htmlTableColumns.includes( column ) ) {
+                        this.htmlTableColumns.push( column );
+                        columns.length = 0;
+                        columns.push( '#', ...arrayIntersection( allColumns, this.htmlTableColumns ) );
+                        tableContainer.innerHTML = '';
+                        tableContainer.appendChild( tableRenderer( orbits ) );
+                    }
+                }
+            ] )
+        ] ) );
+
+    const allDiagramOptions = [ '3d' ];
+    const diagramOptions = arrayIntersection( allDiagramOptions, this.htmlTableDiagramOptions );
+    const replaceDiagram = () => {
+        diagramContainer.innerHTML = '';
+        diagramContainer.appendChild(
+            diagramOptions.includes( '3d' )
+                ? this.x3dBoxes()
+                : this.x3dCycles( param = { 'toggles': ['lines'] }, view = 'resizable' )
+        );
+    };
+    const diagramOptionsSelectors = allDiagramOptions
+        .map( (diagramOption,i) => reify( 'label', { 'class': 'columnSelector' }, [
+            i == 0 ? null : reifyText( '| ' ),
+            reifyText( diagramOption ),
+            reify( 'input', { 'type': 'checkbox', 'checked': ( this.htmlTableDiagramOptions.includes( diagramOption ) ? 'checked' : '' ) }, [], [
+                c => c.onchange = () => {
+                    if ( !c.checked && this.htmlTableDiagramOptions.includes( diagramOption ) ) {
+                        this.htmlTableDiagramOptions.splice( this.htmlTableDiagramOptions.indexOf(diagramOption), 1 );
+                        diagramOptions.length = 0;
+                        diagramOptions.push( ...arrayIntersection( allDiagramOptions, this.htmlTableDiagramOptions ) );
+                        replaceDiagram();
+                        x3dom.reload();
+
+                    } else if ( c.checked && !this.htmlTableDiagramOptions.includes( diagramOption ) ) {
+                        this.htmlTableDiagramOptions.push( diagramOption );
+                        diagramOptions.length = 0;
+                        diagramOptions.push( ...arrayIntersection( allDiagramOptions, this.htmlTableDiagramOptions ) );
+                        replaceDiagram();
+                        x3dom.reload();
+                    }
+                }
+            ] )
+        ] ) );
+
+    const diagramLegend = reify( 'div', { 'class': 'legend' }, [
+        reifyText( '[ a, r, u | e, f, l, w, <space> ] see: ' ),
+        reify( 'a', { 'href': 'https://doc.x3dom.org/tutorials/animationInteraction/navigation/index.html', 'target': '_blank' }, [
+            reifyText( 'x3dom navigation tutorial' )
+        ] )
+    ] );
+
+    const tableLegend = reify( 'div', { 'class': 'legend' }, [
+        reifyText( 'Click on a cell to select/deselect or on a totals cell to draw all.' )
+    ] );
+
+    tableContainer.appendChild( tableRenderer( orbits ) );
+    replaceDiagram();
+
+    return reify( 'div', {}, [
+        reify( 'div', {}, [
+            reify( 'label', { 'class': 'columnSelector' }, [ reifyText( 'diagram: ' ) ] ),
+            ...diagramOptionsSelectors
+        ] ),
+
+        diagramContainer,
+        diagramLegend,
+        reify( 'div', {}, [
+            reify( 'label', { 'class': 'columnSelector' }, [ reifyText( 'columns: ' ) ] ),
+            ...columnSelectors
+        ] ),
+        tableContainer,
+        tableLegend
+    ]);
+};
 
 
 AbstractBox.prototype.pointsDomNode = function() {
@@ -245,13 +363,43 @@ FactorialBox.prototype.pointsDomNode = function(
     );
 }
 
-function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles', 'diagram' ], caption = null, monomialFilter = null, cyclesContainer = null ) {
+
+const actionsHtmlTableColumns = [
+    'box',
+    'label', 'alias', 'others',
+    'box',
+    'monomial',
+    'parity',
+    'id-sum',
+    'coords-sum',
+    'perimeter',
+    'radiance',
+    'order',
+    'volume'
+];
+
+function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
     const allColumns = [
         'box', 'label',
-        'others', 'alias', 'inverse', 'perms', 'parity', 'place-values',
+        'others',
+        'alias',
+        'inverse',
+        'perms',
+        'parity',
+        'place-values',
         'C',
-        'monomial', 'volume', 'order', 'perimeter', 'radiance', 'equations', 'index', 'cycles', 'diagram' ];
-    const columns = [ '#', ...arrayIntersection( allColumns, cols ) ];
+        'monomial',
+        'volume',
+        'order',
+        'id-sum',
+        'coords-sum',
+        'perimeter',
+        'radiance',
+        'index',
+        'cycles',
+        'diagram'
+    ];
+    const columns = [ '#', ...arrayIntersection( allColumns, actionsHtmlTableColumns ) ];
 
     const otherLabel = ( source ) => {
         const actions = Box.identifySources( source );
@@ -277,6 +425,9 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
         }
     };
 
+    const tableContainer = reify( 'div' );
+    const cyclesContainer = reify( 'div' );
+
     const onRowSelectionFactory = ( cycles, source ) => {
         return ( event ) => {
             const classList = source.classList;
@@ -287,25 +438,23 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
                     cyclesContainer.innerHTML = '';
                 }
             } else {
-                document
+                tableContainer
                     .querySelectorAll( '.selected' )
                     .forEach( s => s.classList.remove('selected'));
                 classList.add( 'selected' );
+
                 if ( cyclesContainer ) {
                     cyclesContainer.innerHTML = '';
-                    cyclesContainer.appendChild( cycles.htmlTable( { 'coords': true } ) );
+                    cyclesContainer.appendChild( reify( 'hr' ) );
+                    cyclesContainer.appendChild( cycles.htmlTable() );
+                    x3dom.reload();
                 }
+
                 const monomialFilter = document.getElementById('monomialFilter');
                 if ( monomialFilter ) {
                     monomialFilter.value = ( JSON.stringify( cycles.monomial() ) );
                     monomialFilterDisplay.innerHTML = '';
                     monomialFilterDisplay.appendChild( cycles.htmlMonomial() );
-                }
-                const cyclesDiagram = document.getElementById('boxDiagram');
-                if ( cyclesDiagram ) {
-                    cyclesDiagram.innerHTML = '';
-                    cyclesDiagram.appendChild( cycles.x3dBoxes() );
-                    x3dom.reload();
                 }
             }
        };
@@ -326,7 +475,9 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
                 .filter( cycles => !monomialFilter || monomialFilterMatches( cycles.monomial(), monomialFilter ) )
                 .map( (cycles, i) => reify(
                     'tr',
-                    {},
+                    {
+                        'id': `orbit-${ i }`
+                    },
                     [
                         reify( 'td', {}, [ reifyText( `${ i }` ) ] ),
                         maybeDisplay( 'box', () => reify( 'td', {}, [ reifyText( `[${ cycles.getBases() }]` ) ] ) ),
@@ -341,6 +492,8 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
                         maybeDisplay( 'monomial', () => reify( 'td', {}, [ cycles.htmlMonomial() ] ) ),
                         maybeDisplay( 'volume', () => reify( 'td', {}, [ reifyText( `${ cycles.getVolume() }` ) ] ) ),
                         maybeDisplay( 'order', () => reify( 'td', {}, [ reifyText( `${ cycles.order() }` ) ] ) ),
+                        maybeDisplay( 'id-sum', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().idSum }` ) ] ) ),
+                        maybeDisplay( 'coords-sum', () => reify( 'td', {}, [ reifyText( `(${ cycles.getStats().coordsSum })` ) ] ) ),
                         maybeDisplay( 'perimeter', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().euclideanPerimeter }` ) ] ) ),
                         maybeDisplay( 'radiance', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().indexPerimeter }` ) ] ) ),
                         maybeDisplay( 'equations', () => reify( 'td', {}, [ cycles.htmlEquations() ] ) ),
@@ -360,41 +513,46 @@ function cyclesDomNode( actions, cols = [ 'label', 'alias', 'monomial', 'cycles'
             )
         ]
     );
-
-    const tableContainer = reify( 'div', {}, [ tableRenderer(actions) ] );
-
     const columnSelectors = allColumns
-        .map( column => reify( 'label', { 'class': 'columnSelector' }, [
+        .map( (column,i) => reify( 'label', { 'class': 'columnSelector' }, [
+            i == 0 ? null : reifyText( '| ' ),
             reifyText( column ),
-            reify( 'input', { 'type': 'checkbox', 'checked': ( columns.includes( column ) ? 'checked' : '' ) }, [], [
+            reify( 'input', { 'type': 'checkbox', 'checked': ( actionsHtmlTableColumns.includes( column ) ? 'checked' : '' ) }, [], [
                 c => c.onchange = () => {
-                    if ( !c.checked && columns.includes( column ) ) {
-                        columns.splice( columns.indexOf(column), 1 );
+                    if ( !c.checked && actionsHtmlTableColumns.includes( column ) ) {
+                        actionsHtmlTableColumns.splice( actionsHtmlTableColumns.indexOf(column), 1 );
+                        columns.length = 0;
+                        columns.push( '#', ...arrayIntersection( allColumns, actionsHtmlTableColumns ) );
                         tableContainer.innerHTML = '';
                         tableContainer.appendChild( tableRenderer( actions ) );
 
-                    } else if ( c.checked && !columns.includes( column ) ) {
-                        columns.push( column );
+                    } else if ( c.checked && !actionsHtmlTableColumns.includes( column ) ) {
+                        actionsHtmlTableColumns.push( column );
+                        columns.length = 0;
+                        columns.push( '#', ...arrayIntersection( allColumns, actionsHtmlTableColumns ) );
                         tableContainer.innerHTML = '';
                         tableContainer.appendChild( tableRenderer( actions ) );
+                        if ( columns.includes( 'diagram')) {
+                            x3dom.reload();
+                        }
                     }
                 }
             ] )
         ] ) );
-
-
+    tableContainer.appendChild( tableRenderer(actions) );
     return reify( 'div', {}, [
         reify('div', {}, [
             reify( 'label', { 'class': 'columnSelector' }, [ reifyText( 'columns: ' ) ] ),
             ...columnSelectors
         ] ),
-        tableContainer
+        tableContainer,
+        cyclesContainer
     ]);
 }
 
 
-Box.prototype.cyclesDomNode = function( columns = [ '#', 'label', 'alias', 'perms', 'place-values', 'monomial', 'cycles', 'diagram' ], caption, monomialFilter, cyclesContainer ) {
-    return cyclesDomNode( this.actions(), columns, caption ? caption : `Actions of [${ this.odometer.bases }]`, monomialFilter, cyclesContainer );
+Box.prototype.cyclesDomNode = function( caption, monomialFilter, cyclesContainer ) {
+    return cyclesDomNode( this.actions(), caption ? caption : `Actions of [${ this.odometer.bases }]`, monomialFilter, cyclesContainer );
 }
 
 Box.prototype.indexesDomNode = function( actions ) {

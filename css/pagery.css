@@ -35,6 +35,10 @@ code {
     font-weight: bold;
 }
 
+.legend {
+    text-align: center;
+    font-style: italic;
+}
 
 .error {
     color: black;
@@ -79,6 +83,13 @@ label.columnSelector {
     font-size: 80%;
 }
 
+label.columnSelector > a {
+    background: #f0e0d0;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+
 table.box-action {
     border-top: solid 0px black;
     text-align: center;
@@ -106,9 +117,11 @@ table.box-action th {
 }
 table.box-action td {
 }
-table.box-action td.sum-total {
+
+span.sum-total {
     border-top: 1px solid;
 }
+
 table.box-action td.product-total {
     border-top: 2px double;
     color: blue;

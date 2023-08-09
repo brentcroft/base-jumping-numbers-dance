@@ -1,25 +1,3 @@
-/**
- * JS Formula Parser
- * -------------------
- * (c) 2012-2021 Alexander Schenkel, alex@alexi.ch
- *
- * JS Formula Parser takes a string, parses its mathematical formula
- * and creates an evaluable Formula object of it.
- *
- * Example input:
- *
- * var fObj = new Formula('sin(PI*x)/(2*PI)');
- * var result = fObj.evaluate({x: 2});
- * var results = fObj.evaluate([
- *     {x: 2},
- *     {x: 4},
- *     {x: 8}
- * ]);
- *
- * LICENSE:
- * -------------
- * MIT license, see LICENSE file
- */
 
 
 const OPERATIONS = [
@@ -902,13 +880,15 @@ class PowerExpression extends Expression {
         } else if ( exp > 0 ) {
             for ( var i = 1; i < exp; i++ ) {
                 const alias = CompositionAction.compositeLabel( locus, start );
-                const boxAction = this.boxGroup.findActionByAlias( alias );
+                const boxAction = this.boxGroup
+                    ? this.boxGroup.findActionByAlias( alias )
+                    : null;
 
                 if ( boxAction ) {
                     locus = boxAction;
                 } else {
                     locus = new CompositionAction(
-                        locus.box,
+                        locus.getMeta('box'),
                         Math.round( Math.random() * 10000 + 1),
                         locus, start,
                         true

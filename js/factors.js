@@ -8,7 +8,7 @@ function primeFactors(n) {
   while (n >= 2) {
     if (n % divisor == 0) {
       factors.push(divisor);
-      n = n / divisor;
+      n /= divisor;
     } else {
       divisor++;
     }
@@ -16,11 +16,37 @@ function primeFactors(n) {
   return factors;
 }
 
+function primeFactorsHtml( n ) {
+    const f = [];
+    primeFactors( n ).forEach( x => {
+        const c = f.find( y => y[0] == x );
+        if ( c ) {
+            c[1]++;
+        } else {
+            f.push( [ x, 1 ] );
+        }
+    } );
+    const parts = f.map( c => `${ c[0] }` + (c[1] == 1 ? '' : `<sup>${ c[1] }</sup>` ));
+    return parts.join('*');
+}
+
+
+function primeFactors2(n) {
+    var factors = [], i;
+    for (i = 2; i <= n; i++) {
+        while ((n % i) === 0) {
+            factors.push(i);
+            n /= i;
+        }
+    }
+    return factors;
+}
+
 
 /*
     Calculate the prime factors of v.
 */
-function primeFactorsHtml( v ) {
+function primeFactorsHtml2( v ) {
     if (v >= 2 & v < MAXLIMIT) {
         var k = 2;
         var f = 0;

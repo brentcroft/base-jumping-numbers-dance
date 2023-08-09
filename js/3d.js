@@ -3,15 +3,11 @@ function buildX3DomRootNode( node, param = {} ) {
     const {
         id = `x3d-${ new Date().toISOString() }`,
         sceneId = `scene-${ new Date().toISOString() }`,
-
         width = '30%',
         height = '20%',
-
         orientation = '0 0 0 1',
-        position = '0 0 10',
-
+        position = '0 0 0',
         cssClass = []
-
     } = param;
 
 

@@ -311,7 +311,7 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
     const colorBasePlane = new ColorBasePlane();
 
     const [ p1, p2 ] = cycles.getDiagonal().map( coord => to3D( coord ) );
-    const scaleUnit = scale( scaleBase, scaleVolume / cycles.getVolume() );
+    const scaleUnit = scale( scaleBase, scaleVolume / Math.sqrt( cycles.getVolume() / cycles.getBases().length ) );
 
     const bases = cycles.getBases();
     const centre = cycles.getCentre();
@@ -321,18 +321,23 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
     const root = reify(
         "transform", {
             "translation": scale( to3D( centre ), -1 ).join( ' ' ),
-            "scale": scaleUnit.map( x => x==0 ? 1 : 1 / x ).join( ' ' )
+            "scale": scaleUnit.map( x => x==0 ? 1 : x ).join( ' ' )
         } );
 
-    function appendGridChildren( grid ) {
-        const [ b0, b1, b2 ] = to3D( bases );
-        const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
-        const gridPointRadius = 0.05;
+    const gridCoordStyle = { "family": "'San Serif'", "size": 0.05 };
+    const gridPointRadius = 0.010;
+    const centrePointRadius = 0.0125;
+    const fixedPointRadius = 0.02;
+    const orbitPointRadius = 0.015;
 
+
+    const gridBuilder = ( bases ) => {
+        const [ b0, b1, b2 ] = to3D( bases ).map( b => Math.max( b, 1 ) );
+        const container = reify( "group", { "class": "grid-coords", "render": toggles.includes( 'grid' ) } );
         for ( var i = 0; i < b0; i++ ) {
             for ( var j = 0; j < b1; j++ ) {
                 for ( var k = 0; k < b2; k++ ) {
-                    grid
+                    container
                         .appendChild(
                             reify(
                                 "transform",
@@ -342,28 +347,18 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
                                 },
                                 [
                                     createSphereShape( `grid-point-${ [ i, j, k ].join( '.' ) }`, gridPointRadius, 'black', 0.10, `(${ [ i, j, k ].join( ',' ) })` ),
-                                    createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
+                                    //createTextShape( `(${ [ i, j, k ].join( ',' ) })`, gridCoordStyle )
                                 ]
                             )
                         );
                 }
             }
         }
-    }
+        return container;
+    };
 
     // GRID
-    root
-        .appendChild(
-            reify(
-                "group",
-                {
-                    "class": "grid-coords",
-                    "render": toggles.includes( 'grid' )
-                },
-                [],
-                [ appendGridChildren ]
-            )
-        );
+    root.appendChild( gridBuilder( bases ) );
 
 
     // PLANE
@@ -399,7 +394,7 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
                                 "translation": to3D( x.point ).join( ' ' ),
                                 "scale": scaleUnit.join( ' ' )
                             },
-                            [ createSphereShape( null, 0.1, "yellow", 0, `centre-${ x.point }` ) ]
+                            [ createSphereShape( null, centrePointRadius, "yellow", 0, `centre-${ x.point }` ) ]
                         ) );
 
         const centreLines = cyclesCentres
@@ -417,27 +412,31 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
     const toPoint = (id) => cycles.box[id];
 
     // FIXED POINTS
-    cycles
-        .identities()
-        .forEach(
-            cycle => cycle
-                .map( id => {
-                    return {
-                            "id": "point-" + to3D( toPoint(id) ).join( '.' ),
-                            "translation": to3D( toPoint(id) ).join( ' ' ),
-                            "scale": scaleUnit.join( ' ' )
-                        };
-                    }
-                )
-                .forEach( identityPoint => root
-                    .appendChild(
-                        reify(
+    root.appendChild(
+        reify(
+            "group",
+            { "class": "orbit-line", "id": "orbit.e" },
+            cycles
+                .identities()
+                .flatMap(
+                    cycle => cycle
+                        .map( id => {
+                                return {
+                                    "id": "point-" + to3D( toPoint(id) ).join( '.' ),
+                                    "translation": to3D( toPoint(id) ).join( ' ' ),
+                                    "scale": scaleUnit.join( ' ' )
+                                };
+                            }
+                        )
+                        .map( identityPoint => reify(
                             "transform",
                             identityPoint,
-                            [ createSphereShape( identityPoint.id, 0.1, "red", fixedPointTransparency, '' ) ] )
+                            [ createSphereShape( identityPoint.id, fixedPointRadius, "red", fixedPointTransparency, '' ) ]
                         )
-                    )
-                );
+                )
+            )
+        )
+    );
 
     const tryNurbs = false;
 
@@ -484,7 +483,7 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
                                         "translation": to3D( stats.centre ).join( ' ' ),
                                         "scale": scaleUnit.join( ' ' )
                                     },
-                                    [ createSphereShape( "orbit." + orbitIndex + ".0" , 0.09, "gray" ) ]
+                                    [ createSphereShape( "orbit." + orbitIndex + ".0" , centrePointRadius, "gray" ) ]
                                 ),
                                 ...orbit.map( ( id, pointIndex ) => reify(
                                     "transform",
@@ -494,7 +493,7 @@ function getCyclesPointsDiagram( cycles, param = {} ) {
                                         "class": "orbitCoord",
                                         "id": `orbitCoord.${ id }.${ pointIndex }`
                                     },
-                                    [ createSphereShape( "orbit." + orbitIndex + "." + pointIndex, 0.07, orbitColor, 0, '' ) ] ) )
+                                    [ createSphereShape( "orbit." + orbitIndex + "." + pointIndex, orbitPointRadius, orbitColor, 0, '' ) ] ) )
                             ],
                             [ ( e ) => e.setAttribute( "render", toggles.includes( 'lines' ) ) ]
                         )

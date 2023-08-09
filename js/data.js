@@ -147,6 +147,7 @@ var modularizeC        = ( p, b ) => {
         carry = ~~( v / b[i] );
     }
     return m;
+    return m;
 };
 
 var arrayCompare = (a, b) => {
@@ -451,6 +452,7 @@ function permutations( inputArr ) {
     return result;
 }
 
+
 function placeValuesPermutation( bases, placePermutation = [] ) {
     var acc = 1;
     const p = new Array( bases.length ).fill( 0 );
@@ -468,7 +470,6 @@ function inversePermutation( cycles ) {
 }
 
 function canonicalizePermutation( p, rotateCycles = true, sortCycles = true ) {
-
     function ios( cycle ) {
         var l = 0;
         for (var i = 1; i < cycle.length; i++) {
@@ -481,9 +482,7 @@ function canonicalizePermutation( p, rotateCycles = true, sortCycles = true ) {
     const cycles = p.map( cycle => rotateCycles
         ? rotateArray( cycle, ios( cycle ) )
         : cycle );
-
     cycles.sort( ( a, b ) => a[0] - b[0] );
-
     return cycles;
 }
 

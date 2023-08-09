@@ -2,16 +2,19 @@
 class Operation {
 
     constructor( script ) {
+        this.script = script;
+
         const parser = new nearley.Parser( nearley.Grammar.fromCompiled( grammar ) );
-        parser.feed( script );
+        parser.feed( this.script );
         this.tree = parser.results[0];
-        //console.log( JSON.stringify( this.tree, null, 2 ) );
+//        console.log( JSON.stringify( this.tree, null, 2 ) );
     }
 
     evaluate() {
         const result = this.processTree( this.tree );
+        this.result = result instanceof Cycles ? [ result ] : result;
 //        console.log( result );
-        return result instanceof Cycles ? [ result ] : result;
+        return this.result;
     }
 
     processTree( tree ) {
@@ -19,6 +22,9 @@ class Operation {
             return tree.map( branch => this.processTree( branch ) );
         } else if ( tree instanceof Cycles ) {
             return tree;
+        } else if ( Number.isInteger( tree ) ) {
+            const box = Box.of( [ tree ] );
+            return compose( box.permBox[0], box.permBox[0], false, box );
         } else {
             return this.processLeaf( tree );
         }
@@ -70,7 +76,6 @@ class Operation {
                 return cycles;
             }
 
-
             case "product2":
             {
                 const twist = false;
@@ -93,7 +98,6 @@ class Operation {
                 return cycles;
             }
 
-
             case "power":
             {
                 const exp = leaf.r;
@@ -101,18 +105,13 @@ class Operation {
                 if (Number.isInteger( start )) {
                     start = Box.of( [ start ] ).permBox[0];
                 }
-
                 var locus = start;
-
                 if ( exp < 1 ) {
-                    const invStart = inverse( start );
-                    var locus = invStart;
-                    for ( var i = -1; i > exp; i-- ) {
-                        locus = compose( invStart, locus, false, locus.box );
+                    var locus = inverse( start );
+                    for ( var i = 0; i >= exp; i-- ) {
+                        locus = compose( start, locus, false, locus.box );
                     }
-                } else if ( exp == 1 ) {
-                //
-                } else if ( exp > 0 ) {
+                } else if ( exp > 1 ) {
                     for ( var i = 1; i < exp; i++ ) {
                         locus = compose( start, locus, false, locus.box );
                     }

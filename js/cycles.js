@@ -60,7 +60,11 @@ class Coords {
     }
 
     getCoord( coord = [] ) {
-        return this.coordMap[ coord.join('.') ];
+        const value = this.coordMap[ coord.join('.') ];
+        if (!value) {
+            throw new Error(`The box [${this.bases.join(',')}] does not have coord [${coord.join(',')}]`);
+        }
+        return value;
     }
 }
 
@@ -88,11 +92,30 @@ class CycleArray extends Array {
     }
 
     asCoords() {
-        return this.map( p => p.coord ).join('');
+        return this.map( p => `(${p.coord.join(',')})` );
     }
 
     getCycleNotation() {
         return `(${ this.map( p => p.id ).join( ', ' ) })`;
+    }
+
+    getEquations( bases, order ) {
+        const v = bases.reduce( (b,c) => b * c, 1);
+        return bases
+            .map( (b,j) => {
+            const r = [0];
+            const m = [1];
+            const d = [...this]
+                .reverse()
+                .map( (p,i) => {
+               r[0] += p.coord[j] * m[0];
+               m[0] = m[0] * b;
+               return `${p.coord[j]}`
+            } )
+            .reverse()
+            .join(' ');
+            return d + "<sub>" + b + "</sub> = " + (r[0]);
+        } );
     }
 
     equals( other, param = {} ) {
@@ -137,11 +160,11 @@ class CycleArray extends Array {
 
         const order = this.length;
         const centre = new Array( rank ).fill( 0 );
-        const coordSum = new Array( rank ).fill( 0 );
+        const coordsSum = new Array( rank ).fill( 0 );
 
         this
             .map( point => point.coord )
-            .forEach( coord => coord.forEach( (c,i) => coordSum[i] += c ) );
+            .forEach( coord => coord.forEach( (c,i) => coordsSum[i] += c ) );
 
         centre
             .forEach( ( s, i ) => {
@@ -164,9 +187,9 @@ class CycleArray extends Array {
             order: order,
             centre: centre,
             idSum: idSum,
-            coordSum: coordSum,
-            gcd: coordSum.reduce( gcd ),
-            lcm: coordSum.reduce( lcm ),
+            coordsSum: coordsSum,
+            gcd: coordsSum.reduce( gcd ),
+            lcm: coordsSum.reduce( lcm ),
             indexPerimeter: indexPerimeter,
             euclideanPerimeter: euclideanPerimeter
         }
@@ -191,28 +214,19 @@ class CyclesArray extends Array {
 
     static getIdentityCycles( volume ) {
         const terminal = volume - 1;
+        const bases = [ volume ];
         const cycles = new CyclesArray();
-
-        const box = Coords.getCoords([volume]);
 
         for (var i = 0; i < volume;i++){
             const cycle = new CycleArray();
-            cycle.push(
-                {
-                    id: i,
-                    di: i,
-                    coord: [ i ]
-                } );
+            cycle.push( { id: i, di: i, coord: [ i ] } );
             cycles.push( cycle);
         }
+        const box = extantBoxes.getBox( [ volume ] );
         cycles.setMetaData( {
-            harmonic: false,
-            label: `${ volume }`
+            label: `${ volume }`,
+            permPairs: [ new BoxPermPair( box, bases, [0], [0]) ]
         } );
-
-        cycles.canonicalize();
-        cycles.normaliseCoordinates();
-        cycles.updateSymbols();
 
         return cycles;
     }
@@ -292,73 +306,44 @@ class CyclesArray extends Array {
         this.sort( ( a, b ) => a[0].id - b[0].id );
     }
 
-    denormalizeCoord( coord ) {
-        const permInv = this.getMeta( 'permInv' );
-        return permInv.map( i => coord[i] );
-    }
-
     getBases() {
         var bases = this.getMeta( 'bases' );
         if ( bases ) {
             return bases;
         } else {
-            bases = this.getTerminal().coord.map( i => i + 1 );
+            const permPairs = this.getMeta( 'permPairs' );
+            const permPair = permPairs[0];
+            bases = permPair.right.getBases();
             this.setMeta( 'bases', bases );
             return bases
         }
     }
+    getPermPairs() {
+        return this.getMeta( 'permPairs' );
+    }
 
     normaliseCoordinates() {
-        if ( this.getMeta( 'bases') ) {
-            throw new Error("Called twice!");
-        } else {
-            // bases cached
-            // NB: terminal coord will be changed by normalization
-            const bases = this.getBases();
-            const perm = canonicalCoordinateMap( bases );
-            // TODO: when is perm != permInv
-            const permInv = [];
-            perm.forEach( (p,i) => permInv[p] = i );
-
-            const box = Coords.getCoords( bases );
-            const transformCoord = ( coord ) => box.getCoord( perm.map( p => coord[ p ] ) );
-            this.forEach( cycle => cycle.forEach( point => point.coord = transformCoord( point.coord ) ) );
-
-            this.setMeta( 'perm', perm );
-            this.setMeta( 'permInv', permInv );
-            // TODO: when is it not set?
-            if (!this.hasMeta( 'permPair' )) {
-                //throw new Exception("who threw this");
-                this.setMeta( 'permPair', [ perm, [...perm].reverse() ] );
-            }
-
-            if (!this.hasMeta( 'placesForward')) {
-                const p_fwd = placeValuesForwardArray( bases, 0 );
-                const p_rev = placeValuesReverseArray( bases, 0 );
-                this.setMeta( 'placesForward', p_fwd );
-                this.setMeta( 'placesReverse', p_rev );
-                const ip_coord = p_fwd.map( ( x, i ) => x - p_rev[i] );
-                this.setMeta( 'identityPlane', {
-                    coord: ip_coord,
-                    gcd: Math.abs( gcda( ip_coord ) ),
-                    normal: displacement( this.getOrigin().coord, ip_coord )
-                } );
-            }
+        if (!this.hasMeta( 'permPairs' )) {
+            throw new Error("who threw this");
         }
+        const permPairs = this.getMeta( 'permPairs' );
+        const permPair = permPairs[0];
+        const right = permPair.right;
+        const boxCoords = Coords.getCoords( right.getBases() );
+
+        this.forEach( cycle => cycle.forEach( point => {
+            point.ncoord = boxCoords.getCoord( right.normalizeCoord( point.coord ) );
+        } ) );
     }
 
     updateSymbols() {
         const permBox = extantBoxes.getBox(this.getBases());
-        const permPair = this.getMeta( 'permPair' );
+        const permPair = this.getMeta( 'globalPermPair' );
         const [ leftPerm, rightPerm ] = [
-            permBox.getPermVector( permPair[0] ),
-            permBox.getPermVector( permPair[1] )
+            permBox.identifyPerm( permPair[0] ),
+            permBox.identifyPerm( permPair[1] )
         ];
-        if ( leftPerm && rightPerm ) {
-            this.setMeta( 'symbol', `${ leftPerm[0].symbol }${ arrowUp( leftPerm[1] ) }${ rightPerm[0].symbol }${ arrowUp( rightPerm[1] ) }` );
-        } else {
-            permBox.getPermVector( permPair[0] );
-        }
+        this.setMeta( 'symbol', `${ leftPerm.symbols() }${ rightPerm.symbols() }` );
     }
 
     getCycleAndIndex( coord ) {
@@ -418,6 +403,10 @@ class CyclesArray extends Array {
             terminal.meta = { key: value };
         }
         return value;
+    }
+
+    getOrder() {
+        return gcda( this.map( a => a.length ).filter( a => a > 1 ) );
     }
 
     isHarmonic() {
@@ -599,23 +588,62 @@ class CyclesArray extends Array {
             ] ) );
     }
 
+
+    getEquations( cycle ) {
+        const v = this.getVolume();
+
+        const repeats = this.getOrder() / cycle.length;
+
+        const permPairs = this.getMeta( 'permPairs' );
+        const permPair = permPairs[0];
+
+        return this
+            .getBases()
+            .map( (b,j) => {
+                const r = [0];
+                const m = [1];
+                const d = [];
+                for ( var x = 0; x < repeats; x++ ) {
+                    // TODO: rubbish...
+                    const points = (j % 2 == 0)
+                        ? [...cycle]
+                        : [...cycle].reverse();
+                    const x = points
+                        .map( (p,i) => {
+                           const coord = permPair.right.denormalizeCoord(p.coord);
+                           r[0] += coord[j] * m[0];
+                           m[0] = m[0] * b;
+                           return `${coord[j]}`
+                        } )
+                        .join('');
+                    d.push(x);
+                }
+                return d.join('') + "<sub>" + b + "</sub> = " + (r[0]);
+            } );
+    }
+
     htmlSummary() {
         return reify( "div",{}, [
             reifyText( this.getMeta('label') ),
             reifyText( " = " ),
-            reifyText( this.hasMeta( 'symbol' ) ? this.getMeta( 'symbol' ) : "no-symbol" ),
+            reifyText( `(v=${this.getVolume()}, o=${this.getOrder()}) ` ),
             reifyText( " : " ),
-            reifyText( this.hasMeta( 'permPair' ) ? this.getMeta( 'permPair' ).map( p => `[${p}]`).join(':') : "no-perm-pair" ),
+            reifyText( this.hasMeta( 'permPairs' )
+                ? this.getMeta( 'permPairs' ).map( p => `[${p}]`).join(',')
+                : "no-perm-pairs" ),
             reifyText( " &rarr; " ),
             this.htmlMonomial(),
-            reify("br"),
-        ] );
+//            reify("br"),
+//            ...this.getEquations(this[this.length-1])
+//                .flatMap( eqn => [ reifyText( eqn ), reify("br") ] )
+         ] );
     }
 
     htmlTable( param = {} ) {
 
         const { coords = false } = param;
 
+        const bases = this.getBases();
         const volume = this.getVolume();
         const maxIndex = volume - 1;
 
@@ -673,103 +701,43 @@ class CyclesArray extends Array {
                                     ? reifyText( orbit.asCoords() )
                                     : reifyText( orbit.getCycleNotation() )
                             ] ),
-                            reify( "td", {}, [ reifyText( `(${ stats.coordSum.join( ', ' ) })` ) ] ),
+                            reify( "td", {}, [ reifyText( `(${ stats.coordsSum.join( ', ' ) })` ) ] ),
                             reify( "td", {}, [ reifyText( `${ stats.idSum }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ orbit.length }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ stats.euclideanPerimeter }` ) ] ),
                             reify( "td", {}, [ reifyText( `${ stats.indexPerimeter }` ) ] ),
+//                            reify( "td", {}, [ ...this.getEquations(orbit)
+//                                .flatMap( eqn => [ reifyText( eqn ), reify( "br" ) ] ) ] )
                         ]
                 ) ),
                 //reify( "tr", {}, footerRow.map( f => reify( "td", { 'cssClass': f[1] }, [ reifyText( f[0] ) ] ) ) ),
              ] );
     }
 
-
-
-    static magnifyPoint( c, magnification ) {
-        const point = {
-            id: c.id * magnification,
-            di: c.di * magnification,
-            coord: [ ...c.coord ]
-        };
-        point.toString = () => pointLabel( point );
-        return point;
-    }
-
-    static offsetPoint( c, k, volume = 1 ) {
-        const point = {
-            id: ( c.id + ( k * volume ) ),
-            di: ( c.di + ( k * volume ) ),
-            coord: [ ...c.coord, k ]
-        };
-        point.toString = () => pointLabel( point );
-        return point;
-    }
-    static stubNextPoint( lastPoint, cofactor, terminal ) {
-        const point = {
-            id: lastPoint.di,
-            di: ( lastPoint.di * cofactor ) % terminal,
-            coord: []
-        };
-        point.toString = () => pointLabel( point );
-        return point;
-    }
-
-
     directProduct( leftCycles, twist = false ) {
         const rightCycles = this;
-        const leftBases = [...leftCycles.getBases()];
-        const rightBases = [...rightCycles.getBases()];
+        const leftBases = [ ...leftCycles.getBases() ];
+        const rightBases = [ ...rightCycles.getBases() ];
+        const [ leftPermPair, rightPermPair] = [
+            leftCycles.getMeta('permPairs')[0],
+            rightCycles.getMeta('permPairs')[0]
+        ];
+
         const bases = [ ...leftBases, ...rightBases ];
+        const box = extantBoxes.getBox( bases );
+        const productPairs = BoxPermPair.directProduct( box, leftBases, leftPermPair, rightBases, rightPermPair, twist );
 
-        // tally each base to account for any duplicates
-        const tallyX = [...bases];
-        const tallyY = [...bases];
-        const tallyAllocate = ( b, antiPerm ) => {
-            const tally = antiPerm == 1
-                ? tallyX
-                : tallyY;
-            const i = tally.indexOf(b);
-            tally[i] = -1;
-            return i;
-        };
-
-        const lcpp = leftCycles.getMeta('permPair');
-        const rcpp = rightCycles.getMeta('permPair');
-
-        const [ lcAntiPerm, lcPerm ] = lcpp
-            .map( x => x.map( i => leftBases[i] ) )
-            .map( (x, antiPerm) => x.map( i => tallyAllocate( i, antiPerm ) ) );
-
-        const [ rcAntiPerm, rcPerm ] = rcpp
-            .map( x => x.map( i => rightBases[i] ) )
-            .map( (x, antiPerm) => x.map( i => tallyAllocate( i, antiPerm ) ) );
-
-        const perm = [...lcPerm, ...rcPerm];
-        const antiPerm = twist
-            ? [...lcAntiPerm, ...rcAntiPerm ].reverse()
-            : [...lcAntiPerm, ...rcAntiPerm ];
-
-        const p_fwd = placeValuesPermutation( bases, perm );
-        const p_rev = placeValuesPermutation( bases, antiPerm );
-        const ip_coord = p_fwd.map( ( x, i ) => x - p_rev[i] );
-
-        const indexFwd = ( coord ) => p_fwd.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
-        const indexRev = ( coord ) => p_rev.map( (b,i) => b * coord[i] ).reduce( ( a, c ) => a + c, 0 );
-
-        // intermediate cycles array
         const ids = new CycleArray( leftCycles.getVolume() * rightCycles.getVolume() );
 
         rightCycles.forEach( rightCycle => {
             rightCycle.forEach( rightPoint => {
-                const rightCoord = rightCycles.denormalizeCoord( rightPoint.coord );
+                const rightCoord = rightPoint.coord;
                 leftCycles.forEach( leftCycle => {
                     leftCycle.forEach( leftPoint => {
-                        const leftCoord = leftCycles.denormalizeCoord( leftPoint.coord );
-                        const coord = [ ...leftCoord, ...rightCoord ];
+                        const coord = [ ...leftPoint.coord, ...rightPoint.coord ];
                         const point = {
-                            id: indexRev(coord),
-                            di: indexFwd(coord),
+                            di: productPairs.indexRev(coord),
+                            id: productPairs.indexFwd(coord),
                             coord: coord
                         };
                         ids[point.id] = point;
@@ -800,17 +768,19 @@ class CyclesArray extends Array {
         cycles.canonicalize();
         cycles.setMetaData( {
             label: `(${ leftCycles.getMeta('label') }${twist?':':'|'}${ rightCycles.getMeta('label') })`,
-            permPair: [ antiPerm, perm ],
-            placesForward: p_fwd,
-            placesReverse: p_rev,
+            permPairs: [ productPairs ],
             identityPlane: {
-                coord: ip_coord,
-                gcd: Math.abs( gcda( ip_coord ) ),
-                normal: displacement( this.getOrigin().coord, ip_coord )
+                coord: productPairs.ip_coord,
+                gcd: Math.abs( gcda( productPairs.ip_coord ) ),
+                normal: displacement( cycles.getOrigin().coord, productPairs.ip_coord )
             }
         } );
-        cycles.normaliseCoordinates();
-        cycles.updateSymbols();
+//        cycles.normaliseCoordinates();
+        cycles.setMeta( 'identityPlane', {
+                coord: productPairs.ip_coord,
+                gcd: Math.abs( gcda( productPairs.ip_coord ) ),
+                normal: displacement( cycles.getOrigin().coord, productPairs.ip_coord )
+            } );
         return cycles;
     }
 
@@ -830,7 +800,6 @@ class CyclesArray extends Array {
         if ( !( leftBox == rightBox ) ) {
             throw new Error( "Can only compose CyclesArrays with points from the same box" );
         }
-
 
         const composedPoints = rightCycles
             .flatMap( cycle => cycle.map( ( point, id ) => {
@@ -886,44 +855,52 @@ class CyclesArray extends Array {
             cycles.push( cycle );
         }
 
+
+        cycles.canonicalize();
+
         try {
-//            const rPerm = rightCycles.getMeta('perm');
-//            const rPermKeys = rightCycles.getMeta('permKeys');
-//            const lPerm = leftCycles.getMeta('perm');
-//            const lPermKeys = leftCycles.getMeta('permKeys');
 //
-//            const permKeys = [ lPermKeys[1], rPermKeys[0] ];
 //
-//            const lpp = leftCycles.getMeta('permPair');
-//            const rpp = rightCycles.getMeta('permPair');
-//
-//            const permPair = [
-//                [...lpp[1]].reverse(),
-//                rpp[1]
-//            ];
+            const bases = cycles.getBases();
+
+            const lpp = leftCycles.getMeta('permPair');
+            const rpp = rightCycles.getMeta('permPair');
+
+            const permPair = [
+                [...lpp[1]].reverse(),
+                rpp[1]
+            ];
 //
 //            // TODO: figure out a better solution
 //            // not clear if this picks up all cases
 //            // and what if it's meant to be an identity
-//            if ( arrayExactlyEquals( permPair[0], permPair[1] ) ) {
-//                permPair[0] = lpp[0];
-//                permPair[1] = rpp[0].reverse();
-//            }
+            if ( arrayExactlyEquals( permPair[0], permPair[1] ) ) {
+                permPair[0] = lpp[0];
+                permPair[1] = rpp[0].reverse();
+            }
+
+            const p_fwd = placeValuesPermutation( bases, permPair[0] );
+            const p_rev = placeValuesPermutation( bases, permPair[1] );
+            const ip_coord = p_fwd.map( ( x, i ) => x - p_rev[i] );
 
             cycles.setMetaData( {
-                'label': `${ leftCycles.getMeta( 'label' ) }*${ rightCycles.getMeta( 'label' ) }`,
-                'harmonic': false,
-//                'perm': rPerm.map( b => lPerm[b] ),
-//                'box': rightBox,
-//                'permKeys': permKeys,
-//                'permPair': permPair
+                label: `${ leftCycles.getMeta( 'label' ) }*${ rightCycles.getMeta( 'label' ) }`,
+                globalPermPair: permPair,
+                permPair: permPair,
+
+                placesForward: p_fwd,
+                placesReverse: p_rev,
+                identityPlane: {
+                    coord: ip_coord,
+                    gcd: Math.abs( gcda( ip_coord ) ),
+                    normal: displacement( cycles.getOrigin().coord, ip_coord )
+                }
             } );
         } catch (e) {
             throw e;
         }
 
-        cycles.canonicalize();
-        cycles.normaliseCoordinates();
+//        cycles.normaliseCoordinates();
         cycles.updateSymbols();
 
         while ( args.length > 0 ) {

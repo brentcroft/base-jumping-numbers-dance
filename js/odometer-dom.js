@@ -365,19 +365,14 @@ FactorialBox.prototype.pointsDomNode = function(
 
 const actionsHtmlTableSelectedIndex = [ 0 ];
 const actionsHtmlTableColumns = [
-    'box',
     'label',
     'alias',
     'match',
-    'box',
     'monomial',
-    'parity',
-    'id-sum',
-    'coords-sum',
     'perimeter',
     'radiance',
+    'volume',
     'order',
-    'volume'
 ];
 
 function cyclesDomNode( actions, caption = null, monomialFilter = null ) {

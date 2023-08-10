@@ -24,6 +24,7 @@
     <script type="text/javascript" src="js/odometer.js"></script>
     <script type="text/javascript" src="js/odometer-dom.js"></script>
     <script type="text/javascript" src="js/odometer-expression.js"></script>
+    <script type="text/javascript" src="js/expression-library.js"></script>
 
     <script>
         function byId( id ) {
@@ -104,11 +105,11 @@
             drawActionsTables();
             x3dom.reload();
         }
-        function renderExpressionLinks( expressions ) {
+        function renderExpressionLibraryLinks() {
             const expressionScript = byId('expressionScript');
             byId( 'expressionsLibrary' ).appendChild(
                 reify('div',{}, Object
-                        .entries( expressions )
+                        .entries( expressionLibrary )
                         .map( ([key, group], i) => reify( 'label', { 'class': 'columnSelector' }, [
                                 reifyText( i > 0 ? ' | ' : 'expressions: ' ),
                                 reify( 'a', {}, [ reifyText( key ) ], [
@@ -119,72 +120,10 @@
                                     ] ),
                         ] ) ) ) );
         }
-        const expressions = {
-            'blank': [
-            ],
-            'unit-boxes': [
-                '2:2',
-                '3:2',
-                '4:2',
-                '3:3',
-                '4:3',
-                '7:2',
-                '5:3',
-                '4:4',
-                '6:3',
-                '5:4',
-                '7:3',
-                '11:2',
-                '6:4',
-                '5:5',
-            ],
-            'powers': [
-                '(10:4)^-1',
-                '(10:4)^0',
-                '(10:4)^1',
-                '(10:4)^2',
-                '(10:4)^3',
-                '(10:4)^4',
-                '(10:4)^5',
-                '(10:4)^6',
-            ],
-            '5x3x2': [
-                '5:3~2; 2:5~3; 3:2~5',
-                '2~5:3; 3~2:5; 5~3:2',
-                '5:8; 3:10; 2:20;',
-                '5:3:2; 2:5:3; 3:2:5',
-                '(3~5:2) * (3:2~5) * (2~5:3)',
-            ],
-            '5x4x2': [
-                '5:4~2; 2:5~4; 4:2~5',
-                '2~5:4; 4~2:5; 5~4:2',
-                '5:8; 4:10; 2:20;',
-                '5:4:2; 2:5:4; 4:2:5',
-                '(4~5:2) * (4:2~5) * (2~5:4)',
-            ],
-            '7x5x3': [
-                '3:5~7; 7:3~5;  5:7~3',
-                '(7:3~5)*(5:3~7)',
-                '15:7; 21:5; 3:35'
-            ],
-            'rotations': [
-                '(2:4)',
-                '(2:4)~5',
-                '(4:2)~5',
-                '5~(4:2)',
-                '5~(2:4)',
-            ],
-            'compounds': [
-                '((4:2)~5)*(2~(5:4))',
-                '(5~(4:2))*((5:4)~2)',
 
-                '(4~(5:2))*((4:2)~5)*(2~(5:4))',
-                '((4~(5:2))*((4:2)~5))*(2~(5:4))',
-            ]
-        };
     </script>
 </head>
-<body onload="renderExpressionLinks( expressions ); calculateNow()">
+<body onload="renderExpressionLibraryLinks(); calculateNow()">
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
@@ -199,23 +138,12 @@
         <hr/>
         <span id="expressionsLibrary"></span>
         <textarea id="expressionScript" class="expression" oninput="calculateNow()">
-# 5:4:2 - *:α🠅
-# perm references; factorial point references;
-5:4:2 [0,1,2]; 5:4:2 {0,0}
-5:4:2 [2,0,1]; 5:4:2 {0,1}
-5:4:2 [1,2,0]; 5:4:2 {0,2}
-5:4:2 [1,0,2]; 5:4:2 {1,0}
-5:4:2 [2,1,0]; 5:4:2 {1,1}
-5:4:2 [0,2,1]; 5:4:2 {1,2}
-
-# 4:2:5 - *:β🠅
-# perm references; factorial point references;
-4:2:5 [0,1,2]; 4:2:5 {0,0}
-4:2:5 [2,0,1]; 4:2:5 {0,1}
-4:2:5 [1,2,0]; 4:2:5 {0,2}
-4:2:5 [1,0,2]; 4:2:5 {1,0}
-4:2:5 [2,1,0]; 4:2:5 {1,1}
-4:2:5 [0,2,1]; 4:2:5 {1,2}
+5:4:2 [2,0,1] [0,1,2]; 5:4:2 {0,1} {0,0}
+5:4:2 [2,0,1] [2,0,1]; 5:4:2 {0,1} {0,1}
+5:4:2 [2,0,1] [1,2,0]; 5:4:2 {0,1} {0,2}
+5:4:2 [2,0,1] [2,1,0]; 5:4:2 {0,1} {1,0}
+5:4:2 [2,0,1] [1,0,2]; 5:4:2 {0,1} {1,1}
+5:4:2 [2,0,1] [0,2,1]; 5:4:2 {0,1} {1,2}
         </textarea>
     </label>
 

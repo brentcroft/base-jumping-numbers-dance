@@ -55,7 +55,7 @@ class Operation {
                     perms.push( ...leaf.perms.map( perm => box.permBox.find( point => arrayExactlyEquals( perm, point.perm ) ) ) );
                     const invalidPerms2 = perms.map( (p,i) => p ? -1 : i ).filter(x => x > -1);
                     if (invalidPerms2.length > 0) {
-                        const error = invalidPerms2.map( i => leaf.perms[i] ).map( p => `[${ p.join(',') }]` ).join(',')
+                        const error = invalidPerms2.map( i => leaf.perms[i] ).map( p => `[${ p }]` ).join(',')
                         throw new Error( `Invalid perms: ${ error } not found in box: ${ box.odometer.bases }` );
                     }
                     perms.reverse();
@@ -70,7 +70,7 @@ class Operation {
                     } ) );
                     const invalidPerms2 = perms.map( (p,i) => p ? -1 : i ).filter(x => x > -1);
                     if (invalidPerms2.length > 0) {
-                        const error = invalidPerms2.map( i => leaf.facts[i] ).map( p => `[${ p.join(',') }]` ).join(', ')
+                        const error = invalidPerms2.map( i => leaf.facts[i] ).map( p => `[${ p }]` ).join(', ')
                         throw new Error( `Invalid perm points: ${ error } not found in box: ${ box.odometer.bases }` );
                     }
                     perms.reverse();

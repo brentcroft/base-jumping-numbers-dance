@@ -43,9 +43,9 @@ function id(x) { return x[0]; }
 		} else if ( 'number' == a.type ) {
 			return parseInt( a.text );
 		} else if ( [
-				'NL', 'WS', 'comment', 
+				'NL', 'WS', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
-				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent' 
+				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent'
 			].includes( a.type ) ) {
 			return null;
 		} else {
@@ -59,20 +59,26 @@ function id(x) { return x[0]; }
 		}
 		return [ t ];
 	};
-	const buildFactuple = ( d ) => {
+	const buildFactuple = ( d, l, r ) => {
 		var t = trimTree(d);
-		//if ( Array.isArray(t) ) {
-		//	t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		//}
+		if ( Array.isArray(t) ) {
+			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+		} else {
+		    t = [ t ];
+		}
+        const invalidIndexes = t.filter( (c,i) => c > i + 1 );
+        if ( invalidIndexes.length > 0 ) {
+            throw new Error( `Invalid factorial point [${ t }]: values: ${ invalidIndexes }` );
+        }
 		return t;
 	};
 	const buildPerm = ( d, l, r ) => {
 		var t = trimTree(d);
 		if ( Array.isArray(t) ) {
 			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-			// check every index occurs
-			if ( t.filter( (c,i) => t.indexOf(i) < 0 ).length > 0 ) {
-				return r;
+			const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
+			if ( missingIndexes.length > 0 ) {
+				throw new Error( `Invalid factorial perm [${ t }]: missing values: ${ missingIndexes }` );
 			}
 		}
 		return t;
@@ -84,7 +90,6 @@ function id(x) { return x[0]; }
 				return { 'op': 'box', 'bases': [ t[0], ...t[1] ] };
 			} else {
 				return { 'op': 'box', 'bases': [ t[0], t[1] ] };
-
 			}
 		} else {
 			return { 'op': 'box', 'bases': [ t ] };
@@ -93,15 +98,24 @@ function id(x) { return x[0]; }
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
-			if (Array.isArray(t[1][0])) {
-				return isFactIndex
-					? { 'op': 'index', 'box': t[0], 'facts': t[1] }
-					: { 'op': 'index', 'box': t[0], 'perms': t[1] };
-			} else {
-				return isFactIndex
-					? { 'op': 'index', 'box': t[0], 'facts': [t[1]] }
-					: { 'op': 'index', 'box': t[0], 'perms': [t[1]] };
-			}			
+		    const boxIndex = { 'op': 'index', 'box': t[0] };
+		    const payload = Array.isArray(t[1][0]) ? t[1] : [t[1]];
+		    if ( isFactIndex ) {
+		        const requiredLength = boxIndex.box.bases.length - 1;
+                const badFacts = payload.filter( p => p.length != requiredLength ).map( p => `{${ p }}`);
+                if ( badFacts.length > 0 ) {
+                    throw new Error( `Invalid factorial points for box [${ boxIndex.box.bases }]: require length ${ requiredLength }: ${ badFacts }` );
+                }
+		        boxIndex.facts = payload;
+		    } else {
+		        const requiredLength = boxIndex.box.bases.length;
+                const badPerms = payload.filter( p => p.length != requiredLength ).map( p => `{${ p }}`);
+                if ( badPerms.length > 0 ) {
+                    throw new Error( `Invalid factorial perm for box [${ boxIndex.box.bases }]: require length ${ requiredLength }: ${ badPerms }` );
+                }
+		        boxIndex.perms = payload;
+		    }
+		    return boxIndex;
 		} else {
 			return { 'op': 'index', 'box': t };
 		}
@@ -145,7 +159,27 @@ var grammar = {
     {"name": "brackets$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "brackets$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "brackets$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "cycles", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": trimTree},
+    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "expression", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": trimTree},
+    {"name": "product$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "product$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "product$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "product$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "product", "symbols": ["expression", "product$ebnf$1", (lexer.has("tilda") ? {type: "tilda"} : tilda), "product$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'product' )},
+    {"name": "product2$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "product2$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "product2$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "product2$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "product2", "symbols": ["expression", "product2$ebnf$1", (lexer.has("pipe") ? {type: "pipe"} : pipe), "product2$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'product2' )},
+    {"name": "power$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "power$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "power$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "power$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "power", "symbols": ["expression", "power$ebnf$1", (lexer.has("exp") ? {type: "exp"} : exp), "power$ebnf$2", (lexer.has("number") ? {type: "number"} : number)], "postprocess": d => buildOp( d, 'power' )},
+    {"name": "compose$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "compose$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "compose$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
+    {"name": "compose$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "compose", "symbols": ["expression", "compose$ebnf$1", (lexer.has("star") ? {type: "star"} : star), "compose$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'compose' )},
     {"name": "index$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "index$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "index$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
@@ -199,27 +233,7 @@ var grammar = {
     {"name": "perm$ebnf$2", "symbols": ["perm$ebnf$2$subexpression$1", "perm$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "perm$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
     {"name": "perm$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "perm", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "perm$ebnf$1", (lexer.has("number") ? {type: "number"} : number), "perm$ebnf$2", "perm$ebnf$3", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildPerm},
-    {"name": "product$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "product$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "product$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "product$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "product", "symbols": ["expression", "product$ebnf$1", (lexer.has("tilda") ? {type: "tilda"} : tilda), "product$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'product' )},
-    {"name": "product2$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "product2$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "product2$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "product2$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "product2", "symbols": ["expression", "product2$ebnf$1", (lexer.has("pipe") ? {type: "pipe"} : pipe), "product2$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'product2' )},
-    {"name": "power$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "power$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "power$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "power$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "power", "symbols": ["expression", "power$ebnf$1", (lexer.has("exp") ? {type: "exp"} : exp), "power$ebnf$2", (lexer.has("number") ? {type: "number"} : number)], "postprocess": d => buildOp( d, 'power' )},
-    {"name": "compose$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "compose$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "compose$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)], "postprocess": id},
-    {"name": "compose$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "compose", "symbols": ["expression", "compose$ebnf$1", (lexer.has("star") ? {type: "star"} : star), "compose$ebnf$2", "expression"], "postprocess": d => buildOp( d, 'compose' )}
+    {"name": "perm", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "perm$ebnf$1", (lexer.has("number") ? {type: "number"} : number), "perm$ebnf$2", "perm$ebnf$3", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildPerm}
 ]
   , ParserStart: "main"
 }

@@ -411,20 +411,19 @@ class FactorialBox extends AbstractBox {
         }
     }
 
-    calculateLabelCoord( point ) {
-        const coord = point;
-        var labelCoord = [...coord];
-        const labelMap = FactorialBox.LABEL_MAPS[ coord.length - 1 ]
-        if (labelMap) {
-            labelMap.forEach( m => {
-                if ( arrayExactlyEquals( coord, m[0] ) ) {
-                    labelCoord = m[1];
-                } else if ( arrayExactlyEquals( coord, m[1] ) ) {
-                    labelCoord = m[0];
+    alignPoint( point ) {
+        const alignments = FactorialBox.LABEL_MAPS[ point.length - 1 ]
+        if (alignments) {
+            alignments.forEach( alignment => {
+                if ( arrayExactlyEquals( point, alignment[0] ) ) {
+                    point.length = 0;
+                    point.push( ...alignment[1] );
+                } else if ( arrayExactlyEquals( point, alignment[1] ) ) {
+                    point.length = 0;
+                    point.push( ...alignment[0] );
                 }
             } );
         }
-        point.labelCoord = labelCoord;
     }
 
     makeLabel( coord ) {
@@ -466,6 +465,7 @@ class FactorialBox extends AbstractBox {
             this.unpermute( antiPerm, point );
             point.antiPerm = antiPerm;
 
+            // sacrificial copy
             const bases = [...dialLengths];
             this.permute( bases, point );
             point.bases = bases;
@@ -474,12 +474,10 @@ class FactorialBox extends AbstractBox {
             this.unpermute( placeValues, point );
             point.placeValues = placeValues;
 
+            this.alignPoint( point );
+            point.key = this.makeLabel( point ).join('');
+
             point.index = [];
-
-            this.calculateLabelCoord( point );
-
-            point.key = this.makeLabel( point.labelCoord ).join('');
-
             point.parity = -1 * point[0];
         } );
         this.forEach( point => {
@@ -1012,7 +1010,7 @@ class Box extends AbstractBox {
             this.actionsCache = this.permBox.flatMap( pr => this.permBox
                 .filter( pl => pl != pr )
                 .map( pl => {
-                    const c = compose( pl, pr, true, this );
+                    const c = compose( pr, pl, true, this );
                     c.parity = arrayCompare( pl.perm, pr.perm ) > 0;
                     return c;
                 } ) );

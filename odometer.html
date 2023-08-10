@@ -53,8 +53,9 @@
                 byId( 'boxActions' ).innerHTML = '';
             }
         }
-        function putHtml( actions, param ) {
+        function putActions( actions ) {
             const container = byId( 'expressionResults' );
+            container.innerHTML = '';
             if (!actions) {
                 container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( 'No result!' ) ] ) );
             } else if ( actions[0] instanceof Cycles ) {
@@ -71,6 +72,11 @@
                 container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( actions ) ] ) );
             }
         }
+        function putComment( comment ) {
+            const container = byId( 'expressionResults' );
+            container.appendChild( reifyText( comment ) );
+            container.appendChild( reify( 'br' ) );
+        }
         function clearResults() {
             expressionResults
                 .querySelectorAll( '.expressionScriptError' )
@@ -84,18 +90,23 @@
             }
             Box.clear();
         }
-        function calculate( script, sourceElement ) {
+        function calculate( script ) {
             const isFormula = byId( 'formulaToggle' ).checked;
-            try {
-                const cycles = isFormula
-                    ? new Operation( script ).evaluate()
-                    : eval( script );
-                putHtml( cycles );
-            } catch ( e ) {
-                console.log( `Error processing script: ${ e }` );
-                putHtml( e );
-                throw e;
-            }
+            putComment( "Calculating..." );
+            const calculator = () => {
+                try {
+                    const cycles = isFormula
+                        ? new Operation( script ).evaluate()
+                        : eval( script );
+                    putComment( "Rendering..." );
+                    setTimeout( () => putActions( cycles ), 50 );
+                } catch ( e ) {
+                    console.log( `Error processing script: ${ e }` );
+                    putHtml( e );
+                    throw e;
+                }
+            };
+            setTimeout( calculator, 100 );
         }
         function calculateNow() {
             if ( byId( 'clearOnCalculate' ).checked ) {
@@ -114,16 +125,22 @@
                                 reifyText( i > 0 ? ' | ' : 'expressions: ' ),
                                 reify( 'a', {}, [ reifyText( key ) ], [
                                         c => c.onclick = (event) => {
-                                                expressionScript.innerHTML = group.join('\n');
-                                                calculateNow();
+                                                expressionScript.innerHTML = '# ' + key + '\n' + group.join('\n');
+                                                setTimeout( calculateNow, 50);
                                             }
                                     ] ),
                         ] ) ) ) );
+
+            const defaultScript = expressionLibrary['default'];
+            if (defaultScript) {
+                expressionScript.innerHTML = '# default\n' + defaultScript.join('\n');
+                setTimeout( calculateNow, 50);
+            }
         }
 
     </script>
 </head>
-<body onload="renderExpressionLibraryLinks(); calculateNow()">
+<body onload="renderExpressionLibraryLinks()">
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>

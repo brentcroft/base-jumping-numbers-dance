@@ -394,8 +394,7 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
         'perimeter',
         'radiance',
         'index',
-        'cycles',
-        'diagram'
+        'cycles'
     ];
     const columns = [ '#', ...arrayIntersection( allColumns, actionsHtmlTableColumns ) ];
 
@@ -505,7 +504,6 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                             ...cycles.orbits().flatMap( cycle => [ reifyText( `(${ cycle })` ), reify( 'br' ) ] ),
 
                         ] ) ),
-                        maybeDisplay( 'diagram', () => reify( 'td', {}, [ cycles.x3dCycles() ] ) ),
                     ],
                     [
                         c => c.onclick = onRowSelectionFactory( i, cycles, c )
@@ -533,9 +531,6 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                         columns.push( '#', ...arrayIntersection( allColumns, actionsHtmlTableColumns ) );
                         tableContainer.innerHTML = '';
                         tableContainer.appendChild( tableRenderer( actions ) );
-                        if ( columns.includes( 'diagram')) {
-                            x3dom.reload();
-                        }
                     }
                 }
             ] )

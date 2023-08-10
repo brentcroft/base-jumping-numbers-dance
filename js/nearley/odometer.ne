@@ -55,10 +55,21 @@
 		}
 		return [ t ];
 	};
-	const buildTuple = ( d ) => {
-		const t = trimTree(d);
+	const buildFactuple = ( d ) => {
+		var t = trimTree(d);
+		//if ( Array.isArray(t) ) {
+		//	t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+		//}
+		return t;
+	};
+	const buildPerm = ( d, l, r ) => {
+		var t = trimTree(d);
 		if ( Array.isArray(t) ) {
-			return t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+			// check every index occurs
+			if ( t.filter( (c,i) => t.indexOf(i) < 0 ).length > 0 ) {
+				return r;
+			}
 		}
 		return t;
 	};
@@ -75,15 +86,18 @@
 			return { 'op': 'box', 'bases': [ t ] };
 		}
 	};
-	const buildIndex = ( d ) => {
+	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
 			if (Array.isArray(t[1][0])) {
-				return { 'op': 'index', 'box': t[0], 'perms': t[1] };
+				return isFactIndex
+					? { 'op': 'index', 'box': t[0], 'facts': t[1] }
+					: { 'op': 'index', 'box': t[0], 'perms': t[1] };
 			} else {
-				return { 'op': 'index', 'box': t[0], 'perms': [ t[1] ] };
+				return isFactIndex
+					? { 'op': 'index', 'box': t[0], 'facts': [t[1]] }
+					: { 'op': 'index', 'box': t[0], 'perms': [t[1]] };
 			}
-			return { 'op': 'index', 'box': t[0], 'perms': (t[1]) };
 		} else {
 			return { 'op': 'index', 'box': t };
 		}
@@ -104,20 +118,21 @@ lines -> line (%NL line):* {% d => {
 line -> content | %comment | %WS | null
 content -> %WS:? expression %WS:? %comment:?
 expression -> ( cycles | brackets )
-operation -> ( compose | power | product | product2 )
 
-cycles -> ( index | product | product2 | compose | power )
+cycles -> ( factindex | index | product | product2 | compose | power )
 brackets -> %lparen %WS:? cycles %WS:? %rparen {% trimTree %}
 
-index -> box (%WS:? tuple (%WS:? tuple):?):? {% buildIndex %}
-
+index -> box (%WS:? perm (%WS:? perm):?):? {% d => buildIndex(d, false) %}
+factindex -> box (%WS:? factuple (%WS:? factuple):?):? {% d => buildIndex(d, true) %}
 box -> %number (%WS:? %colon %WS:? %number):* {% buildBox %}
+
+factuple -> %lcurly %WS:? %number (%WS:? %comma %WS:? %number):* %WS:? %rcurly {% buildFactuple %}
+perm -> %lsquare %WS:? %number (%WS:? %comma %WS:? %number):* %WS:? %rsquare {% buildPerm %}
+
 product -> expression %WS:? %tilda %WS:? expression {% d => buildOp( d, 'product' ) %}
 product2 -> expression %WS:? %pipe %WS:? expression {% d => buildOp( d, 'product2' ) %}
-
 
 power -> expression %WS:? %exp %WS:? %number {% d => buildOp( d, 'power' ) %}
 compose -> expression %WS:? %star %WS:? expression {% d => buildOp( d, 'compose' ) %}
 
-tuple -> %lsquare %WS:? %number (%WS:? %comma %WS:? %number):* %WS:? %rsquare {% buildTuple %}
 

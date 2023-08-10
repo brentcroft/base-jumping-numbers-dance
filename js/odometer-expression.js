@@ -44,19 +44,36 @@ class Operation {
                 const specifiedBases = leaf.box.bases;
                 const box = Box.of( specifiedBases );
                 var perms = [];
+                var spec = ' ';
                 if (Object.hasOwn( leaf, 'perms' ) ) {
+                    spec += leaf.perms.map( p => `[${p}]` ).join('');
                     const invalidPerms1 = leaf.perms.filter( perm => perm.length != specifiedBases.length );
                     if (invalidPerms1.length > 0) {
                         const error = invalidPerms1.map( p => `[${ p }]` ).join(',')
                         throw new Error( `Invalid perms: ${ error } cannot apply to box: ${ box.odometer.bases }` );
                     }
                     perms.push( ...leaf.perms.map( perm => box.permBox.find( point => arrayExactlyEquals( perm, point.perm ) ) ) );
-                    perms.reverse();
                     const invalidPerms2 = perms.map( (p,i) => p ? -1 : i ).filter(x => x > -1);
                     if (invalidPerms2.length > 0) {
                         const error = invalidPerms2.map( i => leaf.perms[i] ).map( p => `[${ p.join(',') }]` ).join(',')
                         throw new Error( `Invalid perms: ${ error } not found in box: ${ box.odometer.bases }` );
                     }
+                    perms.reverse();
+                } else if (Object.hasOwn( leaf, 'facts' ) ) {
+                    spec += leaf.facts.map( p => `{${p}}` ).join('');
+                    perms.push( ...leaf.facts.map( fact => {
+                        const x = box.permBox.find( point => {
+                            const p = arrayExactlyEquals( fact, point );
+                            return p;
+                        } );
+                        return x;
+                    } ) );
+                    const invalidPerms2 = perms.map( (p,i) => p ? -1 : i ).filter(x => x > -1);
+                    if (invalidPerms2.length > 0) {
+                        const error = invalidPerms2.map( i => leaf.facts[i] ).map( p => `[${ p.join(',') }]` ).join(', ')
+                        throw new Error( `Invalid perm points: ${ error } not found in box: ${ box.odometer.bases }` );
+                    }
+                    perms.reverse();
                 }
                 if ( perms.length > 2 ) {
                     // ok
@@ -83,7 +100,7 @@ class Operation {
 
                 const cycles = compose( perms[0], perms[1], true, box );
                 cycles.permPair = perms;
-                cycles.alias = specifiedBases.join(':');
+                cycles.alias = specifiedBases.join(':') + spec;
 //                cycles.parity = l > r;
                 return cycles;
             }

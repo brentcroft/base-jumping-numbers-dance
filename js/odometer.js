@@ -351,7 +351,7 @@ class FactorialBox extends AbstractBox {
     //static ROTATION_KEYS = "αβγδεζηθικλμξνοπρςστυφχψω";
     static LABELS = [
         [ '🠇', '🠅'],
-        [ 'α', 'γ', 'β' ],
+        [ 'α', 'β', 'γ' ],
         [ '♤', '♡', '♢', '♧' ],
         [ '1', '2', '3', '4', '5' ],
         [ 'A', 'B', 'C', 'D', 'E', 'F' ],

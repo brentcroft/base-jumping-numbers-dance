@@ -190,22 +190,33 @@
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     | <label class="columnSelector">formula:<input type="checkbox" checked="checked" id="formulaToggle"/></label>
     | <label class="columnSelector">diagram:<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
-    | <label class="columnSelector">filter:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()"></label>
-    <label class="columnSelector">
+    | <label class="columnSelector" for="monomialFilterToggle"><span id="monomialFilterDisplay"></span>:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()">
         <input type="hidden" id="monomialFilter">
-        <span id="monomialFilterDisplay"></span>
     </label>
+
 
     <label for="expressionScript" id="expressionScriptLabel">
         <hr/>
         <span id="expressionsLibrary"></span>
         <textarea id="expressionScript" class="expression" oninput="calculateNow()">
-5:4:2 # [0,1,2]
-5:4:2 [1,2,0]
-5:4:2 [2,0,1]
-5:4:2 [2,1,0]
-5:4:2 [1,0,2]
-5:4:2 [2,0,1]</textarea>
+# 5:4:2 - *:α🠅
+# perm references; factorial point references;
+5:4:2 [0,1,2]; 5:4:2 {0,0}
+5:4:2 [2,0,1]; 5:4:2 {0,1}
+5:4:2 [1,2,0]; 5:4:2 {0,2}
+5:4:2 [1,0,2]; 5:4:2 {1,0}
+5:4:2 [2,1,0]; 5:4:2 {1,1}
+5:4:2 [0,2,1]; 5:4:2 {1,2}
+
+# 4:2:5 - *:β🠅
+# perm references; factorial point references;
+4:2:5 [0,1,2]; 4:2:5 {0,0}
+4:2:5 [2,0,1]; 4:2:5 {0,1}
+4:2:5 [1,2,0]; 4:2:5 {0,2}
+4:2:5 [1,0,2]; 4:2:5 {1,0}
+4:2:5 [2,1,0]; 4:2:5 {1,1}
+4:2:5 [0,2,1]; 4:2:5 {1,2}
+        </textarea>
     </label>
 
     <hr/>

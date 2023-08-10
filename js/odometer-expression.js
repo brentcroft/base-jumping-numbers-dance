@@ -43,12 +43,23 @@ class Operation {
             {
                 const specifiedBases = leaf.box.bases;
                 const box = Box.of( specifiedBases );
-                var perms = null;
+                var perms = [];
                 if (Object.hasOwn( leaf, 'perms' ) ) {
-                    perms = [
-                        box.permBox.find( point => arrayExactlyEquals( leaf.perms[0], point.perm ) ),
-                        box.permBox.find( point => arrayExactlyEquals( leaf.perms[1], point.perm ) )
-                    ];
+                    const invalidPerms1 = leaf.perms.filter( perm => perm.length != specifiedBases.length );
+                    if (invalidPerms1.length > 0) {
+                        const error = invalidPerms1.map( p => `[${ p }]` ).join(',')
+                        throw new Error( `Invalid perms: ${ error } cannot apply to box: ${ box.odometer.bases }` );
+                    }
+                    perms.push( ...leaf.perms.map( perm => box.permBox.find( point => arrayExactlyEquals( perm, point.perm ) ) ) );
+                    perms.reverse();
+                    const invalidPerms2 = perms.map( (p,i) => p ? -1 : i ).filter(x => x > -1);
+                    if (invalidPerms2.length > 0) {
+                        const error = invalidPerms2.map( i => leaf.perms[i] ).map( p => `[${ p.join(',') }]` ).join(',')
+                        throw new Error( `Invalid perms: ${ error } not found in box: ${ box.odometer.bases }` );
+                    }
+                }
+                if ( perms.length > 2 ) {
+                    // ok
                 } else {
                     const tally = [...specifiedBases];
                     const perm0 = box.odometer.bases.map( (b,i) => {
@@ -56,12 +67,20 @@ class Operation {
                         tally[v] = -1;
                         return v;
                     });
-                    const perm1 = [...perm0].reverse();
-                    perms = [
-                        box.permBox.find( point => arrayExactlyEquals( perm0, point.perm ) ),
-                        box.permBox.find( point => arrayExactlyEquals( perm1, point.perm ) )
-                    ];
+
+                    if ( perms.length == 1 ) {
+                        perm0.reverse();
+                        perms.push( box.permBox.find( point => arrayExactlyEquals( perm0, point.perm ) ) );
+                    } else if ( perms.length == 0 ) {
+                        const perm1 = [...perm0];
+                        perm1.reverse();
+                        perms = [
+                            box.permBox.find( point => arrayExactlyEquals( perm0, point.perm ) ),
+                            box.permBox.find( point => arrayExactlyEquals( perm1, point.perm ) ),
+                        ];
+                    }
                 }
+
                 const cycles = compose( perms[0], perms[1], true, box );
                 cycles.permPair = perms;
                 cycles.alias = specifiedBases.join(':');

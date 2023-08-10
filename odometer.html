@@ -185,8 +185,8 @@
     </script>
 </head>
 <body onload="renderExpressionLinks( expressions ); calculateNow()">
+    | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
-    | <label class="columnSelector">expressions:<input type="checkbox" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     | <label class="columnSelector">formula:<input type="checkbox" checked="checked" id="formulaToggle"/></label>
     | <label class="columnSelector">diagram:<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
@@ -196,15 +196,16 @@
         <span id="monomialFilterDisplay"></span>
     </label>
 
-    <label for="expressionScript" id="expressionScriptLabel" style="display: none">
+    <label for="expressionScript" id="expressionScriptLabel">
         <hr/>
         <span id="expressionsLibrary"></span>
-        <textarea id="expressionScript" class="expressionScriptPanel" rows="2" cols="100" oninput="calculateNow()">
-5:4~2; 2:5~4; 4:2~5
-2~5:4; 4~2:5; 5~4:2
-5:8; 4:10; 2:20;
-5:4:2; 2:5:4; 4:2:5
-(4~5:2) * (4:2~5) * (2~5:4)</textarea>
+        <textarea id="expressionScript" class="expression" oninput="calculateNow()">
+5:4:2 # [0,1,2]
+5:4:2 [1,2,0]
+5:4:2 [2,0,1]
+5:4:2 [2,1,0]
+5:4:2 [1,0,2]
+5:4:2 [2,0,1]</textarea>
     </label>
 
     <hr/>

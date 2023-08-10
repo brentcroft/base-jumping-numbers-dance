@@ -139,19 +139,21 @@ class Operation {
             {
                 const exp = leaf.r;
                 var start = this.processTree( leaf.l );
-                if (Number.isInteger( start )) {
+                if ( Number.isInteger( start ) ) {
                     start = Box.of( [ start ] ).permBox[0];
                 }
                 var locus = start;
                 if ( exp < 1 ) {
                     var locus = inverse( start );
-                    for ( var i = 0; i >= exp; i-- ) {
+                    for ( var i = -1; i > exp; i-- ) {
                         locus = compose( start, locus, false, locus.box );
                     }
+                    locus.alias = `${ start.alias }^${ exp }`;
                 } else if ( exp > 1 ) {
                     for ( var i = 1; i < exp; i++ ) {
                         locus = compose( start, locus, false, locus.box );
                     }
+                    locus.alias = `${ start.alias }^${ exp }`;
                 }
                 return locus;
             }

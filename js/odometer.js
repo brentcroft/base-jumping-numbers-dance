@@ -125,6 +125,28 @@ function extendLine( p1, p2, scale = 0 ) {
     return [ p0, p1, p2, p3 ];
 }
 
+function getMultiplicativeGroupMember( terminal, member ) {
+    const identity = [ ...Array( terminal ).keys() ];
+    const index = [...identity];
+    var id = 0;
+    var i = 0;
+    index[i] = id;
+    id = (id + member) % terminal;
+    while (id != 0) {
+        i++;
+        index[i] = id;
+        id = (id + member) % terminal;
+    }
+    // add fixed point
+    index.push(terminal);
+    return {
+        'member': member,
+        'terminal': terminal,
+        'index': index
+    };
+}
+
+
 function cycles( source ) {
     const ri = [...source.index];
     const cycles = new Cycles();

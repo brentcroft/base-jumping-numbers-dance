@@ -38,7 +38,28 @@ class Operation {
         const maybeBrackets = (s) => s.startsWith('(') && s.endsWith(')')
             ? s
             : `(${s})`
+
         switch ( op ) {
+            case "mg":
+            {
+                /*
+                    leaf
+                    'op': 'mg',
+                    'group':
+                    'coprime':
+                    'cofactor':
+                */
+                const mge = getMultiplicativeGroupMember( leaf.group, leaf.coprime );
+                const bases = [ leaf.cofactor, leaf.coprime ];
+                const source = {
+                    'index': mge.index,
+                    'key': `(${ leaf.coprime } % ${ leaf.cofactor })`,
+                    'box': Box.of( [ leaf.cofactor, leaf.coprime ] )
+                };
+                const action = cycles( source );
+                action.alias = `${ leaf.coprime } % ${ leaf.cofactor }`;
+                return action;
+            }
             case "index":
             {
                 const specifiedBases = leaf.box.bases;

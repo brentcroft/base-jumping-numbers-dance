@@ -74,8 +74,11 @@
         }
         function putComment( comment ) {
             const container = byId( 'expressionResults' );
-            container.appendChild( reifyText( comment ) );
-            container.appendChild( reify( 'br' ) );
+            container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( comment ), reify( 'br' ) ] ) );
+        }
+        function putError( error ) {
+            const container = byId( 'expressionResults' );
+            container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( error ), reify( 'br' ) ] ) );
         }
         function clearResults() {
             expressionResults
@@ -99,10 +102,17 @@
                         ? new Operation( script ).evaluate()
                         : eval( script );
                     putComment( "Rendering..." );
-                    setTimeout( () => putActions( cycles ), 50 );
+                    setTimeout( () => {
+                        try {
+                            putActions( cycles )
+                        } catch (e) {
+                            console.log( `Error processing script: ${ e }` );
+                            putError( e );
+                        }
+                    }, 50 );
                 } catch ( e ) {
                     console.log( `Error processing script: ${ e }` );
-                    putHtml( e );
+                    putError( e );
                     throw e;
                 }
             };

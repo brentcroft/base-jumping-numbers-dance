@@ -6,13 +6,16 @@
 	const lexer = moo.compile({
         WS: /[ \t]+/,
         comment:    /\/\/.*?$|#.*?$/,
-        number:     /-?[0-9]+/,
+        number:     /[0-9]+/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
         exp:        '^',
         star:       '*',
+		minus:      '-',
+		plus:       '+',
         colon:      ':',
         tilda:      '~',
         pipe:       '|',
+		period:     '.',
         percent:    '%',
         comma:      ',',
         lparen:     '(',
@@ -41,7 +44,8 @@
 		} else if ( [
 				'NL', 'WS', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
-				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent'
+				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent', 'period',
+				'minus', 'plus'
 			].includes( a.type ) ) {
 			return null;
 		} else {
@@ -116,6 +120,53 @@
 			return { 'op': 'index', 'box': t };
 		}
 	};
+	const buildMultiplicativeGroup = ( d ) => {
+		const t = trimTree(d);
+/*		if ( t[0] >= t[1] ) {
+			throw new Error(`Invalid group member: ${ t[0] } is greater than group size ${ t[1] }`);
+		}
+		const notCoPrime = (t[0] % t[1]) == 0;
+		if ( notCoPrime ) {
+			throw new Error(`Invalid group member: ${ t[0] } is not coprime to group size ${ t[1] }`);
+		}*/
+		return {
+			'op': 'mg',
+			'coprime': t[0],
+			'cofactor': t[1],
+			'group': (t[0] * t[1]) - 1,
+		};
+	};
+	const buildNegation = ( d ) => {
+		var t = trimTree(d);
+		return -1 * t;
+	};
+	const buildProduct = ( d ) => {
+		var t = trimTree(d);
+		if ( Array.isArray(t) ) {
+			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+		} else {
+			t = [ t ];
+		}
+		return t.reduce( (a,c) => a * c, 1 );
+	};
+	const buildAddition = ( d ) => {
+		var t = trimTree(d);
+		if ( Array.isArray(t) ) {
+			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+		} else {
+			t = [ t ];
+		}
+		return t.reduce( (a,c) => a + c, 0 );
+	};
+	const buildSubtraction = ( d ) => {
+		var t = trimTree(d);
+		if ( Array.isArray(t) ) {
+			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+		} else {
+			t = [ t ];
+		}
+		return t.slice(1).reduce( (a,c) => a - c, t[0] );
+	};
 %}
 
 # Pass your lexer with @lexer:
@@ -130,22 +181,27 @@ lines -> line (%NL line):* {% d => {
 	return t;
 } %}
 line -> content | %comment | %WS | null
-content -> %WS:? expression %WS:? %comment:?
-expression -> ( cycles | brackets )
+content -> ( %WS:? expression %WS:? %comment:? ) {% trimTree %}
+expression -> ( cycles | brackets ) {% trimTree %}
 
-cycles -> ( factindex | index | product | product2 | compose | power )
+cycles -> ( factindex | index | mg | extrude | compose | power )
 brackets -> %lparen %WS:? expression %WS:? %rparen {% trimTree %}
+extrude -> expression %WS:? %tilda %WS:? expression {% d => buildOp( d, 'product' ) %}
 
-product -> expression %WS:? %tilda %WS:? expression {% d => buildOp( d, 'product' ) %}
-product2 -> expression %WS:? %pipe %WS:? expression {% d => buildOp( d, 'product2' ) %}
-
-power -> expression %WS:? %exp %WS:? %number {% d => buildOp( d, 'power' ) %}
+power -> expression %WS:? %exp %WS:? ninteger {% d => buildOp( d, 'power' ) %}
 compose -> expression %WS:? %star %WS:? expression {% d => buildOp( d, 'compose' ) %}
 
 index -> box (%WS:? perm (%WS:? perm):?):? {% d => buildIndex(d, false) %}
 factindex -> box (%WS:? factuple (%WS:? factuple):?):? {% d => buildIndex(d, true) %}
-box -> %number (%WS:? %colon %WS:? %number):* {% buildBox %}
+box -> pinteger (%WS:? %colon %WS:? pinteger):* {% buildBox %}
 
-factuple -> %lcurly %WS:? %number (%WS:? %comma %WS:? %number):* %WS:? %rcurly {% buildFactuple %}
-perm -> %lsquare %WS:? %number (%WS:? %comma %WS:? %number):* %WS:? %rsquare {% buildPerm %}
+factuple -> %lcurly %WS:* pinteger (%WS:* %comma %WS:* pinteger):* %WS:* %rcurly {% buildFactuple %}
+perm -> %lsquare %WS:* pinteger (%WS:* %comma %WS:* pinteger):* %WS:* %rsquare {% buildPerm %}
+mg -> pinteger %WS:* %percent %WS:* pinteger {% buildMultiplicativeGroup %}
+
+ninteger -> %minus pinteger {% buildNegation %}
+pinteger -> subtraction
+subtraction -> addition (%WS:* %minus %WS:* addition):* {% buildSubtraction %}
+addition -> product (%WS:* %plus %WS:* product):* {% buildAddition %}
+product -> %number (%WS:* %period %WS:* %number):* {% buildProduct %}
 

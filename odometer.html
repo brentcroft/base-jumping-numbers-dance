@@ -93,38 +93,45 @@
             }
             Box.clear();
         }
+
+        var calculatorTask = null;
+
         function calculate( script ) {
+            if (calculatorTask) {
+                try {
+                    clearTimeout( calculatorTask );
+                    //console.log( 'Cleared old calculator task.' );
+                } catch (e) {
+                    console.log( `Error cancelling script: ${ e }` );
+                }
+            }
             const isFormula = byId( 'formulaToggle' ).checked;
+
             putComment( "Calculating..." );
+            const cycles = isFormula
+                ? new Operation( script ).evaluate()
+                : eval( script );
+
+            putComment( "Rendering..." );
             const calculator = () => {
                 try {
-                    const cycles = isFormula
-                        ? new Operation( script ).evaluate()
-                        : eval( script );
-                    putComment( "Rendering..." );
-                    setTimeout( () => {
-                        try {
-                            putActions( cycles )
-                        } catch (e) {
-                            console.log( `Error processing script: ${ e }` );
-                            putError( e );
-                        }
-                    }, 50 );
-                } catch ( e ) {
+                    putActions( cycles );
+                    x3dom.reload();
+                } catch (e) {
                     console.log( `Error processing script: ${ e }` );
                     putError( e );
-                    throw e;
                 }
             };
-            setTimeout( calculator, 100 );
+            calculatorTask = setTimeout( calculator, 200 );
         }
+
         function calculateNow() {
             if ( byId( 'clearOnCalculate' ).checked ) {
                 clearResults();
             }
             calculate( byId( 'expressionScript' ).value );
             drawActionsTables();
-            x3dom.reload();
+
         }
         function renderExpressionLibraryLinks() {
             const expressionScript = byId('expressionScript');

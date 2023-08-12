@@ -2,7 +2,10 @@
 class Operation {
 
     constructor( scripts ) {
-        this.scripts = scripts.split( ';' ).filter( s => s.trim().length > 0 );
+        this.scripts = scripts
+            .replaceAll( '\n', ';' )
+            .split( ';' )
+            .filter( s => s.trim().length > 0 );
         this.tree = [];
         this.names = {};
         this.scripts.forEach( script => {

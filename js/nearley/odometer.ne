@@ -7,9 +7,12 @@
         WS: /[ \t]+/,
         comment:    /\/\/.*?$|#.*?$/,
         number:     /[0-9]+/,
+        name:       /[a-zA-Z]+/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
+        equals:     '=',
         exp:        '^',
         star:       '*',
+		slash:      '/',
 		minus:      '-',
 		plus:       '+',
         colon:      ':',
@@ -17,6 +20,7 @@
         pipe:       '|',
 		period:     '.',
         percent:    '%',
+		at:         '@',
         comma:      ',',
         lparen:     '(',
         rparen:     ')',
@@ -26,6 +30,7 @@
         rcurly:     '}',
         NL:    { match: /\n|;+/, lineBreaks: true },
 	});
+
     const trimTree = ( a ) => {
 		if ( a == null ) {
 			return null;
@@ -44,7 +49,7 @@
 		} else if ( [
 				'NL', 'WS', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
-				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent', 'period',
+				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent', 'period', 'at', 'equals', 'slash',
 				'minus', 'plus'
 			].includes( a.type ) ) {
 			return null;
@@ -120,21 +125,37 @@
 			return { 'op': 'index', 'box': t };
 		}
 	};
-	const buildMultiplicativeGroup = ( d ) => {
+	const buildMultiplicativeGroup = ( d, raw ) => {
 		const t = trimTree(d);
-/*		if ( t[0] >= t[1] ) {
-			throw new Error(`Invalid group member: ${ t[0] } is greater than group size ${ t[1] }`);
-		}
-		const notCoPrime = (t[0] % t[1]) == 0;
-		if ( notCoPrime ) {
-			throw new Error(`Invalid group member: ${ t[0] } is not coprime to group size ${ t[1] }`);
-		}*/
-		return {
+		const spec = `${ t[0] } ${ raw ? '@' : '%' } ${ t[1] }`;
+		const mg = {
 			'op': 'mg',
+			'key': spec,
 			'coprime': t[0],
-			'cofactor': t[1],
-			'group': (t[0] * t[1]) - 1,
 		};
+		if (raw) {
+			if (t[1] < 2) {
+				throw new Error( `Invalid group spec: ${ spec } right side must be 2 or greater.` );
+			}
+			if (t[0] < 2) {
+				throw new Error( `Invalid group spec: ${ spec } left side must be 2 or greater.` );
+			}
+			if (t[1] <= t[0]) {
+				throw new Error( `Invalid group spec: ${ spec } left side must be less than right side.` );
+			}
+			const gcd = (a, b) => a ? gcd( b % a, a) : b;
+			const divisor = gcd( t[1], t[0] );
+			if ( divisor > 1 ) {
+            	throw new Error( `Invalid group spec: ${ spec } (gcd = ${ divisor }) left side and right side must be coprime.` );
+        	}
+			mg.cofactor = (t[1] + 1) / t[0];
+			mg.group = t[1];
+
+		} else {
+			mg.cofactor = t[1];
+			mg.group =  (t[0] * t[1]) - 1;
+		}
+		return mg;
 	};
 	const buildNegation = ( d ) => {
 		var t = trimTree(d);
@@ -148,6 +169,15 @@
 			t = [ t ];
 		}
 		return t.reduce( (a,c) => a * c, 1 );
+	};
+	const buildDivision = ( d ) => {
+		var t = trimTree(d);
+		if ( Array.isArray(t) ) {
+			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+		} else {
+			t = [ t ];
+		}
+		return t.slice(1).reduce( (a,c) => a / c, t[0] );
 	};
 	const buildAddition = ( d ) => {
 		var t = trimTree(d);
@@ -167,6 +197,10 @@
 		}
 		return t.slice(1).reduce( (a,c) => a - c, t[0] );
 	};
+	const buildExponentation = ( d ) => {
+		var t = trimTree(d);
+		return t[0] ** t[1];
+	};
 %}
 
 # Pass your lexer with @lexer:
@@ -180,28 +214,34 @@ lines -> line (%NL line):* {% d => {
 	}
 	return t;
 } %}
-line -> content | %comment | %WS | null
-content -> ( %WS:? expression %WS:? %comment:? ) {% trimTree %}
-expression -> ( cycles | brackets ) {% trimTree %}
+line -> ( assignment | content | %comment | %WS | null )
+assignment -> ( %WS:* (%name %WS:* %equals %WS:*):? expression %WS:* %comment:? ) {% trimTree %}
+content -> ( %WS:* expression %WS:* %comment:? ) {% trimTree %}
+expression -> ( cycles | brackets | %name ) {% trimTree %}
 
-cycles -> ( factindex | index | mg | extrude | compose | power )
-brackets -> %lparen %WS:? expression %WS:? %rparen {% trimTree %}
-extrude -> expression %WS:? %tilda %WS:? expression {% d => buildOp( d, 'product' ) %}
+cycles -> ( factindex | index | mg | mgraw | extrude | compose | power )
+brackets -> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
 
-power -> expression %WS:? %exp %WS:? ninteger {% d => buildOp( d, 'power' ) %}
-compose -> expression %WS:? %star %WS:? expression {% d => buildOp( d, 'compose' ) %}
+extrude -> expression %WS:* %tilda %WS:* expression {% d => buildOp( d, 'product' ) %}
+power -> expression %WS:* %exp %WS:* zinteger {% d => buildOp( d, 'power' ) %}
+compose -> expression %WS:* %star %WS:* expression {% d => buildOp( d, 'compose' ) %}
 
-index -> box (%WS:? perm (%WS:? perm):?):? {% d => buildIndex(d, false) %}
-factindex -> box (%WS:? factuple (%WS:? factuple):?):? {% d => buildIndex(d, true) %}
-box -> pinteger (%WS:? %colon %WS:? pinteger):* {% buildBox %}
+index -> box (%WS:* perm (%WS:* perm):?):? {% d => buildIndex(d, false) %}
+factindex -> box (%WS:* factuple (%WS:* factuple):?):? {% d => buildIndex(d, true) %}
+box -> zinteger (%WS:* %colon %WS:* zinteger):* {% buildBox %}
 
-factuple -> %lcurly %WS:* pinteger (%WS:* %comma %WS:* pinteger):* %WS:* %rcurly {% buildFactuple %}
-perm -> %lsquare %WS:* pinteger (%WS:* %comma %WS:* pinteger):* %WS:* %rsquare {% buildPerm %}
-mg -> pinteger %WS:* %percent %WS:* pinteger {% buildMultiplicativeGroup %}
+factuple -> %lcurly %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rcurly {% buildFactuple %}
+perm -> %lsquare %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rsquare {% buildPerm %}
+mg -> zinteger %WS:* %percent %WS:* zinteger {% d => buildMultiplicativeGroup(d) %}
+mgraw -> zinteger %WS:* %at %WS:* zinteger {% d => buildMultiplicativeGroup(d, true) %}
 
-ninteger -> %minus pinteger {% buildNegation %}
-pinteger -> subtraction
-subtraction -> addition (%WS:* %minus %WS:* addition):* {% buildSubtraction %}
-addition -> product (%WS:* %plus %WS:* product):* {% buildAddition %}
-product -> %number (%WS:* %period %WS:* %number):* {% buildProduct %}
+zinteger 		-> ( zbrackets | zpower | ninteger | pinteger ) {% trimTree %}
+zbrackets 		-> %lparen %WS:* zinteger %WS:* %rparen {% trimTree %}
+zpower 			-> ( pinteger | ninteger ) %WS:* %exp %WS:* zinteger {% buildExponentation %}
+ninteger 		-> %minus pinteger {% buildNegation %}
+pinteger 		-> %plus:? division {% trimTree %}
+division 	    -> multiplication (%WS:* %slash %WS:* zinteger):* {% buildDivision %}
+multiplication 	-> addition (%WS:* %period %WS:* zinteger):* {% buildProduct %}
+addition 		-> subtraction (%WS:* %plus %WS:* zinteger):* {% buildAddition %}
+subtraction 	-> %number (%WS:* %minus %WS:* zinteger):* {% buildSubtraction %}
 

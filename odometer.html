@@ -68,6 +68,7 @@
                     .querySelectorAll( 'tr.default-selection' )
                     .forEach( element => element.click() );
 
+                x3dom.reload();
             } else {
                 container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( actions ) ] ) );
             }
@@ -76,9 +77,13 @@
             const container = byId( 'expressionResults' );
             container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( comment ), reify( 'br' ) ] ) );
         }
-        function putError( error ) {
+        function putError( message, error ) {
             const container = byId( 'expressionResults' );
-            container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( error ), reify( 'br' ) ] ) );
+            container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( message ) ] ) );
+            container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error ) ] ) );
+            if ( error.stack ) {
+                container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error.stack.split( '\n' )[0] ) ] ) );
+            }
         }
         function clearResults() {
             expressionResults
@@ -95,43 +100,75 @@
         }
 
         var calculatorTask = null;
+        var compileTask = null;
+        var evaluateTask = null;
+        var renderTask = null;
 
         function calculate( script ) {
             if (calculatorTask) {
-                try {
-                    clearTimeout( calculatorTask );
-                    //console.log( 'Cleared old calculator task.' );
-                } catch (e) {
-                    console.log( `Error cancelling script: ${ e }` );
-                }
+                clearTimeout( calculatorTask );
+                //console.log( 'Cleared old calculator task.' );
             }
-            const isFormula = byId( 'formulaToggle' ).checked;
 
-            putComment( "Calculating..." );
-            const cycles = isFormula
-                ? new Operation( script ).evaluate()
-                : eval( script );
-
-            putComment( "Rendering..." );
             const calculator = () => {
-                try {
-                    putActions( cycles );
-                    x3dom.reload();
-                } catch (e) {
-                    console.log( `Error processing script: ${ e }` );
-                    putError( e );
+                if ( byId( 'clearOnCalculate' ).checked ) {
+                    clearResults();
                 }
+
+                if (calculatorTask) {
+                    clearTimeout( compileTask );
+                    //console.log( 'Cleared old compile task.' );
+                }
+
+                const compiler = () => {
+                    try {
+                        if (evaluateTask) {
+                            clearTimeout( evaluateTask );
+                        }
+
+                        const operation = new Operation( script );
+                        putComment( `Compiled ${ operation.tree.length } expressions.` );
+
+                        const evaluator = () => {
+                            try {
+                                if (renderTask) {
+                                    clearTimeout( renderTask );
+                                }
+
+                                const result = operation.evaluate();
+                                putComment( `Evaluated ${ operation.tree.length } expressions.` );
+
+                                const renderer = () => {
+                                    try {
+                                        putActions( result );
+                                    } catch ( e ) {
+                                        putError( 'Error rendering result', e );
+                                        throw e;
+                                    }
+                                };
+                                putComment( "Rendering..." );
+                                renderTask = setTimeout( renderer, 200 );
+                            } catch (e) {
+                                putError( 'Error evaluating script', e );
+                                throw e;
+                            }
+                        };
+                        putComment( "Calculating..." );
+                        evaluateTask = setTimeout( evaluator, 200 );
+                   } catch (e) {
+                        putError( 'Error compiling script', e );
+                        throw e;
+                   }
+                };
+                putComment( "Compiling..." );
+                compileTask = setTimeout( compiler, 200 );
             };
             calculatorTask = setTimeout( calculator, 200 );
         }
 
         function calculateNow() {
-            if ( byId( 'clearOnCalculate' ).checked ) {
-                clearResults();
-            }
             calculate( byId( 'expressionScript' ).value );
             drawActionsTables();
-
         }
         function renderExpressionLibraryLinks() {
             const expressionScript = byId('expressionScript');
@@ -142,7 +179,7 @@
                                 reifyText( i > 0 ? ' | ' : 'expressions: ' ),
                                 reify( 'a', {}, [ reifyText( key ) ], [
                                         c => c.onclick = (event) => {
-                                                expressionScript.innerHTML = '# ' + key + '\n' + group.join('\n');
+                                                expressionScript.innerHTML = '# ' + key + ';\n' + group.join(';\n');
                                                 setTimeout( calculateNow, 50);
                                             }
                                     ] ),
@@ -150,7 +187,7 @@
 
             const defaultScript = expressionLibrary['default'];
             if (defaultScript) {
-                expressionScript.innerHTML = '# default\n' + defaultScript.join('\n');
+                expressionScript.innerHTML = '# default;\n' + defaultScript.join(';\n');
                 setTimeout( calculateNow, 50);
             }
         }
@@ -161,8 +198,6 @@
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
-    | <label class="columnSelector">formula:<input type="checkbox" checked="checked" id="formulaToggle"/></label>
-    | <label class="columnSelector">diagram:<input type="checkbox" id="cyclesDiagramToggle" onclick="calculateNow()"/></label>
     | <label class="columnSelector" for="monomialFilterToggle"><span id="monomialFilterDisplay"></span>:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()">
         <input type="hidden" id="monomialFilter">
     </label>
@@ -171,14 +206,7 @@
     <label for="expressionScript" id="expressionScriptLabel">
         <hr/>
         <span id="expressionsLibrary"></span>
-        <textarea id="expressionScript" class="expression" oninput="calculateNow()">
-5:4:2 [2,0,1] [0,1,2]; 5:4:2 {0,1} {0,0}
-5:4:2 [2,0,1] [2,0,1]; 5:4:2 {0,1} {0,1}
-5:4:2 [2,0,1] [1,2,0]; 5:4:2 {0,1} {0,2}
-5:4:2 [2,0,1] [2,1,0]; 5:4:2 {0,1} {1,0}
-5:4:2 [2,0,1] [1,0,2]; 5:4:2 {0,1} {1,1}
-5:4:2 [2,0,1] [0,2,1]; 5:4:2 {0,1} {1,2}
-        </textarea>
+        <textarea id="expressionScript" class="expression" oninput="calculateNow()"></textarea>
     </label>
 
     <hr/>

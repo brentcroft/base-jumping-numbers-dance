@@ -64,5 +64,5 @@ function reifyInput( label, attr = { type: 'text' }, onChangeValue ) {
 }
 
 function reifyText( text, attr = {}, ops = [] ) {
-    return reify( "span", attr, [], [ c => c.innerHTML = text, ...ops ] );
+    return reify( "text", attr, [], [ c => c.innerHTML = text, ...ops ] );
 }

@@ -1,12 +1,14 @@
 
 class Operation {
 
-    constructor( script ) {
-        this.script = script;
-
-        const parser = new nearley.Parser( nearley.Grammar.fromCompiled( grammar ) );
-        parser.feed( this.script );
-        this.tree = parser.results[0];
+    constructor( scripts ) {
+        this.scripts = scripts.split( ';' );
+        this.tree = [];
+        this.scripts.forEach( script => {
+            const parser = new nearley.Parser( nearley.Grammar.fromCompiled( grammar ) );
+            parser.feed( script );
+            this.tree.push( parser.results[0] );
+        } );
 //        console.log( JSON.stringify( this.tree, null, 2 ) );
     }
 
@@ -14,7 +16,7 @@ class Operation {
         const result = this.processTree( this.tree );
         this.result = result instanceof Cycles ? [ result ] : result;
 //        console.log( result );
-        return this.result;
+        return this.result.filter( r => r != null && (!Array.isArray( r ) || r.length > 0 ) );
     }
 
     processTree( tree ) {
@@ -35,31 +37,28 @@ class Operation {
             return;
         }
         const op = leaf.op;
-        const maybeBrackets = (s) => s.startsWith('(') && s.endsWith(')')
-            ? s
-            : `(${s})`
+        const maybeBrackets = (s) => s && s.startsWith('(') && s.endsWith(')') ? s : `(${s})`;
 
         switch ( op ) {
+
             case "mg":
             {
-                /*
-                    leaf
-                    'op': 'mg',
-                    'group':
-                    'coprime':
-                    'cofactor':
-                */
                 const mge = getMultiplicativeGroupMember( leaf.group, leaf.coprime );
-                const bases = [ leaf.cofactor, leaf.coprime ];
+                const cofactor = (leaf.group + 1) / leaf.coprime;
+                const box = Box.of(
+                    Number.isInteger(leaf.cofactor)
+                        ? [ leaf.cofactor, leaf.coprime ]
+                        : [ leaf.group + 1 ]
+                );
                 const source = {
                     'index': mge.index,
-                    'key': `(${ leaf.coprime } % ${ leaf.cofactor })`,
-                    'box': Box.of( [ leaf.cofactor, leaf.coprime ] )
+                    'key': `(${ leaf.coprime } @ ${ leaf.group })`,
+                    'box': box
                 };
                 const action = cycles( source );
-                action.alias = `${ leaf.coprime } % ${ leaf.cofactor }`;
                 return action;
             }
+
             case "index":
             {
                 const specifiedBases = leaf.box.bases;
@@ -121,7 +120,7 @@ class Operation {
 
                 const cycles = compose( perms[0], perms[1], true, box );
                 cycles.permPair = perms;
-                cycles.alias = specifiedBases.join(':') + spec;
+                cycles.key = specifiedBases.join(':') + spec;
 //                cycles.parity = l > r;
                 return cycles;
             }
@@ -131,7 +130,7 @@ class Operation {
                 const l = this.processTree( leaf.l );
                 const r = this.processTree( leaf.r );
                 const cycles = compose( l, r, false, r.box );
-                cycles.alias = `${ maybeBrackets( l.alias ) }*${ maybeBrackets( r.alias ) }`;
+                cycles.key = `${ maybeBrackets( l.alias ) }*${ maybeBrackets( r.alias ) }`;
                 return cycles;
             }
 
@@ -165,7 +164,7 @@ class Operation {
                     bases.push( ...r.box.odometer.bases );
                 }
                 const cycles = product( l, r, twist, Box.of( bases ) );
-                cycles.alias = `${ l.alias }~${ r.alias }`;
+                cycles.key = `${ l.key }~${ r.key }`;
                 return cycles;
             }
 
@@ -188,7 +187,7 @@ class Operation {
                     bases.push( ...r.box.odometer.bases );
                 }
                 const cycles = product( l, r, twist, Box.of( bases ) );
-                cycles.alias = `${ l.alias }|${ r.alias }`;
+                cycles.key = `${ l.key }|${ r.key }`;
                 return cycles;
             }
 
@@ -196,6 +195,7 @@ class Operation {
             {
                 const exp = leaf.r;
                 var start = this.processTree( leaf.l );
+                const key = `${ start.key }^${ exp }`;
                 if ( Number.isInteger( start ) ) {
                     start = Box.of( [ start ] ).permBox[0];
                 }
@@ -205,12 +205,12 @@ class Operation {
                     for ( var i = -1; i > exp; i-- ) {
                         locus = compose( start, locus, false, locus.box );
                     }
-                    locus.alias = `${ start.alias }^${ exp }`;
+                    locus.key = `${ start.key }^${ exp }`;
                 } else if ( exp > 1 ) {
                     for ( var i = 1; i < exp; i++ ) {
                         locus = compose( start, locus, false, locus.box );
                     }
-                    locus.alias = `${ start.alias }^${ exp }`;
+                    locus.key = key;
                 }
                 return locus;
             }

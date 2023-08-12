@@ -2,8 +2,9 @@
 class Operation {
 
     constructor( scripts ) {
-        this.scripts = scripts.split( ';' );
+        this.scripts = scripts.split( ';' ).filter( s => s.trim().length > 0 );
         this.tree = [];
+        this.names = {};
         this.scripts.forEach( script => {
             const parser = new nearley.Parser( nearley.Grammar.fromCompiled( grammar ) );
             parser.feed( script );
@@ -28,7 +29,11 @@ class Operation {
             const box = Box.of( [ tree ] );
             return compose( box.permBox[0], box.permBox[0], false, box );
         } else {
-            return this.processLeaf( tree );
+            const leaf = this.processLeaf( tree );
+            if ( tree.name ) {
+                this.names[tree.name] = leaf;
+            }
+            return leaf;
         }
     }
 
@@ -37,7 +42,17 @@ class Operation {
             return;
         }
         const op = leaf.op;
-        const maybeBrackets = (s) => s && s.startsWith('(') && s.endsWith(')') ? s : `(${s})`;
+        const maybeBrackets = (s) => s && (
+            s.length < 3 || (s.startsWith('(') && s.endsWith(')'))
+           ) ? s : `(${s})`;
+
+        if ( 'name' == leaf.type ) {
+            const candidate = this.names[leaf.text];
+            if (!candidate) {
+                throw new Error( `No such named object: ${ leaf.text }` );
+            }
+            return candidate;
+        }
 
         switch ( op ) {
 
@@ -121,7 +136,9 @@ class Operation {
                 const cycles = compose( perms[0], perms[1], true, box );
                 cycles.permPair = perms;
                 cycles.key = specifiedBases.join(':') + spec;
-//                cycles.parity = l > r;
+                if ( leaf.name ) {
+                    cycles.name = leaf.name;
+                }
                 return cycles;
             }
 
@@ -130,26 +147,27 @@ class Operation {
                 const l = this.processTree( leaf.l );
                 const r = this.processTree( leaf.r );
                 const cycles = compose( l, r, false, r.box );
-                cycles.key = `${ maybeBrackets( l.alias ) }*${ maybeBrackets( r.alias ) }`;
+                cycles.key = `${ maybeBrackets( l.ref() ) } * ${ maybeBrackets( r.ref() ) }`;
                 return cycles;
             }
 
-            case "twist":
-            {
-                const l = leaf.l;
-                const r = leaf.r;
-                const b = Box.of([l,r]);
-                const [ i0, i1 ] = [ l > r ? 1 : 0, l > r ? 0 : 1 ];
-                const cycles = compose( b.permBox[i0], b.permBox[i1], true, b );
-                cycles.parity = l > r;
-                return cycles;
-            }
+//            case "twist":
+//            {
+//                const l = leaf.l;
+//                const r = leaf.r;
+//                const b = Box.of([l,r]);
+//                const [ i0, i1 ] = [ l > r ? 1 : 0, l > r ? 0 : 1 ];
+//                const cycles = compose( b.permBox[i0], b.permBox[i1], true, b );
+//                cycles.parity = l > r;
+//                return cycles;
+//            }
 
             case "product":
             {
                 const twist = false;
                 var l = Number.isInteger( leaf.l ) ? leaf.l : this.processTree( leaf.l );
                 var r = Number.isInteger( leaf.r ) ? leaf.r : this.processTree( leaf.r );
+                const key = `${ l.ref() } ~ ${ r.ref() }`;
                 const bases = [];
                 if (Number.isInteger( l )) {
                     bases.push( l );
@@ -164,30 +182,7 @@ class Operation {
                     bases.push( ...r.box.odometer.bases );
                 }
                 const cycles = product( l, r, twist, Box.of( bases ) );
-                cycles.key = `${ l.key }~${ r.key }`;
-                return cycles;
-            }
-
-            case "product2":
-            {
-                const twist = false;
-                var l = Number.isInteger( leaf.l ) ? leaf.l : this.processTree( leaf.l );
-                var r = Number.isInteger( leaf.r ) ? leaf.r : this.processTree( leaf.r );
-                const bases = [];
-                if (Number.isInteger( l )) {
-                    bases.push( l );
-                    l = Box.of( [ l ] ).permBox[0];
-                } else {
-                    bases.push( ...l.box.odometer.bases );
-                }
-                if (Number.isInteger( r )) {
-                    bases.push( r );
-                    r = Box.of( [ r ] ).permBox[0];
-                } else {
-                    bases.push( ...r.box.odometer.bases );
-                }
-                const cycles = product( l, r, twist, Box.of( bases ) );
-                cycles.key = `${ l.key }|${ r.key }`;
+                cycles.key = key;
                 return cycles;
             }
 
@@ -195,7 +190,7 @@ class Operation {
             {
                 const exp = leaf.r;
                 var start = this.processTree( leaf.l );
-                const key = `${ start.key }^${ exp }`;
+                const key = `${ start.ref } ^ ${ exp }`;
                 if ( Number.isInteger( start ) ) {
                     start = Box.of( [ start ] ).permBox[0];
                 }
@@ -205,13 +200,12 @@ class Operation {
                     for ( var i = -1; i > exp; i-- ) {
                         locus = compose( start, locus, false, locus.box );
                     }
-                    locus.key = `${ start.key }^${ exp }`;
                 } else if ( exp > 1 ) {
                     for ( var i = 1; i < exp; i++ ) {
                         locus = compose( start, locus, false, locus.box );
                     }
-                    locus.key = key;
                 }
+                locus.key = key;
                 return locus;
             }
         }

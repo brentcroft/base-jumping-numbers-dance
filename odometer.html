@@ -53,16 +53,16 @@
                 byId( 'boxActions' ).innerHTML = '';
             }
         }
-        function putActions( actions ) {
+        function putActions( result ) {
             const container = byId( 'expressionResults' );
             container.innerHTML = '';
-            if (!actions) {
+            if (!result) {
                 container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( 'No result!' ) ] ) );
-            } else if ( actions[0] instanceof Cycles ) {
+            } else if ( result[0] instanceof Cycles ) {
                 container.appendChild( reify(
                     'div',
                     { 'class': 'expressionScriptResult' },
-                    [ cyclesDomNode( actions, 'Expression Results', getMonomialFilter(), byId( 'boxCycles' ) ) ]
+                    [ cyclesDomNode( result, 'Expression Results', getMonomialFilter(), byId( 'boxCycles' ) ) ]
                 ) );
                 expressionResults
                     .querySelectorAll( 'tr.default-selection' )
@@ -70,7 +70,7 @@
 
                 x3dom.reload();
             } else {
-                container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( actions ) ] ) );
+                container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( JSON.stringify( result ) ) ] ) );
             }
         }
         function putComment( comment ) {

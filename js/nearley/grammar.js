@@ -11,7 +11,7 @@ function id(x) { return x[0]; }
         WS: /[ \t]+/,
         comment:    /\/\/.*?$|#.*?$/,
         number:     /[0-9]+/,
-        name:       /[a-zA-Z]+/,
+        name:       /[a-zA-Z$]+/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
         equals:     '=',
         exp:        '^',
@@ -61,6 +61,12 @@ function id(x) { return x[0]; }
 			return a;
 		}
 	};
+	const trimArith = (d) => { 
+		const t = trimTree(d);
+		return Array.isArray(t)
+			? t.flatMap( c => Array.isArray( c ) ? c : [ c ] )
+			: [ t ]
+	};
 	const buildOp = ( d, op ) => {
 		const t = trimTree(d);
 		if (Array.isArray(t) && t.length == 2 ) {
@@ -104,6 +110,11 @@ function id(x) { return x[0]; }
 			return { 'op': 'box', 'bases': [ t ] };
 		}
 	};
+	const buildAssignment = ( d ) => {
+		const t = trimTree(d);
+		t[1].name = t[0].text;
+		return t[1];
+	}
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
@@ -161,44 +172,15 @@ function id(x) { return x[0]; }
 		}
 		return mg;
 	};
-	const buildNegation = ( d ) => {
-		var t = trimTree(d);
-		return -1 * t;
-	};
-	const buildProduct = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}	
-		return t.reduce( (a,c) => a * c, 1 );
-	};
+	const buildNegation = ( d ) => -1 * trimTree(d);
+	const buildProduct = ( d ) => trimArith(d).reduce( (a,c) => a * c, 1 );
+	const buildAddition = ( d ) => trimArith(d).reduce( (a,c) => a + c, 0 );	
 	const buildDivision = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}	
+		const t = trimArith(d);
 		return t.slice(1).reduce( (a,c) => a / c, t[0] );
 	};
-	const buildAddition = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}	
-		return t.reduce( (a,c) => a + c, 0 );
-	};	
 	const buildSubtraction = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}	
+		const t = trimArith(d);
 		return t.slice(1).reduce( (a,c) => a - c, t[0] );
 	};
 	const buildExponentation = ( d ) => {
@@ -227,19 +209,16 @@ var grammar = {
     {"name": "line", "symbols": ["line$subexpression$1"]},
     {"name": "assignment$subexpression$1$ebnf$1", "symbols": []},
     {"name": "assignment$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "assignment$subexpression$1$ebnf$2$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name), "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$1", (lexer.has("equals") ? {type: "equals"} : equals), "assignment$subexpression$1$ebnf$2$subexpression$1$ebnf$2"]},
-    {"name": "assignment$subexpression$1$ebnf$2", "symbols": ["assignment$subexpression$1$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "assignment$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "assignment$subexpression$1$ebnf$2", "symbols": []},
+    {"name": "assignment$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "assignment$subexpression$1$ebnf$3", "symbols": []},
     {"name": "assignment$subexpression$1$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$subexpression$1$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "assignment$subexpression$1$ebnf$4", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": id},
-    {"name": "assignment$subexpression$1$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "assignment$subexpression$1", "symbols": ["assignment$subexpression$1$ebnf$1", "assignment$subexpression$1$ebnf$2", "expression", "assignment$subexpression$1$ebnf$3", "assignment$subexpression$1$ebnf$4"]},
-    {"name": "assignment", "symbols": ["assignment$subexpression$1"], "postprocess": trimTree},
+    {"name": "assignment$subexpression$1$ebnf$4", "symbols": []},
+    {"name": "assignment$subexpression$1$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$subexpression$1$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "assignment$subexpression$1$ebnf$5", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": id},
+    {"name": "assignment$subexpression$1$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "assignment$subexpression$1", "symbols": ["assignment$subexpression$1$ebnf$1", (lexer.has("name") ? {type: "name"} : name), "assignment$subexpression$1$ebnf$2", (lexer.has("equals") ? {type: "equals"} : equals), "assignment$subexpression$1$ebnf$3", "expression", "assignment$subexpression$1$ebnf$4", "assignment$subexpression$1$ebnf$5"]},
+    {"name": "assignment", "symbols": ["assignment$subexpression$1"], "postprocess": buildAssignment},
     {"name": "content$subexpression$1$ebnf$1", "symbols": []},
     {"name": "content$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "content$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "content$subexpression$1$ebnf$2", "symbols": []},

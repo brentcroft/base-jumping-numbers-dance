@@ -7,7 +7,7 @@
         WS: /[ \t]+/,
         comment:    /\/\/.*?$|#.*?$/,
         number:     /[0-9]+/,
-        name:       /[a-zA-Z]+/,
+        name:       /[a-zA-Z$]+/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
         equals:     '=',
         exp:        '^',
@@ -57,6 +57,12 @@
 			return a;
 		}
 	};
+	const trimArith = (d) => {
+		const t = trimTree(d);
+		return Array.isArray(t)
+			? t.flatMap( c => Array.isArray( c ) ? c : [ c ] )
+			: [ t ]
+	};
 	const buildOp = ( d, op ) => {
 		const t = trimTree(d);
 		if (Array.isArray(t) && t.length == 2 ) {
@@ -100,6 +106,11 @@
 			return { 'op': 'box', 'bases': [ t ] };
 		}
 	};
+	const buildAssignment = ( d ) => {
+		const t = trimTree(d);
+		t[1].name = t[0].text;
+		return t[1];
+	}
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
@@ -157,44 +168,15 @@
 		}
 		return mg;
 	};
-	const buildNegation = ( d ) => {
-		var t = trimTree(d);
-		return -1 * t;
-	};
-	const buildProduct = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}
-		return t.reduce( (a,c) => a * c, 1 );
-	};
+	const buildNegation = ( d ) => -1 * trimTree(d);
+	const buildProduct = ( d ) => trimArith(d).reduce( (a,c) => a * c, 1 );
+	const buildAddition = ( d ) => trimArith(d).reduce( (a,c) => a + c, 0 );
 	const buildDivision = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}
+		const t = trimArith(d);
 		return t.slice(1).reduce( (a,c) => a / c, t[0] );
 	};
-	const buildAddition = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}
-		return t.reduce( (a,c) => a + c, 0 );
-	};
 	const buildSubtraction = ( d ) => {
-		var t = trimTree(d);
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-		} else {
-			t = [ t ];
-		}
+		const t = trimArith(d);
 		return t.slice(1).reduce( (a,c) => a - c, t[0] );
 	};
 	const buildExponentation = ( d ) => {
@@ -215,7 +197,7 @@ lines -> line (%NL line):* {% d => {
 	return t;
 } %}
 line -> ( assignment | content | %comment | %WS | null )
-assignment -> ( %WS:* (%name %WS:* %equals %WS:*):? expression %WS:* %comment:? ) {% trimTree %}
+assignment -> ( %WS:* %name %WS:* %equals %WS:* expression %WS:* %comment:? ) {% buildAssignment %}
 content -> ( %WS:* expression %WS:* %comment:? ) {% trimTree %}
 expression -> ( cycles | brackets | %name ) {% trimTree %}
 

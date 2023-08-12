@@ -115,7 +115,12 @@
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
 		    const boxIndex = { 'op': 'index', 'box': t[0] };
-		    const payload = Array.isArray(t[1][0]) ? t[1] : [t[1]];
+		    const selectors = t[1];
+		    const payload = Array.isArray(selectors)
+		        ? Array.isArray(selectors[0])
+		            ? selectors
+		            : [ selectors ]
+		        : [[selectors]];
 		    if ( isFactIndex ) {
 		        const requiredLength = boxIndex.box.bases.length - 1;
                 const badFacts = payload.filter( p => p.length != requiredLength ).map( p => `{${ p }}`);

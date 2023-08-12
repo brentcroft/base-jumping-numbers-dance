@@ -34,7 +34,7 @@ function id(x) { return x[0]; }
         rcurly:     '}',
         NL:    { match: /\n|;+/, lineBreaks: true },
 	});
-	
+
     const trimTree = ( a ) => {
 		if ( a == null ) {
 			return null;
@@ -61,7 +61,7 @@ function id(x) { return x[0]; }
 			return a;
 		}
 	};
-	const trimArith = (d) => { 
+	const trimArith = (d) => {
 		const t = trimTree(d);
 		return Array.isArray(t)
 			? t.flatMap( c => Array.isArray( c ) ? c : [ c ] )
@@ -119,7 +119,12 @@ function id(x) { return x[0]; }
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
 		    const boxIndex = { 'op': 'index', 'box': t[0] };
-		    const payload = Array.isArray(t[1][0]) ? t[1] : [t[1]];
+		    const selectors = t[1];
+		    const payload = Array.isArray(selectors)
+		        ? Array.isArray(selectors[0])
+		            ? selectors
+		            : [ selectors ]
+		        : [[selectors]];
 		    if ( isFactIndex ) {
 		        const requiredLength = boxIndex.box.bases.length - 1;
                 const badFacts = payload.filter( p => p.length != requiredLength ).map( p => `{${ p }}`);
@@ -154,7 +159,7 @@ function id(x) { return x[0]; }
 			}
 			if (t[0] < 2) {
 				throw new Error( `Invalid group spec: ${ spec } left side must be 2 or greater.` );
-			}			
+			}
 			if (t[1] <= t[0]) {
 				throw new Error( `Invalid group spec: ${ spec } left side must be less than right side.` );
 			}
@@ -165,7 +170,7 @@ function id(x) { return x[0]; }
         	}
 			mg.cofactor = (t[1] + 1) / t[0];
 			mg.group = t[1];
-			
+
 		} else {
 			mg.cofactor = t[1];
 			mg.group =  (t[0] * t[1]) - 1;
@@ -174,7 +179,7 @@ function id(x) { return x[0]; }
 	};
 	const buildNegation = ( d ) => -1 * trimTree(d);
 	const buildProduct = ( d ) => trimArith(d).reduce( (a,c) => a * c, 1 );
-	const buildAddition = ( d ) => trimArith(d).reduce( (a,c) => a + c, 0 );	
+	const buildAddition = ( d ) => trimArith(d).reduce( (a,c) => a + c, 0 );
 	const buildDivision = ( d ) => {
 		const t = trimArith(d);
 		return t.slice(1).reduce( (a,c) => a / c, t[0] );

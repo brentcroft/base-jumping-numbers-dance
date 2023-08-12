@@ -190,7 +190,7 @@ class Operation {
             {
                 const exp = leaf.r;
                 var start = this.processTree( leaf.l );
-                const key = `${ start.ref } ^ ${ exp }`;
+                const key = `${ start.ref() } ^ ${ exp }`;
                 if ( Number.isInteger( start ) ) {
                     start = Box.of( [ start ] ).permBox[0];
                 }

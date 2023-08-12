@@ -153,8 +153,8 @@
 			if (t[1] < 2) {
 				throw new Error( `Invalid group spec: ${ spec } right side must be 2 or greater.` );
 			}
-			if (t[0] < 2) {
-				throw new Error( `Invalid group spec: ${ spec } left side must be 2 or greater.` );
+			if (t[0] < 1) {
+				throw new Error( `Invalid group spec: ${ spec } left side must be 1 or greater.` );
 			}
 			if (t[1] <= t[0]) {
 				throw new Error( `Invalid group spec: ${ spec } left side must be less than right side.` );

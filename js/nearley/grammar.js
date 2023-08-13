@@ -11,7 +11,7 @@ function id(x) { return x[0]; }
         WS: /[ \t]+/,
         comment:    /\/\/.*?$|#.*?$/,
         number:     /[0-9]+/,
-        name:       /[a-zA-Z$]+/,
+        name:       /[a-zA-Z$][a-zA-Z0-9$_]*/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
         equals:     '=',
         exp:        '^',
@@ -32,7 +32,7 @@ function id(x) { return x[0]; }
         rsquare:    ']',
         lcurly:     '{',
         rcurly:     '}',
-        NL:    { match: /\n|;+/, lineBreaks: true },
+        NL:    { match: /\n+/, lineBreaks: true },
 	});
 
     const trimTree = ( a ) => {

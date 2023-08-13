@@ -64,6 +64,7 @@ function pairs( list, includeIdentities = true ) {
     return p;
 }
 
+const MAX_SAFE_INT = 9007199254740991;
 const factorial = n => !(n > 1) ? 1 : factorial(n - 1) * n;
 const gcd = (a, b) => a ? gcd( b % a, a) : b;
 const lcm = (a, b) => a && b ? a * b / gcd(a, b) : 0;
@@ -151,6 +152,7 @@ function cycles( source ) {
     const ri = [...source.index];
     const cycles = new Cycles();
     cycles.key = source.key;
+    cycles.name = source.name;
     cycles.permPair = source.sources;
     cycles.box = source.box;
     cycles.parity = source.parity;
@@ -206,20 +208,26 @@ function parity( p0, p1 ) {
 function compose( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
     const li = leftSource.index;
+    const key = `${ maybeBracket( leftSource.key ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.key ) }`;
+    if (ri.length != li.length) {
+        throw new Error(`Cannot compose indexes of different lengths: ${ key }`);
+    }
     const index = new Array( ri.length );
     for ( var i = 0; i < ri.length; i++ ) {
         var nextId = twist ? ri.indexOf(i) : ri[i];
         index[i] = li[nextId];
     }
-    return cycles( {
-        'index': index,
-        'key': `${ maybeBracket( leftSource.key ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.key ) }`,
-        'sources': [ leftSource, rightSource, twist ],
-        'box': box,
-        'parity': twist
-            ? parity(leftSource.parity, !rightSource.parity)
-            : parity(leftSource.parity, rightSource.parity)
+    const action = cycles( {
+       'index': index,
+       'key': key,
+       'sources': [ leftSource, rightSource, twist ],
+       'box': box,
+       'parity': twist
+           ? parity(leftSource.parity, !rightSource.parity)
+           : parity(leftSource.parity, rightSource.parity)
     } );
+    //action.name = `${ maybeBracket( leftSource.name ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.name ) }`
+    return action;
 }
 function product( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
@@ -589,6 +597,8 @@ class Cycle extends Array {
 
             const C = cycles.C()[baseIndex];
 
+            const factor = this[ cycles.parity ? 0 : this.length - 1 ];
+
             // the coefficients formed by picking a place from each underlying point
             const cycleCoefficients = this.map( id => cycles.box[ id ][baseIndex] );
             if (cycleCoefficients) {
@@ -608,21 +618,28 @@ class Cycle extends Array {
                 }
                 var acc = 0;
                 var placeValue = 1;
+                var error = null;
 
-                coefficients.forEach( (coefficient, place) => {
-                    acc = acc + (coefficient * placeValue);
-                    placeValue = placeValue * base;
-                } );
+                try {
+                    coefficients.forEach( (coefficient, place) => {
+                        acc = acc + (coefficient * placeValue);
+                        if (acc > MAX_SAFE_INT) {
+                            throw new Error( 'Exceeded MAX_SAFE_INT' );
+                        }
+                        placeValue = placeValue * base;
+                    } );
+
+                    error = ( acc / factor / C );
+                    if (error == 1) {
+                        error = null;
+                    }
+                } catch (e) {
+                    error = 1
+                }
 
                 const reverseCoefficients = true;
                 if (reverseCoefficients) {
                     coefficients.reverse();
-                }
-
-                const factor = this[ cycles.parity ? 0 : this.length - 1 ];
-                var error = ( acc / factor / C );
-                if (error == 1) {
-                    error = null;
                 }
 
                 equations.push( { 'acc': acc, 'base': base, 'coeffs': coefficients, 'factor': factor, 'C': C, 'error': error } );

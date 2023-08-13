@@ -82,7 +82,7 @@
             container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( message ) ] ) );
             container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error ) ] ) );
             if ( error.stack ) {
-                container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error.stack.split( '\n' )[0] ) ] ) );
+                container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error.stack ) ] ) );
             }
         }
         function clearResults() {
@@ -126,7 +126,7 @@
                             clearTimeout( evaluateTask );
                         }
 
-                        const operation = new Operation( script );
+                        const operation = new Operation( script, byId('autoLabel').checked );
                         putComment( `Compiled ${ operation.tree.length } expressions.` );
 
                         const evaluator = () => {
@@ -170,6 +170,12 @@
             calculate( byId( 'expressionScript' ).value );
             drawActionsTables();
         }
+        function autoCalc() {
+            if ( byId('autoCalc').checked ) {
+                calculateNow();
+            }
+        }
+
         function renderExpressionLibraryLinks() {
             const expressionScript = byId('expressionScript');
             byId( 'expressionsLibrary' ).appendChild(
@@ -179,7 +185,7 @@
                                 reifyText( i > 0 ? ' | ' : 'expressions: ' ),
                                 reify( 'a', {}, [ reifyText( key ) ], [
                                         c => c.onclick = (event) => {
-                                                expressionScript.innerHTML = '# ' + key + ';\n' + group.join(';\n');
+                                                expressionScript.innerHTML = '# ' + key + '\n' + group.join('\n');
                                                 setTimeout( calculateNow, 50);
                                             }
                                     ] ),
@@ -187,7 +193,7 @@
 
             const defaultScript = expressionLibrary['default'];
             if (defaultScript) {
-                expressionScript.innerHTML = '# default;\n' + defaultScript.join(';\n');
+                expressionScript.innerHTML = '# default\n' + defaultScript.join('\n');
                 setTimeout( calculateNow, 50);
             }
         }
@@ -198,6 +204,8 @@
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
+    | <label class="columnSelector">auto-calc:<input type="checkbox" checked="checked" id="autoCalc" onclick="autoCalc()"/></label>
+    | <label class="columnSelector">auto-label:<input type="checkbox" id="autoLabel" onclick="autoCalc()"/></label>
     | <label class="columnSelector" for="monomialFilterToggle"><span id="monomialFilterDisplay"></span>:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()">
         <input type="hidden" id="monomialFilter">
     </label>
@@ -206,7 +214,7 @@
     <label for="expressionScript" id="expressionScriptLabel">
         <hr/>
         <span id="expressionsLibrary"></span>
-        <textarea id="expressionScript" class="expression" oninput="calculateNow()"></textarea>
+        <textarea id="expressionScript" class="expression" oninput="autoCalc()"></textarea>
     </label>
 
     <hr/>

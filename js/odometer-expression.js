@@ -1,15 +1,29 @@
 
 class Operation {
 
-    constructor( scripts ) {
-        this.scripts = scripts
+    static format( scripts, autoLabel = false ) {
+        const lines = scripts
             .replaceAll( '\n', ';' )
             .split( ';' )
-            .filter( s => s.trim().length > 0 );
+            .map( s => {
+                const p = s.indexOf('#');
+                return p < 0 ? s : s.slice(0, p);
+            } )
+            .map( s => s.trim() )
+            .filter( s => s.length > 0 );
+        return autoLabel
+            ? lines.map( (s,i) => s.includes( '=' ) ? s :`z${i} = (${ s })`)
+            : lines;
+    }
+
+    constructor( scripts, autoLabel = false ) {
+        this.scripts = Operation.format( scripts, autoLabel );
+
         this.tree = [];
         this.names = {};
+        const compiledGrammar = nearley.Grammar.fromCompiled( grammar );
         this.scripts.forEach( script => {
-            const parser = new nearley.Parser( nearley.Grammar.fromCompiled( grammar ) );
+            const parser = new nearley.Parser( compiledGrammar );
             parser.feed( script );
             this.tree.push( parser.results[0] );
         } );
@@ -35,6 +49,7 @@ class Operation {
             const leaf = this.processLeaf( tree );
             if ( tree.name ) {
                 this.names[tree.name] = leaf;
+                leaf.name = tree.name;
             }
             return leaf;
         }
@@ -63,11 +78,12 @@ class Operation {
             {
                 const mge = getMultiplicativeGroupMember( leaf.group, leaf.coprime );
                 const cofactor = (leaf.group + 1) / leaf.coprime;
-                const box = Box.of(
-                    Number.isInteger(leaf.cofactor)
-                        ? [ leaf.cofactor, leaf.coprime ]
-                        : [ leaf.group + 1 ]
-                );
+//                const box = Box.of(
+//                    Number.isInteger(leaf.cofactor)
+//                        ? [ leaf.cofactor, leaf.coprime ]
+//                        : [ leaf.group + 1 ]
+//                );
+                const box = Box.of([ leaf.group + 1 ]);
                 const source = {
                     'index': mge.index,
                     'key': `(${ leaf.coprime } @ ${ leaf.group })`,
@@ -151,6 +167,9 @@ class Operation {
                 const r = this.processTree( leaf.r );
                 const cycles = compose( l, r, false, r.box );
                 cycles.key = `${ maybeBrackets( l.ref() ) } * ${ maybeBrackets( r.ref() ) }`;
+                if ( leaf.name ) {
+                    cycles.name = leaf.name;
+                }
                 return cycles;
             }
 
@@ -186,6 +205,9 @@ class Operation {
                 }
                 const cycles = product( l, r, twist, Box.of( bases ) );
                 cycles.key = key;
+                if ( leaf.name ) {
+                    cycles.name = leaf.name;
+                }
                 return cycles;
             }
 
@@ -209,6 +231,9 @@ class Operation {
                     }
                 }
                 locus.key = key;
+                if ( leaf.name ) {
+                    //cycles.name = leaf.name;
+                }
                 return locus;
             }
         }

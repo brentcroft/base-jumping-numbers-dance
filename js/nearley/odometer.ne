@@ -31,6 +31,7 @@
         NL:    { match: /\n+/, lineBreaks: true },
 	});
 
+	const localVars = {};
     const trimTree = ( a ) => {
 		if ( a == null ) {
 			return null;
@@ -68,7 +69,7 @@
 		if (Array.isArray(t) && t.length == 2 ) {
 			return { 'op': op, 'l': t[0], 'r': t[1] };
 		}
-		return [ t ];
+		return t;
 	};
 	const buildFactuple = ( d, l, r ) => {
 		var t = trimTree(d);
@@ -108,9 +109,15 @@
 	};
 	const buildAssignment = ( d ) => {
 		const t = trimTree(d);
-		t[1].name = t[0].text;
-		return t[1];
-	}
+		if (Array.isArray(t)) {
+			if ( t[1].name ) {
+				throw new Error( `Invalid Assignment: item named "${ t[1].name }" cannot be renamed "${ t[0].text }` );
+			}
+			t[1].name = t[0].text;
+			return t[1];
+		}
+		return t;
+	};
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
 		if ( Array.isArray( t ) ) {
@@ -201,26 +208,26 @@ lines -> line (%NL line):* {% d => {
 	}
 	return t;
 } %}
-line -> ( assignment | content | %comment | %WS | null )
-assignment -> ( %WS:* %name %WS:* %equals %WS:* expression %WS:* %comment:? ) {% buildAssignment %}
-content -> ( %WS:* expression %WS:* %comment:? ) {% trimTree %}
-expression -> ( cycles | brackets | %name ) {% trimTree %}
+line            -> ( content | %comment | %WS | null )
+content         -> ( %WS:* expression %WS:* %comment:? ) {% trimTree %}
+expression      -> ( composition | %name ) {% trimTree %}
 
-cycles -> ( factindex | index | mg | mgraw | extrude | compose | power )
-brackets -> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
+composition     -> production (%WS:* %star %WS:* expression):? {% d => buildOp( d, 'compose' ) %}
+production      -> exponentiation (%WS:* %tilda %WS:* expression):? {% d => buildOp( d, 'product' ) %}
+exponentiation  -> cycles (%WS:* %exp %WS:* zinteger):? {% d => buildOp( d, 'power' ) %}
 
-extrude -> expression %WS:* %tilda %WS:* expression {% d => buildOp( d, 'product' ) %}
-power -> expression %WS:* %exp %WS:* zinteger {% d => buildOp( d, 'power' ) %}
-compose -> expression %WS:* %star %WS:* expression {% d => buildOp( d, 'compose' ) %}
+cycles          -> ( cbrackets | cassignment | factindex | index | mg | mgraw | %name )
+cbrackets 		-> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
+cassignment     -> %name %WS:* %equals %WS:* expression {% buildAssignment %}
 
-index -> box (%WS:* perm (%WS:* perm):?):? {% d => buildIndex(d, false) %}
-factindex -> box (%WS:* factuple (%WS:* factuple):?):? {% d => buildIndex(d, true) %}
-box -> zinteger (%WS:* %colon %WS:* zinteger):* {% buildBox %}
+index           -> box (%WS:* perm (%WS:* perm):?):? {% d => buildIndex(d, false) %}
+factindex       -> box (%WS:* factuple (%WS:* factuple):?):? {% d => buildIndex(d, true) %}
+box             -> zinteger (%WS:* %colon %WS:* zinteger):* {% buildBox %}
 
-factuple -> %lcurly %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rcurly {% buildFactuple %}
-perm -> %lsquare %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rsquare {% buildPerm %}
-mg -> zinteger %WS:* %percent %WS:* zinteger {% d => buildMultiplicativeGroup(d) %}
-mgraw -> zinteger %WS:* %at %WS:* zinteger {% d => buildMultiplicativeGroup(d, true) %}
+factuple        -> %lcurly %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rcurly {% buildFactuple %}
+perm            -> %lsquare %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rsquare {% buildPerm %}
+mg              -> zinteger %WS:* %percent %WS:* zinteger {% d => buildMultiplicativeGroup(d) %}
+mgraw           -> zinteger %WS:* %at %WS:* zinteger {% d => buildMultiplicativeGroup(d, true) %}
 
 zinteger 		-> ( zbrackets | zpower | ninteger | pinteger ) {% trimTree %}
 zbrackets 		-> %lparen %WS:* zinteger %WS:* %rparen {% trimTree %}

@@ -126,8 +126,9 @@
                             clearTimeout( evaluateTask );
                         }
 
-                        const operation = new Operation( script, byId('autoLabel').checked );
-                        putComment( `Compiled ${ operation.tree.length } expressions.` );
+                        const operation = new CyclesExpression( byId( 'autoLabel' ).checked );
+                        const expressions = operation.compile( script );
+                        putComment( `Compiled ${ expressions.length } expressions.` );
 
                         const evaluator = () => {
                             try {
@@ -135,8 +136,8 @@
                                     clearTimeout( renderTask );
                                 }
 
-                                const result = operation.evaluate();
-                                putComment( `Evaluated ${ operation.tree.length } expressions.` );
+                                const result = operation.evaluate( expressions );
+                                putComment( `Evaluated ${ result.length } results.` );
 
                                 const renderer = () => {
                                     try {

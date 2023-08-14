@@ -481,7 +481,7 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                     [
                         reify( 'td', {}, [ reifyText( `${ i }` ) ] ),
                         maybeDisplay( 'box', () => reify( 'td', {}, [ reifyText( `[${ cycles.getBases().join(':') }]` ) ] ) ),
-                        maybeDisplay( 'alias', () => reify( 'td', {}, [ cycles.name ? reifyText( cycles.name ) : null ] ) ),
+                        maybeDisplay( 'alias', () => reify( 'td', {}, [ reifyText( `${ cycles.ref() }` ) ] ) ),
                         maybeDisplay( 'label', () => reify( 'td', {}, [ reifyText( `${ cycles.label() }` ) ] ) ),
                         maybeDisplay( 'match', () => reify( 'td', {}, [ reifyText( otherLabel( cycles ) ) ] ) ),
                         maybeDisplay( 'inverse', () => reify( 'td', {}, [ reifyText( `${ cycles.inverse ? cycles.inverse.label() : '-' }` ) ] ) ),

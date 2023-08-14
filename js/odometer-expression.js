@@ -1,7 +1,11 @@
 
-class Operation {
 
-    static format( scripts, autoLabel = false ) {
+
+class CyclesExpression {
+
+    static COMPILED_GRAMMAR = nearley.Grammar.fromCompiled( grammar );
+
+    static format( scripts ) {
         const lines = scripts
             .replaceAll( '\n', ';' )
             .split( ';' )
@@ -11,30 +15,36 @@ class Operation {
             } )
             .map( s => s.trim() )
             .filter( s => s.length > 0 );
-        return autoLabel
-            ? lines.map( (s,i) => s.includes( '=' ) ? s :`z${i} = (${ s })`)
-            : lines;
+        return lines;
     }
 
-    constructor( scripts, autoLabel = false ) {
-        this.scripts = Operation.format( scripts, autoLabel );
-
-        this.tree = [];
+    constructor( autoLabel = false ) {
+        this.autoLabel = autoLabel;
         this.names = {};
-        const compiledGrammar = nearley.Grammar.fromCompiled( grammar );
-        this.scripts.forEach( script => {
-            const parser = new nearley.Parser( compiledGrammar );
-            parser.feed( script );
-            this.tree.push( parser.results[0] );
-        } );
-//        console.log( JSON.stringify( this.tree, null, 2 ) );
     }
 
-    evaluate() {
-        const result = this.processTree( this.tree );
-        this.result = result instanceof Cycles ? [ result ] : result;
-//        console.log( result );
-        return this.result.filter( r => r != null && (!Array.isArray( r ) || r.length > 0 ) );
+    compile( scripts ) {
+        const node = [];
+        CyclesExpression.format( scripts ).forEach( script => {
+            const parser = new nearley.Parser( CyclesExpression.COMPILED_GRAMMAR );
+            parser.feed( script );
+            node.push( parser.results[0] );
+        } );
+        return node;
+    }
+
+    evaluate( expressions ) {
+        const result = [ this.processTree( expressions ) ]
+            .map( r => r instanceof Cycles ? [ r ] : r )[0];
+        if ( this.autoLabel ) {
+            result
+                .forEach( (s,i) => {
+                    if ( s && !s.name ) {
+                        s.name = `$${ i }`;
+                    }
+                } );
+        }
+        return result.filter( r => r != null && (!Array.isArray( r ) || r.length > 0 ) );
     }
 
     processTree( tree ) {
@@ -77,12 +87,6 @@ class Operation {
             case "mg":
             {
                 const mge = getMultiplicativeGroupMember( leaf.group, leaf.coprime );
-                const cofactor = (leaf.group + 1) / leaf.coprime;
-//                const box = Box.of(
-//                    Number.isInteger(leaf.cofactor)
-//                        ? [ leaf.cofactor, leaf.coprime ]
-//                        : [ leaf.group + 1 ]
-//                );
                 const box = Box.of([ leaf.group + 1 ]);
                 const source = {
                     'index': mge.index,
@@ -166,30 +170,19 @@ class Operation {
                 const l = this.processTree( leaf.l );
                 const r = this.processTree( leaf.r );
                 const cycles = compose( l, r, false, r.box );
-                cycles.key = `${ maybeBrackets( l.ref() ) } * ${ maybeBrackets( r.ref() ) }`;
+                cycles.key = `${ maybeBrackets( l.key ) } * ${ maybeBrackets( r.key ) }`;
                 if ( leaf.name ) {
                     cycles.name = leaf.name;
                 }
                 return cycles;
             }
 
-//            case "twist":
-//            {
-//                const l = leaf.l;
-//                const r = leaf.r;
-//                const b = Box.of([l,r]);
-//                const [ i0, i1 ] = [ l > r ? 1 : 0, l > r ? 0 : 1 ];
-//                const cycles = compose( b.permBox[i0], b.permBox[i1], true, b );
-//                cycles.parity = l > r;
-//                return cycles;
-//            }
-
             case "product":
             {
                 const twist = false;
                 var l = Number.isInteger( leaf.l ) ? leaf.l : this.processTree( leaf.l );
                 var r = Number.isInteger( leaf.r ) ? leaf.r : this.processTree( leaf.r );
-                const key = `${ l.ref() } ~ ${ r.ref() }`;
+                const key = `${ l.key } ~ ${ r.key }`;
                 const bases = [];
                 if (Number.isInteger( l )) {
                     bases.push( l );
@@ -215,7 +208,7 @@ class Operation {
             {
                 const exp = leaf.r;
                 var start = this.processTree( leaf.l );
-                const key = `${ start.ref() } ^ ${ exp }`;
+                const key = `${ start.key } ^ ${ exp }`;
                 if ( Number.isInteger( start ) ) {
                     start = Box.of( [ start ] ).permBox[0];
                 }
@@ -232,7 +225,7 @@ class Operation {
                 }
                 locus.key = key;
                 if ( leaf.name ) {
-                    //cycles.name = leaf.name;
+                    cycles.name = leaf.name;
                 }
                 return locus;
             }

@@ -746,7 +746,7 @@ class Cycles extends Array {
     }
 
     ref() {
-        return this.name ? this.name : this.key;
+        return this.name ? this.name : '';
     }
 
     perms() {

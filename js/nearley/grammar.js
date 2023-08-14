@@ -13,6 +13,7 @@ function id(x) { return x[0]; }
         number:     /[0-9]+/,
         name:       /[a-zA-Z$][a-zA-Z0-9$_]*/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
+		ampersand:  '&',
         equals:     '=',
         exp:        '^',
         star:       '*',
@@ -36,6 +37,7 @@ function id(x) { return x[0]; }
 	});
 
 	const localVars = {};
+	const cycleVars = {};
     const trimTree = ( a ) => {
 		if ( a == null ) {
 			return null;
@@ -54,7 +56,8 @@ function id(x) { return x[0]; }
 		} else if ( [
 				'NL', 'WS', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
-				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent', 'period', 'at', 'equals', 'slash',
+				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent', 
+				'period', 'at', 'equals', 'slash', 'ampersand',
 				'minus', 'plus'
 			].includes( a.type ) ) {
 			return null;
@@ -199,6 +202,16 @@ function id(x) { return x[0]; }
 		var t = trimTree(d);
 		return t[0] ** t[1];
 	};
+	const buildNamedInteger = ( d ) => {
+		var t = trimTree(d);
+		localVars[t[0].text] = t[1];
+		return null;
+	};
+	const buildNamedZInteger = (d,l,r) => {
+		const t = trimTree(d);
+		return t in localVars ? localVars[t] : r;
+	}
+	const buildNamedCycles = (d,l,r) => trimTree(d) in localVars ? r : d;
 var grammar = {
     Lexer: lexer,
     ParserRules: [
@@ -220,15 +233,31 @@ var grammar = {
     {"name": "line", "symbols": ["line$subexpression$1"]},
     {"name": "content$subexpression$1$ebnf$1", "symbols": []},
     {"name": "content$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "content$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "content$subexpression$1$subexpression$1", "symbols": ["expression"]},
+    {"name": "content$subexpression$1$subexpression$1", "symbols": ["namedIntegers"]},
     {"name": "content$subexpression$1$ebnf$2", "symbols": []},
     {"name": "content$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "content$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "content$subexpression$1$ebnf$3", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": id},
     {"name": "content$subexpression$1$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "content$subexpression$1", "symbols": ["content$subexpression$1$ebnf$1", "expression", "content$subexpression$1$ebnf$2", "content$subexpression$1$ebnf$3"]},
+    {"name": "content$subexpression$1", "symbols": ["content$subexpression$1$ebnf$1", "content$subexpression$1$subexpression$1", "content$subexpression$1$ebnf$2", "content$subexpression$1$ebnf$3"]},
     {"name": "content", "symbols": ["content$subexpression$1"], "postprocess": trimTree},
     {"name": "expression$subexpression$1", "symbols": ["composition"]},
-    {"name": "expression$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name)]},
     {"name": "expression", "symbols": ["expression$subexpression$1"], "postprocess": trimTree},
+    {"name": "namedIntegers$ebnf$1", "symbols": []},
+    {"name": "namedIntegers$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedIntegers$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedIntegers$ebnf$2", "symbols": []},
+    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
+    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedIntegers$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
+    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedIntegers$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedIntegers$ebnf$2$subexpression$1", "symbols": ["namedIntegers$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "namedIntegers$ebnf$2$subexpression$1$ebnf$2", "namedInteger"]},
+    {"name": "namedIntegers$ebnf$2", "symbols": ["namedIntegers$ebnf$2$subexpression$1", "namedIntegers$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedIntegers", "symbols": [(lexer.has("ampersand") ? {type: "ampersand"} : ampersand), {"literal":"vars","pos":107}, "namedIntegers$ebnf$1", "namedInteger", "namedIntegers$ebnf$2"], "postprocess": d => null},
+    {"name": "namedInteger$ebnf$1", "symbols": []},
+    {"name": "namedInteger$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedInteger$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedInteger$ebnf$2", "symbols": []},
+    {"name": "namedInteger$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedInteger$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedInteger", "symbols": [(lexer.has("name") ? {type: "name"} : name), "namedInteger$ebnf$1", (lexer.has("equals") ? {type: "equals"} : equals), "namedInteger$ebnf$2", "zinteger"], "postprocess": buildNamedInteger},
     {"name": "composition$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
     {"name": "composition$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "composition$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "composition$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
@@ -259,7 +288,7 @@ var grammar = {
     {"name": "cycles$subexpression$1", "symbols": ["index"]},
     {"name": "cycles$subexpression$1", "symbols": ["mg"]},
     {"name": "cycles$subexpression$1", "symbols": ["mgraw"]},
-    {"name": "cycles$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name)]},
+    {"name": "cycles$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name)], "postprocess": buildNamedCycles},
     {"name": "cycles", "symbols": ["cycles$subexpression$1"]},
     {"name": "cbrackets$ebnf$1", "symbols": []},
     {"name": "cbrackets$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cbrackets$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
@@ -335,6 +364,7 @@ var grammar = {
     {"name": "mgraw$ebnf$2", "symbols": []},
     {"name": "mgraw$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "mgraw$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "mgraw", "symbols": ["zinteger", "mgraw$ebnf$1", (lexer.has("at") ? {type: "at"} : at), "mgraw$ebnf$2", "zinteger"], "postprocess": d => buildMultiplicativeGroup(d, true)},
+    {"name": "zinteger$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name)], "postprocess": buildNamedZInteger},
     {"name": "zinteger$subexpression$1", "symbols": ["zbrackets"]},
     {"name": "zinteger$subexpression$1", "symbols": ["zpower"]},
     {"name": "zinteger$subexpression$1", "symbols": ["ninteger"]},

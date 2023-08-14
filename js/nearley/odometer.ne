@@ -9,6 +9,7 @@
         number:     /[0-9]+/,
         name:       /[a-zA-Z$][a-zA-Z0-9$_]*/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
+		ampersand:  '&',
         equals:     '=',
         exp:        '^',
         star:       '*',
@@ -32,6 +33,7 @@
 	});
 
 	const localVars = {};
+	const cycleVars = {};
     const trimTree = ( a ) => {
 		if ( a == null ) {
 			return null;
@@ -50,7 +52,8 @@
 		} else if ( [
 				'NL', 'WS', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
-				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent', 'period', 'at', 'equals', 'slash',
+				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent',
+				'period', 'at', 'equals', 'slash', 'ampersand',
 				'minus', 'plus'
 			].includes( a.type ) ) {
 			return null;
@@ -195,6 +198,16 @@
 		var t = trimTree(d);
 		return t[0] ** t[1];
 	};
+	const buildNamedInteger = ( d ) => {
+		var t = trimTree(d);
+		localVars[t[0].text] = t[1];
+		return null;
+	};
+	const buildNamedZInteger = (d,l,r) => {
+		const t = trimTree(d);
+		return t in localVars ? localVars[t] : r;
+	}
+	const buildNamedCycles = (d,l,r) => trimTree(d) in localVars ? r : d;
 %}
 
 # Pass your lexer with @lexer:
@@ -209,14 +222,17 @@ lines -> line (%NL line):* {% d => {
 	return t;
 } %}
 line            -> ( content | %comment | %WS | null )
-content         -> ( %WS:* expression %WS:* %comment:? ) {% trimTree %}
-expression      -> ( composition | %name ) {% trimTree %}
+content         -> ( %WS:* (expression | namedIntegers) %WS:* %comment:? ) {% trimTree %}
+expression      -> ( composition ) {% trimTree %}
+
+namedIntegers   -> %ampersand "vars" %WS:* namedInteger (%WS:* %comma %WS:* namedInteger):* {% d => null %}
+namedInteger    -> %name %WS:* %equals %WS:* zinteger {% buildNamedInteger %}
 
 composition     -> production (%WS:* %star %WS:* expression):? {% d => buildOp( d, 'compose' ) %}
 production      -> exponentiation (%WS:* %tilda %WS:* expression):? {% d => buildOp( d, 'product' ) %}
 exponentiation  -> cycles (%WS:* %exp %WS:* zinteger):? {% d => buildOp( d, 'power' ) %}
 
-cycles          -> ( cbrackets | cassignment | factindex | index | mg | mgraw | %name )
+cycles          -> ( cbrackets | cassignment | factindex | index | mg | mgraw | %name {% buildNamedCycles %} )
 cbrackets 		-> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
 cassignment     -> %name %WS:* %equals %WS:* expression {% buildAssignment %}
 
@@ -229,7 +245,7 @@ perm            -> %lsquare %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:*
 mg              -> zinteger %WS:* %percent %WS:* zinteger {% d => buildMultiplicativeGroup(d) %}
 mgraw           -> zinteger %WS:* %at %WS:* zinteger {% d => buildMultiplicativeGroup(d, true) %}
 
-zinteger 		-> ( zbrackets | zpower | ninteger | pinteger ) {% trimTree %}
+zinteger 		-> ( %name {% buildNamedZInteger %} | zbrackets | zpower | ninteger | pinteger ) {% trimTree %}
 zbrackets 		-> %lparen %WS:* zinteger %WS:* %rparen {% trimTree %}
 zpower 			-> ( pinteger | ninteger ) %WS:* %exp %WS:* zinteger {% buildExponentation %}
 ninteger 		-> %minus pinteger {% buildNegation %}

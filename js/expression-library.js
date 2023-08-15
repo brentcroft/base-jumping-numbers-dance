@@ -4,17 +4,19 @@ const expressionLibrary = {
     'default': [
         '&vars a = 5, b = 4, c = 2',
         'a0 = (b:c~a)',
-        'a0h = (a~c:b)',
+        //'a0h = (a~b:c)',
+        //'a0i = (c:b~a)',
+        'a0hi = (a~c:b)',
 
         'b0 = (c:a~b)',
-        'b0h = (b~a:c)',
+        'b0hi = (b~a:c)',
 
         'c0 = (a:b~c)',
-        'c0h = (c~b:a)',
+        'c0hi = (c~b:a)',
 
-        'a1 = (a0 * c0h)',
-        'b1 = (c0 * b0h)',
-        'c1 = (b0 * a0h)',
+        'a1 = (a0 * c0hi)',
+        'b1 = (c0 * b0hi)',
+        'c1 = (b0 * a0hi)',
 
         'z1 = (b1 * a0)',
         'z2 = (c1 * c0)',

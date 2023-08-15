@@ -6,18 +6,17 @@
 
     <link rel="stylesheet" href="css/pagery.css">
     <link rel="stylesheet" type="text/html" href="js/x3dom.css"/>
-
-    <script type="text/javascript" src="js/reify.js"></script>
-
-    <script type="text/javascript" src="js/x3dom.js"></script>
-    <script type="text/javascript" src="js/3d.js"></script>
-    <script type="text/javascript" src="js/colors.js"></script>
-    <script type="text/javascript" src="js/cycles-x3dom.js"></script>
+    <script type="text/javascript" src="js/x3dom-full.js"></script>
 
     <script type="text/javascript" src="js/nearley/moo.js"></script>
     <script type="text/javascript" src="js/nearley/grammar.js"></script>
     <script type="text/javascript" src="js/nearley/nearly.js"></script>
 
+    <script type="text/javascript" src="js/reify.js"></script>
+
+    <script type="text/javascript" src="js/3d.js"></script>
+    <script type="text/javascript" src="js/colors.js"></script>
+    <script type="text/javascript" src="js/cycles-x3dom.js"></script>
 
     <script type="text/javascript" src="js/factors.js"></script>
 
@@ -180,19 +179,28 @@
         function renderExpressionLibraryLinks() {
             const expressionScript = byId('expressionScript');
             byId( 'expressionsLibrary' ).appendChild(
-                reify('div',{}, Object
-                        .entries( expressionLibrary )
-                        .map( ([key, group], i) => reify( 'label', { 'class': 'columnSelector' }, [
-                                reifyText( i > 0 ? ' | ' : 'expressions: ' ),
-                                reify( 'a', {}, [ reifyText( key ) ], [
-                                        c => c.onclick = (event) => {
-                                                expressionScript.innerHTML = '# ' + key + '\n' + group.join('\n');
-                                                setTimeout( calculateNow, 50);
-                                            }
-                                    ] ),
-                        ] ) ) ) );
+                reify( 'label', { 'class': 'columnSelector' },[
+                    reifyText( 'library: ' ),
+                    reify(
+                        'select',
+                        { 'name': 'expressionSelector', 'title': 'expressionSelector' },
+                        Object
+                            .keys( expressionLibrary )
+                            .map( key => reify( 'option', {}, [ reifyText( key ) ] ) ),
+                        [
+                            c => c.onchange = (event) => {
+                                const key = c[c.selectedIndex].value;
+                                const group = expressionLibrary[key];
+                                expressionScript.innerHTML = '# ' + key + '\n' + group.join('\n');
+                                setTimeout( calculateNow, 50);
+                            }
+                        ]
+                    )
+                   ]
+                )
+            );
 
-            const defaultScript = expressionLibrary['default'];
+            const defaultScript = expressionLibrary[ 'default' ];
             if (defaultScript) {
                 expressionScript.innerHTML = '# default\n' + defaultScript.join('\n');
                 setTimeout( calculateNow, 50);
@@ -207,19 +215,16 @@
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     | <label class="columnSelector">auto-calc:<input type="checkbox" checked="checked" id="autoCalc" onclick="autoCalc()"/></label>
     | <label class="columnSelector">auto-label:<input type="checkbox" id="autoLabel" onclick="autoCalc()"/></label>
+    | <span id="expressionsLibrary"></span>
     | <label class="columnSelector" for="monomialFilterToggle"><span id="monomialFilterDisplay"></span>:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()">
         <input type="hidden" id="monomialFilter">
     </label>
 
-
-    <label for="expressionScript" id="expressionScriptLabel">
-        <hr/>
-        <span id="expressionsLibrary"></span>
-        <textarea id="expressionScript" class="expression" oninput="autoCalc()"></textarea>
-    </label>
-
     <hr/>
 
+    <label for="expressionScript" id="expressionScriptLabel">
+        <textarea id="expressionScript" class="expression" oninput="autoCalc()"></textarea>
+    </label>
     <div id="expressionResults"></div>
 
     <div id="boxActions" style="display: none"></div>

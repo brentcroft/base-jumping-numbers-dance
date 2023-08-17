@@ -99,6 +99,10 @@ class CyclesExpression {
 
             case "index":
             {
+                if (leaf.index) {
+                    leaf.box = Box.of( [leaf.index.length ] );
+                    return Cycles.fromSource(leaf);
+                }
                 const specifiedBases = leaf.box.bases;
                 const box = Box.of( specifiedBases );
                 var perms = [];

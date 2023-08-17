@@ -1,5 +1,13 @@
+const mgGroupSpec = (n,r) => arrayOfIndexes(n-1)
+        .filter( i => !Number.isInteger( n / (i+1)) )
+        .filter( i => gcd( n, (i+1) ) == 1 )
+        .map( i => `${i+1}@${n}` + (r ? ` * ${ r }` : ''));
 const expressionLibrary = {
     'blank': [],
+    'literals': [
+        '[0..39]',
+        '[0,12..1,13,25..14,26,38..27,39]'
+    ],
     'decomposition': [
         '&vars a = 5, b = 4, c = 2',
         '4:5.2',
@@ -55,21 +63,10 @@ const expressionLibrary = {
         '1 @ 6',
         '5 @ 6',
     ],
-    '2:2:2 (mg 7)': [
-        'e = 2:2:2 {1,0}',
-        '1 @ 7',
-        '2 @ 7',
-        '3 @ 7',
-        '4 @ 7',
-        '5 @ 7',
-        '6 @ 7',
-    ],
+    '2:2:2 (mg 7)': mgGroupSpec(7),
     '3:3 (mg 8)': [
         'e = 3:3 {1}',
-        '1 @ 8 * e',
-        '3 @ 8 * e',
-        '5 @ 8 * e',
-        '7 @ 8 * e',
+        ...mgGroupSpec(8, 'e')
     ],
     '5:2 (mg 9)': [
         'e = 5:2 {1}',
@@ -80,12 +77,7 @@ const expressionLibrary = {
         '7 @ 9 * e',
         '8 @ 9 * e',
     ],
-    '11 (mg 10)': [
-        '1 @ 10',
-        '3 @ 10',
-        '7 @ 10',
-        '9 @ 10',
-    ],
+    '11 (mg 10)': mgGroupSpec(10),
     '4:3 (mg 11)': [
         'e = 4:3 {1}',
         '1 @ 11 * e',
@@ -99,6 +91,16 @@ const expressionLibrary = {
         '9 @ 11 * e',
         '10 @ 11 * e',
     ],
+    '13 (mg 12)': mgGroupSpec(12),
+    '14 (mg 13)': mgGroupSpec(13),
+    '15 (mg 14)': mgGroupSpec(14),
+    '16 (mg 15)': mgGroupSpec(15),
+    '17 (mg 16)': mgGroupSpec(16),
+    '18 (mg 17)': mgGroupSpec(17),
+    '19 (mg 18)': mgGroupSpec(18),
+    '20 (mg 19)': mgGroupSpec(19),
+    '21 (mg 20)': mgGroupSpec(20),
+    '22 (mg 21)': mgGroupSpec(21),
     '5:4:2 (mg 39) ': [
         'e = 5:4:2 {1,0}',
         '1 @ 39 * e',

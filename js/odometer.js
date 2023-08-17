@@ -680,6 +680,10 @@ class Cycles extends Array {
         this.key = "";
     }
 
+    static fromSource( source ) {
+        return cycles( source );
+    }
+
     canonicalize() {
         function ios( cycle ) {
             var l = 0;

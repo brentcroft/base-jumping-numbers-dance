@@ -9,6 +9,7 @@
         number:     /[0-9]+/,
         name:       /[a-zA-Z$][a-zA-Z0-9$_]*/,
         string:     /"(?:\\["\\]|[^\n"\\])*"/,
+		between:    /[.]{2}/,
 		ampersand:  '&',
         equals:     '=',
         exp:        '^',
@@ -22,6 +23,7 @@
 		period:     '.',
         percent:    '%',
 		at:         '@',
+		between:    '..',
         comma:      ',',
         lparen:     '(',
         rparen:     ')',
@@ -53,7 +55,7 @@
 				'NL', 'WS', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
 				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent',
-				'period', 'at', 'equals', 'slash', 'ampersand',
+				'period', 'at', 'equals', 'slash', 'ampersand', 'between',
 				'minus', 'plus'
 			].includes( a.type ) ) {
 			return null;
@@ -66,6 +68,9 @@
 		return Array.isArray(t)
 			? t.flatMap( c => Array.isArray( c ) ? c : [ c ] )
 			: [ t ]
+	};
+	const flatten = (d) => {
+		return Array.isArray(d) ? d.flatMap( c => flatten( c ) ) : [ d ];
 	};
 	const buildOp = ( d, op ) => {
 		const t = trimTree(d);
@@ -88,12 +93,13 @@
 		return t;
 	};
 	const buildPerm = ( d, l, r ) => {
-		var t = trimTree(d);
+		var t = flatten(trimTree(d));
 		if ( Array.isArray(t) ) {
 			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
+			console.log(t);
 			const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
 			if ( missingIndexes.length > 0 ) {
-				throw new Error( `Invalid factorial perm [${ t }]: missing values: ${ missingIndexes }` );
+				throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
 			}
 		}
 		return t;
@@ -183,6 +189,7 @@
 		}
 		return mg;
 	};
+
 	const buildNegation = ( d ) => -1 * trimTree(d);
 	const buildProduct = ( d ) => trimArith(d).reduce( (a,c) => a * c, 1 );
 	const buildAddition = ( d ) => trimArith(d).reduce( (a,c) => a + c, 0 );
@@ -208,6 +215,24 @@
 		return t in localVars ? localVars[t] : r;
 	}
 	const buildNamedCycles = (d,l,r) => trimTree(d) in localVars ? r : d;
+	const buildLitIndex = (d) => {
+		const t = buildPerm(d);
+		return { 'op': 'index', 'index': t, 'box': { 'op': 'box', 'bases': [t.length] } };
+	};
+	const buildRange = (d,l,r) => {
+		const t = trimTree(d);
+		const idx = [];
+		if (t[0] < t[1]) {
+			for (var i = t[0]; i <= t[1]; i++ ) {
+				idx.push(i);
+			}
+		} else {
+			for (var i = t[0]; i >= t[1]; i-- ) {
+				idx.push(i);
+			}
+		}
+		return idx;
+	}
 %}
 
 # Pass your lexer with @lexer:
@@ -232,13 +257,15 @@ composition     -> production (%WS:* %star %WS:* expression):? {% d => buildOp( 
 production      -> exponentiation (%WS:* %tilda %WS:* expression):? {% d => buildOp( d, 'product' ) %}
 exponentiation  -> cycles (%WS:* %exp %WS:* zinteger):? {% d => buildOp( d, 'power' ) %}
 
-cycles          -> ( cbrackets | cassignment | factindex | index | mg | mgraw | %name {% buildNamedCycles %} )
+cycles          -> ( cbrackets | cassignment | litindex | factindex | index | mg | mgraw | %name {% buildNamedCycles %} )
 cbrackets 		-> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
 cassignment     -> %name %WS:* %equals %WS:* expression {% buildAssignment %}
 
 index           -> box (%WS:* perm (%WS:* perm):?):? {% d => buildIndex(d, false) %}
 factindex       -> box (%WS:* factuple (%WS:* factuple):?):? {% d => buildIndex(d, true) %}
-box             -> zinteger (%WS:* %colon %WS:* zinteger):* {% buildBox %}
+box             -> (zinteger (%WS:* %colon %WS:* zinteger):*) {% buildBox %}
+litindex        -> %lsquare %WS:* range (%WS:* %comma %WS:* range):* %WS:* %rsquare {% buildLitIndex %}
+range           -> ( pinteger %WS:* %between %WS:* pinteger ) {% buildRange %} | pinteger
 
 factuple        -> %lcurly %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rcurly {% buildFactuple %}
 perm            -> %lsquare %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rsquare {% buildPerm %}

@@ -183,10 +183,10 @@
                     reifyText( 'library: ' ),
                     reify(
                         'select',
-                        { 'name': 'expressionSelector', 'title': 'expressionSelector' },
+                        { 'id': 'expressionSelector', 'name': 'expressionSelector', 'title': 'expressionSelector' },
                         Object
                             .keys( expressionLibrary )
-                            .map( key => reify( 'option', {}, [ reifyText( key ) ] ) ),
+                            .map( key => reify( 'option', { 'value': key }, [ reifyText( key ) ] ) ),
                         [
                             c => c.onchange = (event) => {
                                 const key = c[c.selectedIndex].value;
@@ -199,17 +199,21 @@
                    ]
                 )
             );
-
-            const defaultScript = expressionLibrary[ 'default' ];
-            if (defaultScript) {
-                expressionScript.innerHTML = '# default\n' + defaultScript.join('\n');
-                setTimeout( calculateNow, 50);
-            }
         }
 
+        function selectScript(scriptKey) {
+            setTimeout( () => {
+                const expressionSelector = byId('expressionSelector');
+                const option = Array
+                    .from(expressionSelector.options)
+                    .find( option => option.text === scriptKey );
+                expressionSelector.value = option.value;
+                expressionSelector.onchange( { source: expressionSelector } );
+            }, 200 );
+        }
     </script>
 </head>
-<body onload="renderExpressionLibraryLinks()">
+<body onload="renderExpressionLibraryLinks(); selectScript('decomposition')">
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>

@@ -1,7 +1,21 @@
 const expressionLibrary = {
-    'blank': [
+    'blank': [],
+    'decomposition': [
+        '&vars a = 5, b = 4, c = 2',
+        '4:5.2',
+        '(b:c~a) * (c~b:a) # == b:a.c',
+        '5.2:4',
+        '(c~a:b) * (c:b~a) # == a.c:b',
+        '2:5.4',
+        '(c:a~b) * (a~c:b) # == c:a.b',
+        '5.4:2',
+        '(a~b:c) * (a:c~b) # == a.b:c',
+        '4.2:5',
+        '(c~b:a) * (c:a~b) # == b.c:a',
+        '5:4.2',
+        '(a:c~b) * (c~a:b) # == a:b.c',
     ],
-    'default': [
+    'a:b:c': [
         '&vars a = 5, b = 4, c = 2',
         'a0 = (b:c~a)',
         //'a0h = (a~b:c)',

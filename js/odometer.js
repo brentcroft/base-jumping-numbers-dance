@@ -596,6 +596,7 @@ class Cycle extends Array {
             const baseIndex = bI;//(bases.length -1 - bI);
 
             const C = cycles.C()[baseIndex];
+            const cIsInt = Number.isInteger( C );
 
             const factor = this[ cycles.parity ? 0 : this.length - 1 ];
 
@@ -629,12 +630,16 @@ class Cycle extends Array {
                         placeValue = placeValue * base;
                     } );
 
-                    error = ( acc / factor / C );
-                    if (error == 1) {
-                        error = null;
+                    if ( cIsInt ) {
+                        error = ( acc / factor / C );
+                        if (error == 1) {
+                            error = null;
+                        }
+                    } else {
+                        error = 'uf';
                     }
                 } catch (e) {
-                    error = 1
+                    error = e.message
                 }
 
                 const reverseCoefficients = true;
@@ -660,7 +665,7 @@ class Cycle extends Array {
                 reify( "b", {}, [ reifyText( ` = ${ acc } ` ) ] ),
                 reify( "i", {}, [
                     error
-                        ? reify( "span", { 'class': '' }, [ reifyText( `(${ primeFactorsHtml( acc ) })` ) ] )
+                        ? reify( "span", { 'class': '' }, [ reifyText( `(${ error })` ) ] )
                         : reifyText( ` (${ factor } x ${ C })` ),
                 ] ),
                 reify( "br" )

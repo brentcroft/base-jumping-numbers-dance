@@ -121,9 +121,9 @@ class CyclesExpression {
                         throw new Error( `Invalid perms: ${ error } not found in box: ${ box.odometer.bases }` );
                     }
                     perms.reverse();
-                } else if (Object.hasOwn( leaf, 'facts' ) ) {
-                    spec += leaf.facts.map( p => `{${p}}` ).join('');
-                    perms.push( ...leaf.facts.map( fact => {
+                } else if (Object.hasOwn( leaf, 'factuples' ) ) {
+                    spec += leaf.factuples.map( p => `{${p}}` ).join('');
+                    perms.push( ...leaf.factuples.map( fact => {
                         const x = box.permBox.find( point => {
                             const p = arrayExactlyEquals( fact, point );
                             return p;

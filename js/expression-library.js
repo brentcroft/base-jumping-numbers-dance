@@ -6,6 +6,7 @@ const expressionLibrary = {
     'blank': [],
     'literals': [
         '[0..39]',
+        '[ (2,6,3,5)(1,4,8,7) 0..9 ]',
         '[0,12..1,13,25..14,26,38..27,39]'
     ],
     'decomposition': [

@@ -208,6 +208,19 @@ class CyclesExpression {
                 return cycles;
             }
 
+
+            case "reduce":
+            {
+                const l = this.processTree( leaf.l );
+                const r = this.processTree( leaf.r );
+                const cycles = reduce( l, r, false, r.box );
+                cycles.key = `${ maybeBrackets( l.key ) } / ${ maybeBrackets( r.key ) }`;
+                if ( leaf.name ) {
+                    cycles.name = leaf.name;
+                }
+                return cycles;
+            }
+
             case "power":
             {
                 const exp = leaf.r;

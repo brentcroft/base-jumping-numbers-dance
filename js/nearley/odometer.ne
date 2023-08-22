@@ -91,9 +91,9 @@
 	const buildOp = ( d, op ) => {
 		const t = trimTree(d);
 		if (Array.isArray(t) && t.length == 2 ) {
-			return { 'op': op, 'l': t[0], 'r': t[1] };
+			return { 'op': op, 'l': flatten(t[0]), 'r': flatten(t[1]) };
 		}
-		return t;
+		return t[0];
 	};
 	const buildPerm = ( d, l, r ) => {
 		var t = flatten(trimTree(d));
@@ -160,14 +160,16 @@
 	};
 	const buildAssignment = ( d ) => {
 		const t = trimTree(d);
+		console.log(t);
 		if (Array.isArray(t)) {
 			if ( t[1].name ) {
 				throw new Error( `Invalid Assignment: item named "${ t[1].name }" cannot be renamed "${ t[0].text }` );
 			}
-			t[1].name = t[0].text;
-			return t[1];
+			const target = flatten(t[1]);
+			target.name = t[0].text;
+			return target;
 		}
-		return t;
+		return t[0];
 	};
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
@@ -295,7 +297,7 @@
                 } ) );
 		}
 		//console.log(`cycles-index: ${JSON.stringify(index)}`);
-		return { 'op': 'index', 'index': index, 'hasCycles': t[0][0].cycles, 'box': { 'op': 'box', 'bases': [index.length] } };
+		return { 'op': 'index', 'index': index, 'key': 'literal', 'hasCycles': t[0][0].cycles, 'box': { 'op': 'box', 'bases': [index.length] } };
 	};
 	const buildRange = (d,l,r) => {
 		const t = flatten(trimTree(d));
@@ -328,18 +330,19 @@ lines -> line (%NL line):* {% d => {
 } %}
 line            -> ( content | %comment | %WS | null )
 content         -> ( %WS:* (expression | namedIntegers) %WS:* %comment:? ) {% trimTree %}
-expression      -> ( composition ) {% trimTree %}
 
 namedIntegers   -> %ampersand "vars" %WS:* namedInteger (%WS:* %comma %WS:* namedInteger):* {% d => null %}
 namedInteger    -> %name %WS:* %equals %WS:* zinteger {% buildNamedInteger %}
 
-composition     -> production (%WS:* %star %WS:* expression):? {% d => buildOp( d, 'compose' ) %}
+expression      -> ( composition ) {% id %}
+composition     -> reduction (%WS:* %star %WS:* expression):? {% d => buildOp( d, 'compose' ) %}
+reduction       -> production (%WS:* %slash %WS:* expression):? {% d => buildOp( d, 'reduce' ) %}
 production      -> exponentiation (%WS:* %tilda %WS:* expression):? {% d => buildOp( d, 'product' ) %}
 exponentiation  -> action (%WS:* %exp %WS:* zinteger):? {% d => buildOp( d, 'power' ) %}
 
-action          -> ( cbrackets | cassignment | litindex | index | mg | mgraw | %name {% buildNamedAction %} ) {% id %}
-cbrackets 		-> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
-cassignment     -> %name %WS:* %equals %WS:* expression {% buildAssignment %}
+action          -> ( brackets | assignment | litindex | index | mg | mgraw | %name {% buildNamedAction %} ) {% trimTree %}
+assignment      -> %name %WS:* %equals %WS:* expression {% buildAssignment %}
+brackets 		-> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
 
 index           -> box ( (%WS:* perms):? | (%WS:* factuples):? | null ) {% d => buildIndex(d) %}
 

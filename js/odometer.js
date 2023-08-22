@@ -209,13 +209,14 @@ function compose( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
     const li = leftSource.index;
     const key = `${ maybeBracket( leftSource.key ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.key ) }`;
-    if (ri.length != li.length) {
+    const l = ri.length;
+    if (l != li.length) {
         throw new Error(`Cannot compose indexes of different lengths: ${ key }`);
     }
     const index = new Array( ri.length );
     for ( var i = 0; i < ri.length; i++ ) {
         var nextId = twist ? ri.indexOf(i) : ri[i];
-        index[i] = li[nextId];
+        index[i] = li[nextId] % ri.length;
     }
     const action = cycles( {
        'index': index,
@@ -229,6 +230,9 @@ function compose( leftSource, rightSource, twist = false, box ) {
     //action.name = `${ maybeBracket( leftSource.name ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.name ) }`
     return action;
 }
+
+
+
 function product( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
     const li = leftSource.index;
@@ -250,6 +254,44 @@ function product( leftSource, rightSource, twist = false, box ) {
             : parity(leftSource.parity, rightSource.parity)
     } );
 }
+
+function reduce( leftSource, rightSource, twist = false, box ) {
+    const ri = rightSource.index;
+    const l = ri.length;
+    const li = leftSource.index.slice(0, l);
+
+    // unsatisfiable indexes become fixed points
+    const collapseCycle = (c) => {
+        const items = [ c ];
+        var x = li.indexOf( c );
+        while (x >= 0) {
+            items.push( x );
+            x = li.indexOf( x )
+        }
+        items.forEach( i => li[i] = i);
+    };
+    for (var i = 0; i < l; i++ ) {
+        if (li[i] >= l ) {
+            collapseCycle(i);
+        }
+    }
+    const index = new Array( ri.length );
+    for ( var i = 0; i < ri.length; i++ ) {
+        var nextId = twist ? ri.indexOf(i) : ri[i];
+        index[i] = li[nextId] % ri.length;
+    }
+    return cycles( {
+        'index': index ,
+        'key': `${ maybeBracket( leftSource.key ) }${ twist ? '/' : '/' }${ maybeBracket( rightSource.key ) }`,
+        'sources': [ leftSource, rightSource, twist ],
+        'box': box,
+        'parity': twist
+            ? parity(leftSource.parity, !rightSource.parity)
+            : parity(leftSource.parity, rightSource.parity)
+    } );
+}
+
+
 /**
 
 

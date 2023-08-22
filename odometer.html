@@ -25,6 +25,8 @@
     <script type="text/javascript" src="js/odometer-expression.js"></script>
     <script type="text/javascript" src="js/expression-library.js"></script>
 
+    <script type="text/javascript" src="js/midi.js"></script>
+
     <script>
         function byId( id ) {
             return document.getElementById(id);
@@ -103,6 +105,9 @@
         var evaluateTask = null;
         var renderTask = null;
 
+        //const midi = new MidiKeyboard();
+        const midi = new MidiDrumKit( 80 );
+
         function calculate( script ) {
             if (calculatorTask) {
                 clearTimeout( calculatorTask );
@@ -138,6 +143,31 @@
                                 const result = operation.evaluate( expressions );
                                 putComment( `Evaluated ${ result.length } results.` );
 
+                                const player = () => {
+                                    try {
+                                        const actions = [...result].reverse();
+                                        const tally = [...actions];
+
+                                        const playNextAction = () => {
+                                            const action = tally.pop();
+                                            if ( action ) {
+                                                setTimeout( playNextAction, midi.tick );
+                                                action
+                                                    .filter( cycle => cycle.length > 1 )
+                                                    .forEach( cycle => midi.playCycle( cycle ) )
+                                            } else if (byId('autoPlayRepeat').checked) {
+                                                tally.length = 0;
+                                                tally.push(...actions);
+                                                playNextAction();
+                                            }
+                                        };
+                                        playNextAction();
+                                    } catch ( e ) {
+                                        putError( 'Error playing result', e );
+                                        throw e;
+                                    }
+                                };
+
                                 const renderer = () => {
                                     try {
                                         putActions( result );
@@ -148,6 +178,10 @@
                                 };
                                 putComment( "Rendering..." );
                                 renderTask = setTimeout( renderer, 200 );
+
+                                if (byId('autoPlay').checked) {
+                                    playerTask = setTimeout( player, 200 );
+                                }
                             } catch (e) {
                                 putError( 'Error evaluating script', e );
                                 throw e;
@@ -213,12 +247,14 @@
         }
     </script>
 </head>
-<body onload="renderExpressionLibraryLinks(); selectScript('decomposition')">
+<body onload="renderExpressionLibraryLinks(); selectScript('literals')">
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>
     | <label class="columnSelector">auto-calc:<input type="checkbox" checked="checked" id="autoCalc" onclick="autoCalc()"/></label>
     | <label class="columnSelector">auto-label:<input type="checkbox" id="autoLabel" onclick="autoCalc()"/></label>
+    | <label class="columnSelector">auto-play:<input type="checkbox" id="autoPlay" onclick="autoCalc()"/></label>
+    | <label class="columnSelector">auto-play-loop:<input type="checkbox" id="autoPlayRepeat"/></label>
     | <span id="expressionsLibrary"></span>
     | <label class="columnSelector" for="monomialFilterToggle"><span id="monomialFilterDisplay"></span>:<input type="checkbox" id="monomialFilterToggle" onclick="calculateNow()">
         <input type="hidden" id="monomialFilter">

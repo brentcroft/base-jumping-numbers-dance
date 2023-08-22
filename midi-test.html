@@ -1,0 +1,104 @@
+<html>
+<head>
+    <script>
+        const NOTE_ON = 0x92;
+        const NOTE_OFF = 0x82;
+        const START = 36;
+        const NOTE_DURATION = 300;
+
+        var midiOutput = null;
+        let currentSequenceId = -1;
+
+        let intervals = new Array(16).fill(0).map((x,i)=>i);
+        var sequence = intervals.map(x => x + START);
+        var quitPlayTask = false;
+
+        function sendMessage( message ) {
+            midiOutput.send( message );
+            const msgElement = document.getElementById('messages');
+            msgElement.innerHTML = `sent: ${ message } to ${midiOutput.name}`;
+        }
+
+        function stopPlaying() {
+            quitPlayTask = true;
+        }
+
+        function startPlaying() {
+            quitPlayTask = false;
+            currentSequenceId = 0;
+            const msgElement = document.getElementById('messages');
+            msgElement.innerText = '';
+            playNote();
+        }
+
+        const playNote = function() {
+          if (currentSequenceId >= 0) {
+            sendMessage([NOTE_OFF, sequence[currentSequenceId], 0x7f]);
+          }
+          currentSequenceId++;
+          if (currentSequenceId >= sequence.length) {
+            currentSequenceId = 0;
+          }
+          sendMessage([NOTE_ON, sequence[currentSequenceId], 0x7f]);
+          if (!quitPlayTask) {
+              setTimeout( playNote, NOTE_DURATION );
+          }
+        }
+
+        function getInputs() {
+            const list = document.getElementById('midi-list');
+
+            function replaceElements(inputs) {
+              while(list.firstChild) {
+                list.removeChild(list.firstChild)
+              }
+              const elements = inputs.map(e => {
+                    const el = document.createElement('li')
+                    el.innerText = `${e.name}: [${e.state} ${e.connection}] (${e.manufacturer})`;
+                    return el;
+                });
+                elements.forEach(e => list.appendChild(e));
+            }
+
+            const connected = ( midiAccess ) => {
+                console.log(midiAccess);
+                const outputs = midiAccess.outputs;
+                console.log(outputs);
+
+                const updateDevices = (event) => {
+                    console.log(event);
+                    replaceElements( Array.from( midiAccess.outputs.values() ) );
+                };
+
+                midiAccess.addEventListener( 'statechange', updateDevices );
+
+                outputs.forEach( output => {
+                    if ( output.name == 'loopMIDI Port' ) {
+                        const handleOutput = (event) => {
+                            console.log(event);
+                        };
+                        console.log( `Connected to ${ output.name }` );
+                        output.onmidimessage = handleOutput;
+                        midiOutput = output;
+                    }
+                } );
+
+                replaceElements( Array.from( midiAccess.outputs.values() ) );
+            };
+            const unconnected = () => {
+                console.log('Could not connect to MIDI');
+            };
+
+            navigator.requestMIDIAccess()
+                .then( connected, unconnected );
+        }
+    </script>
+</head>
+<body onload="getInputs()">
+    <ul id="midi-list"></ul>
+    <button onclick="startPlaying()">Play</button>
+    <button onclick="stopPlaying()">Stop</button>
+
+    <div id="messages"></div>
+</body>
+</html>

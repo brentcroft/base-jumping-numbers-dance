@@ -5,20 +5,22 @@ const mgGroupSpec = (n,r) => arrayOfIndexes(n-1)
 const expressionLibrary = {
     'blank': [],
     'literals': [
-        'a = ( [(4,31) 0..31] / (mb = [0..31] ) )',
-        'e = (1@39 / mb)',
-        'e',
-        'e',
-
-        'k = ([(1,31) 0..31] / mb); e; e; e;',
-        'e; e; e; e;',
-
-        'k; e; e; e;',
-        'e; e; e; e;',
-        'e; e; e; e;',
-
-        'k; e; e; e;',
-        'e; e; e; e;',
+        'a = (2:3~5)',
+        'b = (5~2:3)',
+        'c = a / 5',
+        'd = b % (2:3)',
+//        'e',
+//        'e',
+//
+//        'k = ([(1,31) 0..31] / mb); e; e; e;',
+//        'e; e; e; e;',
+//
+//        'k; e; e; e;',
+//        'e; e; e; e;',
+//        'e; e; e; e;',
+//
+//        'k; e; e; e;',
+//        'e; e; e; e;',
     ],
     'decomposition': [
         '&vars a = 5, b = 4, c = 2',

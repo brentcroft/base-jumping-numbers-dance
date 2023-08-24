@@ -8,7 +8,7 @@ function id(x) { return x[0]; }
 
 //	const moo = require("moo")
 	const lexer = moo.compile({
-        WS: /[ \t]+/,
+		WS:         { match: /[\s]+/, lineBreaks: true },
         comment:    /\/\/.*?$|#.*?$/,
         number:     /[0-9]+/,
         name:       /[a-zA-Z$][a-zA-Z0-9$_]*/,
@@ -35,7 +35,7 @@ function id(x) { return x[0]; }
         rsquare:    ']',
         lcurly:     '{',
         rcurly:     '}',
-        NL:    { match: /\n+/, lineBreaks: true },
+        NL:         ';',
 	});
 
 	const localVars = {};
@@ -55,7 +55,7 @@ function id(x) { return x[0]; }
 		} else if ( 'number' == a.type ) {
 			return parseInt( a.text );
 		} else if ( [
-				'NL', 'WS', 'comment',
+				'NL', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
 				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent',
 				'period', 'at', 'equals', 'slash', 'ampersand', 'between',
@@ -100,19 +100,18 @@ function id(x) { return x[0]; }
 		return t[0];
 	};
 	const buildPerm = ( d, l, r ) => {
-		var t = flatten(trimTree(d));
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-			const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
-			if ( missingIndexes.length > 0 ) {
-				throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
-			}
+		var t = flatten(trimArith(d));
+		console.log( `perm-raw: ${JSON.stringify(t)}`);
+		const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
+		if ( missingIndexes.length > 0 ) {
+			throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
 		}
-		return { 'op': 'perm', 'perm': t };
+		//console.log( `perm: ${JSON.stringify(t)}`);
+		return t;
 	};
 	const buildPerms = ( d, l, r ) => {
-		var t = flatten(trimTree(d));
-		//console.log( `perms-raw: ${JSON.stringify(t)}`);
+		var t = hoister(trimTree(d));
+		console.log( `perms-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray(t) && t.length > 0 && !Array.isArray(t[0])  ) {
 			t = [ t ];
 		} else if ( Array.isArray(t) ) {
@@ -123,15 +122,25 @@ function id(x) { return x[0]; }
 		t.forEach( x => {
 			const missingIndexes = x.filter( (c,i) => x.indexOf(i) < 0 );
 			if ( missingIndexes.length > 0 ) {
-				throw new Error( `Invalid index [${ x }]: missing values: ${ missingIndexes }` );
+				throw new Error( `Invalid index [${ x }]: missing indexes: ${ missingIndexes }` );
 			}
 		} );
 		//console.log( `perms: ${JSON.stringify(t)}`);
 		return { 'op': 'perms', 'perms': t };
 	};
+	const buildFactuple = ( d, l, r ) => {
+		var t = trimArith(d); 
+		//console.log( `factuple-raw: ${JSON.stringify(t)}`); 
+		const invalidIndexes = t.filter( (c,i) => c > i + 1 );
+		if ( invalidIndexes.length > 0 ) {
+			throw new Error( `Invalid factorial point [${ t }]: values: ${ invalidIndexes }` );
+		}
+		//console.log( `factuple: ${JSON.stringify(t)}`);
+		return t;
+	};
 	const buildFactuples = ( d, l, r ) => {
 		var t = flatten(trimTree(d));
-		console.log( `factuples-raw: ${JSON.stringify(t)}`);
+		//console.log( `factuples-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray(t) && t.length > 0 && !Array.isArray(t[0])  ) {
 			t = [ t ];
 		} else if ( Array.isArray(t) ) {
@@ -139,14 +148,14 @@ function id(x) { return x[0]; }
 		} else {
 			t = [[ t ]];
 		}
-		console.log( `factuples: ${JSON.stringify(t)}`);
+		//console.log( `factuples: ${JSON.stringify(t)}`);
 		t.forEach( x => {
         	const invalidIndexes = x.filter( (c,i) => c > i + 1 );
 			if ( invalidIndexes.length > 0 ) {
 				throw new Error( `Invalid factorial point [${ x }]: values: ${ invalidIndexes }` );
 			}
 		} );
-		console.log( `factuples: ${JSON.stringify(t)}`);
+		//console.log( `factuples: ${JSON.stringify(t)}`);
 		return { 'op': 'factuples', 'factuples': t };
 	};
 	const buildBox = ( d ) => {
@@ -177,14 +186,14 @@ function id(x) { return x[0]; }
 	};
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
-		console.log(`boxIndex-raw: ${JSON.stringify(t)}`);
+		//console.log(`boxIndex-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray( t ) ) {
 		    const boxIndex = { 'op': 'index', 'box': t[0] };
 			if (t.length > 1) {
 				const selectors = t[1];
 				const payload = hoister(selectors.map( selector => flatten(selector) ) )[0];
 
-				console.log(`boxIndex-payload: ${JSON.stringify(payload)}`);
+				//console.log(`boxIndex-payload: ${JSON.stringify(payload)}`);
 
 				if ( 'factuples' == payload.op ) {
 					const requiredLength = boxIndex.box.bases.length - 1;
@@ -202,7 +211,7 @@ function id(x) { return x[0]; }
 					boxIndex.perms = payload.perms;
 				}
 			}
-			console.log(`boxIndex: ${JSON.stringify(boxIndex)}`);
+			//console.log(`boxIndex: ${JSON.stringify(boxIndex)}`);
 		    return boxIndex;
 		} else {
 			return { 'op': 'index', 'box': t };
@@ -335,65 +344,39 @@ var grammar = {
         } },
     {"name": "line$subexpression$1", "symbols": ["content"]},
     {"name": "line$subexpression$1", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)]},
-    {"name": "line$subexpression$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS)]},
+    {"name": "line$subexpression$1", "symbols": ["_"]},
     {"name": "line$subexpression$1", "symbols": []},
     {"name": "line", "symbols": ["line$subexpression$1"]},
-    {"name": "content$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "content$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "content$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "content$subexpression$1$subexpression$1", "symbols": ["expression"]},
     {"name": "content$subexpression$1$subexpression$1", "symbols": ["namedIntegers"]},
-    {"name": "content$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "content$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "content$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "content$subexpression$1$ebnf$3", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": id},
-    {"name": "content$subexpression$1$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "content$subexpression$1", "symbols": ["content$subexpression$1$ebnf$1", "content$subexpression$1$subexpression$1", "content$subexpression$1$ebnf$2", "content$subexpression$1$ebnf$3"]},
+    {"name": "content$subexpression$1$ebnf$1", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": id},
+    {"name": "content$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "content$subexpression$1", "symbols": ["_", "content$subexpression$1$subexpression$1", "_", "content$subexpression$1$ebnf$1"]},
     {"name": "content", "symbols": ["content$subexpression$1"], "postprocess": trimTree},
     {"name": "namedIntegers$ebnf$1", "symbols": []},
-    {"name": "namedIntegers$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedIntegers$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "namedIntegers$ebnf$2", "symbols": []},
-    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedIntegers$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "namedIntegers$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedIntegers$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "namedIntegers$ebnf$2$subexpression$1", "symbols": ["namedIntegers$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "namedIntegers$ebnf$2$subexpression$1$ebnf$2", "namedInteger"]},
-    {"name": "namedIntegers$ebnf$2", "symbols": ["namedIntegers$ebnf$2$subexpression$1", "namedIntegers$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "namedIntegers", "symbols": [(lexer.has("ampersand") ? {type: "ampersand"} : ampersand), {"literal":"vars","pos":95}, "namedIntegers$ebnf$1", "namedInteger", "namedIntegers$ebnf$2"], "postprocess": d => null},
-    {"name": "namedInteger$ebnf$1", "symbols": []},
-    {"name": "namedInteger$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedInteger$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "namedInteger$ebnf$2", "symbols": []},
-    {"name": "namedInteger$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "namedInteger$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "namedInteger", "symbols": [(lexer.has("name") ? {type: "name"} : name), "namedInteger$ebnf$1", (lexer.has("equals") ? {type: "equals"} : equals), "namedInteger$ebnf$2", "zinteger"], "postprocess": buildNamedInteger},
+    {"name": "namedIntegers$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "namedInteger"]},
+    {"name": "namedIntegers$ebnf$1", "symbols": ["namedIntegers$ebnf$1$subexpression$1", "namedIntegers$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "namedIntegers", "symbols": [(lexer.has("ampersand") ? {type: "ampersand"} : ampersand), {"literal":"vars","pos":90}, "_", "namedInteger", "namedIntegers$ebnf$1"], "postprocess": d => null},
+    {"name": "namedInteger", "symbols": [(lexer.has("name") ? {type: "name"} : name), "_", (lexer.has("equals") ? {type: "equals"} : equals), "_", "zinteger"], "postprocess": buildNamedInteger},
     {"name": "expression$subexpression$1", "symbols": ["composition"]},
     {"name": "expression", "symbols": ["expression$subexpression$1"], "postprocess": id},
-    {"name": "composition$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "composition$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "composition$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "composition$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "composition$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "composition$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "composition$ebnf$1$subexpression$1", "symbols": ["composition$ebnf$1$subexpression$1$ebnf$1", (lexer.has("star") ? {type: "star"} : star), "composition$ebnf$1$subexpression$1$ebnf$2", "expression"]},
+    {"name": "composition$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("star") ? {type: "star"} : star), "_", "expression"]},
     {"name": "composition$ebnf$1", "symbols": ["composition$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "composition$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "composition", "symbols": ["reduction", "composition$ebnf$1"], "postprocess": d => buildOp( d, 'compose' )},
-    {"name": "reduction$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "reduction$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "reduction$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "reduction$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "reduction$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "reduction$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "reduction$ebnf$1$subexpression$1", "symbols": ["reduction$ebnf$1$subexpression$1$ebnf$1", (lexer.has("slash") ? {type: "slash"} : slash), "reduction$ebnf$1$subexpression$1$ebnf$2", "expression"]},
+    {"name": "composition", "symbols": ["truncation", "composition$ebnf$1"], "postprocess": d => buildOp( d, 'compose' )},
+    {"name": "truncation$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("percent") ? {type: "percent"} : percent), "_", "expression"]},
+    {"name": "truncation$ebnf$1", "symbols": ["truncation$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "truncation$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "truncation", "symbols": ["reduction", "truncation$ebnf$1"], "postprocess": d => buildOp( d, 'truncate' )},
+    {"name": "reduction$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("slash") ? {type: "slash"} : slash), "_", "expression"]},
     {"name": "reduction$ebnf$1", "symbols": ["reduction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "reduction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "reduction", "symbols": ["production", "reduction$ebnf$1"], "postprocess": d => buildOp( d, 'reduce' )},
-    {"name": "production$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "production$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "production$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "production$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "production$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "production$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "production$ebnf$1$subexpression$1", "symbols": ["production$ebnf$1$subexpression$1$ebnf$1", (lexer.has("tilda") ? {type: "tilda"} : tilda), "production$ebnf$1$subexpression$1$ebnf$2", "expression"]},
+    {"name": "production$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("tilda") ? {type: "tilda"} : tilda), "_", "expression"]},
     {"name": "production$ebnf$1", "symbols": ["production$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "production$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "production", "symbols": ["exponentiation", "production$ebnf$1"], "postprocess": d => buildOp( d, 'product' )},
-    {"name": "exponentiation$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "exponentiation$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "exponentiation$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "exponentiation$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "exponentiation$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "exponentiation$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "exponentiation$ebnf$1$subexpression$1", "symbols": ["exponentiation$ebnf$1$subexpression$1$ebnf$1", (lexer.has("exp") ? {type: "exp"} : exp), "exponentiation$ebnf$1$subexpression$1$ebnf$2", "zinteger"]},
+    {"name": "exponentiation$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("exp") ? {type: "exp"} : exp), "_", "zinteger"]},
     {"name": "exponentiation$ebnf$1", "symbols": ["exponentiation$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "exponentiation$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "exponentiation", "symbols": ["action", "exponentiation$ebnf$1"], "postprocess": d => buildOp( d, 'power' )},
@@ -405,213 +388,102 @@ var grammar = {
     {"name": "action$subexpression$1", "symbols": ["mgraw"]},
     {"name": "action$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name)], "postprocess": buildNamedAction},
     {"name": "action", "symbols": ["action$subexpression$1"], "postprocess": trimTree},
-    {"name": "assignment$ebnf$1", "symbols": []},
-    {"name": "assignment$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "assignment$ebnf$2", "symbols": []},
-    {"name": "assignment$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "assignment$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "assignment", "symbols": [(lexer.has("name") ? {type: "name"} : name), "assignment$ebnf$1", (lexer.has("equals") ? {type: "equals"} : equals), "assignment$ebnf$2", "expression"], "postprocess": buildAssignment},
-    {"name": "brackets$ebnf$1", "symbols": []},
-    {"name": "brackets$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "brackets$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "brackets$ebnf$2", "symbols": []},
-    {"name": "brackets$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "brackets$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "brackets$ebnf$1", "expression", "brackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": trimTree},
-    {"name": "index$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "index$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "index$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "index$subexpression$1$ebnf$1$subexpression$1", "symbols": ["index$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "perms"]},
+    {"name": "assignment", "symbols": [(lexer.has("name") ? {type: "name"} : name), "_", (lexer.has("equals") ? {type: "equals"} : equals), "_", "expression"], "postprocess": buildAssignment},
+    {"name": "brackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "_", "expression", "_", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": trimTree},
+    {"name": "index$subexpression$1$ebnf$1$subexpression$1", "symbols": ["_", "perms"]},
     {"name": "index$subexpression$1$ebnf$1", "symbols": ["index$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "index$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "index$subexpression$1", "symbols": ["index$subexpression$1$ebnf$1"]},
-    {"name": "index$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "index$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "index$subexpression$1$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "index$subexpression$1$ebnf$2$subexpression$1", "symbols": ["index$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "factuples"]},
+    {"name": "index$subexpression$1$ebnf$2$subexpression$1", "symbols": ["_", "factuples"]},
     {"name": "index$subexpression$1$ebnf$2", "symbols": ["index$subexpression$1$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "index$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "index$subexpression$1", "symbols": ["index$subexpression$1$ebnf$2"]},
     {"name": "index$subexpression$1", "symbols": []},
     {"name": "index", "symbols": ["box", "index$subexpression$1"], "postprocess": d => buildIndex(d)},
     {"name": "box$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "box$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "box$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "box$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "box$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "box$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "box$subexpression$1$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "box$subexpression$1$ebnf$1$subexpression$1", "symbols": ["box$subexpression$1$ebnf$1$subexpression$1$ebnf$1", (lexer.has("colon") ? {type: "colon"} : colon), "box$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "zinteger"]},
+    {"name": "box$subexpression$1$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("colon") ? {type: "colon"} : colon), "_", "zinteger"]},
     {"name": "box$subexpression$1$ebnf$1", "symbols": ["box$subexpression$1$ebnf$1$subexpression$1", "box$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "box$subexpression$1", "symbols": ["zinteger", "box$subexpression$1$ebnf$1"]},
     {"name": "box", "symbols": ["box$subexpression$1"], "postprocess": buildBox},
-    {"name": "litindex$ebnf$1", "symbols": []},
-    {"name": "litindex$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "litindex$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "litindex$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "litindex$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "litindex$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "litindex$ebnf$2$subexpression$1", "symbols": ["cycles", "litindex$ebnf$2$subexpression$1$ebnf$1"]},
-    {"name": "litindex$ebnf$2", "symbols": ["litindex$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "litindex$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "litindex$ebnf$3", "symbols": []},
-    {"name": "litindex$ebnf$3$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "litindex$ebnf$3$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "litindex$ebnf$3$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "litindex$ebnf$3$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "litindex$ebnf$3$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "litindex$ebnf$3$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "litindex$ebnf$3$subexpression$1", "symbols": ["litindex$ebnf$3$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "litindex$ebnf$3$subexpression$1$ebnf$2", "range"]},
-    {"name": "litindex$ebnf$3", "symbols": ["litindex$ebnf$3$subexpression$1", "litindex$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "litindex$ebnf$4", "symbols": []},
-    {"name": "litindex$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "litindex$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "litindex", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "litindex$ebnf$1", "litindex$ebnf$2", "range", "litindex$ebnf$3", "litindex$ebnf$4", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildLitIndex},
-    {"name": "range$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "range$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "range$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "range$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "range$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "range$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "range$subexpression$1", "symbols": ["pinteger", "range$subexpression$1$ebnf$1", (lexer.has("between") ? {type: "between"} : between), "range$subexpression$1$ebnf$2", "pinteger"]},
+    {"name": "litindex$ebnf$1$subexpression$1", "symbols": ["cycles", "_"]},
+    {"name": "litindex$ebnf$1", "symbols": ["litindex$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "litindex$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "litindex$ebnf$2", "symbols": []},
+    {"name": "litindex$ebnf$2$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "range"]},
+    {"name": "litindex$ebnf$2", "symbols": ["litindex$ebnf$2$subexpression$1", "litindex$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "litindex", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "_", "litindex$ebnf$1", "range", "litindex$ebnf$2", "_", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare)], "postprocess": buildLitIndex},
+    {"name": "range$subexpression$1", "symbols": ["pinteger", "_", (lexer.has("between") ? {type: "between"} : between), "_", "pinteger"]},
     {"name": "range", "symbols": ["range$subexpression$1"], "postprocess": buildRange},
     {"name": "range", "symbols": ["pinteger"], "postprocess": id},
-    {"name": "cycles$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "cycles$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cycles$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycles$subexpression$1$ebnf$1$subexpression$1", "symbols": ["cycle", "cycles$subexpression$1$ebnf$1$subexpression$1$ebnf$1"]},
+    {"name": "cycles$subexpression$1$ebnf$1$subexpression$1", "symbols": ["cycle", "_"]},
     {"name": "cycles$subexpression$1$ebnf$1", "symbols": ["cycles$subexpression$1$ebnf$1$subexpression$1"]},
-    {"name": "cycles$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": []},
-    {"name": "cycles$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cycles$subexpression$1$ebnf$1$subexpression$2$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycles$subexpression$1$ebnf$1$subexpression$2", "symbols": ["cycle", "cycles$subexpression$1$ebnf$1$subexpression$2$ebnf$1"]},
+    {"name": "cycles$subexpression$1$ebnf$1$subexpression$2", "symbols": ["cycle", "_"]},
     {"name": "cycles$subexpression$1$ebnf$1", "symbols": ["cycles$subexpression$1$ebnf$1$subexpression$2", "cycles$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "cycles$subexpression$1", "symbols": ["cycles$subexpression$1$ebnf$1"]},
     {"name": "cycles", "symbols": ["cycles$subexpression$1"], "postprocess": buildCycles},
     {"name": "cycle$ebnf$1", "symbols": []},
-    {"name": "cycle$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cycle$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycle$ebnf$2", "symbols": []},
-    {"name": "cycle$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "cycle$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cycle$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycle$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "cycle$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cycle$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycle$ebnf$2$subexpression$1", "symbols": ["cycle$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "cycle$ebnf$2$subexpression$1$ebnf$2", "pinteger"]},
-    {"name": "cycle$ebnf$2", "symbols": ["cycle$ebnf$2$subexpression$1", "cycle$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycle$ebnf$3", "symbols": []},
-    {"name": "cycle$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "cycle$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cycle", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "cycle$ebnf$1", "pinteger", "cycle$ebnf$2", "cycle$ebnf$3", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": buildCycle},
+    {"name": "cycle$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "pinteger"]},
+    {"name": "cycle$ebnf$1", "symbols": ["cycle$ebnf$1$subexpression$1", "cycle$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "cycle", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "_", "pinteger", "cycle$ebnf$1", "_", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": buildCycle},
     {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "zinteger"]},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1", "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$3", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$4", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1", "symbols": [(lexer.has("lcurly") ? {type: "lcurly"} : lcurly), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "zinteger", "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$3", (lexer.has("rcurly") ? {type: "rcurly"} : rcurly), "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$4"]},
+    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "zinteger"]},
+    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "factuples$subexpression$1$ebnf$1$subexpression$1", "symbols": [(lexer.has("lcurly") ? {type: "lcurly"} : lcurly), "_", "zinteger", "factuples$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "_", (lexer.has("rcurly") ? {type: "rcurly"} : rcurly), "_"], "postprocess": buildFactuple},
     {"name": "factuples$subexpression$1$ebnf$1", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$1"]},
     {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2", "zinteger"]},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1", "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$3", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$4", "symbols": []},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2", "symbols": [(lexer.has("lcurly") ? {type: "lcurly"} : lcurly), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "zinteger", "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$2", "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$3", (lexer.has("rcurly") ? {type: "rcurly"} : rcurly), "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$4"]},
+    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "zinteger"]},
+    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1$subexpression$1", "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "factuples$subexpression$1$ebnf$1$subexpression$2", "symbols": [(lexer.has("lcurly") ? {type: "lcurly"} : lcurly), "_", "zinteger", "factuples$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "_", (lexer.has("rcurly") ? {type: "rcurly"} : rcurly), "_"], "postprocess": buildFactuple},
     {"name": "factuples$subexpression$1$ebnf$1", "symbols": ["factuples$subexpression$1$ebnf$1$subexpression$2", "factuples$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "factuples$subexpression$1", "symbols": ["factuples$subexpression$1$ebnf$1"]},
     {"name": "factuples", "symbols": ["factuples$subexpression$1"], "postprocess": buildFactuples},
     {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1$ebnf$2", "zinteger"]},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2$subexpression$1", "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$3", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$4", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$1", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "zinteger", "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$2", "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$3", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare), "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$4"]},
+    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "zinteger"]},
+    {"name": "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "perms$subexpression$1$ebnf$1$subexpression$1", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "_", "zinteger", "perms$subexpression$1$ebnf$1$subexpression$1$ebnf$1", "_", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare), "_"], "postprocess": buildPerm},
     {"name": "perms$subexpression$1$ebnf$1", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$1"]},
     {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$1", (lexer.has("comma") ? {type: "comma"} : comma), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1$ebnf$2", "zinteger"]},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2$subexpression$1", "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$3", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$3", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$4", "symbols": []},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$4", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "perms$subexpression$1$ebnf$1$subexpression$2", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "zinteger", "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$2", "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$3", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare), "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$4"]},
+    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "zinteger"]},
+    {"name": "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1$subexpression$1", "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "perms$subexpression$1$ebnf$1$subexpression$2", "symbols": [(lexer.has("lsquare") ? {type: "lsquare"} : lsquare), "_", "zinteger", "perms$subexpression$1$ebnf$1$subexpression$2$ebnf$1", "_", (lexer.has("rsquare") ? {type: "rsquare"} : rsquare), "_"], "postprocess": buildPerm},
     {"name": "perms$subexpression$1$ebnf$1", "symbols": ["perms$subexpression$1$ebnf$1$subexpression$2", "perms$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "perms$subexpression$1", "symbols": ["perms$subexpression$1$ebnf$1"]},
     {"name": "perms", "symbols": ["perms$subexpression$1"], "postprocess": buildPerms},
-    {"name": "mg$ebnf$1", "symbols": []},
-    {"name": "mg$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "mg$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "mg$ebnf$2", "symbols": []},
-    {"name": "mg$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "mg$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "mg", "symbols": ["zinteger", "mg$ebnf$1", (lexer.has("percent") ? {type: "percent"} : percent), "mg$ebnf$2", "zinteger"], "postprocess": d => buildMultiplicativeGroup(d)},
-    {"name": "mgraw$ebnf$1", "symbols": []},
-    {"name": "mgraw$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "mgraw$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "mgraw$ebnf$2", "symbols": []},
-    {"name": "mgraw$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "mgraw$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "mgraw", "symbols": ["zinteger", "mgraw$ebnf$1", (lexer.has("at") ? {type: "at"} : at), "mgraw$ebnf$2", "zinteger"], "postprocess": d => buildMultiplicativeGroup(d, true)},
+    {"name": "mg", "symbols": ["zinteger", "_", (lexer.has("percent") ? {type: "percent"} : percent), "_", "zinteger"], "postprocess": d => buildMultiplicativeGroup(d)},
+    {"name": "mgraw", "symbols": ["zinteger", "_", (lexer.has("at") ? {type: "at"} : at), "_", "zinteger"], "postprocess": d => buildMultiplicativeGroup(d, true)},
     {"name": "zinteger$subexpression$1", "symbols": [(lexer.has("name") ? {type: "name"} : name)], "postprocess": buildNamedZInteger},
     {"name": "zinteger$subexpression$1", "symbols": ["zbrackets"]},
     {"name": "zinteger$subexpression$1", "symbols": ["zpower"]},
     {"name": "zinteger$subexpression$1", "symbols": ["ninteger"]},
     {"name": "zinteger$subexpression$1", "symbols": ["pinteger"]},
     {"name": "zinteger", "symbols": ["zinteger$subexpression$1"], "postprocess": d => flatten(trimTree(d))},
-    {"name": "zbrackets$ebnf$1", "symbols": []},
-    {"name": "zbrackets$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "zbrackets$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "zbrackets$ebnf$2", "symbols": []},
-    {"name": "zbrackets$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "zbrackets$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "zbrackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "zbrackets$ebnf$1", "zinteger", "zbrackets$ebnf$2", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": trimTree},
+    {"name": "zbrackets", "symbols": [(lexer.has("lparen") ? {type: "lparen"} : lparen), "_", "zinteger", "_", (lexer.has("rparen") ? {type: "rparen"} : rparen)], "postprocess": trimTree},
     {"name": "zpower$subexpression$1", "symbols": ["pinteger"]},
     {"name": "zpower$subexpression$1", "symbols": ["ninteger"]},
-    {"name": "zpower$ebnf$1", "symbols": []},
-    {"name": "zpower$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "zpower$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "zpower$ebnf$2", "symbols": []},
-    {"name": "zpower$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "zpower$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "zpower", "symbols": ["zpower$subexpression$1", "zpower$ebnf$1", (lexer.has("exp") ? {type: "exp"} : exp), "zpower$ebnf$2", "zinteger"], "postprocess": buildExponentation},
+    {"name": "zpower", "symbols": ["zpower$subexpression$1", "_", (lexer.has("exp") ? {type: "exp"} : exp), "_", "zinteger"], "postprocess": buildExponentation},
     {"name": "ninteger", "symbols": [(lexer.has("minus") ? {type: "minus"} : minus), "pinteger"], "postprocess": buildNegation},
     {"name": "pinteger$ebnf$1", "symbols": [(lexer.has("plus") ? {type: "plus"} : plus)], "postprocess": id},
     {"name": "pinteger$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "pinteger", "symbols": ["pinteger$ebnf$1", "division"], "postprocess": trimTree},
     {"name": "division$ebnf$1", "symbols": []},
-    {"name": "division$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "division$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "division$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "division$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "division$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "division$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "division$ebnf$1$subexpression$1", "symbols": ["division$ebnf$1$subexpression$1$ebnf$1", (lexer.has("slash") ? {type: "slash"} : slash), "division$ebnf$1$subexpression$1$ebnf$2", "zinteger"]},
+    {"name": "division$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("slash") ? {type: "slash"} : slash), "_", "zinteger"]},
     {"name": "division$ebnf$1", "symbols": ["division$ebnf$1$subexpression$1", "division$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "division", "symbols": ["multiplication", "division$ebnf$1"], "postprocess": buildDivision},
     {"name": "multiplication$ebnf$1", "symbols": []},
-    {"name": "multiplication$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "multiplication$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "multiplication$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "multiplication$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "multiplication$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "multiplication$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "multiplication$ebnf$1$subexpression$1", "symbols": ["multiplication$ebnf$1$subexpression$1$ebnf$1", (lexer.has("period") ? {type: "period"} : period), "multiplication$ebnf$1$subexpression$1$ebnf$2", "zinteger"]},
+    {"name": "multiplication$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("period") ? {type: "period"} : period), "_", "zinteger"]},
     {"name": "multiplication$ebnf$1", "symbols": ["multiplication$ebnf$1$subexpression$1", "multiplication$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "multiplication", "symbols": ["addition", "multiplication$ebnf$1"], "postprocess": buildProduct},
     {"name": "addition$ebnf$1", "symbols": []},
-    {"name": "addition$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "addition$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "addition$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "addition$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "addition$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "addition$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "addition$ebnf$1$subexpression$1", "symbols": ["addition$ebnf$1$subexpression$1$ebnf$1", (lexer.has("plus") ? {type: "plus"} : plus), "addition$ebnf$1$subexpression$1$ebnf$2", "zinteger"]},
+    {"name": "addition$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("plus") ? {type: "plus"} : plus), "_", "zinteger"]},
     {"name": "addition$ebnf$1", "symbols": ["addition$ebnf$1$subexpression$1", "addition$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "addition", "symbols": ["subtraction", "addition$ebnf$1"], "postprocess": buildAddition},
     {"name": "subtraction$ebnf$1", "symbols": []},
-    {"name": "subtraction$ebnf$1$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "subtraction$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "subtraction$ebnf$1$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "subtraction$ebnf$1$subexpression$1$ebnf$2", "symbols": []},
-    {"name": "subtraction$ebnf$1$subexpression$1$ebnf$2", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "subtraction$ebnf$1$subexpression$1$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "subtraction$ebnf$1$subexpression$1", "symbols": ["subtraction$ebnf$1$subexpression$1$ebnf$1", (lexer.has("minus") ? {type: "minus"} : minus), "subtraction$ebnf$1$subexpression$1$ebnf$2", "zinteger"]},
+    {"name": "subtraction$ebnf$1$subexpression$1", "symbols": ["_", (lexer.has("minus") ? {type: "minus"} : minus), "_", "zinteger"]},
     {"name": "subtraction$ebnf$1", "symbols": ["subtraction$ebnf$1$subexpression$1", "subtraction$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "subtraction", "symbols": [(lexer.has("number") ? {type: "number"} : number), "subtraction$ebnf$1"], "postprocess": buildSubtraction}
+    {"name": "subtraction", "symbols": [(lexer.has("number") ? {type: "number"} : number), "subtraction$ebnf$1"], "postprocess": buildSubtraction},
+    {"name": "_$ebnf$1", "symbols": []},
+    {"name": "_$ebnf$1", "symbols": [(lexer.has("WS") ? {type: "WS"} : WS), "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) {return null }}
 ]
   , ParserStart: "main"
 }

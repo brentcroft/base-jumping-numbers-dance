@@ -4,7 +4,7 @@
 
 	const moo = require("moo")
 	const lexer = moo.compile({
-        WS: /[ \t]+/,
+		WS:         { match: /[\s]+/, lineBreaks: true },
         comment:    /\/\/.*?$|#.*?$/,
         number:     /[0-9]+/,
         name:       /[a-zA-Z$][a-zA-Z0-9$_]*/,
@@ -31,7 +31,7 @@
         rsquare:    ']',
         lcurly:     '{',
         rcurly:     '}',
-        NL:    { match: /\n+/, lineBreaks: true },
+        NL:         ';',
 	});
 
 	const localVars = {};
@@ -51,7 +51,7 @@
 		} else if ( 'number' == a.type ) {
 			return parseInt( a.text );
 		} else if ( [
-				'NL', 'WS', 'comment',
+				'NL', 'comment',
 				'comma', 'lsquare', 'rsquare', 'lparen', 'rparen', 'lcurly', 'rcurly',
 				'exp', 'star', 'colon', 'tilda', 'pipe', 'percent',
 				'period', 'at', 'equals', 'slash', 'ampersand', 'between',
@@ -96,19 +96,18 @@
 		return t[0];
 	};
 	const buildPerm = ( d, l, r ) => {
-		var t = flatten(trimTree(d));
-		if ( Array.isArray(t) ) {
-			t = t.flatMap( c => Array.isArray( c ) ? c : [ c ] );
-			const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
-			if ( missingIndexes.length > 0 ) {
-				throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
-			}
+		var t = flatten(trimArith(d));
+		console.log( `perm-raw: ${JSON.stringify(t)}`);
+		const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
+		if ( missingIndexes.length > 0 ) {
+			throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
 		}
-		return { 'op': 'perm', 'perm': t };
+		//console.log( `perm: ${JSON.stringify(t)}`);
+		return t;
 	};
 	const buildPerms = ( d, l, r ) => {
-		var t = flatten(trimTree(d));
-		//console.log( `perms-raw: ${JSON.stringify(t)}`);
+		var t = hoister(trimTree(d));
+		console.log( `perms-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray(t) && t.length > 0 && !Array.isArray(t[0])  ) {
 			t = [ t ];
 		} else if ( Array.isArray(t) ) {
@@ -119,15 +118,25 @@
 		t.forEach( x => {
 			const missingIndexes = x.filter( (c,i) => x.indexOf(i) < 0 );
 			if ( missingIndexes.length > 0 ) {
-				throw new Error( `Invalid index [${ x }]: missing values: ${ missingIndexes }` );
+				throw new Error( `Invalid index [${ x }]: missing indexes: ${ missingIndexes }` );
 			}
 		} );
 		//console.log( `perms: ${JSON.stringify(t)}`);
 		return { 'op': 'perms', 'perms': t };
 	};
+	const buildFactuple = ( d, l, r ) => {
+		var t = trimArith(d);
+		//console.log( `factuple-raw: ${JSON.stringify(t)}`);
+		const invalidIndexes = t.filter( (c,i) => c > i + 1 );
+		if ( invalidIndexes.length > 0 ) {
+			throw new Error( `Invalid factorial point [${ t }]: values: ${ invalidIndexes }` );
+		}
+		//console.log( `factuple: ${JSON.stringify(t)}`);
+		return t;
+	};
 	const buildFactuples = ( d, l, r ) => {
 		var t = flatten(trimTree(d));
-		console.log( `factuples-raw: ${JSON.stringify(t)}`);
+		//console.log( `factuples-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray(t) && t.length > 0 && !Array.isArray(t[0])  ) {
 			t = [ t ];
 		} else if ( Array.isArray(t) ) {
@@ -135,14 +144,14 @@
 		} else {
 			t = [[ t ]];
 		}
-		console.log( `factuples: ${JSON.stringify(t)}`);
+		//console.log( `factuples: ${JSON.stringify(t)}`);
 		t.forEach( x => {
         	const invalidIndexes = x.filter( (c,i) => c > i + 1 );
 			if ( invalidIndexes.length > 0 ) {
 				throw new Error( `Invalid factorial point [${ x }]: values: ${ invalidIndexes }` );
 			}
 		} );
-		console.log( `factuples: ${JSON.stringify(t)}`);
+		//console.log( `factuples: ${JSON.stringify(t)}`);
 		return { 'op': 'factuples', 'factuples': t };
 	};
 	const buildBox = ( d ) => {
@@ -173,14 +182,14 @@
 	};
 	const buildIndex = ( d, isFactIndex ) => {
 		const t = trimTree(d);
-		console.log(`boxIndex-raw: ${JSON.stringify(t)}`);
+		//console.log(`boxIndex-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray( t ) ) {
 		    const boxIndex = { 'op': 'index', 'box': t[0] };
 			if (t.length > 1) {
 				const selectors = t[1];
 				const payload = hoister(selectors.map( selector => flatten(selector) ) )[0];
 
-				console.log(`boxIndex-payload: ${JSON.stringify(payload)}`);
+				//console.log(`boxIndex-payload: ${JSON.stringify(payload)}`);
 
 				if ( 'factuples' == payload.op ) {
 					const requiredLength = boxIndex.box.bases.length - 1;
@@ -198,7 +207,7 @@
 					boxIndex.perms = payload.perms;
 				}
 			}
-			console.log(`boxIndex: ${JSON.stringify(boxIndex)}`);
+			//console.log(`boxIndex: ${JSON.stringify(boxIndex)}`);
 		    return boxIndex;
 		} else {
 			return { 'op': 'index', 'box': t };
@@ -328,43 +337,44 @@ lines -> line (%NL line):* {% d => {
 	}
 	return t;
 } %}
-line            -> ( content | %comment | %WS | null )
-content         -> ( %WS:* (expression | namedIntegers) %WS:* %comment:? ) {% trimTree %}
+line            -> ( content | %comment | _ | null )
+content         -> ( _ (expression | namedIntegers) _ %comment:? ) {% trimTree %}
 
-namedIntegers   -> %ampersand "vars" %WS:* namedInteger (%WS:* %comma %WS:* namedInteger):* {% d => null %}
-namedInteger    -> %name %WS:* %equals %WS:* zinteger {% buildNamedInteger %}
+namedIntegers   -> %ampersand "vars" _ namedInteger (_ %comma _ namedInteger):* {% d => null %}
+namedInteger    -> %name _ %equals _ zinteger {% buildNamedInteger %}
 
 expression      -> ( composition ) {% id %}
-composition     -> reduction (%WS:* %star %WS:* expression):? {% d => buildOp( d, 'compose' ) %}
-reduction       -> production (%WS:* %slash %WS:* expression):? {% d => buildOp( d, 'reduce' ) %}
-production      -> exponentiation (%WS:* %tilda %WS:* expression):? {% d => buildOp( d, 'product' ) %}
-exponentiation  -> action (%WS:* %exp %WS:* zinteger):? {% d => buildOp( d, 'power' ) %}
+composition     -> truncation (_ %star _ expression):? {% d => buildOp( d, 'compose' ) %}
+truncation      -> reduction (_ %percent _ expression):? {% d => buildOp( d, 'truncate' ) %}
+reduction       -> production (_ %slash _ expression):? {% d => buildOp( d, 'reduce' ) %}
+production      -> exponentiation (_ %tilda _ expression):? {% d => buildOp( d, 'product' ) %}
+exponentiation  -> action (_ %exp _ zinteger):? {% d => buildOp( d, 'power' ) %}
 
 action          -> ( brackets | assignment | litindex | index | mg | mgraw | %name {% buildNamedAction %} ) {% trimTree %}
-assignment      -> %name %WS:* %equals %WS:* expression {% buildAssignment %}
-brackets 		-> %lparen %WS:* expression %WS:* %rparen {% trimTree %}
+assignment      -> %name _ %equals _ expression {% buildAssignment %}
+brackets 		-> %lparen _ expression _ %rparen {% trimTree %}
 
-index           -> box ( (%WS:* perms):? | (%WS:* factuples):? | null ) {% d => buildIndex(d) %}
+index           -> box ( (_ perms):? | (_ factuples):? | null ) {% d => buildIndex(d) %}
 
-box             -> (zinteger (%WS:* %colon %WS:* zinteger):*) {% buildBox %}
-litindex        -> %lsquare %WS:* ( cycles %WS:*):? range (%WS:* %comma %WS:* range):* %WS:* %rsquare {% buildLitIndex %}
-range           -> ( pinteger %WS:* %between %WS:* pinteger ) {% buildRange %} | pinteger {% id %}
-cycles          -> ((cycle %WS:*):+) {% buildCycles %}
-cycle           -> %lparen %WS:* pinteger (%WS:* %comma %WS:* pinteger):* %WS:* %rparen {% buildCycle %}
+box             -> (zinteger (_ %colon _ zinteger):*) {% buildBox %}
+litindex        -> %lsquare _ ( cycles _):? range (_ %comma _ range):* _ %rsquare {% buildLitIndex %}
+range           -> ( pinteger _ %between _ pinteger ) {% buildRange %} | pinteger {% id %}
+cycles          -> ((cycle _):+) {% buildCycles %}
+cycle           -> %lparen _ pinteger (_ %comma _ pinteger):* _ %rparen {% buildCycle %}
 
-factuples        -> (( %lcurly %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rcurly %WS:* ):+) {% buildFactuples %}
-perms            -> (( %lsquare %WS:* zinteger (%WS:* %comma %WS:* zinteger):* %WS:* %rsquare %WS:* ):+) {% buildPerms %}
-mg              -> zinteger %WS:* %percent %WS:* zinteger {% d => buildMultiplicativeGroup(d) %}
-mgraw           -> zinteger %WS:* %at %WS:* zinteger {% d => buildMultiplicativeGroup(d, true) %}
+factuples       -> (( %lcurly _ zinteger (_ %comma _ zinteger):* _ %rcurly _ {% buildFactuple %} ):+) {% buildFactuples %}
+perms           -> (( %lsquare _ zinteger (_ %comma _ zinteger):* _ %rsquare _ {% buildPerm %} ):+) {% buildPerms %}
+mg              -> zinteger _ %percent _ zinteger {% d => buildMultiplicativeGroup(d) %}
+mgraw           -> zinteger _ %at _ zinteger {% d => buildMultiplicativeGroup(d, true) %}
 
 zinteger 		-> ( %name {% buildNamedZInteger %} | zbrackets | zpower | ninteger | pinteger ) {% d => flatten(trimTree(d)) %}
-zbrackets 		-> %lparen %WS:* zinteger %WS:* %rparen {% trimTree %}
-zpower 			-> ( pinteger | ninteger ) %WS:* %exp %WS:* zinteger {% buildExponentation %}
+zbrackets 		-> %lparen _ zinteger _ %rparen {% trimTree %}
+zpower 			-> ( pinteger | ninteger ) _ %exp _ zinteger {% buildExponentation %}
 ninteger 		-> %minus pinteger {% buildNegation %}
 pinteger 		-> %plus:? division {% trimTree %}
-division 	    -> multiplication (%WS:* %slash %WS:* zinteger):* {% buildDivision %}
-multiplication 	-> addition (%WS:* %period %WS:* zinteger):* {% buildProduct %}
-addition 		-> subtraction (%WS:* %plus %WS:* zinteger):* {% buildAddition %}
-subtraction 	-> %number (%WS:* %minus %WS:* zinteger):* {% buildSubtraction %}
-
+division 	    -> multiplication (_ %slash _ zinteger):* {% buildDivision %}
+multiplication 	-> addition (_ %period _ zinteger):* {% buildProduct %}
+addition 		-> subtraction (_ %plus _ zinteger):* {% buildAddition %}
+subtraction 	-> %number (_ %minus _ zinteger):* {% buildSubtraction %}
+_               -> %WS:*     {% function(d) {return null } %}
 

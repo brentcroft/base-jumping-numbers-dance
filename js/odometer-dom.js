@@ -57,7 +57,9 @@ Cycles.prototype.htmlSummary = function() {
          reifyText( this.label() ),
          reifyText( " | " ),
          reifyText( this.alias ),
-         reifyText( " = " ),         reifyText( `(box=[${ this.getBases()}], p=${ this.parity }, v=${this.getVolume()}, o=${this.order()}, c=[${this.C()}]) ` ),
+         reifyText( " = " ),
+         reifyText( `(box=[${ this.getBases()}], p=${ this.parity }, v=${this.getVolume()}, o=${this.order()}) ` ),
+//         reifyText( `(box=[${ this.getBases()}], p=${ this.parity }, v=${this.getVolume()}, o=${this.order()}, c=[${this.C()}]) ` ),
          reifyText( " : " ),
          reifyText( " &rarr; " ),
          this.htmlMonomial()

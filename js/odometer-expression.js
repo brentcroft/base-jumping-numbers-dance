@@ -90,7 +90,7 @@ class CyclesExpression {
                 const box = Box.of([ leaf.group + 1 ]);
                 const source = {
                     'index': mge.index,
-                    'key': `(${ leaf.coprime } @ ${ leaf.group })`,
+                    'key': `(${ leaf.coprime }@${ leaf.group })`,
                     'box': box
                 };
                 const action = cycles( source );
@@ -106,7 +106,7 @@ class CyclesExpression {
                 const specifiedBases = leaf.box.bases;
                 const box = Box.of( specifiedBases );
                 var perms = [];
-                var spec = ' ';
+                var spec = '';
                 if (Object.hasOwn( leaf, 'perms' ) ) {
                     spec += leaf.perms.map( p => `[${p}]` ).join('');
                     const invalidPerms1 = leaf.perms.filter( perm => perm.length != specifiedBases.length );
@@ -162,7 +162,7 @@ class CyclesExpression {
 
                 const cycles = compose( perms[0], perms[1], true, box );
                 cycles.permPair = perms;
-                cycles.key = specifiedBases.join(':') + spec;
+                cycles.key = specifiedBases.join(':') + (spec.length > 0 ? ' ' + spec : '');
                 if ( leaf.name ) {
                     cycles.name = leaf.name;
                 }
@@ -174,7 +174,7 @@ class CyclesExpression {
                 const l = this.processTree( leaf.l );
                 const r = this.processTree( leaf.r );
                 const cycles = compose( l, r, false, r.box );
-                cycles.key = `${ maybeBrackets( l.key ) } * ${ maybeBrackets( r.key ) }`;
+                cycles.key = `${ maybeBrackets( l.key ) }*${ maybeBrackets( r.key ) }`;
                 if ( leaf.name ) {
                     cycles.name = leaf.name;
                 }
@@ -184,24 +184,23 @@ class CyclesExpression {
             case "product":
             {
                 const twist = false;
-                var l = Number.isInteger( leaf.l ) ? leaf.l : this.processTree( leaf.l );
-                var r = Number.isInteger( leaf.r ) ? leaf.r : this.processTree( leaf.r );
-                const key = `${ l.key } ~ ${ r.key }`;
-                const bases = [];
-                if (Number.isInteger( l )) {
-                    bases.push( l );
-                    l = Box.of( [ l ] ).permBox[0];
-                } else {
-                    bases.push( ...l.box.odometer.bases );
-                }
-                if (Number.isInteger( r )) {
-                    bases.push( r );
-                    r = Box.of( [ r ] ).permBox[0];
-                } else {
-                    bases.push( ...r.box.odometer.bases );
-                }
+                const l = this.processTree( leaf.l );
+                const r = this.processTree( leaf.r );
+                const bases = [...l.box.odometer.bases, ...r.box.odometer.bases];
                 const cycles = product( l, r, twist, Box.of( bases ) );
-                cycles.key = key;
+                cycles.key = `${ maybeBrackets( l.key ) }~${ maybeBrackets( r.key ) }`;
+                if ( leaf.name ) {
+                    cycles.name = leaf.name;
+                }
+                return cycles;
+            }
+
+            case "reduce":
+            {
+                const l = this.processTree( leaf.l );
+                const r = this.processTree( leaf.r );
+                const cycles = reduce( l, r, false, r.box );
+                cycles.key = `${ maybeBrackets( l.key ) }/${ maybeBrackets( r.key ) }`;
                 if ( leaf.name ) {
                     cycles.name = leaf.name;
                 }
@@ -209,12 +208,12 @@ class CyclesExpression {
             }
 
 
-            case "reduce":
+            case "truncate":
             {
                 const l = this.processTree( leaf.l );
                 const r = this.processTree( leaf.r );
-                const cycles = reduce( l, r, false, r.box );
-                cycles.key = `${ maybeBrackets( l.key ) } / ${ maybeBrackets( r.key ) }`;
+                const cycles = truncate( l, r, false, r.box );
+                cycles.key = `${ maybeBrackets( l.key ) }%${ maybeBrackets( r.key ) }`;
                 if ( leaf.name ) {
                     cycles.name = leaf.name;
                 }

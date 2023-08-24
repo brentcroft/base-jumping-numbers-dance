@@ -195,9 +195,7 @@ function inverse( source ) {
     return cycles( {
         'index': index,
         'key': key,
-        'sources': [ source ],
-        'box': source.box,
-        'parity': !source.parity
+        'box': source.box
     } );
 }
 
@@ -218,20 +216,8 @@ function compose( leftSource, rightSource, twist = false, box ) {
         var nextId = twist ? ri.indexOf(i) : ri[i];
         index[i] = li[nextId] % ri.length;
     }
-    const action = cycles( {
-       'index': index,
-       'key': key,
-       'sources': [ leftSource, rightSource, twist ],
-       'box': box,
-       'parity': twist
-           ? parity(leftSource.parity, !rightSource.parity)
-           : parity(leftSource.parity, rightSource.parity)
-    } );
-    //action.name = `${ maybeBracket( leftSource.name ) }${ twist ? ':' : '*' }${ maybeBracket( rightSource.name ) }`
-    return action;
+    return cycles( { 'index': index, 'key': key, 'box': box } );
 }
-
-
 
 function product( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
@@ -247,15 +233,43 @@ function product( leftSource, rightSource, twist = false, box ) {
     return cycles( {
         'index': index ,
         'key': `${ maybeBracket( leftSource.key ) }${ twist ? '~' : '|' }${ maybeBracket( rightSource.key ) }`,
-        'sources': [ leftSource, rightSource, twist ],
-        'box': box,
-        'parity': twist
-            ? parity(leftSource.parity, !rightSource.parity)
-            : parity(leftSource.parity, rightSource.parity)
+        'box': box
     } );
 }
 
 function reduce( leftSource, rightSource, twist = false, box ) {
+    const ri = rightSource.index;
+    const l = Math.trunc(leftSource.index.length / ri.length);
+    const li = leftSource.index.slice(0, l);
+
+    // unsatisfiable indexes become fixed points
+    const collapseCycle = (c) => {
+        const items = [ c ];
+        var x = li.indexOf( c );
+        while (x >= 0) {
+            items.push( x );
+            x = li.indexOf( x )
+        }
+        items.forEach( i => li[i] = i);
+    };
+    for (var i = 0; i < l; i++ ) {
+        if (li[i] >= l ) {
+            collapseCycle(i);
+        }
+    }
+    const index = arrayOfIndexes( li.length );
+    for ( var i = 0; i < ri.length; i++ ) {
+        var nextId = twist ? ri.indexOf(i) : ri[i];
+        index[i] = li[nextId] % ri.length;
+    }
+    return cycles( {
+        'index': index ,
+        'key': `${ maybeBracket( leftSource.key ) }${ twist ? '/' : '/' }${ maybeBracket( rightSource.key ) }`,
+        'box': Box.of( [ l ] )
+    } );
+}
+
+function truncate( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
     const l = ri.length;
     const li = leftSource.index.slice(0, l);
@@ -275,22 +289,17 @@ function reduce( leftSource, rightSource, twist = false, box ) {
             collapseCycle(i);
         }
     }
-    const index = new Array( ri.length );
+    const index = arrayOfIndexes( li.length );
     for ( var i = 0; i < ri.length; i++ ) {
         var nextId = twist ? ri.indexOf(i) : ri[i];
         index[i] = li[nextId] % ri.length;
     }
     return cycles( {
         'index': index ,
-        'key': `${ maybeBracket( leftSource.key ) }${ twist ? '/' : '/' }${ maybeBracket( rightSource.key ) }`,
-        'sources': [ leftSource, rightSource, twist ],
-        'box': box,
-        'parity': twist
-            ? parity(leftSource.parity, !rightSource.parity)
-            : parity(leftSource.parity, rightSource.parity)
+        'key': `${ maybeBracket( leftSource.key ) }${ twist ? '%' : '%' }${ maybeBracket( rightSource.key ) }`,
+        'box': Box.of( [ l ] )
     } );
 }
-
 
 /**
 
@@ -597,6 +606,7 @@ class Cycle extends Array {
 
         this
             .map( index => points[index] )
+            .filter( coord => coord )
             .forEach( coord => coord.forEach( (c,i) => coordsSum[i] += c ) );
 
         centre
@@ -871,8 +881,12 @@ class Cycles extends Array {
         }
         this.$stats = this
             .map( cycle => {
-                const stats = cycle.getStats(this.box);
-                return stats;
+                try {
+                    const stats = cycle.getStats(this.box);
+                    return stats;
+                } catch (e) {
+                    console.log( `Error getting cycle stats: ${e}`);
+                }
             } )
             .filter( stats => stats != null )
             .reduce( (a,c) => {

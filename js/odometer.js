@@ -216,6 +216,14 @@ function collapseBrokenCycleInIndex( c, index ) {
     }
     items.forEach( i => index[i] = i);
 }
+function sanitiseCycles(index) {
+    const l = index.length;
+    for (var i = 0; i < l; i++ ) {
+        if (index[i] >= l ) {
+            collapseBrokenCycleInIndex(i, index);
+        }
+    }
+}
 
 function compose( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
@@ -258,13 +266,10 @@ function reduce( leftSource, rightSource, twist = false, box ) {
 
     const indexes = [];
     for ( var i = 0; i < l; i++ ) {
-        const index = arrayOfIndexes( l );
-        for ( var j = 0; j < ri.length; j++ ) {
-            var nextId = twist ? ri.indexOf(j) : ri[j];
-            nextId = (i * ri.length);
-            index[i] = li[nextId];
-        }
-        indexes.push( index );
+        const nextOffset = (i * ri.length);
+        const x = li.slice(nextOffset, l + nextOffset);
+        //sanitiseCycles( x );
+        indexes.push( x );
     }
     console.log(`indexes: ${indexes.map( index => `[${index}]`)}`);
     return cycles( {

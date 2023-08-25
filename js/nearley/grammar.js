@@ -101,7 +101,7 @@ function id(x) { return x[0]; }
 	};
 	const buildPerm = ( d, l, r ) => {
 		var t = flatten(trimArith(d));
-		console.log( `perm-raw: ${JSON.stringify(t)}`);
+		//console.log( `perm-raw: ${JSON.stringify(t)}`);
 		const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
 		if ( missingIndexes.length > 0 ) {
 			throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
@@ -111,7 +111,7 @@ function id(x) { return x[0]; }
 	};
 	const buildPerms = ( d, l, r ) => {
 		var t = hoister(trimTree(d));
-		console.log( `perms-raw: ${JSON.stringify(t)}`);
+		//console.log( `perms-raw: ${JSON.stringify(t)}`);
 		if ( Array.isArray(t) && t.length > 0 && !Array.isArray(t[0])  ) {
 			t = [ t ];
 		} else if ( Array.isArray(t) ) {
@@ -173,7 +173,7 @@ function id(x) { return x[0]; }
 	};
 	const buildAssignment = ( d ) => {
 		const t = trimTree(d);
-		console.log(t);
+		//console.log(t);
 		if (Array.isArray(t)) {
 			if ( t[1].name ) {
 				throw new Error( `Invalid Assignment: item named "${ t[1].name }" cannot be renamed "${ t[0].text }` );

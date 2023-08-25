@@ -5,11 +5,11 @@ const mgGroupSpec = (n,r) => arrayOfIndexes(n-1)
 const expressionLibrary = {
     'blank': [],
     'literals': [
-        'x = (2:3)',
-        'a = (x~5)',
-        'b = (a / 5)',
-        'c = (5~x)',
-        'd = (c % x)',
+        'a = (2:3); b = (5:7);',
+        'c = (a~b)',
+        'c/b',
+        'd = (b~a)',
+        'd/a',
 //        'e',
 //        'e',
 //

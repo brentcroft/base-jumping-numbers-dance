@@ -271,10 +271,7 @@ function reduce( leftSource, rightSource, twist = false, box ) {
     for ( var i = 0; i < ri.length; i++ ) {
         const nextOffset = (i * l);
         const x = li.slice(nextOffset, l + nextOffset).map( v => v % l );
-        //sanitiseCycles( x );
-        if (indexes.length == 0 ){
-            indexes.push( x );
-        } else if ( !indexes.find( a => arrayExactlyEquals(a,x) ) ) {
+        if ( !indexes.find( a => arrayExactlyEquals(a,x) ) ) {
             indexes.push( x );
         }
     }

@@ -28,7 +28,7 @@ class MidiSource {
                 }
             } );
             if (!this.midiOutput) {
-                throw new Error( `Failed to connect to port ${ this.portName }` );
+                console.log( `Failed to connect to port ${ this.portName }` );
             }
         }
         const unconnected = () => {
@@ -37,12 +37,20 @@ class MidiSource {
         navigator.requestMIDIAccess().then( connected, unconnected );
     }
     sendMessage( message ) {
-        if (this.midiOutput) {
+        if (!this.midiOutput) {
+            this.getOutputs();
             this.midiOutput.send( message );
-            //console.log( `send message ${ message } to ${ this.midiOutput.name }` );
+        }
+        if (this.midiOutput) {
+           this.midiOutput.send( message );
         } else {
             console.log('Not connected');
         }
+    }
+    playCycle( cycle ) {
+        const messages = cycle.map( (value,i) => [ this.noteOnOff( value ), this.noteValue( value), this.velocity ] );
+        console.log( `sending messages: ${ messages.map( m => `[${ m }]`).join(', ') }` );
+        messages.forEach( message => this.sendMessage( message ) );
     }
 }
 
@@ -56,36 +64,38 @@ class MidiDrumKit extends MidiSource {
         this.box = Box.of([ 32 ]);
     }
 
-    playCycle( cycle ) {
-        const noteOnOff = (v) => (v < MidiDrumKit.SIZE)
-            ? MidiSource.NOTE_ON
-            : MidiSource.NOTE_OFF;
-        const noteValue = (v) => {
-            const x = (v < MidiDrumKit.SIZE)
-                ? v
-                : (2 * MidiDrumKit.SIZE) - v;
-            return MidiDrumKit.START + x;
-        };
-        const messages = cycle.map( (value,i) => [ noteOnOff( value ), noteValue( value), this.velocity ] );
-        console.log( `sending messages: ${ messages.map( m => `[${ m }]`).join(', ') }` );
-        messages.forEach( message => this.sendMessage( message ) );
+    noteOnOff(v){
+        return (v < MidiDrumKit.SIZE)
+                ? MidiSource.NOTE_ON
+                : MidiSource.NOTE_OFF;
     }
-
+    noteValue(v) {
+        const x = (v < MidiDrumKit.SIZE)
+            ? v
+            : (2 * MidiDrumKit.SIZE) - v;
+        return MidiDrumKit.START + x;
+    }
 }
 
 
 class MidiKeyboard extends MidiSource {
     static START = 21;
     static NOTE_DURATION = 100;
+    static SIZE = 16;
 
     constructor() {
         super();
     }
 
-    playCycle( cycle ) {
-        const messages = cycle.map( (value,i) => [ MidiSource.NOTE_ON, MidiKeyboard.START + (value % 88), this.velocity ] );
-        console.log( `sending messages: ${ messages.map( m => `[${ m }]`).join(', ') }` );
-        messages.forEach( message => this.sendMessage( message ) );
+    noteOnOff(v){
+        return (v < MidiKeyboard.SIZE)
+                ? MidiSource.NOTE_ON
+                : MidiSource.NOTE_OFF;
     }
-
+    noteValue(v) {
+        const x = (v < MidiKeyboard.SIZE)
+            ? v
+            : (2 * MidiKeyboard.SIZE) - v;
+        return MidiKeyboard.START + x;
+    }
 }

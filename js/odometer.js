@@ -261,20 +261,29 @@ function product( leftSource, rightSource, twist = false, box ) {
 
 function reduce( leftSource, rightSource, twist = false, box ) {
     const ri = rightSource.index;
-    const l = Math.trunc(leftSource.index.length / ri.length);
     const li = leftSource.index;
-
-    const indexes = [];
-    for ( var i = 0; i < l; i++ ) {
-        const nextOffset = (i * ri.length);
-        const x = li.slice(nextOffset, l + nextOffset);
-        //sanitiseCycles( x );
-        indexes.push( x );
+    const l = li.length / ri.length;
+    const key = `${ maybeBracket( leftSource.key ) }${ twist ? '/' : '/' }${ maybeBracket( rightSource.key ) }`;
+    if (!Number.isInteger(l)) {
+        throw new Error(`Cannot divide index of size ${li.length} by ${ ri.length }; calculating ${ key }`);
     }
-    console.log(`indexes: ${indexes.map( index => `[${index}]`)}`);
+    const indexes = [];
+    for ( var i = 0; i < ri.length; i++ ) {
+        const nextOffset = (i * l);
+        const x = li.slice(nextOffset, l + nextOffset).map( v => v % l );
+        //sanitiseCycles( x );
+        if (indexes.length == 0 ){
+            indexes.push( x );
+        } else if ( !indexes.find( a => arrayExactlyEquals(a,x) ) ) {
+            indexes.push( x );
+        }
+    }
+    if (indexes.length != 1 ) {
+        throw new Error(`Different parts returned from division; calculating ${ key }\n${ indexes.map( (idx,i) => i + ': [' + idx + ']' ).join('\n') }`);
+    }
     return cycles( {
         'index': indexes[0],
-        'key': `${ maybeBracket( leftSource.key ) }${ twist ? '/' : '/' }${ maybeBracket( rightSource.key ) }`,
+        'key': key,
         'box': Box.of( [ l ] )
     } );
 }

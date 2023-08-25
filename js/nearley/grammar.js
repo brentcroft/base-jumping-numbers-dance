@@ -69,7 +69,7 @@ function id(x) { return x[0]; }
 	const trimArith = (d) => {
 		const t = trimTree(d);
 		return Array.isArray(t)
-			? t.flatMap( c => Array.isArray( c ) ? c : [ c ] )
+			? t.flatMap( c => Array.isArray( c ) ? trimArith( c ) : [ c ] )
 			: [ t ]
 	};
 	const flatten = (d) => {

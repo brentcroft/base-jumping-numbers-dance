@@ -80,7 +80,7 @@
         }
         function putError( message, error ) {
             const container = byId( 'expressionResults' );
-            container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( message ) ] ) );
+            //container.appendChild( reify( 'pre', { 'class': 'expressionScriptError' }, [ reifyText( message ) ] ) );
             container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error ) ] ) );
             if ( error.stack ) {
                 container.appendChild( reify( 'pre', { 'class': 'expressionScriptResult' }, [ reifyText( error.stack ) ] ) );

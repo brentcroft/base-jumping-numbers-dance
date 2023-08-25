@@ -119,7 +119,7 @@
                     clearResults();
                 }
 
-                if (calculatorTask) {
+                if (compileTask) {
                     clearTimeout( compileTask );
                     //console.log( 'Cleared old compile task.' );
                 }
@@ -142,6 +142,17 @@
 
                                 const result = operation.evaluate( expressions );
                                 putComment( `Evaluated ${ result.length } results.` );
+
+                                const renderer = () => {
+                                    try {
+                                        putActions( result );
+                                    } catch ( e ) {
+                                        putError( 'Error rendering result', e );
+                                        throw e;
+                                    }
+                                };
+                                putComment( "Rendering..." );
+                                renderTask = setTimeout( renderer, 200 );
 
                                 const player = () => {
                                     try {
@@ -168,17 +179,6 @@
                                     }
                                 };
 
-                                const renderer = () => {
-                                    try {
-                                        putActions( result );
-                                    } catch ( e ) {
-                                        putError( 'Error rendering result', e );
-                                        throw e;
-                                    }
-                                };
-                                putComment( "Rendering..." );
-                                renderTask = setTimeout( renderer, 200 );
-
                                 if (byId('autoPlay').checked) {
                                     playerTask = setTimeout( player, 200 );
                                 }
@@ -188,14 +188,14 @@
                             }
                         };
                         putComment( "Calculating..." );
-                        evaluateTask = setTimeout( evaluator, 200 );
+                        evaluateTask = setTimeout( evaluator, 500 );
                    } catch (e) {
                         putError( 'Error compiling script', e );
                         throw e;
                    }
                 };
                 putComment( "Compiling..." );
-                compileTask = setTimeout( compiler, 200 );
+                compileTask = setTimeout( compiler, 300 );
             };
             calculatorTask = setTimeout( calculator, 200 );
         }

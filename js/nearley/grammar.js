@@ -129,8 +129,8 @@ function id(x) { return x[0]; }
 		return { 'op': 'perms', 'perms': t };
 	};
 	const buildFactuple = ( d, l, r ) => {
-		var t = trimArith(d); 
-		//console.log( `factuple-raw: ${JSON.stringify(t)}`); 
+		var t = trimArith(d);
+		//console.log( `factuple-raw: ${JSON.stringify(t)}`);
 		const invalidIndexes = t.filter( (c,i) => c > i + 1 );
 		if ( invalidIndexes.length > 0 ) {
 			throw new Error( `Invalid factorial point [${ t }]: values: ${ invalidIndexes }` );
@@ -299,7 +299,7 @@ function id(x) { return x[0]; }
 		const t = trimTree(d);
 		//console.log(`buildLitIndex: ${JSON.stringify(t)}`);
 		const hasCycles = Array.isArray(t[0]) && t[0][0].op === 'cycles';
-		const index = buildPerm( hasCycles ? t.slice(1) : t).perm;
+		const index = buildPerm( hasCycles ? t.slice(1) : t);
 		if (hasCycles) {
 			//console.log(`cycles: ${JSON.stringify(t[0][0])}`);
 			const cycles = t[0][0].cycles;
@@ -310,7 +310,7 @@ function id(x) { return x[0]; }
                 } ) );
 		}
 		//console.log(`cycles-index: ${JSON.stringify(index)}`);
-		return { 'op': 'index', 'index': index, 'key': 'literal', 'hasCycles': t[0][0].cycles, 'box': { 'op': 'box', 'bases': [index.length] } };
+		return { 'op': 'index', 'index': index, 'key': '?', 'hasCycles': t[0][0].cycles, 'box': { 'op': 'box', 'bases': [index.length] } };
 	};
 	const buildRange = (d,l,r) => {
 		const t = flatten(trimTree(d));

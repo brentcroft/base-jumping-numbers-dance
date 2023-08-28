@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
 
@@ -241,13 +241,16 @@
                 const option = Array
                     .from(expressionSelector.options)
                     .find( option => option.text === scriptKey );
-                expressionSelector.value = option.value;
-                expressionSelector.onchange( { source: expressionSelector } );
+                if (option) {
+                    expressionSelector.value = option.value;
+                    expressionSelector.onchange( { source: expressionSelector } );
+                }
             }, 200 );
         }
     </script>
+    <title>Odometers</title>
 </head>
-<body onload="renderExpressionLibraryLinks(); selectScript('literals')">
+<body onload="renderExpressionLibraryLinks(); selectScript('default')">
     | <label class="columnSelector">expressions:<input type="checkbox" checked="checked" id="expressionPanelToggle" onclick="showHide( 'expressionScriptLabel', this );"/></label>
     | <label class="columnSelector">boxes:<input type="checkbox" id="actionsTableToggle" onclick="showHide( 'boxActions', this );drawActionsTables()"/></label>
     <label  style="display: none" class="columnSelector">clear on calculate:<input type="checkbox" checked="checked" id="clearOnCalculate"/></label>

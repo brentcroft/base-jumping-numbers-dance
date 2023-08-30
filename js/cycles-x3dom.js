@@ -90,7 +90,8 @@ function getCyclesDiagram( cycles, param = {} ) {
                                             ? reify(
                                                 "transform", {
                                                     "translation": `${ halfJump } 0 0`,
-                                                    "class": "orbit-line"
+                                                    "class": "orbit-line",
+                                                    "id": `orbit.${ cycleIndex }`
                                                 },
                                                 [
                                                     createTorusShape( {

@@ -656,9 +656,10 @@ class Cycle extends Array {
             const cycleCoefficients = this.map( id => cycles.box[ id ][baseIndex] );
             if (cycleCoefficients) {
 
-                const localParity = (baseIndex % 2) == 0;
+                const localParity = (baseIndex % 2) == 1;
 
-                const rightToLeft = (cycles.parity && !localParity) || (!cycles.parity && localParity);
+                //const rightToLeft = (cycles.parity && !localParity) || (!cycles.parity && localParity);
+                const rightToLeft = (localParity);
 
                 if (rightToLeft) {
                     cycleCoefficients.reverse();

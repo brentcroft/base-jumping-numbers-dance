@@ -55,11 +55,9 @@ Cycles.prototype.x3dBoxes = function( param = { 'toggles': ['lines', 'grid', 'pl
 Cycles.prototype.htmlSummary = function() {
      return reify( "div",{}, [
          reifyText( this.label() ),
-         reifyText( " | " ),
-         reifyText( this.alias ),
-         reifyText( " = " ),
-         reifyText( `(box=[${ this.getBases()}], p=${ this.parity }, v=${this.getVolume()}, o=${this.order()}) ` ),
-//         reifyText( `(box=[${ this.getBases()}], p=${ this.parity }, v=${this.getVolume()}, o=${this.order()}, c=[${this.C()}]) ` ),
+         reifyText( " " ),
+//         reifyText( `(box=[${ this.getBases()}], p=${ this.parity }, v=${this.getVolume()}, o=${this.order()}) ` ),
+         reifyText( `box=[${ this.getBases()}], v=${this.getVolume()}, o=${this.order()}, c=[${this.C()}] ` ),
          reifyText( " : " ),
          reifyText( " &rarr; " ),
          this.htmlMonomial()
@@ -110,9 +108,8 @@ Cycles.prototype.htmlTable = function() {
             } else if ( 'orbit.e' == orbitElement.id ) {
                 orbitElement.setAttribute( "render", true );
                 orbitElement.classList.remove("selected");
-            } else {
+            } else if (!orbitElement.classList.contains( "selected" )) {
                 orbitElement.setAttribute( "render", false );
-                orbitElement.classList.remove("selected");
             }
         });
     }
@@ -122,13 +119,8 @@ Cycles.prototype.htmlTable = function() {
             const classList = source.classList;
             if ( classList.contains( 'selected' ) ) {
                 classList.remove( 'selected' );
-            } else {
-                tableContainer
-                    .querySelectorAll( '.selected' )
-                    .forEach( s => s.classList.remove('selected'));
-                if ( source.id ) {
-                    classList.add( 'selected' );
-                }
+            } else if ( source.id ) {
+                classList.add( 'selected' );
             }
             showOrbit( source.id );
        };
@@ -371,8 +363,8 @@ const actionsHtmlTableColumns = [
     'alias',
     'match',
     'monomial',
-    'perimeter',
-    'radiance',
+    'per2',
+    'rad',
     'volume',
     'order',
 ];
@@ -393,8 +385,8 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
         'order',
         'id-sum',
         'coords-sum',
-        'perimeter',
-        'radiance',
+        'per2',
+        'rad',
         'index',
         'cycles'
     ];
@@ -496,8 +488,8 @@ function cyclesDomNode( actions, caption = null, monomialFilter = null ) {
                         maybeDisplay( 'order', () => reify( 'td', {}, [ reifyText( `${ cycles.order() }` ) ] ) ),
                         maybeDisplay( 'id-sum', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().idSum }` ) ] ) ),
                         maybeDisplay( 'coords-sum', () => reify( 'td', {}, [ reifyText( `(${ cycles.getStats().coordsSum })` ) ] ) ),
-                        maybeDisplay( 'perimeter', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().euclideanPerimeter }` ) ] ) ),
-                        maybeDisplay( 'radiance', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().indexPerimeter }` ) ] ) ),
+                        maybeDisplay( 'per2', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().euclideanPerimeter }` ) ] ) ),
+                        maybeDisplay( 'rad', () => reify( 'td', {}, [ reifyText( `${ cycles.getStats().indexPerimeter }` ) ] ) ),
                         maybeDisplay( 'equations', () => reify( 'td', {}, [ cycles.htmlEquations() ] ) ),
                         maybeDisplay( 'index', () => reify( 'td', {}, [ reifyText( `[${ cycles.index }]` ) ] ) ),
                         maybeDisplay( 'cycles', () => reify( 'td', {}, [

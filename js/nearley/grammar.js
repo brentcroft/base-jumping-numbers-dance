@@ -101,10 +101,10 @@ function id(x) { return x[0]; }
 	};
 	const buildPerm = ( d, l, r ) => {
 		var t = flatten(trimArith(d));
-		//console.log( `perm-raw: ${JSON.stringify(t)}`);
+		console.log( `perm-raw: ${JSON.stringify(t)}`);
 		const missingIndexes = t.filter( (c,i) => t.indexOf(i) < 0 );
 		if ( missingIndexes.length > 0 ) {
-			throw new Error( `Invalid index [${ t }]: missing values: ${ missingIndexes }` );
+			throw new Error( `Invalid index [${ t }]: values: ${ missingIndexes }` );
 		}
 		//console.log( `perm: ${JSON.stringify(t)}`);
 		return t;

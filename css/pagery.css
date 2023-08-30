@@ -155,7 +155,7 @@ table.packing caption { font-size: 60%; }
    float: inline-start;
 }
 tr.selected td {
-    background: pink;
+    background: lightblue;
 }
 
 .grid-of-cells {
